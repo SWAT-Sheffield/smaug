@@ -1,0 +1,240 @@
+#! /bin/csh -f
+#@(#)install.lover	2.1
+#
+#Script to install the LOVER library.
+#
+#Author:  A.J.C. Belien
+#Version: 2.1
+#Date:    14:02:26 3/14/00   
+#
+#(C) 1994-1996: FOM-Institute for Plasma Physics `Rijnhuizen',
+#               Academic Computing Services Amsterdam (SARA)
+#(C) 1997-2000: FOM-Institute for Plasma Physics `Rijnhuizen'
+#
+set swd = `pwd`
+set ok = 0
+while ($ok == 0)
+  echo       "What kind of architecture ?"
+  echo    1. CRAY/UNICOS architecture
+  echo    2. IBM/AIX  workstation architecture
+  echo    3. SGI/IRIX workstation  architecture
+  echo    4. SUN/SunOS workstation  architecture
+  echo    5. DEC/Ultrix workstation  architecture
+  echo
+  echo  -n  "Enter number of your choice:"
+#
+  set a = ($<)
+  if ($a == 1) then
+     setenv ARCH CRAY
+     @ ok = 1
+     echo " CRAY/UNICOS architecture selected"
+  else if ($a == 2) then
+     setenv ARCH IBMRIOS
+     @ ok = 1
+     echo " IBM/AIX architecture selected"
+  else if ($a == 3) then
+     setenv ARCH SGI
+     @ ok = 1
+     echo " SGI/IRIX architecture selected"
+  else if ($a == 4) then
+     setenv ARCH SUN
+     @ ok = 1
+     echo " SUN/SunOS architecture selected"
+  else if ($a == 5) then
+     setenv ARCH DEC
+     @ ok = 1
+     echo " DEC/Ultrix architecture selected"
+  else
+     echo "***install.lover: incorrect number, number must be between 1 and 4."
+  endif
+end
+#
+if (!($?LOVERTOPDIR)) then
+   echo =================================================
+   echo The default top directory in which the lover
+   echo software is installed is /usr/local/.
+   echo ""
+   echo If it has to be installed in another directory
+   echo type the name of it below.
+   echo Just return if it has to be installed in the
+   echo default directory.
+   echo =================================================
+   echo ""
+   echo The top directory is =
+#
+   set top = $<
+   set top = `echo 'echo' $top|/bin/csh`
+#
+   if ($top == "") then
+      setenv LOVERTOPDIR /usr/local/
+      setenv LOVER /usr/local/lover
+   else
+      if (-d $top && -w $top) then
+         cd $top
+         setenv LOVERTOPDIR `pwd`
+	 setenv LOVER `pwd`/lover
+         cd $swd
+      else
+         echo ================================================================
+         echo Directory $top does not exist or does not allow write access.
+         echo ================================================================
+         exit 1
+      endif
+   endif
+else
+   if (-d $LOVERTOPDIR && -w $LOVERTOPDIR) then
+      cd $LOVERTOPDIR
+      setenv LOVER $LOVERTOPDIR/lover
+      cd $swd
+   else
+      echo ================================================================
+      echo Directory $top does not exist or does not allow write access.
+      echo ================================================================
+      exit 1
+   endif
+endif
+#
+if (!($?LIB)) then
+   echo =================================================
+   echo The default directory in which the lover library
+   echo liblover.a is installed is /usr/local/lib.
+   echo ""
+   echo If it has to be installed in another directory
+   echo type the name of it below.
+   echo Just return if it has to be installed in the
+   echo default directory.
+   echo =================================================
+   echo ""
+   echo The lib directory is =
+#
+   set lib = $<
+   set lib = `echo 'echo' $lib|/bin/csh`
+#
+   if ($lib == "") then
+      setenv LIB /usr/local/lib
+   else
+      if (-d $lib && -w $lib) then
+         cd $lib
+         setenv LIB `pwd`
+         cd $swd
+      else
+         echo ================================================================
+         echo Directory $lib does not exist or does not allow write access.
+         echo ================================================================
+         exit 1
+      endif
+   endif
+else
+   if (!(-d $LIB && -w $LIB)) then
+      echo ================================================================
+      echo Directory $LIB does not exist or does not allow write access.
+      echo ================================================================
+      exit 1
+   endif
+endif
+#
+if (!($?INCLUDE)) then
+   echo =================================================
+   echo The default directory in which the lover include
+   echo files are installed is /usr/local/include.
+   echo ""
+   echo If it has to be installed in another directory
+   echo type the name of it below.
+   echo Just return if it has to be installed in the
+   echo default directory.
+   echo =================================================
+   echo ""
+   echo The include directory is =
+#
+   set include = $<
+   set include = `echo 'echo' $include|/bin/csh`
+#
+   if ($include == "") then
+      setenv INCLUDE /usr/local/include
+   else
+      if (-d $include && -w $include) then
+         cd $include
+         setenv INCLUDE `pwd`
+         cd $swd
+      else
+         echo ================================================================
+         echo Directory $include does not exist or does not allow write access.
+         echo ================================================================
+         exit 1
+      endif
+   endif
+else
+   if (!(-d $INCLUDE && -w $INCLUDE)) then
+      echo ================================================================
+      echo Directory $INCLUDE does not exist or does not allow write access.
+      echo ================================================================
+      exit 1
+   endif
+endif
+#
+# Installing LOVER
+mv lover.tar $LOVERTOPDIR
+cd $LOVERTOPDIR
+
+#  Unpack and set execute permission on liblover.mk
+tar -xvf lover.tar
+chmod u+x lover/SOURCE/liblover.mk
+#
+#  Copy lover.h to $INCLUDE, use -f to overrule read only permission on old
+#  lover.h version if present.
+cp -f lover/SOURCE/INCLUDE/lover.h $INCLUDE
+#
+# Architecture depent compiler info
+if ($ARCH == CRAY) then
+   setenv F77 f90
+   setenv F77FLAGS "-O vector3"
+   setenv CC cc
+   setenv CFLAGS -O 
+else if ($ARCH == IBMRIOS) then
+   setenv F77 xlf
+   setenv F77FLAGS "-O -qautodbl=dbl4"
+   setenv CC cc
+   setenv CFLAGS -O 
+else if ($ARCH == SGI) then
+   setenv F77 f77
+   setenv F77FLAGS "-O -r8"
+   setenv CC cc
+   setenv CFLAGS -O 
+else if ($ARCH == SUN) then
+   setenv F77 f77
+   setenv F77FLAGS "-O -r8"
+   setenv CC acc
+   setenv CFLAGS -O 
+else if ($ARCH == DEC) then
+   setenv F77 f77
+   setenv F77FLAGS "-O -r8 -DLSB"
+   setenv CC acc
+   setenv CFLAGS -O 
+else
+   echo ================================================================
+   echo   "Wrong architecture - $ARCH"
+   echo    Possible architectures are: - CRAY98  (UNICOS/CRAY systems)
+   echo                                - IBMRIOS (AIX/RS6000 systems)
+   echo                                - SGI     (SGI systems)
+   echo                                - SUN     (SUN systems)
+   echo                                - DEC     (DEC systems)
+   echo   "Unsuccesful installation of LOVER"
+   echo ================================================================
+   exit 1
+endif
+#
+echo  ===============================================
+echo    "Compiling LOVER library and demo programs"
+echo  ===============================================
+cd $LOVER/DEMOS
+make ARCH=$ARCH 
+if ($status == 0) then
+   echo ========================================================
+   echo   "Succesful compilation of library and demo programs"
+   echo ========================================================
+else
+   echo ==========================================================
+   echo   "Unsuccesful compilation of library and demo programs"
+   echo ==========================================================
+endif
+#end of shell-script install.lover

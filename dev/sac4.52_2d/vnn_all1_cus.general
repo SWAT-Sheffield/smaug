@@ -1,0 +1,11 @@
+file = /data/cs1mkg/VAC_NN/test10_200_asc.out
+grid = 1976 x 400
+format = ascii
+interleaving = field
+header = lines 5
+series = 25, 1, 1, separator = lines 5
+field = pos,h, mom,e,b,eb,rhob,bg
+structure = 2-vector, scalar, 2-vector, scalar, 2-vector,scalar,scalar,2-vector
+type = float, float, float, float, float, float, float, float
+
+end

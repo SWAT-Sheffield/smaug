@@ -1,0 +1,15 @@
+/data/ap1vf/zero1.ini
+opozmf_mhd22
+x y h m1 m2 e b1 b2 eb rhob bg1 bg2
+typefileout
+binary
+typefileini
+binary
+domain
+300,400			-ixmax
+0,0			 		-min coordinates
+1.0d0,1.5d0           		-max coordinates
+eqpar
+1.66666667 0.0 1.0 0.0 0.0 0.0   gamma eta g0 g1 g2 g3 nu 
+special
+save

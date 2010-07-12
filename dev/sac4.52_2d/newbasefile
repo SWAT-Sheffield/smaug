@@ -1,0 +1,9 @@
+grid = 1976x400
+format = ascii
+interleaving = field
+series = 1, 1, 1, separator = lines 0
+field = locations,h, mom,e,b,eb,rhob,bg
+structure = 2-vector, scalar, 2-vector, scalar, 2-vector,scalar,scalar,2-vector
+type = float, float, float, float, float, float, float, float
+
+end
