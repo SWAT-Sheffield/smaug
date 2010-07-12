@@ -1,0 +1,40 @@
+
+!k is the wave number in zed direction:
+k=1.570796327D-04
+omg=0.5645943231
+;s_period=2.d0*pi/omg
+s_period=30
+xc1=5.d5 !m
+xc2=6.d5  !m
+s_rad1=1.0d5 !m
+s_rad2=1.0d5 !m
+!xc1=0.5d6 !m
+!xc2=2.d4  !m
+!s_rad1=0.1d6 !m
+!s_rad2=0.5d4 !m
+if (qt.lt.20.03D4) then 
+do ix_1=ixImin1,ixImax1
+ do ix_2=ixImin2,ixImax2
+
+     r1=(x(ix_1,ix_2,1)-xc1)**2.d0
+     r2=(x(ix_1,ix_2,2)-xc2)**2.d0
+   
+!     tdep=sin(qt*2.d0*pi/s_period+k*x(ix_1,ix_2,1))
+     tdep=cos(qt*2.d0*pi/s_period)
+!     tdep=cos(qt*2.d0*pi/s_period+k*x(ix_1,ix_2,1))
+
+!     vvv=5.d0*tdep*exp(-r1/s_rad1**2.d0-r2/s_rad2**2.d0)     
+!     vvv=5.d4*tdep*exp(-r1/s_rad1**2.d0-r2/s_rad2**2.d0)     
+     vvv=400.0d0*tdep*exp(-r1/s_rad1**2.d0-r2/s_rad2**2.d0)     
+
+w(ix_1,ix_2,e_)=w(ix_1,ix_2,e_)+w(ix_1,ix_2,m2_)*vvv*qdt+0.5D0*(w(ix_1,ix_2,rho_)+w(ix_1,ix_2,rhob_))*(vvv*qdt)**2.0D0
+     !w(ix_1,ix_2,e_)=w(ix_1,ix_2,e_)+(w(ix_1,ix_2,rho_)+w(ix_1,ix_2,rhob_))*(vvv**2.d0)*qdt/2.d0
+     !w(ix_1,ix_2,m1_)=w(ix_1,ix_2,m1_)+(w(ix_1,ix_2,rho_)+w(ix_1,ix_2,rhob_))*vvv*qdt
+w(ix_1,ix_2,m2_)=w(ix_1,ix_2,m2_)+(w(ix_1,ix_2,rho_)+w(ix_1,ix_2,rhob_))*vvv*qdt
+
+ enddo
+enddo
+endif
+
+
+{^IFMPI if (ipe.eq.0)} write(*,*) '***time=',qt
