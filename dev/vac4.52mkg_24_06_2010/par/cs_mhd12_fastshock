@@ -1,0 +1,32 @@
+ &testlist &end
+
+ &filelist
+	filenameini='data/fastshock.ini',
+	filename=   'data/fastshock.log',
+		    'data/fastshock.out'
+ &end
+
+ &savelist
+	itsave(1,2)=0
+	dtsave=1.0,5.0
+ &end
+
+ &stoplist
+        tmax=100.0
+        tmaxexact=.true.
+ &end
+
+ &methodlist
+	wnames=		'rho m1 m2 e b1 b2'
+	typefull=	6*'tvdmu'
+        typelimiter=    6*'minmod'
+        useprimitive=.true.
+ &end
+
+ &boundlist
+	typeB=	6*'cont',6*'cont'
+ &end
+
+ &paramlist
+	courantpar=0.8
+ &end

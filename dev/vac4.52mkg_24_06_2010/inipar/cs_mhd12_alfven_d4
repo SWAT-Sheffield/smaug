@@ -1,0 +1,25 @@
+data/shearalfven.ini
+shearalfven_mhd12
+x rho m1 m2 e bx by    gamma eta
+domain
+1000					-ixmax
+0.					-min coordinates
+3.					-max coordinates
+shocktube
+1                                        -shock direction
+5                                        -number of segments
+4.0    0.0 0.0      1.d-9 1.0 0.0        -state at left
+4.0    0.0 0.0      1.d-9 1.0 0.0        -state at end of segment 1
+332
+4.0    0.0 0.001    1.d-9 1.0 0.0        -state at end of segment 2
+333
+4.0    0.0 0.001    1.d-9 1.0 0.0        -state at end segment 3
+665
+4.0    0.0 0.0      1.d-9 1.0 0.0        -state at end of segment 4
+666
+4.0    0.0 0.0      1.d-9 1.0 0.0        -state at end of segment 5
+1.4  0.0                                      -gamma eta
+conserv
+typefileout
+binary
+save

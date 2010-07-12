@@ -1,0 +1,31 @@
+ &testlist &end
+
+ &filelist
+	filenameini='data/rpalfven.ini',
+	filename=   'data/rpalfven.log',
+		    'data/rpalfven.out'
+ &end
+
+ &savelist
+	itsave(1,2)=0
+	dtsave=1.0,4.0
+ &end
+
+ &stoplist
+        tmax=40.0
+        tmaxexact=.true.
+ &end
+
+ &methodlist
+	wnames=		'rho m1 m2 e b1 b2'
+	typefull=	6*'tvd'
+        typelimiter=    6*'minmod'
+ &end
+
+ &boundlist
+	typeB=	6*'cont',6*'cont'
+ &end
+
+ &paramlist
+	courantpar=0.8
+ &end

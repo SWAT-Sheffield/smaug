@@ -1,0 +1,32 @@
+ &testlist
+ &end
+
+ &filelist
+	filenameini='data/oscsheet.ini'
+	filename=   'data/oscsheet.log',
+		    'data/oscsheet.out'
+ &end
+
+ &savelist
+        itsave(1,2)=0
+        ditsave(1)=50 dtsave(2)=0.1
+ &end
+
+ &stoplist
+	tmax=2.
+        tmaxexact = T
+ &end
+
+ &methodlist
+	wnames=		'rho m1 m2 e b1 b2'
+	typefull=	6*'tvd'
+ &end
+
+ &boundlist
+	typeB=		'symm','asymm','symm','symm','asymm','symm',
+			'symm','asymm','symm','symm','asymm','symm'
+ &end
+
+ &paramlist
+	courantpar=0.4
+ &end
