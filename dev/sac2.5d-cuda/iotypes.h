@@ -50,7 +50,13 @@ struct params {
 	float dt;
         float dx;
         float dy;
-        float g;       
+        float g;
+        float gamma;
+        float mu;
+        float eta;
+        float g1;
+        float g2;
+        float g3;       
 };
 
 struct hydrovars{
@@ -62,7 +68,8 @@ struct hydrovars{
 
 
 
-enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3};
+typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3} CEV;
+typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv} DEV;
 
 typedef struct Source source;
 typedef struct Constants constants;

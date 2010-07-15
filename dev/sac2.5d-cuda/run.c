@@ -98,6 +98,10 @@ dom.nt=nt;
 
 float courant = wavespeed*dt/dx;
 
+
+//int cuprop(struct params **p, float **w, float **wnew, float **b,struct params **d_p, float **d_w, float **d_wnew, float **d_b, float **d_wmod, float **d_dwn1, float **d_dwn2, float **d_dwn3, float **d_dwn4, float **d_wd)
+
+
 // Build empty u, v, b matrices
 // Define h
 float *w=(float *)calloc(ni*nj*8,sizeof(float ));
@@ -114,7 +118,7 @@ printf("rho %d mom1 %d mom2 %d\n",rho,mom1,mom2);
 float *d_w;
 float *d_wnew;
 float *d_b;
-
+float *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
 
 struct params *d_p;
 struct params *p=(struct params *)malloc(sizeof(struct params));
@@ -125,8 +129,14 @@ p->dt=dt;
 p->dx=dx;
 p->dy=dy;
 p->g=g;
+p->gamma=0.666666;
+p->mu=1.0;
+p->eta=0.0;
+p->g1=0.0;
+p->g2=0.0;
+p->g3=0.0;
 printf("calling cuinit\n");
-cuinit(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b);
+cuinit(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1,  &d_wd);
 
 
 printf("here in runsim\n");
@@ -193,7 +203,7 @@ for( n=0;n<nt;n++)
 {
   
    t1=second();
-   cuprop(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b);
+   cuprop(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd);
    t2=second()-t1;
    ttot+=t2;
    printf("step %d total time %f\n",n,ttot);
@@ -234,12 +244,12 @@ for( n=0;n<nt;n++)
         for( i1=0;i1<ni;i1++)
 	{
                // printf("%d %d ", i1,j1);
-		fprintf(fdt,"%f %f %f ",(u[j1*ni+i1]),(v[j1*ni+i1]),*(h+(j1*ni+i1)));
+		fprintf(fdt,"%d %d %f %f %f %f %f %f %f %f\n",i1,j1,*(h+(j1*ni+i1)),(u[j1*ni+i1]),(v[j1*ni+i1]),w[j1*ni+i1+(ni*nj*mom3)],w[j1*ni+i1+(ni*nj*energy)],w[j1*ni+i1+(ni*nj*b1)],w[j1*ni+i1+(ni*nj*b2)],w[j1*ni+i1+(ni*nj*b3)]);
            //fprintf(fdt,"%d %f %f %f ",j1+i1*nj, u[j1+i1*nj],v[j1+i1*nj],h[j1+i1*nj]);
                // fprintf(fdt,"%f ",h[j1+i1*nj]);
         }     
         //printf("\n");   
-        fprintf(fdt,"\n");
+        //fprintf(fdt,"\n");
       }
       fclose(fdt);
    
@@ -280,7 +290,7 @@ for( n=0;n<nt;n++)
 //}
 //}//disp('while finsish steering');
 //}//end //while finishsteering loop
-cufinish(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b);
+cufinish(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1,  &d_wd);
 free(p);
 free(sdir);
 free(name);
