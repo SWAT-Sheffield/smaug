@@ -66,7 +66,7 @@ iosac:$(BASICEXOBJS)
 #IoTest.o: IoTest.f90
 #	$(FF) -o $@ -c $<
 step.o: step.cu
-	$(NVCC) -o $@ -c $<
+	$(NVCC) -o $@  --device-emulation -c $<
 
 .cpp.o:
 	$(CC) $(C_FLAGS) $(incDirs) $(LINKFLAGS)  -o $@ -c $<

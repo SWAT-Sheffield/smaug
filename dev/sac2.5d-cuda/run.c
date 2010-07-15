@@ -56,6 +56,7 @@ float v0 = k.v0;
 float b0  = k.b0;                               
 float h0 = k.h0; 
 
+
 //Domain definition
 // Define the x domain
 //ni = 151; 
@@ -99,15 +100,22 @@ float courant = wavespeed*dt/dx;
 
 // Build empty u, v, b matrices
 // Define h
-float *u=(float *)calloc(ni*nj*2,sizeof(float ));
-float *v=(float *)calloc(ni*nj*2,sizeof(float ));
+float *w=(float *)calloc(ni*nj*8,sizeof(float ));
+float *wnew=(float *)calloc(ni*nj*8,sizeof(float ));
 float *b=(float *)calloc(ni*nj,sizeof(float ));
-float *h=(float *)calloc(ni*nj*2,sizeof(float ));
+  float *u,  *v,  *h;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+  h=w+(ni)*(nj)*rho;
+  u=w+(ni)*(nj)*mom1;
+  v=w+(ni)*(nj)*mom2;
 
-float *d_u;
-float *d_v;
-float *d_h;
+printf("rho %d mom1 %d mom2 %d\n",rho,mom1,mom2);
+
+float *d_w;
+float *d_wnew;
 float *d_b;
+
+
 struct params *d_p;
 struct params *p=(struct params *)malloc(sizeof(struct params));
 
@@ -118,7 +126,7 @@ p->dx=dx;
 p->dy=dy;
 p->g=g;
 printf("calling cuinit\n");
-cuinit(&p,&u,&v,&b,&h,&d_p,&d_u,&d_v,&d_b,&d_h);
+cuinit(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b);
 
 
 printf("here in runsim\n");
@@ -185,7 +193,7 @@ for( n=0;n<nt;n++)
 {
   
    t1=second();
-   cuprop(&p,&u,&v,&b,&h,&d_p,&d_u,&d_v,&d_b,&d_h);
+   cuprop(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b);
    t2=second()-t1;
    ttot+=t2;
    printf("step %d total time %f\n",n,ttot);
@@ -226,7 +234,7 @@ for( n=0;n<nt;n++)
         for( i1=0;i1<ni;i1++)
 	{
                // printf("%d %d ", i1,j1);
-		fprintf(fdt,"%f %f %f ",u[j1*ni+i1],v[j1*ni+i1],h[j1*ni+i1]);
+		fprintf(fdt,"%f %f %f ",(u[j1*ni+i1]),(v[j1*ni+i1]),*(h+(j1*ni+i1)));
            //fprintf(fdt,"%d %f %f %f ",j1+i1*nj, u[j1+i1*nj],v[j1+i1*nj],h[j1+i1*nj]);
                // fprintf(fdt,"%f ",h[j1+i1*nj]);
         }     
@@ -272,7 +280,7 @@ for( n=0;n<nt;n++)
 //}
 //}//disp('while finsish steering');
 //}//end //while finishsteering loop
-cufinish(&p,&u,&v,&b,&h,&d_p,&d_u,&d_v,&d_b,&d_h);
+cufinish(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b);
 free(p);
 free(sdir);
 free(name);

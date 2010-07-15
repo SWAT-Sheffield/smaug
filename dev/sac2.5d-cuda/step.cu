@@ -11,7 +11,19 @@
 /////////////////////////////////////
 // kernel function (CUDA device)
 /////////////////////////////////////
-__global__ void init_parallel(struct params *p, float *b, float *u, float *v, float *h)
+
+__device__ __host__
+int encode (struct params *dp,int ix, int iy) {
+
+  int kSizeX=(dp)->ni;
+  int kSizeY=(dp)->nj;
+  
+  return ( iy * kSizeX + ix);
+}
+
+
+
+__global__ void init_parallel(struct params *p, float *w, float *wnew, float *b)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -32,7 +44,11 @@ int ni=p->ni;
     int tx = threadIdx.x;
    // int ty = threadIdx.y;
     
-
+  float *u,  *v,  *h;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+  h=w+(p->ni)*(p->nj)*rho;
+  u=w+(p->ni)*(p->nj)*mom1;
+  v=w+(p->ni)*(p->nj)*mom2;
 
  int nli = 0.45*(p->ni-1)+1;
   int nui = 0.55*(p->ni-1)+1;
@@ -58,7 +74,7 @@ int ni=p->ni;
 
 
 		//initialise the arrays here
-               for(k=0;k<2;++k)
+               for(k=0;k<1;++k)
       		{
                     index=j*(p->ni)+i+k*(p->ni)*(p->nj);
                     //index=i+j*(p->ni)+(k*(p->nj)*(p->ni));
@@ -83,7 +99,7 @@ int ni=p->ni;
 
 
 
-__global__ void prop_parallel(struct params *p, float *b, float *u, float *v, float *h)
+__global__ void prop_parallel(struct params *p, float *b, float *w, float *wnew)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -101,17 +117,30 @@ __global__ void prop_parallel(struct params *p, float *b, float *u, float *v, fl
   float dy=p->dy;
   float dx=p->dx;
   float g=p->g;
+
+
+  float *u,  *v,  *h;
+  float *un,  *vn,  *hn;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+  h=w+(p->ni)*(p->nj)*rho;
+  u=w+(p->ni)*(p->nj)*mom1;
+  v=w+(p->ni)*(p->nj)*mom2;
+
+  hn=wnew+(p->ni)*(p->nj)*rho;
+  un=wnew+(p->ni)*(p->nj)*mom1;
+  vn=wnew+(p->ni)*(p->nj)*mom2;
+
    j=iindex/ni;
    //i=iindex-j*(iindex/ni);
    i=iindex-(j*ni);
   if(i>0 && j >0 && i<((p->ni)-1) && j<((p->nj)-1))
 	{
 		//update the arrays here
-               u[i+j*ni+ni*nj] = (  (u[i+1+j*ni] + u[i-1+j*ni] + u[i+(j+1)*ni] + u[i+(j-1)*ni])/4)- 0.5*(dt/dx)*(   (u[(i+1)+ni*j]*u[(i+1)+ni*j]/2) - (u[i-1+j*ni]*u[i-1+j*ni]/2 )  )- 0.5*(dt/dy)*(   v[i+j*ni] *(u[i+(j+1)*ni] - u[i+(j-1)*ni])   ) - 0.5*g*(dt/dx)*(h[i+1+j*ni]-h[i-1+j*ni]);
+               un[encode(p,i,j)] = (  (u[encode(p,i+1,j)] + u[i-1+j*ni] + u[i+(j+1)*ni] + u[i+(j-1)*ni])/4)- 0.5*(dt/dx)*(   (u[(i+1)+ni*j]*u[(i+1)+ni*j]/2) - (u[i-1+j*ni]*u[i-1+j*ni]/2 )  )- 0.5*(dt/dy)*(   v[i+j*ni] *(u[i+(j+1)*ni] - u[i+(j-1)*ni])   ) - 0.5*g*(dt/dx)*(h[i+1+j*ni]-h[i-1+j*ni]);
 
-v[i+j*ni+ni*nj] = ((v[i+1+j*ni] + v[i-1+j*ni] + v[i+(j+1)*ni] + v[i+(j-1)*ni])/4)- 0.5*(dt/dy)*(   (v[i+ni*(j+1)]*v[(i)+ni*(j+1)])/2 - (v[i+(j-1)*ni]*v[i+(j-1)*ni])/2) - 0.5*(dt/dx)*  (u[i+j*ni])*(v[i+1+j*ni] - v[i-1+j*ni]) - 0.5*g*(dt/dy)*(h[i+(j+1)*ni]-h[i+(j-1)*ni]);
+vn[i+j*ni] = ((v[i+1+j*ni] + v[i-1+j*ni] + v[i+(j+1)*ni] + v[i+(j-1)*ni])/4)- 0.5*(dt/dy)*(   (v[i+ni*(j+1)]*v[(i)+ni*(j+1)])/2 - (v[i+(j-1)*ni]*v[i+(j-1)*ni])/2) - 0.5*(dt/dx)*  (u[i+j*ni])*(v[i+1+j*ni] - v[i-1+j*ni]) - 0.5*g*(dt/dy)*(h[i+(j+1)*ni]-h[i+(j-1)*ni]);
 
-h[i+j*ni+ni*nj] = ((h[i+1+j*ni] + h[i-1+j*ni] + h[i+(j+1)*ni] + h[i+(j-1)*ni])/4)
+hn[i+j*ni] = ((h[i+1+j*ni] + h[i-1+j*ni] + h[i+(j+1)*ni] + h[i+(j-1)*ni])/4)
 - 0.5*(dt/dx)*(u[i+j*ni])*((h[i+1+j*ni]-b[i+1+j*ni]) - (h[i-1+j*ni]-b[i-1+j*ni])) 
 - 0.5*(dt/dy)*(v[i+j*ni])*((h[i+(j+1)*ni]-b[i+(j+1)*ni]) - (h[i+(j-1)*ni]-b[i+(j-1)*ni])) 
 - 0.5*(dt/dx)*(h[i+j*ni]-b[i+j*ni])*(u[i+1+j*ni]- u[i-1+j*ni])
@@ -122,7 +151,7 @@ h[i+j*ni+ni*nj] = ((h[i+1+j*ni] + h[i-1+j*ni] + h[i+(j+1)*ni] + h[i+(j-1)*ni])/4
   
 }
 
-__global__ void boundary_parallel(struct params *p, float *b, float *u, float *v, float *h)
+__global__ void boundary_parallel(struct params *p, float *b, float *w, float *wnew)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -138,37 +167,49 @@ __global__ void boundary_parallel(struct params *p, float *b, float *u, float *v
   float dy=p->dy;
   float dx=p->dx;
   float g=p->g;
+
+  float *u,  *v,  *h;
+  float *un,  *vn,  *hn;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+  h=w+(p->ni)*(p->nj)*rho;
+  u=w+(p->ni)*(p->nj)*mom1;
+  v=w+(p->ni)*(p->nj)*mom2;
+
+  hn=wnew+(p->ni)*(p->nj)*rho;
+  un=wnew+(p->ni)*(p->nj)*mom1;
+  vn=wnew+(p->ni)*(p->nj)*mom2;
+
     j=iindex/ni;
    //i=iindex-j*(iindex/ni);
    i=iindex-(j*ni);
   if(i<p->ni && j<p->nj)
 	{
 
-		if(i==0)
+		if(i==0 )
 		{
-			u[j*ni+ni*nj] = 2.5*u[1+j*ni+ni*nj] - 2*u[2+j*ni+ni*nj] + 0.5*u[3+j*ni+ni*nj];
-			u[ni+j*ni+ni*nj] = 2.5*u[ni-1+j*ni+ni*nj] - 2*u[ni-2+ni*j+ni*nj] + 0.5*u[ni-3+j*ni+ni*nj];
-			v[j*ni+ni*nj] = 2.5*v[1+j*ni+ni*nj] - 2*v[2+j*ni+ni*nj] + 0.5*v[3+j*ni+ni*nj];
-		 	v[ni+j*ni+ni*nj] = 2.5*v[ni-1+j*ni+ni*nj] - 2*v[ni-2+ni*j+ni*nj] + 0.5*v[ni-3+j*ni+ni*nj];
-		 	h[j*ni+ni*nj] = 2.5*h[1+j*ni+ni*nj] - 2*h[2+j*ni+ni*nj] + 0.5*h[3+j*ni+ni*nj];
-			h[ni+j*ni+ni*nj] = 2.5*h[ni-1+j*ni+ni*nj] - 2*h[ni-2+ni*j+ni*nj] + 0.5*h[ni-3+j*ni+ni*nj];
+			un[j*ni] = 2.5*un[1+j*ni] - 2*un[2+j*ni] + 0.5*un[3+j*ni];
+			un[ni+j*ni] = 2.5*un[ni-1+j*ni] - 2*un[ni-2+ni*j] + 0.5*un[ni-3+j*ni];
+			vn[j*ni] = 2.5*vn[1+j*ni] - 2*vn[2+j*ni] + 0.5*vn[3+j*ni];
+		 	vn[ni+j*ni] = 2.5*vn[ni-1+j*ni] - 2*vn[ni-2+ni*j] + 0.5*vn[ni-3+j*ni];
+		 	hn[j*ni] = 2.5*hn[1+j*ni] - 2*hn[2+j*ni] + 0.5*hn[3+j*ni];
+			hn[ni+j*ni] = 2.5*hn[ni-1+j*ni] - 2*hn[ni-2+ni*j] + 0.5*hn[ni-3+j*ni];
 		}
 
 		if(j==0)
 		{
-			u[i+ni+ni*nj] = 2.5*u[i+1*ni+ni*nj] - 2*u[i+2*ni+ni*nj] + 0.5*u[i+3*ni+ni*nj];
-			u[i+(nj)*ni+ni*nj] = 2.5*u[i+(nj-1)*ni+ni*nj] - 2*u[i+(nj-2)*ni+ni*nj] + 0.5*u[i+(nj-3)*ni+ni*nj];
-			v[i+ni+ni*nj] = 2.5*v[i+1*ni+ni*nj] - 2*v[i+2*ni+ni*nj] + 0.5*v[i+3*ni+ni*nj];
-			v[i+(nj)*ni+ni*nj] = 2.5*v[i+(nj-1)*ni+ni*nj] - 2*v[i+(nj-2)*ni+ni*nj] + 0.5*v[i+(nj-3)*ni+ni*nj];
-			h[i+ni+ni*nj] = 2.5*h[i+1*ni+ni*nj] - 2*h[i+2*ni+ni*nj] + 0.5*h[i+3*ni+ni*nj];
-			h[i+(nj)*ni+ni*nj] = 2.5*h[i+(nj-1)*ni+ni*nj] - 2*h[i+(nj-2)*ni+ni*nj] + 0.5*h[i+(nj-3)*ni+ni*nj];
+			un[i+ni] = 2.5*un[i+1*ni] - 2*un[i+2*ni] + 0.5*un[i+3*ni];
+			un[i+(nj )*ni] = 2.5*un[i+(nj-1)*ni] - 2*un[i+(nj-2)*ni] + 0.5*un[i+(nj-3)*ni];
+			vn[i+ni] = 2.5*vn[i+1*ni] - 2*vn[i+2*ni] + 0.5*vn[i+3*ni];
+			vn[i+(nj)*ni] = 2.5*vn[i+(nj-1)*ni] - 2*vn[i+(nj-2)*ni] + 0.5*vn[i+(nj-3)*ni];
+			hn[i+ni] = 2.5*hn[i+1*ni] - 2*hn[i+2*ni] + 0.5*hn[i+3*ni];
+			hn[i+(nj)*ni] = 2.5*hn[i+(nj-1)*ni] - 2*hn[i+(nj-2)*ni] + 0.5*hn[i+(nj-3)*ni];
 		}
 	}
  __syncthreads();
   
 }
 
-__global__ void update_parallel(struct params *p, float *b, float *u, float *v, float *h)
+__global__ void update_parallel(struct params *p, float *b, float *w, float *wnew)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -185,16 +226,26 @@ __global__ void update_parallel(struct params *p, float *b, float *u, float *v, 
   float dy=p->dy;
   float dx=p->dx;
   float g=p->g;
+  float *u,  *v,  *h;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+  h=w+(p->ni)*(p->nj)*rho;
+  u=w+(p->ni)*(p->nj)*mom1;
+  v=w+(p->ni)*(p->nj)*mom2;
 
+  float *un,  *vn,  *hn;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+  hn=wnew+(p->ni)*(p->nj)*rho;
+  un=wnew+(p->ni)*(p->nj)*mom1;
+  vn=wnew+(p->ni)*(p->nj)*mom2;
      j=iindex/ni;
    //i=iindex-j*(iindex/ni);
    i=iindex-(j*ni);
 
   if(i<p->ni && j<p->nj)
 	{
-            u[i+j*ni]=u[i+j*ni+ni*nj];
-            v[i+j*ni]=v[i+j*ni+ni*nj];
-	    h[i+j*ni]=h[i+j*ni+ni*nj];
+            u[i+j*ni]=un[i+j*ni];
+            v[i+j*ni]=vn[i+j*ni];
+	    h[i+j*ni]=hn[i+j*ni];
 	}
  __syncthreads();
   
@@ -367,7 +418,7 @@ int stepfunc()
 
 }
 
-int cuinit(struct params **p, float **u, float **v, float **b, float **h,struct params **d_p, float **d_u, float **d_v, float **d_b, float **d_h)
+int cuinit(struct params **p, float **w, float **wnew,  float **b, struct params **d_p, float **d_w, float **d_wnew, float **d_b)
 {
 /////////////////////////////////////
   // (1) initialisations:
@@ -394,28 +445,26 @@ int cuinit(struct params **p, float **u, float **v, float **b, float **h,struct 
 	// Build empty u, v, b matrices
 
   printf("in cuinit\n");
-  float *adu,*adv,*adh,*adb;
+  float *adb;
+  float *adw, *adwnew;
   struct params *adp;
 
-  cudaMalloc((void**)&adu, 2*((*p)->ni)* ((*p)->nj)*sizeof(float));
-  cudaMalloc((void**)&adv, 2*((*p)->ni)* ((*p)->nj)*sizeof(float));
-  cudaMalloc((void**)&adh, 2*((*p)->ni)* ((*p)->nj)*sizeof(float));
+  cudaMalloc((void**)&adw, 8*((*p)->ni)* ((*p)->nj)*sizeof(float));
+  cudaMalloc((void**)&adwnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float));
   cudaMalloc((void**)&adb, 1*(((*p)->ni)* ((*p)->nj))*sizeof(float));
   cudaMalloc((void**)&adp, sizeof(struct params));
   checkErrors("memory allocation");
 
 printf("ni is %d\n",(*p)->nj);
 
-    *d_u=adu;
-    *d_v=adv;
-    *d_h=adh;
     *d_b=adb;
     *d_p=adp;
+    *d_w=adw;
+    *d_wnew=adwnew;
 
 
-    cudaMemcpy(*d_u, *u, 2*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(*d_v, *v, 2*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(*d_h, *h, 2*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(*d_w, *w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(*d_wnew, *wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_b, *b, ((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
     
@@ -428,14 +477,12 @@ printf("ni is %d\n",(*p)->nj);
     printf("calling initialiser\n");
      //init_parallel(struct params *p, float *b, float *u, float *v, float *h)
     // init_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
-     init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
+     init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_b);
      cudaThreadSynchronize();
 	    printf("called initialiser\n");
-
-	cudaMemcpy(*u, *d_u, 2*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-	cudaMemcpy(*v, *d_v, 2*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
 	cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
-	cudaMemcpy(*h, *d_h, 2*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
 
 
 
@@ -447,7 +494,7 @@ printf("ni is %d\n",(*p)->nj);
 }
 
 
-int cuprop(struct params **p, float **u, float **v, float **b, float **h,struct params **d_p, float **d_u, float **d_v, float **d_b, float **d_h)
+int cuprop(struct params **p, float **w, float **wnew, float **b,struct params **d_p, float **d_w, float **d_wnew, float **d_b)
 {
 
 
@@ -461,20 +508,19 @@ int cuprop(struct params **p, float **u, float **v, float **b, float **h,struct 
    int numBlocks = (((*p)->ni)*((*p)->nj)+numThreadsPerBlock-1) / numThreadsPerBlock;
 
      //init_parallel(struct params *p, float *b, float *u, float *v, float *h)
-     prop_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
+     prop_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();
-     boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
+     //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
 	    //printf("called boundary\n");  
-     cudaThreadSynchronize();
-     update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
+     //cudaThreadSynchronize();
+     update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
- cudaMemcpy(*u, *d_u, ((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-cudaMemcpy(*v, *d_v, ((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+ cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
 cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
-cudaMemcpy(*h, *d_h, ((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
 
   //checkErrors("copy data from device");
 
@@ -484,23 +530,21 @@ cudaMemcpy(*h, *d_h, ((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHos
 
 }
 
-int cufinish(struct params **p, float **u, float **v, float **b, float **h,struct params **d_p, float **d_u, float **d_v, float **d_b, float **d_h)
+int cufinish(struct params **p, float **w, float **wnew, float **b, struct params **d_p, float **d_w, float **d_wnew, float **d_b)
 {
   
 
- cudaMemcpy(*u, *d_u, ((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-cudaMemcpy(*v, *d_v, ((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+ cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
 cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
-cudaMemcpy(*h, *d_h, ((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
 
   checkErrors("copy data from device");
 
 
   cudaFree(*d_p);
 
-  cudaFree(*d_u);
-  cudaFree(*d_v);
-  cudaFree(*d_h);
+  cudaFree(*d_w);
+  cudaFree(*d_wnew);
   cudaFree(*d_b);
 
 

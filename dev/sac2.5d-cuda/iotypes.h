@@ -53,6 +53,16 @@ struct params {
         float g;       
 };
 
+struct hydrovars{
+    int numvars; //variables each vector component
+	int num;   //total number of dimensions including any ghost variables
+	float *w;
+
+};
+
+
+
+enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3};
 
 typedef struct Source source;
 typedef struct Constants constants;
