@@ -64,6 +64,9 @@ mikeg@photon0.freeserve.co.uk
 
 #include "paramssteeringtest1.h"
 
+#include "dxroutines.h"
+#include <iome/genericsimulationlib/IoGenericSimulationLib.h>
+
 
 
 
@@ -91,8 +94,7 @@ char m_hostname[300] = "localhost";
 int m_port=8080;
 int port=m_port;
 
-void createsim(constants k, domain dom,source src, meta metadata,char *simname, iome el);
-void runsim(constants k, domain dom,source src, meta metadata,char *simname, iome el);
+void createsim(params k, meta metadata,char *simname, iome el);
 void gendxgen(char *dir,char *jobname,int nsteps,int n1,int n2);
 
 #endif

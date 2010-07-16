@@ -1,33 +1,6 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
-struct Constants {
-       float g;
-       float u0; 
-       float v0;
-       float b0;
-       float h0;
-     };
-
-
-struct Domain {
-	int ni;
-        float xmax;
- 	int nj;
-        float ymax;
-	int nt;
-        float tmax;
-        float step;
-        int steeringenabled;
-        int finishsteering;
-};
-
-struct Source {
-  float freq;
-  float amp;
-  float xloc;
-  float yloc;
-};
 
 struct Meta {
    char *directory ;
@@ -46,7 +19,15 @@ struct Iome {
 
 struct params {
 	int ni;
- 	int nj;     
+ 	int nj;
+
+        float xmax;
+        float ymax;
+	int nt;
+        float tmax;
+
+        int steeringenabled;
+        int finishsteering;     
 	float dt;
         float dx;
         float dy;

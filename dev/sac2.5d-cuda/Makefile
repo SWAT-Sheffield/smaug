@@ -14,8 +14,10 @@ BASICEXOBJS	=\
 	iosac2.5d.o\
 	initialisation.o\
 	dxroutines.o\
-	run.o\
-	step.o
+	derivatives.o\
+	boundary.o\
+	init.o\
+	update.o
 
 	
 	
@@ -67,8 +69,18 @@ iosac:$(BASICEXOBJS)
 #	$(FF) -o $@ -c $<
 #step.o: step.cu
 #	$(NVCC) -o $@  --device-emulation -c $<
-step.o: step.cu
+#step.o: step.cu
+#	$(NVCC) -o $@ --ptxas-options=-v -c $<
+
+derivatives.o: derivatives.cu
 	$(NVCC) -o $@ --ptxas-options=-v -c $<
+boundary.o: boundary.cu
+	$(NVCC) -o $@ --ptxas-options=-v -c $<
+init.o: init.cu
+	$(NVCC) -o $@ --ptxas-options=-v -c $<
+update.o: update.cu
+	$(NVCC) -o $@ --ptxas-options=-v -c $<
+
 .cpp.o:
 	$(CC) $(C_FLAGS) $(incDirs) $(LINKFLAGS)  -o $@ -c $<
 
