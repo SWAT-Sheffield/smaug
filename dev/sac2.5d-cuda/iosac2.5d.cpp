@@ -157,12 +157,32 @@ meta meta;
 
 
 
-meta.directory="out";
-meta.author="MikeG";
-meta.sdate="Nov 2009";
-meta.platform="felix";
-meta.desc="A simple test of SAAS";
-meta.name="tsteer1";
+
+meta.directory=(char *)calloc(500,sizeof(char));
+meta.author=(char *)calloc(500,sizeof(char));
+meta.sdate=(char *)calloc(500,sizeof(char));
+meta.platform=(char *)calloc(500,sizeof(char));
+meta.desc=(char *)calloc(500,sizeof(char));
+meta.name=(char *)calloc(500,sizeof(char));
+meta.ini_file=(char *)calloc(500,sizeof(char));
+meta.log_file=(char *)calloc(500,sizeof(char));
+meta.out_file=(char *)calloc(500,sizeof(char));
+
+strcpy(meta.directory,"out");
+strcpy(meta.author,"MikeG");
+strcpy(meta.sdate,"Nov 2009");
+strcpy(meta.platform,"swat");
+strcpy(meta.desc,"A simple test of SAAS");
+strcpy(meta.name,"test1");
+strcpy(meta.ini_file,"test1.ini");
+strcpy(meta.log_file,"test1.log");
+strcpy(meta.out_file,"test1.out");
+//meta.directory="out";
+//meta.author="MikeG";
+//meta.sdate="Nov 2009";
+//meta.platform="felix";
+//meta.desc="A simple test of SAAS";
+//meta.name="tsteer1";
 
 
 
@@ -175,16 +195,7 @@ elist.id=0;
 //int cuprop(struct params **p, float **w, float **wnew, float **b,struct params **d_p, float **d_w, float **d_wnew, float **d_b, float **d_wmod, float **d_dwn1, float **d_dwn2, float **d_dwn3, float **d_dwn4, float **d_wd)
 
 
-// Build empty u, v, b matrices
-// Define h
-float *w=(float *)calloc(ni*nj*8,sizeof(float ));
-float *wnew=(float *)calloc(ni*nj*8,sizeof(float ));
-float *b=(float *)calloc(ni*nj,sizeof(float ));
-  float *u,  *v,  *h;
-//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
-  h=w+(ni)*(nj)*rho;
-  u=w+(ni)*(nj)*mom1;
-  v=w+(ni)*(nj)*mom2;
+
 
 printf("rho %d mom1 %d mom2 %d\n",rho,mom1,mom2);
 
@@ -193,8 +204,12 @@ float *d_wnew;
 float *d_b;
 float *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
 
+float *w,*wnew,*b;
 struct params *d_p;
 struct params *p=(struct params *)malloc(sizeof(struct params));
+
+struct state *d_state;
+struct state *state=(struct state *)malloc(sizeof(struct state));
 
 p->ni=ni;
 p->nj=nj;
@@ -208,7 +223,12 @@ p->eta=0.0;
 p->g1=0.0;
 p->g2=0.0;
 p->g3=0.0;
+p->cmax=1.0;
 
+p->rkon=0.0;
+p->sodifon=0.0;
+p->moddton=0.0;
+p->divbon=0.0;
 
 
 
@@ -244,17 +264,38 @@ printf("calling cuinit\n");
 	//int elist.portelist.id;
 	//fscanf(fd,"%d",&elist.portelist.id);
 	//fclose(fd);
-
 	//elist.elist.port=elist.portelist.id;
+        if(argc>1)
+        {
+          readsim(p,&meta,argv[1],elist);
+          if((p->readini)!=0)
+             readconfig(meta.ini_file,*p,meta,w);
+        }
+        else
+	  createsim(*p,meta,simfile,elist);
 
 	sprintf(simfile,"%s.xml",meta.name);
+        sprintf(newsimfile,"%s_update.xml",meta.name);
 	//NewSimulation(metadata.name,'test1.xsl',elist);
-	createsim(*p,meta,simfile,elist);
+
+// Build empty u, v, b matrices
+// Define h
+if((p->readini)==0)
+{
+ w=(float *)calloc(ni*nj*8,sizeof(float ));
+ wnew=(float *)calloc(ni*nj*8,sizeof(float ));
+ b=(float *)calloc(ni*nj,sizeof(float ));
+ initconfig(p, &meta, w);
+}
+  float *u,  *v,  *h;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+  h=w+(ni)*(nj)*rho;
+  u=w+(ni)*(nj)*mom1;
+  v=w+(ni)*(nj)*mom2;
 
 
 
-
-cuinit(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1,  &d_wd);
+cuinit(&p,&w,&wnew,&b,&state,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1,  &d_wd, &d_state);
 
 
 printf("here in runsim\n");
@@ -303,6 +344,8 @@ FILE *fdform=fopen(formfile,"w");
   fprintf(fdform, "%d %d %d\n",nt-1, ni, nj);
 fclose(fdform);
 
+createlog(meta.log_file);
+
 
 // Employ Lax
 //disp(length[t));
@@ -316,20 +359,38 @@ fclose(fdform);
  int n;  
  nt=24; 
 double t1,t2,ttot;
+int order=0;
 ttot=0;
+float time=0.0;
 for( n=0;n<nt;n++)
 {
   
    t1=second();
-   cuprop(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd);
+   cupredictor(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd,order);
+
+   if(order==0 && p->moddton==1)
+       p->dt=((p->dx)+(p->dy))/(2.0*(p->cmax));
+   cuderivcurrent(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd,order);
+   cuderivsource(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd);
+
+   cuadvance(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd);
+
    cuboundary(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd);
-   cuupdate(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd);
+   cuupdate(&p,&w,&wnew,&b,&state,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd, &d_state);
+
+   if(p->divbon==1)
+       cudivb(&p,&w,&wnew,&b,&state,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd, &d_state);
 
    t2=second()-t1;
    ttot+=t2;
    printf("step %d total time %f\n",n,ttot);
 
+   state->it=n;
+   state->t=time+(p->dt);
+   time=state->t;
+   state->dt=p->dt;
 
+   appendlog(meta.log_file,*p, *state);
 
  
     
@@ -347,25 +408,26 @@ for( n=0;n<nt;n++)
      
     }
     
+    writeconfig(name,n,*p, meta , w);
     
       //save file containing current data
-      sprintf(configfile,"tmp/%ss%d.out",name,n);
-      printf("check dims %d %d \n",ni,nj);
-      FILE *fdt=fopen(configfile,"w");
-      fprintf(fdt,"%d\n",n);
-     for( j1=0;j1<nj;j1++)
-      {
-        for( i1=0;i1<ni;i1++)
-	{
+     // sprintf(configfile,"tmp/%ss%d.out",name,n);
+     // printf("check dims %d %d \n",ni,nj);
+     // FILE *fdt=fopen(configfile,"w");
+     // fprintf(fdt,"%d\n",n);
+     //for( j1=0;j1<nj;j1++)
+     // {
+      //  for( i1=0;i1<ni;i1++)
+	//{
                // printf("%d %d ", i1,j1);
-		fprintf(fdt,"%d %d %f %f %f %f %f %f %f %f\n",i1,j1,*(h+(j1*ni+i1)),(u[j1*ni+i1]),(v[j1*ni+i1]),w[j1*ni+i1+(ni*nj*mom3)],w[j1*ni+i1+(ni*nj*energy)],w[j1*ni+i1+(ni*nj*b1)],w[j1*ni+i1+(ni*nj*b2)],w[j1*ni+i1+(ni*nj*b3)]);
+	//	fprintf(fdt,"%d %d %f %f %f %f %f %f %f %f\n",i1,j1,*(h+(j1*ni+i1)),(u[j1*ni+i1]),(v[j1*ni+i1]),w[j1*ni+i1+(ni*nj*mom3)],w[j1*ni+i1+(ni*nj*energy)],w[j1*ni+i1+(ni*nj*b1)],w[j1*ni+i1+(ni*nj*b2)],w[j1*ni+i1+(ni*nj*b3)]);
            //fprintf(fdt,"%d %f %f %f ",j1+i1*nj, u[j1+i1*nj],v[j1+i1*nj],h[j1+i1*nj]);
                // fprintf(fdt,"%f ",h[j1+i1*nj]);
-        }     
+       // }     
         //printf("\n");   
         //fprintf(fdt,"\n");
-      }
-      fclose(fdt);
+     // }
+     // fclose(fdt);
    
  //disp('writing data');
     //if finishsteering==1
@@ -424,7 +486,7 @@ fclose(fd);
 	//chdir(metadata.directory);
         //readsimulation_(elist.elist.id,simfile,elist.elist.port,elist.elist.server);
 	//runsim(consts,dom,src,meta,simfile,elist);
-	writesimulation_(elist.id,simfile,elist.port,elist.server);
+	writesimulation_(elist.id,newsimfile,elist.port,elist.server);
 
 
 	return 0;

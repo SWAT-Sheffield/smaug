@@ -73,44 +73,7 @@ int ni=p->ni;
 		b[i+j*(p->ni)]=0;
 
                  //Define b	
-		if((i*(p->dx)) >20001)
-		      b[j*(p->ni)+i]=0;
-		else if((i*(p->dx)) <20000)
-			//b[j*(p->ni)+i]=(5000/20000)*(20000-(i*(p->dx)));
-                        b[j*(p->ni)+i]=0;
-                        // b[j*(p->ni)+i]=5000*(1.0-(((float)i)/30.0));		
-
-
-
-		//initialise the arrays here
-               for(k=0;k<1;++k)
-      		{
-                    index=j*(p->ni)+i+k*(p->ni)*(p->nj);
-                    //index=i+j*(p->ni)+(k*(p->nj)*(p->ni));
-		    u[index]=0;
-		    v[index]=0;
-		    h[index]=5;
-                    w[index+mom3*(p->ni)*(p->nj)]=0;
-                    w[index+energy*(p->ni)*(p->nj)]=0;
-                    w[index+b1*(p->ni)*(p->nj)]=0;
-                    w[index+b2*(p->ni)*(p->nj)]=0;
-                    w[index+b3*(p->ni)*(p->nj)]=0;
-
-//float *wmod, 
-//    float *dwn1, float *dwn2, float *dwn3, float *dwn4, float *wd)
-
-
-      		}
-		//h[iindex]=5000;
-	
-        __syncthreads();
-        if(i>=nli && i<=nui && j>=nlj && j<=nuj)
-	{
-	   //j*(p->ni)+i;
-           h[j*(p->ni)+i]=5.030;	
-	}
-
-       for(int f=0; f<=5; f++)
+       for(int f=0; f<=6; f++)
         { 
                   wd[fencode_i(p,i,j,f)]=0;
         }
@@ -160,7 +123,7 @@ void checkErrors_i(char *label)
 
 
 
-int cuinit(struct params **p, float **w, float **wnew,  float **b, struct params **d_p, float **d_w, float **d_wnew, float **d_b, float **d_wmod, float **d_dwn1, float **d_wd)
+int cuinit(struct params **p, float **w, float **wnew,  float **b, struct state **state, struct params **d_p, float **d_w, float **d_wnew, float **d_b, float **d_wmod, float **d_dwn1, float **d_wd, struct state **d_state)
 {
 
 
@@ -193,15 +156,18 @@ int cuinit(struct params **p, float **w, float **wnew,  float **b, struct params
   float *adb;
   float *adw, *adwnew;
   struct params *adp;
+  struct state *ads;
+
 
   cudaMalloc((void**)d_wmod, 8*((*p)->ni)* ((*p)->nj)*sizeof(float));
   cudaMalloc((void**)d_dwn1, 8*((*p)->ni)* ((*p)->nj)*sizeof(float));
-  cudaMalloc((void**)d_wd, 6*((*p)->ni)* ((*p)->nj)*sizeof(float));
+  cudaMalloc((void**)d_wd, 7*((*p)->ni)* ((*p)->nj)*sizeof(float));
 
   cudaMalloc((void**)&adw, 8*((*p)->ni)* ((*p)->nj)*sizeof(float));
   cudaMalloc((void**)&adwnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float));
   cudaMalloc((void**)&adb, 1*(((*p)->ni)* ((*p)->nj))*sizeof(float));
   cudaMalloc((void**)&adp, sizeof(struct params));
+  cudaMalloc((void**)&ads, sizeof(struct state));
   checkErrors_i("memory allocation");
 
 printf("ni is %d\n",(*p)->nj);
@@ -210,12 +176,14 @@ printf("ni is %d\n",(*p)->nj);
     *d_p=adp;
     *d_w=adw;
     *d_wnew=adwnew;
+    *d_state=ads;
 
 
     cudaMemcpy(*d_w, *w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_wnew, *wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_b, *b, ((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
+    cudaMemcpy(*d_state, *state, sizeof(struct state), cudaMemcpyHostToDevice);
     
     dim3 dimBlock(16, 1);
     //dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
@@ -231,6 +199,8 @@ printf("ni is %d\n",(*p)->nj);
      cudaThreadSynchronize();
 	    printf("called initialiser\n");
 	cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
+
 	//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
 	//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
 

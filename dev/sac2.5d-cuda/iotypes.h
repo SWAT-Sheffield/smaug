@@ -9,6 +9,9 @@ struct Meta {
    char *platform;
    char *desc;
    char *name;
+   char *ini_file;
+   char *log_file;
+   char *out_file;
 };
 
 struct Iome {
@@ -26,6 +29,12 @@ struct params {
 	int nt;
         float tmax;
 
+        double *boundxu;
+        double *boundxl;
+        double *boundyu;
+        double *boundyl;
+
+        float cmax;
         int steeringenabled;
         int finishsteering;     
 	float dt;
@@ -37,7 +46,28 @@ struct params {
         float eta;
         float g1;
         float g2;
-        float g3;       
+        float g3;
+	int sodifon;
+        int rkon;
+        int moddton;
+        int divbon; 
+
+        int readini;        
+};
+
+//it   t   dt    rho m1 m2 e bx by
+struct state{
+	int it;
+	float t;
+	float dt;
+	float rho;
+        float m1;
+	float m2;
+	float m3;
+	float e;
+        float b1;
+        float b2;
+        float b3;
 };
 
 struct hydrovars{
@@ -50,13 +80,14 @@ struct hydrovars{
 
 
 typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3} CEV;
-typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv} DEV;
+typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv,soundspeed} DEV;
 
 typedef struct Source source;
 typedef struct Constants constants;
 typedef struct Domain domain;
 typedef struct Iome iome;
 typedef struct Meta meta;
+typedef struct Stateinfo stateinfo;
 
 #endif
 

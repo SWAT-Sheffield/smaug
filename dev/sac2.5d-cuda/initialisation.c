@@ -8,17 +8,20 @@ int ni,nj;
 double xmax,ymax;
 double dx,dy,dt,tmax,wavespeed;
 double courant;
-double *statsu, *statsv, *statsh;
+
 //elist=list();  parameter used by iome to contain port and server address
 //elist=list();
 
+//it   t   dt    rho m1 m2 e bx by
 addmetadata_(el.id,"author",metadata.author,el.port,el.server);
 addmetadata_(el.id,"directory",metadata.directory,el.port,el.server);
 addmetadata_(el.id,"date",metadata.sdate,el.port,el.server);
 addmetadata_(el.id,"platform",metadata.platform,el.port,el.server);
 addmetadata_(el.id,"description",metadata.desc,el.port,el.server);
 addmetadata_(el.id,"name",metadata.name,el.port,el.server);
-
+addmetadata_(el.id,"ini_file",metadata.ini_file,el.port,el.server);
+addmetadata_(el.id,"log_file",metadata.log_file,el.port,el.server);
+addmetadata_(el.id,"output_file",metadata.out_file,el.port,el.server);
 
 // Constants
 //adddoubleparam_(el.id,"g",k.g,7,el.port,el.server);
@@ -71,7 +74,7 @@ addintparam_(el.id,"step",k.dt,7,el.port,el.server);
 
 
 
-addstringparam_(el.id,"resultsfile","results.zip",7,el.port,el.server);
+
 //simfile=sprintf('%s.xml',simname)
 
 
@@ -79,3 +82,65 @@ addstringparam_(el.id,"resultsfile","results.zip",7,el.port,el.server);
 //endfunction
 }
 
+void readsim(params *k,  meta *md,char *simfile, iome el)
+{
+          readsimulation_(el.id,simfile,el.port,el.server);
+
+getmetadata_(el.id,"author",&(md->author),el.port,el.server);
+getmetadata_(el.id,"directory",&(md->directory),el.port,el.server);
+getmetadata_(el.id,"date",&(md->sdate),el.port,el.server);
+getmetadata_(el.id,"platform",&(md->platform),el.port,el.server);
+getmetadata_(el.id,"description",&(md->desc),el.port,el.server);
+getmetadata_(el.id,"name",&(md->name),el.port,el.server);
+getmetadata_(el.id,"ini_file",&(md->ini_file),el.port,el.server);
+getmetadata_(el.id,"log_file",&(md->log_file),el.port,el.server);
+getmetadata_(el.id,"out_file",&(md->out_file),el.port,el.server);
+
+
+}
+
+void initconfig(params *k, meta *md, float *w)
+{
+	int i1,j1;
+        int ni=k->ni;
+        int nj=k->nj;
+        for(i1=0; i1<(k->ni) ;i1++)
+	  for(j1=0; j1<(k->ni) ;j1++)
+          {
+                    for(int f=rho; f<=b3; f++)
+                    {
+
+                    switch(f)
+		            {
+		              case rho:
+		            	w[j1*ni+i1+(ni*nj*f)]=1.0;
+			      break;
+		              case mom1:
+		            	w[j1*ni+i1+(ni*nj*f)]=0.01;
+			      break;
+		              case mom2:
+		            	w[j1*ni+i1+(ni*nj*f)]=0.01;
+			      break;
+		              case mom3:
+		            	w[j1*ni+i1+(ni*nj*f)]=0.0;
+			      break;
+		              case energy:
+		            	w[j1*ni+i1+(ni*nj*f)]=0.0;
+			      break;
+		              case b1:
+		            	w[j1*ni+i1+(ni*nj*f)]=0.0;
+			      break;
+		              case b2:
+		            	w[j1*ni+i1+(ni*nj*f)]=0.0;
+			      break;
+		              case b3:
+		            	w[j1*ni+i1+(ni*nj*f)]=0.0;
+			      break;
+		            }; //end of switch to check for field
+
+			}//end of loop over f
+
+          }//end of loop over j and i
+
+
+}

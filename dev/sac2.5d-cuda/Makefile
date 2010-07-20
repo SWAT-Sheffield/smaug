@@ -14,10 +14,15 @@ BASICEXOBJS	=\
 	iosac2.5d.o\
 	initialisation.o\
 	dxroutines.o\
-	derivatives.o\
+	derivsource.o\
+	derivcurrent.o\
+	predictor.o\
 	boundary.o\
 	init.o\
-	update.o
+	update.o\
+        advance.o\
+	readwrite.o\
+	divb.o
 
 	
 	
@@ -72,7 +77,11 @@ iosac:$(BASICEXOBJS)
 #step.o: step.cu
 #	$(NVCC) -o $@ --ptxas-options=-v -c $<
 
-derivatives.o: derivatives.cu
+derivsource.o: derivsource.cu
+	$(NVCC) -o $@ --ptxas-options=-v -c $<
+derivcurrent.o: derivcurrent.cu
+	$(NVCC) -o $@ --ptxas-options=-v -c $<
+predictor.o: predictor.cu
 	$(NVCC) -o $@ --ptxas-options=-v -c $<
 boundary.o: boundary.cu
 	$(NVCC) -o $@ --ptxas-options=-v -c $<
@@ -80,7 +89,10 @@ init.o: init.cu
 	$(NVCC) -o $@ --ptxas-options=-v -c $<
 update.o: update.cu
 	$(NVCC) -o $@ --ptxas-options=-v -c $<
-
+advance.o: advance.cu
+	$(NVCC) -o $@ --ptxas-options=-v -c $<
+divb.o: divb.cu
+	$(NVCC) -o $@ --ptxas-options=-v -c $<
 .cpp.o:
 	$(CC) $(C_FLAGS) $(incDirs) $(LINKFLAGS)  -o $@ -c $<
 

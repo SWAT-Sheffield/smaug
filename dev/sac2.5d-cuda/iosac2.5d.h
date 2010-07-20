@@ -63,8 +63,9 @@ mikeg@photon0.freeserve.co.uk
 #include <iostream>
 
 #include "paramssteeringtest1.h"
-
+#include "readwrite.h"
 #include "dxroutines.h"
+#include "initialisation.h"
 #include <iome/genericsimulationlib/IoGenericSimulationLib.h>
 
 
@@ -83,6 +84,7 @@ using std::endl;
 #endif
 
 char simfile[300];
+char newsimfile[300];
 char portfile[300];
 
 
@@ -93,6 +95,7 @@ char m_serverclient[300] = "localhost:8080";
 char m_hostname[300] = "localhost";
 int m_port=8080;
 int port=m_port;
+void readsim(params *k,  meta *md,char *simfile, iome el);
 
 void createsim(params k, meta metadata,char *simname, iome el);
 void gendxgen(char *dir,char *jobname,int nsteps,int n1,int n2);

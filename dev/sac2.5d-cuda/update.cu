@@ -29,9 +29,44 @@ int fencode_u (struct params *dp,int ix, int iy, int field) {
   return ( (iy * ((dp)->ni) + ix)+(field*((dp)->ni)*((dp)->nj)));
 }
 
+__device__ __host__
+int updatestate (struct params *p, struct state *s, float *w ,int i, int j, int field) {
+
+  int status=0;
+                      // atomicExch(&(p->cmax),(wd[fencode_pre(p,i,j,soundspeed)]));
+                    switch(field)
+                    {
+                      case rho:
+                    	s->rho=s->rho+(w[fencode_u(p,i,j,field)]);
+		      break;
+                      case mom1:
+                    	s->m1=s->m1+(w[fencode_u(p,i,j,field)]);
+		      break;
+                      case mom2:
+                    	s->m2=s->m2+(w[fencode_u(p,i,j,field)]);
+		      break;
+                      case mom3:
+                    	s->m3=s->m3+(w[fencode_u(p,i,j,field)]);
+		      break;
+                      case energy:
+                    	s->e=s->e+(w[fencode_u(p,i,j,field)]);
+		      break;
+                      case b1:
+                    	s->b1=s->b1+(w[fencode_u(p,i,j,field)]);
+		      break;
+                      case b2:
+                    	s->b2=s->b2+(w[fencode_u(p,i,j,field)]);
+		      break;
+                      case b3:
+                    	s->b3=s->b3+(w[fencode_u(p,i,j,field)]);
+		      break;
+                    };
+  return status;
+}
 
 
-__global__ void update_parallel(struct params *p, float *b, float *w, float *wnew)
+
+__global__ void update_parallel(struct params *p, struct state *s, float *b, float *w, float *wnew)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -40,7 +75,7 @@ __global__ void update_parallel(struct params *p, float *b, float *w, float *wne
    int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int index,k;
-
+  __shared__ int ntot;
 
   int ni=p->ni;
   int nj=p->nj;
@@ -64,15 +99,92 @@ __global__ void update_parallel(struct params *p, float *b, float *w, float *wne
    i=iindex-(j*ni);
   //if(i>2 && j >2 && i<((p->ni)-3) && j<((p->nj)-3))
 
+if (threadIdx.x == 0) 
+{
+ ntot=(p->ni)*(p->nj);
+ for(int f=rho; f<=b3; f++) 
+ {
+                    switch(f)
+                    {
+                      case rho:
+                    	s->rho=0;
+		      break;
+                      case mom1:
+                    	s->m1=0;
+		      break;
+                      case mom2:
+                    	s->m2=0;
+		      break;
+                      case mom3:
+                    	s->m3=0;
+		      break;
+                      case energy:
+                    	s->e=0;
+		      break;
+                      case b1:
+                    	s->b1=0;
+		      break;
+                      case b2:
+                    	s->b2=0;
+		      break;
+                      case b3:
+                    	s->b3=0;
+		      break;
+                    };
+
+  }              
+                 
+}
+__syncthreads();
   if(i<p->ni && j<p->nj)
 	{
-             for(int f=rho; f<=b3; f++)               
+             for(int f=rho; f<=b3; f++)
+             {               
                   w[fencode_u(p,i,j,f)]=wnew[fencode_u(p,i,j,f)];
+                  updatestate (p, s, w ,i, j, f);
+              }
             // u[i+j*ni]=un[i+j*ni];
            // v[i+j*ni]=vn[i+j*ni];
 	   // h[i+j*ni]=hn[i+j*ni];
 	}
  __syncthreads();
+
+if (threadIdx.x == 0) 
+{
+ for(int f=rho; f<=b3; f++) 
+ {
+                    switch(f)
+                    {
+                      case rho:
+                    	s->rho=(s->rho)/ntot;
+		      break;
+                      case mom1:
+                    	s->m1=(s->m1)/ntot;
+		      break;
+                      case mom2:
+                    	s->m2=(s->m2)/ntot;
+		      break;
+                      case mom3:
+                    	s->m3=(s->m3)/ntot;
+		      break;
+                      case energy:
+                    	s->e=(s->e)/ntot;
+		      break;
+                      case b1:
+                    	s->b1=(s->b1)/ntot;
+		      break;
+                      case b2:
+                    	s->b2=(s->b2)/ntot;
+		      break;
+                      case b3:
+                    	s->b3=(s->b3)/ntot;
+		      break;
+                    };
+
+  }              
+                 
+}
+__syncthreads();
   
 }
 
@@ -104,7 +216,7 @@ void checkErrors_u(char *label)
 }
 
 
-int cuupdate(struct params **p, float **w, float **wnew, float **b,struct params **d_p, float **d_w, float **d_wnew, float **d_b, float **d_wmod, float **d_dwn1, float **d_wd)
+int cuupdate(struct params **p, float **w, float **wnew, float **b, struct state **state,struct params **d_p, float **d_w, float **d_wnew, float **d_b, float **d_wmod, float **d_dwn1, float **d_wd, struct state **d_state)
 {
 
 
@@ -127,10 +239,12 @@ int cuupdate(struct params **p, float **w, float **wnew, float **b,struct params
      //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
 	    //printf("called boundary\n");  
      //cudaThreadSynchronize();
-     update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
+     update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_state, *d_b,*d_w,*d_wnew);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
- cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
+
 //cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
 //cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -155,6 +269,7 @@ int cufinish(struct params **p, float **w, float **wnew, float **b, struct param
 
 
   cudaFree(*d_p);
+//  cudaFree(*d_state);
 
   cudaFree(*d_w);
   cudaFree(*d_wnew);
