@@ -578,7 +578,7 @@ void deriv (float *dw, float *wd, float *w, struct params *p,int ix, int iy, int
 
 
 
-__global__ void derivcurrent_parallel(struct params *p, float *b, float *w, float *wnew, float *wmod, 
+__global__ void derivcurrent_parallel(struct params *p, float *w, float *wnew, float *wmod, 
     float *dwn1, float *wd)
 {
   // compute the global index in the vector from
@@ -665,7 +665,7 @@ __global__ void derivcurrent_parallel(struct params *p, float *b, float *w, floa
   
 }
 
-__global__ void derivsource_parallel(struct params *p, float *b, float *w, float *wnew, float *wmod, 
+__global__ void derivsource_parallel(struct params *p, float *w, float *wnew, float *wmod, 
     float *dwn1, float *wd)
 {
   // compute the global index in the vector from
@@ -782,7 +782,7 @@ void checkErrors(char *label)
 
 
 
-int cuderivcurrent(struct params **p, float **w, float **wnew, float **b,struct params **d_p, float **d_w, float **d_wnew, float **d_b, float **d_wmod, float **d_dwn1, float **d_wd)
+int cuderivcurrent(struct params **p, float **w, float **wnew, struct params **d_p, float **d_w, float **d_wnew, float **d_wmod, float **d_dwn1, float **d_wd)
 {
 
 
@@ -798,7 +798,7 @@ int cuderivcurrent(struct params **p, float **w, float **wnew, float **b,struct 
 //__global__ void prop_parallel(struct params *p, float *b, float *w, float *wnew, float *wmod, 
   //  float *dwn1, float *dwn2, float *dwn3, float *dwn4, float *wd)
      //init_parallel(struct params *p, float *b, float *u, float *v, float *h)
-     derivcurrent_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
+     derivcurrent_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();
@@ -820,7 +820,7 @@ int cuderivcurrent(struct params **p, float **w, float **wnew, float **b,struct 
 
 }
 
-int cuderivsource(struct params **p, float **w, float **wnew, float **b,struct params **d_p, float **d_w, float **d_wnew, float **d_b, float **d_wmod, float **d_dwn1, float **d_wd)
+int cuderivsource(struct params **p, float **w, float **wnew,struct params **d_p, float **d_w, float **d_wnew,  float **d_wmod, float **d_dwn1, float **d_wd)
 {
 
 
@@ -836,7 +836,7 @@ int cuderivsource(struct params **p, float **w, float **wnew, float **b,struct p
 //__global__ void prop_parallel(struct params *p, float *b, float *w, float *wnew, float *wmod, 
   //  float *dwn1, float *dwn2, float *dwn3, float *dwn4, float *wd)
      //init_parallel(struct params *p, float *b, float *u, float *v, float *h)
-     derivsource_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
+     derivsource_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();

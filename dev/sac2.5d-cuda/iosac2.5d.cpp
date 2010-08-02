@@ -99,18 +99,18 @@ double h0 = 5030;
 
 //Domain definition
 // Define the x domain
-int ni = 151; 
+int ni = 150; 
 //ni=41;
-float xmax = 100000;                      
+float xmax = 3.0;                      
 float dx = xmax/(ni-1);
 
 
 
 
 // Define the y domain
-int nj = 151;  
+int nj = 150;  
 //nj=41;
-float ymax = 100000;                      
+float ymax = 3.0;                      
 float dy = ymax/(nj-1);
 
 float *x=(float *)calloc(ni,sizeof(float));
@@ -134,7 +134,8 @@ float wavespeed = u0 + sqrt(g*(h0 - b0));
 
 // Define time-domain
 float dt = 0.68*dx/wavespeed;
-dt=0.05;
+//dt=0.015985;
+dt=0.001;
 int nt=(int)((tmax-1)/dt);
 
 float *t=(float *)calloc(nt,sizeof(float));
@@ -201,10 +202,10 @@ printf("rho %d mom1 %d mom2 %d\n",rho,mom1,mom2);
 
 float *d_w;
 float *d_wnew;
-float *d_b;
+
 float *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
 
-float *w,*wnew,*b;
+float *w,*wnew;
 struct params *d_p;
 struct params *p=(struct params *)malloc(sizeof(struct params));
 
@@ -217,7 +218,7 @@ p->dt=dt;
 p->dx=dx;
 p->dy=dy;
 p->g=g;
-p->gamma=0.666666;
+p->gamma=1.4;
 p->mu=1.0;
 p->eta=0.0;
 p->g1=0.0;
@@ -284,7 +285,7 @@ if((p->readini)==0)
 {
  w=(float *)calloc(ni*nj*8,sizeof(float ));
  wnew=(float *)calloc(ni*nj*8,sizeof(float ));
- b=(float *)calloc(ni*nj,sizeof(float ));
+
  initconfig(p, &meta, w);
 }
   float *u,  *v,  *h;
@@ -295,7 +296,7 @@ if((p->readini)==0)
 
 
 
-cuinit(&p,&w,&wnew,&b,&state,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1,  &d_wd, &d_state);
+cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state);
 
 
 printf("here in runsim\n");
@@ -366,20 +367,20 @@ for( n=0;n<nt;n++)
 {
   
    t1=second();
-   cupredictor(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd,order);
+   cupredictor(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
 
    if(order==0 && p->moddton==1)
        p->dt=((p->dx)+(p->dy))/(2.0*(p->cmax));
-   cuderivcurrent(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd,order);
-   cuderivsource(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd);
+   cuderivcurrent(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+   cuderivsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
 
-   cuadvance(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd);
+   cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
 
-   cuboundary(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd);
-   cuupdate(&p,&w,&wnew,&b,&state,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd, &d_state);
+   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
+   cuupdate(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state);
 
    if(p->divbon==1)
-       cudivb(&p,&w,&wnew,&b,&state,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1, &d_wd, &d_state);
+       cudivb(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state);
 
    t2=second()-t1;
    ttot+=t2;
@@ -466,7 +467,7 @@ for( n=0;n<nt;n++)
 //}
 //}//disp('while finsish steering');
 //}//end //while finishsteering loop
-cufinish(&p,&w,&wnew,&b,&d_p,&d_w,&d_wnew,&d_b,&d_wmod, &d_dwn1,  &d_wd);
+cufinish(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd);
 free(p);
 free(sdir);
 free(name);

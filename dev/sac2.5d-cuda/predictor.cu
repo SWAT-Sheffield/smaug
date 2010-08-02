@@ -143,7 +143,7 @@ void computecmax(float *wmod,float *wd,struct params *p,int i,int j)
 }
 
 
-__global__ void predictor_parallel(struct params *p, float *b, float *w, float *wnew, float *wmod, 
+__global__ void predictor_parallel(struct params *p,  float *w, float *wnew, float *wmod, 
     float *dwn1, float *wd, int order)
 {
   // compute the global index in the vector from
@@ -264,7 +264,7 @@ void checkErrors_pre(char *label)
 
 
 
-int cupredictor(struct params **p, float **w, float **wnew, float **b,struct params **d_p, float **d_w, float **d_wnew, float **d_b, float **d_wmod, float **d_dwn1, float **d_wd, int order)
+int cupredictor(struct params **p, float **w, float **wnew, struct params **d_p, float **d_w, float **d_wnew, float **d_wmod, float **d_dwn1, float **d_wd, int order)
 {
 
 
@@ -280,7 +280,7 @@ int cupredictor(struct params **p, float **w, float **wnew, float **b,struct par
 //__global__ void prop_parallel(struct params *p, float *b, float *w, float *wnew, float *wmod, 
   //  float *dwn1, float *dwn2, float *dwn3, float *dwn4, float *wd)
      //init_parallel(struct params *p, float *b, float *u, float *v, float *h)
-     predictor_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order);
+     predictor_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();

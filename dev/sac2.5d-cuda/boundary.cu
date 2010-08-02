@@ -30,7 +30,7 @@ int fencode_b (struct params *dp,int ix, int iy, int field) {
 }
 
 
-__global__ void boundary_parallel(struct params *p, float *b, float *w, float *wnew)
+__global__ void boundary_parallel(struct params *p, float *w, float *wnew)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -88,7 +88,7 @@ __global__ void boundary_parallel(struct params *p, float *b, float *w, float *w
   
 }
 
-int cuboundary(struct params **p, float **w, float **wnew, float **b,struct params **d_p, float **d_w, float **d_wnew, float **d_b, float **d_wmod, float **d_dwn1, float **d_wd)
+int cuboundary(struct params **p, float **w, float **wnew, struct params **d_p, float **d_w, float **d_wnew, float **d_wmod, float **d_dwn1, float **d_wd)
 {
 
 
@@ -103,15 +103,11 @@ int cuboundary(struct params **p, float **w, float **wnew, float **b,struct para
 
 //__global__ void prop_parallel(struct params *p, float *b, float *w, float *wnew, float *wmod, 
   //  float *dwn1, float *dwn2, float *dwn3, float *dwn4, float *wd)
-     //init_parallel(struct params *p, float *b, float *u, float *v, float *h)
-    // prop_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
-     //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
-	    //printf("called prop\n"); 
+ 	    //printf("called prop\n"); 
     // cudaThreadSynchronize();
-     boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
+ //////////////////    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew);
 	    //printf("called boundary\n");  
      //cudaThreadSynchronize();
-     //update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
 // cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);

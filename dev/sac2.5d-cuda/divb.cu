@@ -31,7 +31,7 @@ int fencode_db (struct params *dp,int ix, int iy, int field) {
 
 
 
-__global__ void divb_parallel(struct params *p, struct state *s, float *b, float *w, float *wnew)
+__global__ void divb_parallel(struct params *p, struct state *s, float *w, float *wnew)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -111,8 +111,7 @@ void checkErrors_db(char *label)
   }
 }
 
-
-int cudivb(struct params **p, float **w, float **wnew, float **b, struct state **state,struct params **d_p, float **d_w, float **d_wnew, float **d_b, float **d_wmod, float **d_dwn1, float **d_wd, struct state **d_state)
+int cudivb(struct params **p, float **w, float **wnew,  struct state **state,struct params **d_p, float **d_w, float **d_wnew,  float **d_wmod, float **d_dwn1, float **d_wd, struct state **d_state)
 {
 
 
@@ -135,7 +134,7 @@ int cudivb(struct params **p, float **w, float **wnew, float **b, struct state *
      //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
 	    //printf("called boundary\n");  
      //cudaThreadSynchronize();
-    divb_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_state, *d_b,*d_w,*d_wnew);
+    divb_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_state,*d_w,*d_wnew);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
     //cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
