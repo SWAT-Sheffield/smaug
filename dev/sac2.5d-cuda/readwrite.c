@@ -58,6 +58,27 @@ int writeconfig(char *name,int n,params p, meta md, float *w)
       }
       fclose(fdt);
 
+
+      //save file containing current data
+      sprintf(configfile,"out/%s.out",name);
+      printf("check dims %d %d \n",ni,nj);
+      fdt=fopen(configfile,"a+");
+      fprintf(fdt,"%d\n",n);
+     for( j1=0;j1<nj;j1++)
+      {
+        for( i1=0;i1<ni;i1++)
+	{
+               // printf("%d %d ", i1,j1);
+		fprintf(fdt,"%d %d %f %f %f %f %f %f %f %f\n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[(j1*ni+i1)+(ni*nj*mom1)],w[(j1*ni+i1)+(ni*nj*mom2)],w[j1*ni+i1+(ni*nj*mom3)],w[j1*ni+i1+(ni*nj*energy)],w[j1*ni+i1+(ni*nj*b1)],w[j1*ni+i1+(ni*nj*b2)],w[j1*ni+i1+(ni*nj*b3)]);
+           //fprintf(fdt,"%d %f %f %f ",j1+i1*nj, u[j1+i1*nj],v[j1+i1*nj],h[j1+i1*nj]);
+               // fprintf(fdt,"%f ",h[j1+i1*nj]);
+        }     
+        //printf("\n");   
+        //fprintf(fdt,"\n");
+      }
+      fclose(fdt);
+
+
   return status;
 }
 

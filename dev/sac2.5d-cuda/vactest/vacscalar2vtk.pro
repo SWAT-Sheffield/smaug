@@ -26,8 +26,10 @@ pro vacscalar2vtk,pict,vacdata,x,field,vecsize,filename
         endelse
      endelse
 
-; Open the file .vtr 
-     openw,lu,filen,/get_lun
+; Open the file .vtr
+     lu=2 
+     ;openw,lu,filen,/get_lun
+     openw,lu,filen
      ; Header
 
      printf,lu,'# vtk DataFile Version 2.0'
@@ -65,7 +67,8 @@ pro vacscalar2vtk,pict,vacdata,x,field,vecsize,filename
 
 
 
-     close,/all
+   ;  close,/all
+     close,2
 
 end
 

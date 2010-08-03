@@ -333,7 +333,7 @@ getmetadata_(elist.id,"name",&name,elist.port,elist.server);
 //printf("here in runsim3\n");
 sprintf(outfile,"%s/%s.out",sdir,name);
 
-FILE *fd=fopen(outfile,"w");
+//FILE *fd=fopen(outfile,"w");
 //if steeringenabled==1
  printf("\n %s %s here in runsim4 %s\n",sdir,name,outfile); 
   //mkdir('tmp');
@@ -432,16 +432,16 @@ for( n=0;n<nt;n++)
    
  //disp('writing data');
     //if finishsteering==1
-      fprintf(fd,"%d\n",n);
-      for( j1=0;j1<nj;j1++)
-      {
-        for( i1=0;i1<ni;i1++)
-	{
-          fprintf(fd,"%f %f %f ",u[j1*ni+i1],v[j1*ni+i1],h[j1*ni+i1]);
+    //  fprintf(fd,"%d\n",n);
+    //  for( j1=0;j1<nj;j1++)
+    //  {
+     //   for( i1=0;i1<ni;i1++)
+	//{
+     //     fprintf(fd,"%f %f %f ",u[j1*ni+i1],v[j1*ni+i1],h[j1*ni+i1]);
 	   	//fprintf(fd,"%f ",h[j1*ni+i1]);
-	}
-        fprintf(fd,"\n");
-      }
+	//}
+       // fprintf(fd,"\n");
+    //  }
 
 
     }//end of testep
@@ -476,7 +476,7 @@ free(formfile);
 
 //for the completed simulation
 //int nsteps=nt;
-fclose(fd);
+//fclose(fd);
 
 
 
