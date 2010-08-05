@@ -1,4 +1,4 @@
-#include "paramssteeringtest1.h"
+#include "iotypes.h"
 #include <iome/genericsimulationlib/IoGenericSimulationLib.h>
 
 void createsim(params k,  meta metadata,char *simname, iome el)
@@ -99,7 +99,7 @@ getmetadata_(el.id,"out_file",&(md->out_file),el.port,el.server);
 
 }
 
-void initconfig(params *k, meta *md, float *w)
+void initconfig(params *k, meta *md, real *w)
 {
 	int i1,j1;
         int ni=k->ni;

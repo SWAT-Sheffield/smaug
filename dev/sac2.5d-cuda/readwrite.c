@@ -26,7 +26,7 @@ int appendlog(char *logfile, params p, state s)
   return status;
 }
 
-int writeconfig(char *name,int n,params p, meta md, float *w)
+int writeconfig(char *name,int n,params p, meta md, real *w)
 {
   int status=0;
   int i1,j1;
@@ -82,7 +82,7 @@ int writeconfig(char *name,int n,params p, meta md, float *w)
   return status;
 }
 
-int readconfig(char *cfgfile, params p, meta md, float *w)
+int readconfig(char *cfgfile, params p, meta md, real *w)
 {
   int status=0;
 

@@ -1,5 +1,5 @@
 #include "cudapars.h"
-#include "paramssteeringtest1.h"
+#include "iotypes.h"
 
 /////////////////////////////////////
 // standard imports
@@ -31,8 +31,8 @@ int fencode_i (struct params *dp,int ix, int iy, int field) {
 
 //*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd
 
-__global__ void init_parallel(struct params *p, float *w, float *wnew, float *wmod, 
-    float *dwn1, float *wd)
+__global__ void init_parallel(struct params *p, real *w, real *wnew, real *wmod, 
+    real *dwn1, real *wd)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -53,12 +53,12 @@ int ni=p->ni;
     int tx = threadIdx.x;
    // int ty = threadIdx.y;
     
-  float *u,  *v,  *h;
+  real *u,  *v,  *h;
 
   int seg1,seg2,seg3;
   int width=10;
-  float m2max=0.001;
-  float start=((p->ni)-width)/2;
+  real m2max=0.001;
+  real start=((p->ni)-width)/2;
   seg1=2*(p->ni)/5;
   seg2=3*(p->ni)/5;
   seg3=4*(p->ni)/5;
@@ -91,8 +91,12 @@ int ni=p->ni;
 		          w[fencode_i(p,i,j,f)]=0;
 	    }
 	    w[fencode_i(p,i,j,rho)]=1.0;
-	    w[fencode_i(p,i,j,b1)]=1.0;
+	    //w[fencode_i(p,i,j,b1)]=1.0;
 	    w[fencode_i(p,i,j,energy)]=0.0001;
+
+            //w[fencode_i(p,i,j,b1)]=15*j;
+            //w[fencode_i(p,i,j,b3)]=150*j;
+
 
 	   if (i > seg1)
 	    if (i < seg2)
@@ -124,7 +128,7 @@ int ni=p->ni;
 			}	
 	 __syncthreads();
 
-
+ 
   
 }
 
@@ -156,7 +160,7 @@ void checkErrors_i(char *label)
 
 
 
-int cuinit(struct params **p, float **w, float **wnew, struct state **state, struct params **d_p, float **d_w, float **d_wnew, float **d_wmod, float **d_dwn1, float **d_wd, struct state **d_state)
+int cuinit(struct params **p, real **w, real **wnew, struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state)
 {
 
 
@@ -186,18 +190,18 @@ int cuinit(struct params **p, float **w, float **wnew, struct state **state, str
 	// Build empty u, v, b matrices
 
   printf("in cuinit\n");
- // float *adb;
-  float *adw, *adwnew;
+ // real *adb;
+  real *adw, *adwnew;
   struct params *adp;
   struct state *ads;
 
 
-  cudaMalloc((void**)d_wmod, 8*((*p)->ni)* ((*p)->nj)*sizeof(float));
-  cudaMalloc((void**)d_dwn1, 8*((*p)->ni)* ((*p)->nj)*sizeof(float));
-  cudaMalloc((void**)d_wd, 7*((*p)->ni)* ((*p)->nj)*sizeof(float));
+  cudaMalloc((void**)d_wmod, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
+  cudaMalloc((void**)d_dwn1, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
+  cudaMalloc((void**)d_wd, 7*((*p)->ni)* ((*p)->nj)*sizeof(real));
 
-  cudaMalloc((void**)&adw, 8*((*p)->ni)* ((*p)->nj)*sizeof(float));
-  cudaMalloc((void**)&adwnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float));
+  cudaMalloc((void**)&adw, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
+  cudaMalloc((void**)&adwnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
   
   cudaMalloc((void**)&adp, sizeof(struct params));
   cudaMalloc((void**)&ads, sizeof(struct state));
@@ -212,8 +216,8 @@ printf("ni is %d\n",(*p)->nj);
     *d_state=ads;
 
 
-    cudaMemcpy(*d_w, *w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
-   // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(*d_w, *w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyHostToDevice);
+   // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyHostToDevice);
     
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_state, *state, sizeof(struct state), cudaMemcpyHostToDevice);
@@ -225,18 +229,18 @@ printf("ni is %d\n",(*p)->nj);
    
 
     printf("calling initialiser\n");
-     //init_parallel(struct params *p, float *b, float *u, float *v, float *h)
+     //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
     // init_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
     // init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_b);
      init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd);
      cudaThreadSynchronize();
 	    printf("called initialiser\n");
-	cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
 
 	cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
         cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
-	cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-	//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+	//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(real), cudaMemcpyDeviceToHost);
 
          printf("mod times step %f %f\n",(*p)->dt, ((*wnew)[10+16*((*p)->ni)+((*p)->ni)*((*p)->nj)*b1]));
 

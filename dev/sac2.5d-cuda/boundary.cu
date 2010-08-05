@@ -30,7 +30,7 @@ int fencode_b (struct params *dp,int ix, int iy, int field) {
 }
 
 
-__global__ void boundary_parallel(struct params *p, float *w, float *wnew)
+__global__ void boundary_parallel(struct params *p, real *w, real *wnew)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -42,13 +42,13 @@ __global__ void boundary_parallel(struct params *p, float *w, float *wnew)
 
   int ni=p->ni;
   int nj=p->nj;
-  float dt=p->dt;
-  float dy=p->dy;
-  float dx=p->dx;
-  float g=p->g;
+  real dt=p->dt;
+  real dy=p->dy;
+  real dx=p->dx;
+  real g=p->g;
 
-  float *u,  *v,  *h;
-  float *un,  *vn,  *hn;
+  real *u,  *v,  *h;
+  real *un,  *vn,  *hn;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
   h=w+(p->ni)*(p->nj)*rho;
   u=w+(p->ni)*(p->nj)*mom1;
@@ -88,7 +88,7 @@ __global__ void boundary_parallel(struct params *p, float *w, float *wnew)
   
 }
 
-int cuboundary(struct params **p, float **w, float **wnew, struct params **d_p, float **d_w, float **d_wnew, float **d_wmod, float **d_dwn1, float **d_wd)
+int cuboundary(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd)
 {
 
 
@@ -101,18 +101,18 @@ int cuboundary(struct params **p, float **w, float **wnew, struct params **d_p, 
     dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
    int numBlocks = (((*p)->ni)*((*p)->nj)+numThreadsPerBlock-1) / numThreadsPerBlock;
 
-//__global__ void prop_parallel(struct params *p, float *b, float *w, float *wnew, float *wmod, 
-  //  float *dwn1, float *dwn2, float *dwn3, float *dwn4, float *wd)
+//__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
+  //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
  	    //printf("called prop\n"); 
     // cudaThreadSynchronize();
- //////////////////    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew);
+    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew);
 	    //printf("called boundary\n");  
      //cudaThreadSynchronize();
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
-// cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
+// cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(real), cudaMemcpyDeviceToHost);
 
   //checkErrors("copy data from device");
 

@@ -1,5 +1,5 @@
 #include "cudapars.h"
-#include "paramssteeringtest1.h"
+#include "iotypes.h"
 
 /////////////////////////////////////
 // standard imports
@@ -33,9 +33,9 @@ int fencode_adv (struct params *dp,int ix, int iy, int field) {
 }
 
 __device__ __host__
-float evalgrad_adv(float fi, float fim1, float fip2, float fim2,struct params *p,int dir)
+real evalgrad_adv(real fi, real fim1, real fip2, real fim2,struct params *p,int dir)
 {
- //float valgrad;
+ //real valgrad;
 
  if(dir == 0)
  {
@@ -53,9 +53,9 @@ float evalgrad_adv(float fi, float fim1, float fip2, float fim2,struct params *p
 
 
 __device__ __host__
-float grad_adv(float *wmod,struct params *p,int i,int j,int field,int dir)
+real grad_adv(real *wmod,struct params *p,int i,int j,int field,int dir)
 {
- //float valgrad;
+ //real valgrad;
 
  if(dir == 0)
  {
@@ -73,13 +73,13 @@ return((1.0/(1.0*(p->dx)))*(wmod[fencode_adv(p,i+1,j,field)]-wmod[fencode_adv(p,
 }
 
 __device__ __host__
-void computej_adv(float *wmod,float *wd,struct params *p,int i,int j)
+void computej_adv(real *wmod,real *wd,struct params *p,int i,int j)
 {
  // int status=0;
 
- // float dbzdy, dbydz;
- // float dbzdx, dbxdz;
- // float dbydx, dbxdy;
+ // real dbzdy, dbydz;
+ // real dbzdx, dbxdz;
+ // real dbydx, dbxdy;
 
  // dbzdy=grad(wmod,p,i,j,b3,1);
  // dbydz=0.0;
@@ -96,10 +96,10 @@ void computej_adv(float *wmod,float *wd,struct params *p,int i,int j)
 }
 
 __device__ __host__
-void computebdotv_adv(float *wmod,float *wd,struct params *p,int i,int j)
+void computebdotv_adv(real *wmod,real *wd,struct params *p,int i,int j)
 {
  // int status=0;
- //float bsq=wmod[fencode(p,i,j,b1)]*wmod[fencode(p,i,j,b1)]+wmod[fencode(p,i,j,b2)]*wmod[fencode(p,i,j,b2)]+wmod[fencode(p,i,j,b3)]*wmod[fencode(p,i,j,b3)];
+ //real bsq=wmod[fencode(p,i,j,b1)]*wmod[fencode(p,i,j,b1)]+wmod[fencode(p,i,j,b2)]*wmod[fencode(p,i,j,b2)]+wmod[fencode(p,i,j,b3)]*wmod[fencode(p,i,j,b3)];
 //  wd[fencode(p,i,j,4)]=  wd[fencode(p,i,j,3)]+0.5*(wmod[fencode(p,i,j,b1)]*wmod[fencode(p,i,j,b1)]+wmod[fencode(p,i,j,b2)]*wmod[fencode(p,i,j,b2)]+wmod[fencode(p,i,j,b3)]*wmod[fencode(p,i,j,b3)]);
 
 wd[fencode_adv(p,i,j,bdotv)]=(wmod[fencode_adv(p,i,j,b1)]*wmod[fencode_adv(p,i,j,mom1)]+wmod[fencode_adv(p,i,j,b2)]*wmod[fencode_adv(p,i,j,mom2)]+wmod[fencode_adv(p,i,j,b3)]*wmod[fencode_adv(p,i,j,mom3)])/wmod[fencode_adv(p,i,j,rho)];
@@ -108,25 +108,25 @@ wd[fencode_adv(p,i,j,bdotv)]=(wmod[fencode_adv(p,i,j,b1)]*wmod[fencode_adv(p,i,j
 
 
 __device__ __host__
-void computepk_adv(float *wmod,float *wd,struct params *p,int i,int j)
+void computepk_adv(real *wmod,real *wd,struct params *p,int i,int j)
 {
  // int status=0;
- //float bsq=wmod[fencode(p,i,j,b1)]*wmod[fencode(p,i,j,b1)]+wmod[fencode(p,i,j,b2)]*wmod[fencode(p,i,j,b2)]+wmod[fencode(p,i,j,b3)]*wmod[fencode(p,i,j,b3)];
+ //real bsq=wmod[fencode(p,i,j,b1)]*wmod[fencode(p,i,j,b1)]+wmod[fencode(p,i,j,b2)]*wmod[fencode(p,i,j,b2)]+wmod[fencode(p,i,j,b3)]*wmod[fencode(p,i,j,b3)];
   wd[fencode_adv(p,i,j,4)]=  wd[fencode_adv(p,i,j,3)]+0.5*(wmod[fencode_adv(p,i,j,b1)]*wmod[fencode_adv(p,i,j,b1)]+wmod[fencode_adv(p,i,j,b2)]*wmod[fencode_adv(p,i,j,b2)]+wmod[fencode_adv(p,i,j,b3)]*wmod[fencode_adv(p,i,j,b3)]);
  // return ( status);
 }
 __device__ __host__
-void computept_adv(float *wmod,float *wd,struct params *p,int i,int j)
+void computept_adv(real *wmod,real *wd,struct params *p,int i,int j)
 {
   //int status=0;
-  //float momsq=wmod[fencode(p,i,j,mom1)]*wmod[fencode(p,i,j,mom1)]+wmod[fencode(p,i,j,mom2)]*wmod[fencode(p,i,j,mom2)]+wmod[fencode(p,i,j,mom3)]*wmod[fencode(p,i,j,mom3)];
-  //float bsq=wmod[fencode(p,i,j,b1)]*wmod[fencode(p,i,j,b1)]+wmod[fencode(p,i,j,b2)]*wmod[fencode(p,i,j,b2)]+wmod[fencode(p,i,j,b3)]*wmod[fencode(p,i,j,b3)];
+  //real momsq=wmod[fencode(p,i,j,mom1)]*wmod[fencode(p,i,j,mom1)]+wmod[fencode(p,i,j,mom2)]*wmod[fencode(p,i,j,mom2)]+wmod[fencode(p,i,j,mom3)]*wmod[fencode(p,i,j,mom3)];
+  //real bsq=wmod[fencode(p,i,j,b1)]*wmod[fencode(p,i,j,b1)]+wmod[fencode(p,i,j,b2)]*wmod[fencode(p,i,j,b2)]+wmod[fencode(p,i,j,b3)]*wmod[fencode(p,i,j,b3)];
   wd[fencode_adv(p,i,j,3)]=((p->gamma)-1)*(wmod[fencode_adv(p,i,j,energy)]- 0.5*(wmod[fencode_adv(p,i,j,mom1)]*wmod[fencode_adv(p,i,j,mom1)]+wmod[fencode_adv(p,i,j,mom2)]*wmod[fencode_adv(p,i,j,mom2)]+wmod[fencode_adv(p,i,j,mom3)]*wmod[fencode_adv(p,i,j,mom3)])/wmod[fencode_adv(p,i,j,rho)]-0.5*(wmod[fencode_adv(p,i,j,b1)]*wmod[fencode_adv(p,i,j,b1)]+wmod[fencode_adv(p,i,j,b2)]*wmod[fencode_adv(p,i,j,b2)]+wmod[fencode_adv(p,i,j,b3)]*wmod[fencode_adv(p,i,j,b3)]) );
   //return ( status);
 }
 
-__global__ void advance_parallel(struct params *p, float *w, float *wnew, float *wmod, 
-    float *dwn1, float *wd)
+__global__ void advance_parallel(struct params *p, real *w, real *wnew, real *wmod, 
+    real *dwn1, real *wd)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -140,10 +140,10 @@ __global__ void advance_parallel(struct params *p, float *w, float *wnew, float 
   int index,k;
   int ni=p->ni;
   int nj=p->nj;
-  float dt=p->dt;
-  float dy=p->dy;
-  float dx=p->dx;
-  float g=p->g;
+  real dt=p->dt;
+  real dy=p->dy;
+  real dx=p->dx;
+  real g=p->g;
  //  dt=1.0;
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
@@ -242,7 +242,7 @@ void checkErrors_adv(char *label)
 
 
 
-int cuadvance(struct params **p, float **w, float **wnew,struct params **d_p, float **d_w, float **d_wnew, float **d_wmod, float **d_dwn1, float **d_wd)
+int cuadvance(struct params **p, real **w, real **wnew,struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd)
 {
 
 
@@ -255,9 +255,9 @@ int cuadvance(struct params **p, float **w, float **wnew,struct params **d_p, fl
     dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
    int numBlocks = (((*p)->ni)*((*p)->nj)+numThreadsPerBlock-1) / numThreadsPerBlock;
 
-//__global__ void prop_parallel(struct params *p, float *b, float *w, float *wnew, float *wmod, 
-  //  float *dwn1, float *dwn2, float *dwn3, float *dwn4, float *wd)
-     //init_parallel(struct params *p, float *b, float *u, float *v, float *h)
+//__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
+  //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
+     //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
      advance_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
@@ -268,9 +268,9 @@ int cuadvance(struct params **p, float **w, float **wnew,struct params **d_p, fl
      //update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
 	    //printf("called update\n"); 
    // cudaThreadSynchronize();
-// cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
+// cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(real), cudaMemcpyDeviceToHost);
 
   //checkErrors("copy data from device");
 

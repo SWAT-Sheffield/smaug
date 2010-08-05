@@ -44,19 +44,19 @@ mikeg@photon0.freeserve.co.uk
 #include "iosac2.5d.h"
 #include "step.h"
 /*----------------------*/ 
-double second()
+real second()
 {
 
    /*REAL secs;
    clock_t Time;
    Time = clock();
 
-   secs = (double) Time / (double) CLOCKS_PER_SEC;
+   secs = (real) Time / (real) CLOCKS_PER_SEC;
    return secs;*/
-   double retval;
+   real retval;
 	static long zsec=0;
 	static long zusec=0;
-	double esec;
+	real esec;
 	
 	struct timeval tp;
 	struct timezone tzp;
@@ -90,19 +90,19 @@ char *outfile=(char *)calloc(500,sizeof(char));
 char *formfile=(char *)calloc(500,sizeof(char));
 
 
-double g  = 9.81;
-double u0 = 0;                               
-double v0 = 0;
-double b0  = 0;                               
-double h0 = 5030; 
+real g  = 9.81;
+real u0 = 0;                               
+real v0 = 0;
+real b0  = 0;                               
+real h0 = 5030; 
 
 
 //Domain definition
 // Define the x domain
 int ni = 150; 
 //ni=41;
-float xmax = 3.0;                      
-float dx = xmax/(ni-1);
+real xmax = 3000.0;                      
+real dx = xmax/(ni-1);
 
 
 
@@ -110,41 +110,41 @@ float dx = xmax/(ni-1);
 // Define the y domain
 int nj = 150;  
 //nj=41;
-float ymax = 3.0;                      
-float dy = ymax/(nj-1);
+real ymax = 3000.0;                      
+real dy = ymax/(nj-1);
 
-float *x=(float *)calloc(ni,sizeof(float));
+real *x=(real *)calloc(ni,sizeof(real));
 for(i=0;i<ni;i++)
 		x[i]=i*dx;
 
-float *y=(float *)calloc(nj,sizeof(float));
+real *y=(real *)calloc(nj,sizeof(real));
 for(i=0;i<nj;i++)
 		y[i]=i*dy;
 
 
 
 int step=0;
-double tmax = 200;
+real tmax = 200;
 int steeringenabled=1;
 int finishsteering=0;
 char configfile[300];
 
 // Define the wavespeed
-float wavespeed = u0 + sqrt(g*(h0 - b0));
+real wavespeed = u0 + sqrt(g*(h0 - b0));
 
 // Define time-domain
-float dt = 0.68*dx/wavespeed;
-//dt=0.015985;
-dt=0.001;
+real dt = 0.68*dx/wavespeed;
+dt=0.015985;
+//dt=0.001;
 int nt=(int)((tmax-1)/dt);
 
-float *t=(float *)calloc(nt,sizeof(float));
+real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1\n");
 //t = [0:dt:tdomain];
 for(i=0;i<nt;i++)
 		t[i]=i*dt;
 
-float courant = wavespeed*dt/dx;
+real courant = wavespeed*dt/dx;
 
 
 
@@ -193,19 +193,19 @@ elist.id=0;
 
 
 
-//int cuprop(struct params **p, float **w, float **wnew, float **b,struct params **d_p, float **d_w, float **d_wnew, float **d_b, float **d_wmod, float **d_dwn1, float **d_dwn2, float **d_dwn3, float **d_dwn4, float **d_wd)
+//int cuprop(struct params **p, real **w, real **wnew, real **b,struct params **d_p, real **d_w, real **d_wnew, real **d_b, real **d_wmod, real **d_dwn1, real **d_dwn2, real **d_dwn3, real **d_dwn4, real **d_wd)
 
 
 
 
 printf("rho %d mom1 %d mom2 %d\n",rho,mom1,mom2);
 
-float *d_w;
-float *d_wnew;
+real *d_w;
+real *d_wnew;
 
-float *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
+real *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
 
-float *w,*wnew;
+real *w,*wnew;
 struct params *d_p;
 struct params *p=(struct params *)malloc(sizeof(struct params));
 
@@ -224,13 +224,14 @@ p->eta=0.0;
 p->g1=0.0;
 p->g2=0.0;
 p->g3=0.0;
-p->cmax=1.0;
+//p->cmax=1.0;
+p->cmax=0.02;
 
 p->rkon=0.0;
 p->sodifon=0.0;
 p->moddton=0.0;
 p->divbon=0.0;
-
+(p->readini)==0;
 
 
 p->xmax=xmax;
@@ -281,14 +282,15 @@ printf("calling cuinit\n");
 
 // Build empty u, v, b matrices
 // Define h
-if((p->readini)==0)
-{
- w=(float *)calloc(ni*nj*8,sizeof(float ));
- wnew=(float *)calloc(ni*nj*8,sizeof(float ));
 
+ w=(real *)calloc(ni*nj*8,sizeof(real ));
+ wnew=(real *)calloc(ni*nj*8,sizeof(real ));
+char *cfgfile;
+if((p->readini)==0)
  initconfig(p, &meta, w);
-}
-  float *u,  *v,  *h;
+else
+ readconfig(cfgfile,*p,meta,w);
+  real *u,  *v,  *h;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
   h=w+(ni)*(nj)*rho;
   u=w+(ni)*(nj)*mom1;
@@ -359,24 +361,31 @@ createlog(meta.log_file);
   //    finishsteering=1;
  int n;  
  nt=24; 
-double t1,t2,ttot;
+real t1,t2,ttot;
 int order=0;
 ttot=0;
-float time=0.0;
+real time=0.0;
 for( n=0;n<nt;n++)
+//for( n=0;n<1;n++)
 {
   
    t1=second();
    cupredictor(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
-
+   printf("cmax is %f old dt %f new dt %f\n",p->cmax,p->dt,0.68*((p->dx)+(p->dy))/(2.0*(p->cmax)));
    if(order==0 && p->moddton==1)
-       p->dt=((p->dx)+(p->dy))/(2.0*(p->cmax));
+   {
+       if(2*(p->dt)<(((p->dx)+(p->dy))/(2.0*(p->cmax))))
+               p->dt=2.0*p->dt;
+       else
+               p->dt=(p->dt)/2.0;
+   }
+   printf("new dt %f\n",p->dt);
    cuderivcurrent(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
    cuderivsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
 
    cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
 
-   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
+   //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
    cuupdate(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state);
 
    if(p->divbon==1)

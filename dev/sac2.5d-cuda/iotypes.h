@@ -1,6 +1,22 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
+#define DEFINE_PRECISION(T) \
+  typedef T real;
+
+
+#ifdef USE_REAL
+DEFINE_PRECISION(float)
+#else
+DEFINE_PRECISION(double)
+#endif
+
+
+
+
+#undef DEFINE_PRECISION
+
+
 
 struct Meta {
    char *directory ;

@@ -30,7 +30,7 @@ int fencode_u (struct params *dp,int ix, int iy, int field) {
 }
 
 __device__ __host__
-int updatestate (struct params *p, struct state *s, float *w ,int i, int j, int field) {
+int updatestate (struct params *p, struct state *s, real *w ,int i, int j, int field) {
 
   int status=0;
                       // atomicExch(&(p->cmax),(wd[fencode_pre(p,i,j,soundspeed)]));
@@ -66,7 +66,7 @@ int updatestate (struct params *p, struct state *s, float *w ,int i, int j, int 
 
 
 
-__global__ void update_parallel(struct params *p, struct state *s, float *w, float *wnew)
+__global__ void update_parallel(struct params *p, struct state *s, real *w, real *wnew)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -79,17 +79,17 @@ __global__ void update_parallel(struct params *p, struct state *s, float *w, flo
 
   int ni=p->ni;
   int nj=p->nj;
-  float dt=p->dt;
-  float dy=p->dy;
-  float dx=p->dx;
-  float g=p->g;
-  float *u,  *v,  *h;
+  real dt=p->dt;
+  real dy=p->dy;
+  real dx=p->dx;
+  real g=p->g;
+  real *u,  *v,  *h;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
   h=w+(p->ni)*(p->nj)*rho;
   u=w+(p->ni)*(p->nj)*mom1;
   v=w+(p->ni)*(p->nj)*mom2;
 
-  float *un,  *vn,  *hn;
+  real *un,  *vn,  *hn;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
   hn=wnew+(p->ni)*(p->nj)*rho;
   un=wnew+(p->ni)*(p->nj)*mom1;
@@ -216,7 +216,7 @@ void checkErrors_u(char *label)
 }
 
 
-int cuupdate(struct params **p, float **w, float **wnew, struct state **state,struct params **d_p, float **d_w, float **d_wnew, float **d_wmod, float **d_dwn1, float **d_wd, struct state **d_state)
+int cuupdate(struct params **p, real **w, real **wnew, struct state **state,struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state)
 {
 
 
@@ -229,9 +229,9 @@ int cuupdate(struct params **p, float **w, float **wnew, struct state **state,st
     dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
    int numBlocks = (((*p)->ni)*((*p)->nj)+numThreadsPerBlock-1) / numThreadsPerBlock;
 
-//__global__ void prop_parallel(struct params *p, float *b, float *w, float *wnew, float *wmod, 
-  //  float *dwn1, float *dwn2, float *dwn3, float *dwn4, float *wd)
-     //init_parallel(struct params *p, float *b, float *u, float *v, float *h)
+//__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
+  //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
+     //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
     // prop_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
@@ -242,11 +242,11 @@ int cuupdate(struct params **p, float **w, float **wnew, struct state **state,st
      update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_state,*d_w,*d_wnew);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
-    cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
     cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
 
-//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(real), cudaMemcpyDeviceToHost);
 
   //checkErrors("copy data from device");
 
@@ -257,13 +257,13 @@ int cuupdate(struct params **p, float **w, float **wnew, struct state **state,st
 }
 
 
-int cufinish(struct params **p, float **w, float **wnew, struct params **d_p, float **d_w, float **d_wnew, float **d_wmod, float **d_dwn1, float **d_wd)
+int cufinish(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd)
 {
   
 
- cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
+ //cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(real), cudaMemcpyDeviceToHost);
 
   checkErrors_u("copy data from device");
 

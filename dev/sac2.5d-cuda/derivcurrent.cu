@@ -33,9 +33,9 @@ int fencode_dc (struct params *dp,int ix, int iy, int field) {
 }
 
 __device__ __host__
-float evalgrad_dc(float fi, float fim1, float fip2, float fim2,struct params *p,int dir)
+real evalgrad_dc(real fi, real fim1, real fip2, real fim2,struct params *p,int dir)
 {
- //float valgrad_dc;
+ //real valgrad_dc;
 
  if(dir == 0)
  {
@@ -55,9 +55,9 @@ float evalgrad_dc(float fi, float fim1, float fip2, float fim2,struct params *p,
 
 
 __device__ __host__
-float grad_dc(float *wmod,struct params *p,int i,int j,int field,int dir)
+real grad_dc(real *wmod,struct params *p,int i,int j,int field,int dir)
 {
- //float valgrad_dc;
+ //real valgrad_dc;
 
  if(dir == 0)
  {
@@ -77,9 +77,9 @@ float grad_dc(float *wmod,struct params *p,int i,int j,int field,int dir)
 }
 
 __device__ __host__
-float ddotcurrentrho (float *dw, float *wd, float *w, struct params *p,int ix, int iy) {
+real ddotcurrentrho (real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
 
-  float ddc=0;
+  real ddc=0;
 //  int field=rho;
 
       ddc= grad_dc(w,p,ix,iy,mom1,0)+grad_dc(w,p,ix,iy,mom2,1);
@@ -87,15 +87,15 @@ float ddotcurrentrho (float *dw, float *wd, float *w, struct params *p,int ix, i
 }
 
 __device__ __host__
-float ddotcurrentmom (float *dw, float *wd, float *w, struct params *p,int ix, int iy,int field, int direction) {
+real ddotcurrentmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field, int direction) {
 
-  float ddc=0;
-  float fi, fim1;
-  //float  fip2=0, fim2=0;
-  float ddc1,ddc2;
-  float ddcx,ddcy;
+  real ddc=0;
+  real fi, fim1;
+  //real  fip2=0, fim2=0;
+  real ddc1,ddc2;
+  real ddcx,ddcy;
    //     ddc= grad_dc(w,p,ix,iy,mom1,0)+grad_dc(w,p,ix,iy,mom2,1);
-//evalgrad_dc(float fi, float fim1, float fip2, float fim2,struct params *p,int dir)
+//evalgrad_dc(real fi, real fim1, real fip2, real fim2,struct params *p,int dir)
   //fi=w(fencode_dc(p,ix,iy,rho))
   //calculate momentum current
 
@@ -203,13 +203,13 @@ float ddotcurrentmom (float *dw, float *wd, float *w, struct params *p,int ix, i
 }
 
 __device__ __host__
-float ddotcurrentb (float *dw, float *wd, float *w, struct params *p,int ix, int iy,int field, int direction) {
+real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field, int direction) {
 
-  //float ddc=0;
+  //real ddc=0;
 
-  float fi, fim1;// fip2=0, fim2=0;
-  float ddc1,ddc2;
-  float ddcx,ddcy;
+  real fi, fim1;// fip2=0, fim2=0;
+  real ddc1,ddc2;
+  real ddcx,ddcy;
 
   switch(direction)
   {
@@ -300,14 +300,14 @@ float ddotcurrentb (float *dw, float *wd, float *w, struct params *p,int ix, int
 }
 
 __device__ __host__
-float ddotcurrentenergy (float *dw, float *wd, float *w, struct params *p,int ix, int iy) {
+real ddotcurrentenergy (real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
 
- // float ddc=0;
-  float dd1,dd2,dd3;
+ // real ddc=0;
+  real dd1,dd2,dd3;
  
-  float ddcx,ddcy;
-  float fi, fim1,fip2=0, fim2=0;
-  //float dpi, dpim1;//, dpip2=0, dpim2=0;
+  real ddcx,ddcy;
+  real fi, fim1,fip2=0, fim2=0;
+  //real dpi, dpim1;//, dpip2=0, dpim2=0;
 
 
   //int field=energy;
@@ -391,7 +391,7 @@ if(p->sodifon==1)
 }
 
 __device__ __host__
-int derivcurrentrho (float *dw, float *wd, float *w, struct params *p,int ix, int iy) {
+int derivcurrentrho (real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
 
   int status=0;
   int field=rho;
@@ -401,38 +401,38 @@ int derivcurrentrho (float *dw, float *wd, float *w, struct params *p,int ix, in
 }
 
 __device__ __host__
-int derivcurrentmom (float *dw, float *wd, float *w, struct params *p,int ix, int iy,int field, int direction) {
+int derivcurrentmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field, int direction) {
 
   int status=0;
      	//dw[fencode_dc(p,ix,iy,field)]=w[fencode_dc(p,ix,iy,field)]+20+5*(2*direction+1);
-        dw[fencode_dc(p,ix,iy,field)]= -ddotcurrentmom(dw,wd,w,p,ix,iy,field,direction);
+        dw[fencode_dc(p,ix,iy,field)]=0.0;// -ddotcurrentmom(dw,wd,w,p,ix,iy,field,direction);
         //dw[fencode_dc(p,ix,iy,field)]=-ddotcurrentmom(dw,wd,w,p,ix,iy,field,direction);
 
   return ( status);
 }
 
 __device__ __host__
-int derivcurrentb (float *dw, float *wd, float *w, struct params *p,int ix, int iy, int field, int direction) {
+int derivcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field, int direction) {
 
   int status=0;
-        dw[fencode_dc(p,ix,iy,field)]= -ddotcurrentb(dw,wd,w,p,ix,iy,field,direction);
+        dw[fencode_dc(p,ix,iy,field)]=0.0;// -ddotcurrentb(dw,wd,w,p,ix,iy,field,direction);
 
   return ( status);
 }
 
 __device__ __host__
-int derivcurrentenergy (float *dw, float *wd, float *w, struct params *p,int ix, int iy) {
+int derivcurrentenergy (real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
 
   int status=0;
   int field=energy;
-        dw[fencode_dc(p,ix,iy,field)]= -ddotcurrentenergy(dw,wd,w,p,ix,iy);
+        dw[fencode_dc(p,ix,iy,field)]=0.0;// -ddotcurrentenergy(dw,wd,w,p,ix,iy);
 
   return ( status);
 }
 
 //rho, mom1, mom2, mom3, energy, b1, b2, b3
 __device__ __host__
-void derivcurrent (float *dw, float *wd, float *w, struct params *p,int ix, int iy, int field) {
+void derivcurrent (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field) {
 
   //int status=0;
   switch(field)
@@ -467,8 +467,8 @@ void derivcurrent (float *dw, float *wd, float *w, struct params *p,int ix, int 
 
 
 
-__global__ void derivcurrent_parallel(struct params *p, float *w, float *wnew, float *wmod, 
-    float *dwn1, float *wd)
+__global__ void derivcurrent_parallel(struct params *p, real *w, real *wnew, real *wmod, 
+    real *dwn1, real *wd)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -482,10 +482,10 @@ __global__ void derivcurrent_parallel(struct params *p, float *w, float *wnew, f
   int index,k;
   int ni=p->ni;
   int nj=p->nj;
-  float dt=p->dt;
-  float dy=p->dy;
-  float dx=p->dx;
-  float g=p->g;
+  real dt=p->dt;
+  real dy=p->dy;
+  real dx=p->dx;
+  real g=p->g;
  //  dt=1.0;
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
@@ -584,7 +584,7 @@ void checkErrors_dc(char *label)
 
 
 
-int cuderivcurrent(struct params **p, float **w, float **wnew, struct params **d_p, float **d_w, float **d_wnew,  float **d_wmod, float **d_dwn1, float **d_wd, int order)
+int cuderivcurrent(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order)
 {
 
 
@@ -596,13 +596,13 @@ int cuderivcurrent(struct params **p, float **w, float **wnew, struct params **d
     //dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
     dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
    int numBlocks = (((*p)->ni)*((*p)->nj)+numThreadsPerBlock-1) / numThreadsPerBlock;
- //  cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+ //  cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
  // if(order==0)
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
 
-//__global__ void prop_parallel(struct params *p, float *b, float *w, float *wnew, float *wmod, 
-  //  float *dwn1, float *dwn2, float *dwn3, float *dwn4, float *wd)
-     //init_parallel(struct params *p, float *b, float *u, float *v, float *h)
+//__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
+  //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
+     //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
      derivcurrent_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
@@ -613,9 +613,9 @@ int cuderivcurrent(struct params **p, float **w, float **wnew, struct params **d
      //update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
 	    //printf("called update\n"); 
    // cudaThreadSynchronize();
-// cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
+// cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(real), cudaMemcpyDeviceToHost);
 
   //checkErrors("copy data from device");
 
