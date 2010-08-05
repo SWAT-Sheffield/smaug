@@ -41,11 +41,13 @@ float evalgrad_pre(float fi, float fim1, float fip2, float fim2,struct params *p
  {
      //valgrad_pre=(2.0/(3.0*(p->dx)))*(fi-fim1)-(1.0/(12.0*(p->dx)))*(fip2-fim2);
    return((1.0/(1.0*(p->dx)))*(fi-fim1));
+   
  }
  else if(dir == 1)
  {
     // valgrad_pre=(2.0/(3.0*(p->dy)))*(fi-fim1)-(1.0/(12.0*(p->dy)))*(fip2-fim2);
       return((1.0/(1.0*(p->dy)))*(fi-fim1));
+   
  }
 
  return -1;
@@ -61,6 +63,7 @@ float grad_pre(float *wmod,struct params *p,int i,int j,int field,int dir)
  {
     // valgrad_pre=(2.0/(3.0*(p->dx)))*(wmod[fencode_pre(p,i,j,field)]-wmod[fencode_pre(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode_pre(p,i+2,j,field)]-wmod[fencode_pre(p,i-2,j,field)]);
 return((1.0/(1.0*(p->dx)))*(wmod[fencode_pre(p,i+1,j,field)]-wmod[fencode_pre(p,i-1,j,field)]));
+
  }
  else if(dir == 1)
  {
@@ -91,6 +94,9 @@ void computej(float *wmod,float *wd,struct params *p,int i,int j)
   wd[fencode_pre(p,i,j,0)]=(grad_pre(wmod,p,i,j,b3,1))/(p->mu);
   wd[fencode_pre(p,i,j,1)]=(grad_pre(wmod,p,i,j,b3,0))/(p->mu);
   wd[fencode_pre(p,i,j,2)]=(grad_pre(wmod,p,i,j,b2,0)-grad_pre(wmod,p,i,j,b1,1))/(p->mu);
+  
+  
+
  
   //return ( status);
 }
@@ -108,20 +114,25 @@ wd[fencode_pre(p,i,j,bdotv)]=(wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j
 
 
 __device__ __host__
-void computepk(float *wmod,float *wd,struct params *p,int i,int j)
+void computept(float *wmod,float *wd,struct params *p,int i,int j)
 {
  // int status=0;
  //float bsq=wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)];
   wd[fencode_pre(p,i,j,4)]=  wd[fencode_pre(p,i,j,3)]+0.5*(wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)]);
+  if(wd[fencode_pre(p,i,j,4)]<0)
+              wd[fencode_pre(p,i,j,4)]=0.001;
  // return ( status);
 }
 __device__ __host__
-void computept(float *wmod,float *wd,struct params *p,int i,int j)
+void computepk(float *wmod,float *wd,struct params *p,int i,int j)
 {
   //int status=0;
   //float momsq=wmod[fencode_pre(p,i,j,mom1)]*wmod[fencode_pre(p,i,j,mom1)]+wmod[fencode_pre(p,i,j,mom2)]*wmod[fencode_pre(p,i,j,mom2)]+wmod[fencode_pre(p,i,j,mom3)]*wmod[fencode_pre(p,i,j,mom3)];
   //float bsq=wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)];
   wd[fencode_pre(p,i,j,3)]=((p->gamma)-1)*(wmod[fencode_pre(p,i,j,energy)]- 0.5*(wmod[fencode_pre(p,i,j,mom1)]*wmod[fencode_pre(p,i,j,mom1)]+wmod[fencode_pre(p,i,j,mom2)]*wmod[fencode_pre(p,i,j,mom2)]+wmod[fencode_pre(p,i,j,mom3)]*wmod[fencode_pre(p,i,j,mom3)])/wmod[fencode_pre(p,i,j,rho)]-0.5*(wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)]) );
+
+  if(wd[fencode_pre(p,i,j,3)]<0)
+              wd[fencode_pre(p,i,j,3)]=0.001;
   //return ( status);
 }
 
@@ -129,7 +140,8 @@ __device__ __host__
 void computec(float *wmod,float *wd,struct params *p,int i,int j)
 {
 
-  wd[fencode_pre(p,i,j,soundspeed)]=sqrt(((p->gamma)-1)*wd[fencode_pre(p,i,j,pressuret)]/wmod[fencode_pre(p,i,j,rho)]);
+  wd[fencode_pre(p,i,j,soundspeed)]=sqrt(((p->gamma))*wd[fencode_pre(p,i,j,pressuret)]/wmod[fencode_pre(p,i,j,rho)]);
+  
 }
 
 __device__ __host__
@@ -172,17 +184,33 @@ __global__ void predictor_parallel(struct params *p,  float *w, float *wnew, flo
    j=iindex/ni;
    //i=iindex-j*(iindex/ni);
    i=iindex-(j*ni);
-  if(i>1 && j >1 && i<((p->ni)-2) && j<((p->nj)-2))
-	{		               
+if(i<((p->ni)) && j<((p->nj)))
+	{		
                for(int f=rho; f<=b3; f++)               
                   wmod[fencode_pre(p,i,j,f)]=w[fencode_pre(p,i,j,f)];
+               for(int f=current1; f<=soundspeed; f++)
+                  wd[fencode_pre(p,i,j,f)]=0; 
+        }
+               __syncthreads();
+
+
+  if(i>1 && j >1 && i<((p->ni)-2) && j<((p->nj)-2))
+	{		               
                computej(wmod,wd,p,i,j);
                computepk(wmod,wd,p,i,j);
                computept(wmod,wd,p,i,j);
                computebdotv(wmod,wd,p,i,j);
+         }
+              __syncthreads();
+  if(i>1 && j >1 && i<((p->ni)-2) && j<((p->nj)-2))
+	{
  //determin cmax
                computec(wmod,wd,p,i,j);
-               __syncthreads();
+        }
+              __syncthreads();
+
+  if(i>1 && j >1 && i<((p->ni)-2) && j<((p->nj)-2))
+	{ 
                computecmax(wmod,wd,p,i,j);
 
                /*for(int f=rho; f<=b3; f++)
@@ -222,7 +250,7 @@ __global__ void predictor_parallel(struct params *p,  float *w, float *wnew, flo
                      dwn1[fencode_pre(p,i,j,f)]+2.0*dwn2[fencode_pre(p,i,j,f)]
                          +2.0*dwn3[fencode_pre(p,i,j,f)]+dwn4[fencode_pre(p,i,j,f)]);
                }*/
-                __syncthreads();
+           //     __syncthreads();
               /* for(int f=rho; f<=b3; f++)
                    wnew[fencode_pre(p,i,j,f)]=w[fencode_pre(p,i,j,f)]+dt*dwn1[fencode_pre(p,i,j,f)];
                computej(wnew,wd,p,i,j);
@@ -291,6 +319,9 @@ int cupredictor(struct params **p, float **w, float **wnew, struct params **d_p,
 	    //printf("called update\n"); 
    // cudaThreadSynchronize();
      cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+
+     //following used for testing to check current soundspeeds etc
+     //cudaMemcpy(*w, *d_wd, 7*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
 //cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
 //cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
 
