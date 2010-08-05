@@ -29,7 +29,7 @@ int fencode_i (struct params *dp,int ix, int iy, int field) {
   return ( (iy * ((dp)->ni) + ix)+(field*((dp)->ni)*((dp)->nj)));
 }
 
-
+//*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd
 
 __global__ void init_parallel(struct params *p, float *w, float *wnew, float *wmod, 
     float *dwn1, float *wd)
@@ -64,11 +64,10 @@ int ni=p->ni;
   seg3=4*(p->ni)/5;
 
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
-  h=w+(p->ni)*(p->nj)*rho;
-  u=w+(p->ni)*(p->nj)*mom1;
-  v=w+(p->ni)*(p->nj)*mom2;
+
 
   int i,j;
+
    
    j=iindex/ni;
    //i=iindex-j*(iindex/ni);
@@ -78,25 +77,36 @@ int ni=p->ni;
 		//b[i+j*(p->ni)]=0;
 
                  //Define b	
-       for(int f=0; f<=6; f++)
-        { 
-                  wd[fencode_i(p,i,j,f)]=0;
-        }
-                  wd[fencode_i(p,i,j,rho)]=1.0;
-                  wd[fencode_i(p,i,j,b1)]=1.0;
-                  wd[fencode_i(p,i,j,energy)]=0.000000001;
 
-   if (i > seg1)
-    if (i < seg2)
-      wd[fencode_i(p,i,j,mom2)]=m2max;
+ 
 
 
-   if (i > seg2)
-    if (i < seg3)
-      wd[fencode_i(p,i,j,mom2)]=m2max*(i-seg2)/(seg3-seg2);
+	//apply this special condition
+	//initiate alfven wave propagtion 
+	//if no initial config read
+	if(p->readini==0)
+	{
+	    for(int f=0; f<=6; f++)
+            { 
+		          w[fencode_i(p,i,j,f)]=0;
+	    }
+	    w[fencode_i(p,i,j,rho)]=1.0;
+	    w[fencode_i(p,i,j,b1)]=1.0;
+	    w[fencode_i(p,i,j,energy)]=0.0001;
 
-   if (i > seg3)
-      wd[fencode_i(p,i,j,mom2)]=m2max*((p->ni)-i)/((p->ni)-seg3);
+	   if (i > seg1)
+	    if (i < seg2)
+	      w[fencode_i(p,i,j,mom2)]=m2max;
+
+
+	   if (i > seg2)
+	    if (i < seg3)
+	      w[fencode_i(p,i,j,mom2)]=m2max*(i-seg2)/(seg3-seg2);
+
+	   if (i > seg3)
+	      w[fencode_i(p,i,j,mom2)]=m2max*((p->ni)-i)/((p->ni)-seg3);
+
+	}
 
 
         for(int f=rho; f<=b3; f++)
@@ -109,10 +119,12 @@ int ni=p->ni;
                  
         }
 
-	 __syncthreads();
+//	 __syncthreads();
 
 			}	
 	 __syncthreads();
+
+
   
 }
 
@@ -186,7 +198,7 @@ int cuinit(struct params **p, float **w, float **wnew, struct state **state, str
 
   cudaMalloc((void**)&adw, 8*((*p)->ni)* ((*p)->nj)*sizeof(float));
   cudaMalloc((void**)&adwnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float));
-  //cudaMalloc((void**)&adb, 1*(((*p)->ni)* ((*p)->nj))*sizeof(float));
+  
   cudaMalloc((void**)&adp, sizeof(struct params));
   cudaMalloc((void**)&ads, sizeof(struct state));
   checkErrors_i("memory allocation");
@@ -201,8 +213,8 @@ printf("ni is %d\n",(*p)->nj);
 
 
     cudaMemcpy(*d_w, *w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(*d_wnew, *wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
-    //cudaMemcpy(*d_b, *b, ((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
+   // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyHostToDevice);
+    
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_state, *state, sizeof(struct state), cudaMemcpyHostToDevice);
     
@@ -220,11 +232,13 @@ printf("ni is %d\n",(*p)->nj);
      cudaThreadSynchronize();
 	    printf("called initialiser\n");
 	cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
-	cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
 
-	//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
+        cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+	cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(float), cudaMemcpyDeviceToHost);
 	//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(float), cudaMemcpyDeviceToHost);
 
+         printf("mod times step %f %f\n",(*p)->dt, ((*wnew)[10+16*((*p)->ni)+((*p)->ni)*((*p)->nj)*b1]));
 
 
 
