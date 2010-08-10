@@ -34,7 +34,9 @@ BASICEXOBJS	=\
 	
 ALLOBJS	=	$(BASICEXOBJS)
 ALLBIN	=	$(Bin)/iosac
-
+#CUDACCFLAGS = --ptxas-options=-v --device-emulation -DADIABHYDRO
+CUDACCFLAGS = --ptxas-options=-v -DUSE_REAL -DADIABHYDRO
+CCFLAGS = -DUSE_REAL -DADIABHYDRO
 
 #MYLIBS	=	libAgentSimulation2.a
 
@@ -78,26 +80,26 @@ iosac:$(BASICEXOBJS)
 #	$(NVCC) -o $@ --ptxas-options=-v -c $<
 
 derivsource.o: derivsource.cu
-	$(NVCC) -o $@ --ptxas-options=-v -c $<
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 derivcurrent.o: derivcurrent.cu
-	$(NVCC) -o $@ --ptxas-options=-v -c $<
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 predictor.o: predictor.cu
-	$(NVCC) -o $@ --ptxas-options=-v -c $<
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 boundary.o: boundary.cu
-	$(NVCC) -o $@ --ptxas-options=-v -c $<
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 init.o: init.cu
-	$(NVCC) -o $@ --ptxas-options=-v -c $<
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 update.o: update.cu
-	$(NVCC) -o $@ --ptxas-options=-v -c $<
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 advance.o: advance.cu
-	$(NVCC) -o $@ --ptxas-options=-v -c $<
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 divb.o: divb.cu
-	$(NVCC) -o $@ --ptxas-options=-v -c $<
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 .cpp.o:
-	$(CC) $(C_FLAGS) $(incDirs) $(LINKFLAGS)  -o $@ -c $<
+	$(CC) $(C_FLAGS) $(CCFLAGS) $(incDirs) $(LINKFLAGS)  -o $@ -c $<
 
 .c.o:
-	$(CC) $(C_FLAGS) $(incDirs) $(LINKFLAGS)    -o $@ -c $<
+	$(CC) $(C_FLAGS) $(CCFLAGS) $(incDirs) $(LINKFLAGS)    -o $@ -c $<
 
 
 

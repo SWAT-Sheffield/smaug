@@ -50,8 +50,8 @@ getpict,10,filetypes(0),npict,x,w,headline,phys,it,time,$
 
 
 close,10
-for npict=1,71 do begin
-
+for npict=1,74 do begin
+;npict=0
 nfile=0
 if filename eq '' and logfilename ne '' then begin
    filename=logfilename

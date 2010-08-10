@@ -55,14 +55,14 @@ int ni=p->ni;
     
   real *u,  *v,  *h;
 
-  int seg1,seg2,seg3;
+  int seg1,seg2,seg3,seg4;
   int width=10;
   real m2max=0.001;
   real start=((p->ni)-width)/2;
-  seg1=2*(p->ni)/5;
-  seg2=3*(p->ni)/5;
-  seg3=4*(p->ni)/5;
-
+  seg1=((p->ni)/3)-1;
+  seg2=((p->ni)/3);
+  seg3=(2*(p->ni)/3)-1;
+  seg4=(2*(p->ni)/3)-1;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
 
@@ -90,25 +90,32 @@ int ni=p->ni;
             { 
 		          w[fencode_i(p,i,j,f)]=0;
 	    }
-	    w[fencode_i(p,i,j,rho)]=1.0;
-	    //w[fencode_i(p,i,j,b1)]=1.0;
-	    w[fencode_i(p,i,j,energy)]=0.0001;
 
-            //w[fencode_i(p,i,j,b1)]=15*j;
-            //w[fencode_i(p,i,j,b3)]=150*j;
+            #ifdef ADIABHYDRO
+		    if(i>65 && i<85 && j>65 && j<85 ) 
+				w[fencode_i(p,i,j,rho)]=3.0;
+            #else
+
+		    w[fencode_i(p,i,j,rho)]=1.0;
+		    w[fencode_i(p,i,j,b2)]=1.0;
+		    w[fencode_i(p,i,j,energy)]=0.0001;
+
+		    //w[fencode_i(p,i,j,b1)]=15*j;
+		    //w[fencode_i(p,i,j,b3)]=150*j;
+		    
+		   if (i > seg2)
+		    if (i < seg3)
+		      w[fencode_i(p,i,j,mom2)]=m2max;
 
 
-	   if (i > seg1)
-	    if (i < seg2)
-	      w[fencode_i(p,i,j,mom2)]=m2max;
+		   if (i > seg2)
+		    if (i < seg3)
+		      w[fencode_i(p,i,j,mom2)]=m2max*(i-seg2)/(seg3-seg2);
 
-
-	   if (i > seg2)
-	    if (i < seg3)
-	      w[fencode_i(p,i,j,mom2)]=m2max*(i-seg2)/(seg3-seg2);
-
-	   if (i > seg3)
-	      w[fencode_i(p,i,j,mom2)]=m2max*((p->ni)-i)/((p->ni)-seg3);
+		   if (i > seg3)
+		    if (i < seg4)
+		      w[fencode_i(p,i,j,mom2)]=m2max*(seg4-i)/(seg4-seg3);
+           #endif
 
 	}
 
@@ -198,7 +205,7 @@ int cuinit(struct params **p, real **w, real **wnew, struct state **state, struc
 
   cudaMalloc((void**)d_wmod, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
   cudaMalloc((void**)d_dwn1, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
-  cudaMalloc((void**)d_wd, 7*((*p)->ni)* ((*p)->nj)*sizeof(real));
+  cudaMalloc((void**)d_wd, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
 
   cudaMalloc((void**)&adw, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
   cudaMalloc((void**)&adwnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));

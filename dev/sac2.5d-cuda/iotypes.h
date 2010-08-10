@@ -58,6 +58,10 @@ struct params {
         float dy;
         float g;
         float gamma;
+/*constant used for adiabatic hydrodynamics*/
+         #ifdef ADIABHYDRO
+            float adiab;
+        #endif
         float mu;
         float eta;
         float g1;
@@ -66,7 +70,9 @@ struct params {
 	int sodifon;
         int rkon;
         int moddton;
-        int divbon; 
+        int divbon;
+        int divbfix;
+        int cfgsavefrequency; 
 
         int readini;        
 };
@@ -96,7 +102,7 @@ struct hydrovars{
 
 
 typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3} CEV;
-typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv,soundspeed} DEV;
+typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv,soundspeed,divb} DEV;
 
 typedef struct Source source;
 typedef struct Constants constants;

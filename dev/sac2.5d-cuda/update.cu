@@ -136,7 +136,7 @@ if (threadIdx.x == 0)
                  
 }
 __syncthreads();
-  if(i<p->ni && j<p->nj)
+  if(i>1 && j>1 && i<((p->ni)-2) && j<((p->nj)-2))
 	{
              for(int f=rho; f<=b3; f++)
              {               
@@ -243,6 +243,9 @@ int cuupdate(struct params **p, real **w, real **wnew, struct state **state,stru
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
     cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+
+//cudaMemcpy(*w, *d_dwn1, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+
     cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
 
 //cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);

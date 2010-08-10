@@ -39,15 +39,15 @@ real evalgrad_pre(real fi, real fim1, real fip2, real fim2,struct params *p,int 
 
  if(dir == 0)
  {
-     //valgrad_pre=(2.0/(3.0*(p->dx)))*(fi-fim1)-(1.0/(12.0*(p->dx)))*(fip2-fim2);
-   return((1.0/(1.0*(p->dx)))*(fi-fim1));
-   
+     //valgrad=(2.0/(3.0*(p->dx)))*(fi-fim1)-(1.0/(12.0*(p->dx)))*(fip2-fim2);
+   //return((1.0/(2.0*(p->dx)))*(fi-fim1));
+   return(p->sodifon?((1.0/(2.0*(p->dx)))*(fi-fim1)):((1.0/(12.0*(p->dx)))*((8*fi-8*fim1+fim2-fip2))));
  }
  else if(dir == 1)
  {
-    // valgrad_pre=(2.0/(3.0*(p->dy)))*(fi-fim1)-(1.0/(12.0*(p->dy)))*(fip2-fim2);
-      return((1.0/(1.0*(p->dy)))*(fi-fim1));
-   
+    // valgrad=(2.0/(3.0*(p->dy)))*(fi-fim1)-(1.0/(12.0*(p->dy)))*(fip2-fim2);
+     // return((2.0/(1.0*(p->dy)))*(fi-fim1));
+   return(p->sodifon?((1.0/(2.0*(p->dy)))*(fi-fim1)):((1.0/(12.0*(p->dy)))*((8*fi-8*fim1+fim2-fip2))));
  }
 
  return -1;
@@ -61,14 +61,15 @@ real grad_pre(real *wmod,struct params *p,int i,int j,int field,int dir)
 
  if(dir == 0)
  {
-    // valgrad_pre=(2.0/(3.0*(p->dx)))*(wmod[fencode_pre(p,i,j,field)]-wmod[fencode_pre(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode_pre(p,i+2,j,field)]-wmod[fencode_pre(p,i-2,j,field)]);
-return((1.0/(1.0*(p->dx)))*(wmod[fencode_pre(p,i+1,j,field)]-wmod[fencode_pre(p,i-1,j,field)]));
-
+    // valgrad=(2.0/(3.0*(p->dx)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
+//return((1.0/(2.0*(p->dx)))*(wmod[fencode_pre(p,i+1,j,field)]-wmod[fencode_pre(p,i-1,j,field)]));
+ return(  ( (p->sodifon)?((8*wmod[fencode_pre(p,i+1,j,field)]-8*wmod[fencode_pre(p,i-1,j,field)]+wmod[fencode_pre(p,i-1,j,field)]-wmod[fencode_pre(p,i+1,j,field)])/6.0):wmod[fencode_pre(p,i+1,j,field)]-wmod[fencode_pre(p,i-1,j,field)])/(2.0*(p->dx))    );
  }
  else if(dir == 1)
  {
-    // valgrad_pre=(2.0/(3.0*(p->dy)))*(wmod[fencode_pre(p,i,j,field)]-wmod[fencode_pre(p,i,j-1,field)])-(1.0/(12.0*(p->dy)))*(wmod[fencode_pre(p,i,j+2,field)]-wmod[fencode_pre(p,i,j-2,field)]);
- return((1.0/(1.0*(p->dy)))*(wmod[fencode_pre(p,i,j+1,field)]-wmod[fencode_pre(p,i,j-1,field)]));
+    // valgrad=(2.0/(3.0*(p->dy)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dy)))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
+// return((1.0/(2.0*(p->dy)))*(wmod[fencode_pre(p,i,j+1,field)]-wmod[fencode_pre(p,i,j-1,field)]));
+ return(  ( (p->sodifon)?((8*wmod[fencode_pre(p,i,j+1,field)]-8*wmod[fencode_pre(p,i,j-1,field)]+wmod[fencode_pre(p,i,j-1,field)]-wmod[fencode_pre(p,i,j+1,field)])/6.0):wmod[fencode_pre(p,i,j+1,field)]-wmod[fencode_pre(p,i,j-1,field)])/(2.0*(p->dy))    );
 
  }
 
@@ -112,24 +113,67 @@ wd[fencode_pre(p,i,j,bdotv)]=(wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j
  // return ( status);
 }
 
+__device__ __host__
+void computedivb(real *wmod,real *wd,struct params *p,int i,int j)
+{
+ // int status=0;
+ //real bsq=wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)];
+//  wd[fencode_pre(p,i,j,4)]=  wd[fencode_pre(p,i,j,3)]+0.5*(wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)]);
+
+wd[fencode_pre(p,i,j,divb)]=grad_pre(wmod,p,i,j,b1,0)+grad_pre(wmod,p,i,j,b2,1);
+ // return ( status);
+}
+
 
 __device__ __host__
 void computept(real *wmod,real *wd,struct params *p,int i,int j)
 {
  // int status=0;
+
+#ifdef ADIABHYDRO
+
+/*below used for adiabatic hydrodynamics*/
+ wd[fencode_pre(p,i,j,4)]=(p->adiab)*pow(wmod[fencode_pre(p,i,j,rho)],p->gamma);
+
+
+#else
+
  //real bsq=wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)];
   wd[fencode_pre(p,i,j,4)]=  wd[fencode_pre(p,i,j,3)]+0.5*(wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)]);
+
+#endif
+
+
+
   if(wd[fencode_pre(p,i,j,4)]<0)
               wd[fencode_pre(p,i,j,4)]=0.001;
+
+
  // return ( status);
 }
 __device__ __host__
 void computepk(real *wmod,real *wd,struct params *p,int i,int j)
 {
   //int status=0;
+
+#ifdef ADIABHYDRO
+
+/*below used for adiabatic hydrodynamics*/
+wd[fencode_pre(p,i,j,3)]=(p->adiab)*pow(wmod[fencode_pre(p,i,j,rho)],p->gamma);
+
+#else
+
   //real momsq=wmod[fencode_pre(p,i,j,mom1)]*wmod[fencode_pre(p,i,j,mom1)]+wmod[fencode_pre(p,i,j,mom2)]*wmod[fencode_pre(p,i,j,mom2)]+wmod[fencode_pre(p,i,j,mom3)]*wmod[fencode_pre(p,i,j,mom3)];
   //real bsq=wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)];
   wd[fencode_pre(p,i,j,3)]=((p->gamma)-1)*(wmod[fencode_pre(p,i,j,energy)]- 0.5*(wmod[fencode_pre(p,i,j,mom1)]*wmod[fencode_pre(p,i,j,mom1)]+wmod[fencode_pre(p,i,j,mom2)]*wmod[fencode_pre(p,i,j,mom2)]+wmod[fencode_pre(p,i,j,mom3)]*wmod[fencode_pre(p,i,j,mom3)])/wmod[fencode_pre(p,i,j,rho)]-0.5*(wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)]) );
+
+
+#endif
+
+
+
+
+
 
   if(wd[fencode_pre(p,i,j,3)]<0)
               wd[fencode_pre(p,i,j,3)]=0.001;
@@ -140,7 +184,18 @@ __device__ __host__
 void computec(real *wmod,real *wd,struct params *p,int i,int j)
 {
 
-  wd[fencode_pre(p,i,j,soundspeed)]=sqrt(((p->gamma))*wd[fencode_pre(p,i,j,pressuret)]/wmod[fencode_pre(p,i,j,rho)]);
+  
+#ifdef ADIABHYDRO
+/*below used for adiabatic hydrodynamics*/
+  wd[fencode_pre(p,i,j,soundspeed)]=sqrt((p->adiab)/wmod[fencode_pre(p,i,j,rho)]);
+
+#else
+wd[fencode_pre(p,i,j,soundspeed)]=sqrt(((p->gamma))*wd[fencode_pre(p,i,j,pressuret)]/wmod[fencode_pre(p,i,j,rho)]);
+
+#endif
+
+
+
   
 }
 
@@ -186,8 +241,11 @@ __global__ void predictor_parallel(struct params *p,  real *w, real *wnew, real 
    i=iindex-(j*ni);
 if(i<((p->ni)) && j<((p->nj)))
 	{		
-               for(int f=rho; f<=b3; f++)               
+               for(int f=rho; f<=b3; f++)
+               {               
                   wmod[fencode_pre(p,i,j,f)]=w[fencode_pre(p,i,j,f)];
+                  wnew[fencode_pre(p,i,j,f)]=0.0;
+               }
                for(int f=current1; f<=soundspeed; f++)
                   wd[fencode_pre(p,i,j,f)]=0; 
         }
@@ -200,6 +258,7 @@ if(i<((p->ni)) && j<((p->nj)))
                computepk(wmod,wd,p,i,j);
                computept(wmod,wd,p,i,j);
                computebdotv(wmod,wd,p,i,j);
+               computedivb(wmod,wd,p,i,j);
          }
               __syncthreads();
   if(i>1 && j >1 && i<((p->ni)-2) && j<((p->nj)-2))

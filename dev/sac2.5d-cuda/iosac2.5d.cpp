@@ -101,7 +101,7 @@ real h0 = 5030;
 // Define the x domain
 int ni = 150; 
 //ni=41;
-real xmax = 3000.0;                      
+real xmax = 3.0;                      
 real dx = xmax/(ni-1);
 
 
@@ -110,7 +110,7 @@ real dx = xmax/(ni-1);
 // Define the y domain
 int nj = 150;  
 //nj=41;
-real ymax = 3000.0;                      
+real ymax = 3.0;                      
 real dy = ymax/(nj-1);
 
 real *x=(real *)calloc(ni,sizeof(real));
@@ -124,7 +124,8 @@ for(i=0;i<nj;i++)
 
 
 int step=0;
-real tmax = 200;
+//real tmax = 200;
+real tmax = 0.2;
 int steeringenabled=1;
 int finishsteering=0;
 char configfile[300];
@@ -134,12 +135,15 @@ real wavespeed = u0 + sqrt(g*(h0 - b0));
 
 // Define time-domain
 real dt = 0.68*dx/wavespeed;
-dt=0.015985;
-//dt=0.001;
-int nt=(int)((tmax-1)/dt);
-
+//dt=0.015985;
+//dt=0.15;
+//dt=0.00025;
+dt=0.25;
+int nt=(int)((tmax)/dt);
+nt=23;
+nt=1000;
 real *t=(real *)calloc(nt,sizeof(real));
-printf("runsim 1\n");
+printf("runsim 1%d \n",nt);
 //t = [0:dt:tdomain];
 for(i=0;i<nt;i++)
 		t[i]=i*dt;
@@ -218,7 +222,24 @@ p->dt=dt;
 p->dx=dx;
 p->dy=dy;
 p->g=g;
+
+
+
+/*constants used for adiabatic hydrodynamics*/
+/*
+p->gamma=2.0;
+p->adiab=0.5;
+*/
+#ifdef ADIABHYDRO
+p->gamma=2.0;
+p->adiab=0.5;
+#else
 p->gamma=1.4;
+#endif
+
+
+
+
 p->mu=1.0;
 p->eta=0.0;
 p->g1=0.0;
@@ -231,7 +252,9 @@ p->rkon=0.0;
 p->sodifon=0.0;
 p->moddton=0.0;
 p->divbon=0.0;
+p->divbfix=0.0;
 (p->readini)==0;
+p->cfgsavefrequency=10;
 
 
 p->xmax=xmax;
@@ -360,7 +383,7 @@ createlog(meta.log_file);
   //  if( steeringenabled==0)
   //    finishsteering=1;
  int n;  
- nt=24; 
+// nt=24; 
 real t1,t2,ttot;
 int order=0;
 ttot=0;
@@ -374,22 +397,24 @@ for( n=0;n<nt;n++)
    printf("cmax is %f old dt %f new dt %f\n",p->cmax,p->dt,0.68*((p->dx)+(p->dy))/(2.0*(p->cmax)));
    if(order==0 && p->moddton==1)
    {
-       if(2*(p->dt)<(((p->dx)+(p->dy))/(2.0*(p->cmax))))
-               p->dt=2.0*p->dt;
-       else
-               p->dt=(p->dt)/2.0;
+      //if((p->cmax)>10)
+      //         p->dt=0.68*(((p->dx)+(p->dy))/(2.0*(p->cmax))); 
+      if((p->dt)>(((p->dx)+(p->dy))/(2.0*(p->cmax))))
+               p->dt=(p->dt)/2;
+       else if(2.0*(p->dt)<(((p->dx)+(p->dy))/(2.0*(p->cmax))))
+               p->dt=2.0*p->dt; 
    }
    printf("new dt %f\n",p->dt);
    cuderivcurrent(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
    cuderivsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
+   if(p->divbon==1)
+       cudivb(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state);
 
    cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
 
-   //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
+   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
    cuupdate(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state);
 
-   if(p->divbon==1)
-       cudivb(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state);
 
    t2=second()-t1;
    ttot+=t2;
@@ -418,7 +443,8 @@ for( n=0;n<nt;n++)
      
     }
     
-    writeconfig(name,n,*p, meta , w);
+    if((n%(p->cfgsavefrequency))==0)
+      writeconfig(name,n,*p, meta , w);
     
       //save file containing current data
      // sprintf(configfile,"tmp/%ss%d.out",name,n);

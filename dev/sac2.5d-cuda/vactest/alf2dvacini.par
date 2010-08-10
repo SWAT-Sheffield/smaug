@@ -6,7 +6,7 @@ domain
 0. 0.					-min coordinates
 3. 3.					-max coordinates
 uniform
-1.0 0.0 0.0 0.001 1.d-9 1.0 0.0 0.0                  -rho,v1,v2,v3,p,b1,b2,b3
+1.0 0.0 0.001 0.0 1.d-9 1.0 0.0 0.0                  -rho,v1,v2,v3,p,b1,b2,b3
 eqpar
 1.4 0.0 0.0 0.0 0.0			         -gamma,eta,g/2,coriolis coeff.
 conserv

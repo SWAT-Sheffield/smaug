@@ -39,15 +39,15 @@ real evalgrad_dc(real fi, real fim1, real fip2, real fim2,struct params *p,int d
 
  if(dir == 0)
  {
-     //valgrad_dc=(2.0/(3.0*(p->dx)))*(fi-fim1)-(1.0/(12.0*(p->dx)))*(fip2-fim2);
-   //return((1.0/(1.0*(p->dx)))*(fi-fim1));
-   return((p->sodifon==1)?(2.0/(3.0*(p->dx)))*(fi-fim1)-(1.0/(12.0*(p->dx)))*(fip2-fim2):(1.0/(1.0*(p->dx)))*(fi-fim1));
+     //valgrad=(2.0/(3.0*(p->dx)))*(fi-fim1)-(1.0/(12.0*(p->dx)))*(fip2-fim2);
+   //return((1.0/(2.0*(p->dx)))*(fi-fim1));
+   return(p->sodifon?((1.0/(2.0*(p->dx)))*(fi-fim1)):((1.0/(12.0*(p->dx)))*((8*fi-8*fim1+fim2-fip2))));
  }
  else if(dir == 1)
  {
-    // valgrad_dc=(2.0/(3.0*(p->dy)))*(fi-fim1)-(1.0/(12.0*(p->dy)))*(fip2-fim2);
-    //  return((1.0/(1.0*(p->dy)))*(fi-fim1));
-    return((p->sodifon==1)?(2.0/(3.0*(p->dy)))*(fi-fim1)-(1.0/(12.0*(p->dy)))*(fip2-fim2):(1.0/(1.0*(p->dy)))*(fi-fim1));
+    // valgrad=(2.0/(3.0*(p->dy)))*(fi-fim1)-(1.0/(12.0*(p->dy)))*(fip2-fim2);
+     // return((2.0/(1.0*(p->dy)))*(fi-fim1));
+   return(p->sodifon?((1.0/(2.0*(p->dy)))*(fi-fim1)):((1.0/(12.0*(p->dy)))*((8*fi-8*fim1+fim2-fip2))));
  }
 
  return -1;
@@ -61,15 +61,15 @@ real grad_dc(real *wmod,struct params *p,int i,int j,int field,int dir)
 
  if(dir == 0)
  {
-    // valgrad_dc=(2.0/(3.0*(p->dx)))*(wmod[fencode_dc(p,i,j,field)]-wmod[fencode_dc(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode_dc(p,i+2,j,field)]-wmod[fencode_dc(p,i-2,j,field)]);
-//return((1.0/(1.0*(p->dx)))*(wmod[fencode_dc(p,i+1,j,field)]-wmod[fencode_dc(p,i-1,j,field)]));
-   return((p->sodifon==1)?(2.0/(3.0*(p->dx)))*(wmod[fencode_dc(p,i,j,field)]-wmod[fencode_dc(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode_dc(p,i+2,j,field)]-wmod[fencode_dc(p,i-2,j,field)]):(1.0/(1.0*(p->dx)))*(wmod[fencode_dc(p,i+1,j,field)]-wmod[fencode_dc(p,i-1,j,field)]));
+    // valgrad=(2.0/(3.0*(p->dx)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
+//return((1.0/(2.0*(p->dx)))*(wmod[fencode_dc(p,i+1,j,field)]-wmod[fencode_dc(p,i-1,j,field)]));
+ return(  ( (p->sodifon)?((8*wmod[fencode_dc(p,i+1,j,field)]-8*wmod[fencode_dc(p,i-1,j,field)]+wmod[fencode_dc(p,i-1,j,field)]-wmod[fencode_dc(p,i+1,j,field)])/6.0):wmod[fencode_dc(p,i+1,j,field)]-wmod[fencode_dc(p,i-1,j,field)])/(2.0*(p->dx))    );
  }
  else if(dir == 1)
  {
-    // valgrad_dc=(2.0/(3.0*(p->dy)))*(wmod[fencode_dc(p,i,j,field)]-wmod[fencode_dc(p,i,j-1,field)])-(1.0/(12.0*(p->dy)))*(wmod[fencode_dc(p,i,j+2,field)]-wmod[fencode_dc(p,i,j-2,field)]);
- //return((1.0/(1.0*(p->dy)))*(wmod[fencode_dc(p,i,j+1,field)]-wmod[fencode_dc(p,i,j-1,field)]));
-   return((p->sodifon==1)?(2.0/(3.0*(p->dy)))*(wmod[fencode_dc(p,i,j,field)]-wmod[fencode_dc(p,i,j-1,field)])-(1.0/(12.0*(p->dy)))*(wmod[fencode_dc(p,i,j+2,field)]-wmod[fencode_dc(p,i,j-2,field)]):(1.0/(1.0*(p->dy)))*(wmod[fencode_dc(p,i,j+1,field)]-wmod[fencode_dc(p,i,j-1,field)]));
+    // valgrad=(2.0/(3.0*(p->dy)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dy)))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
+// return((1.0/(2.0*(p->dy)))*(wmod[fencode_dc(p,i,j+1,field)]-wmod[fencode_dc(p,i,j-1,field)]));
+ return(  ( (p->sodifon)?((8*wmod[fencode_dc(p,i,j+1,field)]-8*wmod[fencode_dc(p,i,j-1,field)]+wmod[fencode_dc(p,i,j-1,field)]-wmod[fencode_dc(p,i,j+1,field)])/6.0):wmod[fencode_dc(p,i,j+1,field)]-wmod[fencode_dc(p,i,j-1,field)])/(2.0*(p->dy))    );
 
  }
 
@@ -144,7 +144,7 @@ real ddotcurrentmom (real *dw, real *wd, real *w, struct params *p,int ix, int i
       // fip2=(w[fencode_dc(p,ix+2,iy,mom3)]/w[fencode_dc(p,ix+2,iy,rho)])*w[fencode_dc(p,ix+2,iy,mom1)];
      //  fim2=(w[fencode_dc(p,ix-2,iy,mom3)]/w[fencode_dc(p,ix-2,iy,rho)])*w[fencode_dc(p,ix-2,iy,mom1)];
        ddcx=evalgrad_dc(fi,fim1,0,0,p,0);
-       fi=(w[fencode_dc(p,ix,iy+1,mom2)]/w[fencode_dc(p,ix,iy+1,rho)])*w[fencode_dc(p,ix,iy+1,mom2)];
+       fi=(w[fencode_dc(p,ix,iy+1,mom3)]/w[fencode_dc(p,ix,iy+1,rho)])*w[fencode_dc(p,ix,iy+1,mom2)];
        fim1=(w[fencode_dc(p,ix,iy-1,mom3)]/w[fencode_dc(p,ix,iy-1,rho)])*w[fencode_dc(p,ix,iy-1,mom2)];
      //  fip2=(w[fencode_dc(p,ix,iy+2,mom3)]/w[fencode_dc(p,ix,iy+2,rho)])*w[fencode_dc(p,ix,iy+2,mom2)];
      //  fim2=(w[fencode_dc(p,ix,iy-2,mom3)]/w[fencode_dc(p,ix,iy-2,rho)])*w[fencode_dc(p,ix,iy-2,mom2)];
@@ -405,7 +405,7 @@ int derivcurrentmom (real *dw, real *wd, real *w, struct params *p,int ix, int i
 
   int status=0;
      	//dw[fencode_dc(p,ix,iy,field)]=w[fencode_dc(p,ix,iy,field)]+20+5*(2*direction+1);
-        dw[fencode_dc(p,ix,iy,field)]=0.0;// -ddotcurrentmom(dw,wd,w,p,ix,iy,field,direction);
+        dw[fencode_dc(p,ix,iy,field)]= -ddotcurrentmom(dw,wd,w,p,ix,iy,field,direction);
         //dw[fencode_dc(p,ix,iy,field)]=-ddotcurrentmom(dw,wd,w,p,ix,iy,field,direction);
 
   return ( status);
@@ -415,7 +415,7 @@ __device__ __host__
 int derivcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field, int direction) {
 
   int status=0;
-        dw[fencode_dc(p,ix,iy,field)]=0.0;// -ddotcurrentb(dw,wd,w,p,ix,iy,field,direction);
+        dw[fencode_dc(p,ix,iy,field)]=0;// -ddotcurrentb(dw,wd,w,p,ix,iy,field,direction);
 
   return ( status);
 }
@@ -425,7 +425,7 @@ int derivcurrentenergy (real *dw, real *wd, real *w, struct params *p,int ix, in
 
   int status=0;
   int field=energy;
-        dw[fencode_dc(p,ix,iy,field)]=0.0;// -ddotcurrentenergy(dw,wd,w,p,ix,iy);
+        dw[fencode_dc(p,ix,iy,field)]= -ddotcurrentenergy(dw,wd,w,p,ix,iy);
 
   return ( status);
 }

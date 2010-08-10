@@ -39,13 +39,15 @@ real evalgrad_ds(real fi, real fim1, real fip2, real fim2,struct params *p,int d
 
  if(dir == 0)
  {
-     //valgrad_ds=(2.0/(3.0*(p->dx)))*(fi-fim1)-(1.0/(12.0*(p->dx)))*(fip2-fim2);
-   return((1.0/(1.0*(p->dx)))*(fi-fim1));
+     //valgrad=(2.0/(3.0*(p->dx)))*(fi-fim1)-(1.0/(12.0*(p->dx)))*(fip2-fim2);
+   //return((1.0/(2.0*(p->dx)))*(fi-fim1));
+   return(p->sodifon?((1.0/(2.0*(p->dx)))*(fi-fim1)):((1.0/(12.0*(p->dx)))*((8*fi-8*fim1+fim2-fip2))));
  }
  else if(dir == 1)
  {
-    // valgrad_ds=(2.0/(3.0*(p->dy)))*(fi-fim1)-(1.0/(12.0*(p->dy)))*(fip2-fim2);
-      return((1.0/(1.0*(p->dy)))*(fi-fim1));
+    // valgrad=(2.0/(3.0*(p->dy)))*(fi-fim1)-(1.0/(12.0*(p->dy)))*(fip2-fim2);
+     // return((2.0/(1.0*(p->dy)))*(fi-fim1));
+   return(p->sodifon?((1.0/(2.0*(p->dy)))*(fi-fim1)):((1.0/(12.0*(p->dy)))*((8*fi-8*fim1+fim2-fip2))));
  }
 
  return -1;
@@ -59,13 +61,15 @@ real grad_ds(real *wmod,struct params *p,int i,int j,int field,int dir)
 
  if(dir == 0)
  {
-    // valgrad_ds=(2.0/(3.0*(p->dx)))*(wmod[fencode_ds(p,i,j,field)]-wmod[fencode_ds(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode_ds(p,i+2,j,field)]-wmod[fencode_ds(p,i-2,j,field)]);
-return((1.0/(1.0*(p->dx)))*(wmod[fencode_ds(p,i+1,j,field)]-wmod[fencode_ds(p,i-1,j,field)]));
+    // valgrad=(2.0/(3.0*(p->dx)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
+//return((1.0/(2.0*(p->dx)))*(wmod[fencode_ds(p,i+1,j,field)]-wmod[fencode_ds(p,i-1,j,field)]));
+ return(  ( (p->sodifon)?((8*wmod[fencode_ds(p,i+1,j,field)]-8*wmod[fencode_ds(p,i-1,j,field)]+wmod[fencode_ds(p,i-1,j,field)]-wmod[fencode_ds(p,i+1,j,field)])/6.0):wmod[fencode_ds(p,i+1,j,field)]-wmod[fencode_ds(p,i-1,j,field)])/(2.0*(p->dx))    );
  }
  else if(dir == 1)
  {
-    // valgrad_ds=(2.0/(3.0*(p->dy)))*(wmod[fencode_ds(p,i,j,field)]-wmod[fencode_ds(p,i,j-1,field)])-(1.0/(12.0*(p->dy)))*(wmod[fencode_ds(p,i,j+2,field)]-wmod[fencode_ds(p,i,j-2,field)]);
- return((1.0/(1.0*(p->dy)))*(wmod[fencode_ds(p,i,j+1,field)]-wmod[fencode_ds(p,i,j-1,field)]));
+    // valgrad=(2.0/(3.0*(p->dy)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dy)))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
+// return((1.0/(2.0*(p->dy)))*(wmod[fencode_ds(p,i,j+1,field)]-wmod[fencode_ds(p,i,j-1,field)]));
+ return(  ( (p->sodifon)?((8*wmod[fencode_ds(p,i,j+1,field)]-8*wmod[fencode_ds(p,i,j-1,field)]+wmod[fencode_ds(p,i,j-1,field)]-wmod[fencode_ds(p,i,j+1,field)])/6.0):wmod[fencode_ds(p,i,j+1,field)]-wmod[fencode_ds(p,i,j-1,field)])/(2.0*(p->dy))    );
 
  }
 
@@ -89,12 +93,15 @@ real sourcemom (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int
   {
 	case 0:
          src=(w[fencode_ds(p,ix,iy,rho)]*(p->g1))-grad_ds(wd,p,ix,iy,pressuret,0);
+         //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g1));
 	break;
 	case 1:
          src=(w[fencode_ds(p,ix,iy,rho)]*(p->g2))-grad_ds(wd,p,ix,iy,pressuret,1);
+         //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g2));
 	break;
 	case 2:
          src=(w[fencode_ds(p,ix,iy,rho)]*(p->g3))-grad_ds(wd,p,ix,iy,pressuret,2);
+          //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g3));
 	break;
   }
 
@@ -139,7 +146,7 @@ real sourceenergy (real *dw, real *wd, real *w, struct params *p,int ix, int iy)
       // ddcx=evalgrad_ds(fi,fim1,fip2,fim2,p,0);
       ddcx=evalgrad_ds(fi,fim1,0,0,p,0);
 
-       fi=(w[fencode_ds(p,ix+1,iy,b3)]*wd[fencode_ds(p,ix+1,iy,current1)]-w[fencode_ds(p,ix+1,iy,b1)]*wd[fencode_ds(p,ix+1,iy,current3)]);
+       fi=(w[fencode_ds(p,ix,iy+1,b3)]*wd[fencode_ds(p,ix,iy+1,current1)]-w[fencode_ds(p,ix,iy+1,b1)]*wd[fencode_ds(p,ix,iy+1,current3)]);
        fim1=(w[fencode_ds(p,ix,iy-1,b3)]*wd[fencode_ds(p,ix,iy-1,current1)]-w[fencode_ds(p,ix,iy-1,b1)]*wd[fencode_ds(p,ix,iy-1,current3)]);
      //  fip2=(w[fencode_ds(p,ix,iy+2,b3)]*wd[fencode_ds(p,ix,iy+2,current1)]-w[fencode_ds(p,ix,iy+2,b1)]*wd[fencode_ds(p,ix,iy+2,current3)]);
      //  fim2=(w[fencode_ds(p,ix,iy-2,b3)]*wd[fencode_ds(p,ix,iy-2,current1)]-w[fencode_ds(p,ix,iy-2,b1)]*wd[fencode_ds(p,ix,iy-2,current3)]);

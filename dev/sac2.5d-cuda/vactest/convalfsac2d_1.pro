@@ -53,7 +53,8 @@ endif
 nfile=0
 npictinfile=1
 
-for npict=1,23 do begin
+;for npict=1,23 do begin
+for npict=1,99 do begin
 
 readf,1,step
 print,'step is ',step

@@ -64,7 +64,24 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew)
   if(i<p->ni && j<p->nj)
 	{
 
-		if(i==0 )
+               //default continuous BC for all
+               //gradient kept zero by copying variable values from edge of mesh to ghost cells
+               
+               for(int f=rho; f<=b3; f++)
+               {
+                   
+                if(i==0 || i==1)
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,2,j,f)];
+                if((i==((p->ni)-1)) || (i==((p->ni)-2)))
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,((p->ni)-3),j,f)];
+                if(j==0 || j==1)
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,2,j,f)];
+                if((j==((p->nj)-1)) || (j==((p->nj)-2)))
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,((p->nj)-3),f)];
+
+                  
+               }		
+               /*if(i==0 )
 		{
 			un[j*ni] = 2.5*un[1+j*ni] - 2*un[2+j*ni] + 0.5*un[3+j*ni];
 			un[ni+j*ni] = 2.5*un[ni-1+j*ni] - 2*un[ni-2+ni*j] + 0.5*un[ni-3+j*ni];
@@ -82,7 +99,7 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew)
 			vn[i+(nj)*ni] = 2.5*vn[i+(nj-1)*ni] - 2*vn[i+(nj-2)*ni] + 0.5*vn[i+(nj-3)*ni];
 			hn[i+ni] = 2.5*hn[i+1*ni] - 2*hn[i+2*ni] + 0.5*hn[i+3*ni];
 			hn[i+(nj)*ni] = 2.5*hn[i+(nj-1)*ni] - 2*hn[i+(nj-2)*ni] + 0.5*hn[i+(nj-3)*ni];
-		}
+		}*/
 	}
  __syncthreads();
   
