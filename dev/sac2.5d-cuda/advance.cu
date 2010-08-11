@@ -129,19 +129,21 @@ void computepk_adv(real *wmod,real *wd,struct params *p,int i,int j)
 
          #ifdef ADIABHYDRO
 /*below used for adiabatic hydrodynamics*/
-wd[fencode_adv(p,i,j,4)]=(p->adiab)*pow(wmod[fencode_adv(p,i,j,rho)],p->gamma);
+wd[fencode_adv(p,i,j,pressurek)]=(p->adiab)*pow(wmod[fencode_adv(p,i,j,rho)],p->gamma);
 
 
 #else
 
  //real bsq=wmod[fencode(p,i,j,b1)]*wmod[fencode(p,i,j,b1)]+wmod[fencode(p,i,j,b2)]*wmod[fencode(p,i,j,b2)]+wmod[fencode(p,i,j,b3)]*wmod[fencode(p,i,j,b3)];
-  wd[fencode_adv(p,i,j,4)]=  wd[fencode_adv(p,i,j,3)]+0.5*(wmod[fencode_adv(p,i,j,b1)]*wmod[fencode_adv(p,i,j,b1)]+wmod[fencode_adv(p,i,j,b2)]*wmod[fencode_adv(p,i,j,b2)]+wmod[fencode_adv(p,i,j,b3)]*wmod[fencode_adv(p,i,j,b3)]);
+
+
+ wd[fencode_adv(p,i,j,pressurek)]=((p->gamma)-1)*(wmod[fencode_adv(p,i,j,energy)]- 0.5*(wmod[fencode_adv(p,i,j,mom1)]*wmod[fencode_adv(p,i,j,mom1)]+wmod[fencode_adv(p,i,j,mom2)]*wmod[fencode_adv(p,i,j,mom2)]+wmod[fencode_adv(p,i,j,mom3)]*wmod[fencode_adv(p,i,j,mom3)])/wmod[fencode_adv(p,i,j,rho)]-0.5*(wmod[fencode_adv(p,i,j,b1)]*wmod[fencode_adv(p,i,j,b1)]+wmod[fencode_adv(p,i,j,b2)]*wmod[fencode_adv(p,i,j,b2)]+wmod[fencode_adv(p,i,j,b3)]*wmod[fencode_adv(p,i,j,b3)]) );
 
 #endif
 
 
-  if(wd[fencode_adv(p,i,j,4)]<0)
-              wd[fencode_adv(p,i,j,3)]=0.001;
+  if(wd[fencode_adv(p,i,j,pressurek)]<0)
+              wd[fencode_adv(p,i,j,pressurek)]=0.001;
 
 
  // return ( status);
@@ -156,18 +158,18 @@ void computept_adv(real *wmod,real *wd,struct params *p,int i,int j)
          #ifdef ADIABHYDRO
 
 /*below used for adiabatic hydrodynamics*/
-wd[fencode_adv(p,i,j,3)]=(p->adiab)*pow(wmod[fencode_adv(p,i,j,rho)],p->gamma);
+wd[fencode_adv(p,i,j,pressuret)]=(p->adiab)*pow(wmod[fencode_adv(p,i,j,rho)],p->gamma);
 
 #else
 
   //real momsq=wmod[fencode(p,i,j,mom1)]*wmod[fencode(p,i,j,mom1)]+wmod[fencode(p,i,j,mom2)]*wmod[fencode(p,i,j,mom2)]+wmod[fencode(p,i,j,mom3)]*wmod[fencode(p,i,j,mom3)];
   //real bsq=wmod[fencode(p,i,j,b1)]*wmod[fencode(p,i,j,b1)]+wmod[fencode(p,i,j,b2)]*wmod[fencode(p,i,j,b2)]+wmod[fencode(p,i,j,b3)]*wmod[fencode(p,i,j,b3)];
-  wd[fencode_adv(p,i,j,3)]=((p->gamma)-1)*(wmod[fencode_adv(p,i,j,energy)]- 0.5*(wmod[fencode_adv(p,i,j,mom1)]*wmod[fencode_adv(p,i,j,mom1)]+wmod[fencode_adv(p,i,j,mom2)]*wmod[fencode_adv(p,i,j,mom2)]+wmod[fencode_adv(p,i,j,mom3)]*wmod[fencode_adv(p,i,j,mom3)])/wmod[fencode_adv(p,i,j,rho)]-0.5*(wmod[fencode_adv(p,i,j,b1)]*wmod[fencode_adv(p,i,j,b1)]+wmod[fencode_adv(p,i,j,b2)]*wmod[fencode_adv(p,i,j,b2)]+wmod[fencode_adv(p,i,j,b3)]*wmod[fencode_adv(p,i,j,b3)]) );
+   wd[fencode_adv(p,i,j,pressuret)]=  wd[fencode_adv(p,i,j,pressurek)]+0.5*(wmod[fencode_adv(p,i,j,b1)]*wmod[fencode_adv(p,i,j,b1)]+wmod[fencode_adv(p,i,j,b2)]*wmod[fencode_adv(p,i,j,b2)]+wmod[fencode_adv(p,i,j,b3)]*wmod[fencode_adv(p,i,j,b3)]);
 
 #endif
 
-  if(wd[fencode_adv(p,i,j,3)]<0)
-              wd[fencode_adv(p,i,j,3)]=0.001;
+  if(wd[fencode_adv(p,i,j,pressuret)]<0)
+              wd[fencode_adv(p,i,j,pressuret)]=0.001;
 
   //return ( status);
 }
@@ -201,7 +203,7 @@ __global__ void advance_parallel(struct params *p, real *w, real *wnew, real *wm
    j=iindex/ni;
    //i=iindex-j*(iindex/ni);
    i=iindex-(j*ni);
-  if(i>1 && j >1 && i<((p->ni)-1) && j<((p->nj)-1))
+  if(i>1 && j >1 && i<((p->ni)-2) && j<((p->nj)-2))
 	{		               
               /* for(int f=rho; f<=b3; f++)               
                   wmod[fencode(p,i,j,f)]=w[fencode(p,i,j,f)];
@@ -246,30 +248,31 @@ __global__ void advance_parallel(struct params *p, real *w, real *wnew, real *wm
                      dwn1[fencode(p,i,j,f)]+2.0*dwn2[fencode(p,i,j,f)]
                          +2.0*dwn3[fencode(p,i,j,f)]+dwn4[fencode(p,i,j,f)]);
                }*/
-                __syncthreads();
+               // __syncthreads();
                float big=9999.0;
                for(int f=rho; f<=b3; f++)
                {
                    
-                  // if((dwn1[fencode_adv(p,i,j,f)]<(big/100)) && ( dwn1[fencode_adv(p,i,j,f)]>(-big/100)) )
-                      // wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)]+dt*dwn1[fencode_adv(p,i,j,f)];
+                   //if((dwn1[fencode_adv(p,i,j,f)]<(big/100)) && ( dwn1[fencode_adv(p,i,j,f)]>(-big/100)) )
+                  //  if( j!=2)
+                    //   wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)]+dt*dwn1[fencode_adv(p,i,j,f)];
 
                    //lax-friedrichs
                   wnew[fencode_adv(p,i,j,f)]=((w[fencode_adv(p,i+1,j,f)]+w[fencode_adv(p,i-1,j,f)]+w[fencode_adv(p,i,j+1,f)]+w[fencode_adv(p,i,j-1,f)])/4.0)+(dt)*(dwn1[fencode_adv(p,i,j,f)]);
                   
-                   if(isnan(wnew[fencode_adv(p,i,j,f)])) wnew[fencode_adv(p,i,j,f)]=0;
-                   if(wnew[fencode_adv(p,i,j,f)]>big)
-                           wnew[fencode_adv(p,i,j,f)]=big;
-                   if(wnew[fencode_adv(p,i,j,f)]<-big)
-                           wnew[fencode_adv(p,i,j,f)]=-big;
+                   if(isnan(wnew[fencode_adv(p,i,j,f)])) wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)];
+                   //if(wnew[fencode_adv(p,i,j,f)]>big)
+                    //       wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)];
+                   //if(wnew[fencode_adv(p,i,j,f)]<-big)
+                   //        wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)];
 
                      if(f==rho)
                             if(wnew[fencode_adv(p,i,j,f)]<0)
-                               wnew[fencode_adv(p,i,j,f)]=0.001;
+                               wnew[fencode_adv(p,i,j,f)]=1.001;
                }
-               computej_adv(wnew,wd,p,i,j);
-               computepk_adv(wnew,wd,p,i,j);
-               computept_adv(wnew,wd,p,i,j);
+               //computej_adv(wnew,wd,p,i,j);
+               //computepk_adv(wnew,wd,p,i,j);
+               //computept_adv(wnew,wd,p,i,j);
 
 
 	}

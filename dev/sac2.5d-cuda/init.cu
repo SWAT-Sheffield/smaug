@@ -90,10 +90,10 @@ int ni=p->ni;
             { 
 		          w[fencode_i(p,i,j,f)]=0;
 	    }
-
+            w[fencode_i(p,i,j,rho)]=1.0;
             #ifdef ADIABHYDRO
-		    if(i>65 && i<85 && j>65 && j<85 ) 
-				w[fencode_i(p,i,j,rho)]=3.0;
+		    if(i>73 && i<77 && j>73 && j<77 ) 
+				w[fencode_i(p,i,j,rho)]=1.3;
             #else
 
 		    w[fencode_i(p,i,j,rho)]=1.0;
@@ -120,6 +120,13 @@ int ni=p->ni;
 	}
 
 
+//	 __syncthreads();
+
+			}	
+	 __syncthreads();
+
+  if(i<p->ni && j<p->nj)
+	{
         for(int f=rho; f<=b3; f++)
         {               
                   wnew[fencode_i(p,i,j,f)]=w[fencode_i(p,i,j,f)];
@@ -129,14 +136,14 @@ int ni=p->ni;
                   //dwn4[fencode(p,i,j,f)]=0;
                  
         }
+}
 
-//	 __syncthreads();
+ __syncthreads();
+        if(i<p->ni && j<p->nj)
+               for(int f=current1; f<=divb; f++)
+                    wd[fencode_i(p,i,j,f)]=0.0;
 
-			}	
-	 __syncthreads();
-
- 
-  
+ __syncthreads(); 
 }
 
 /////////////////////////////////////

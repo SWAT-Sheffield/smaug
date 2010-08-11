@@ -244,7 +244,7 @@ int cuupdate(struct params **p, real **w, real **wnew, struct state **state,stru
     cudaThreadSynchronize();
     cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
 
-//cudaMemcpy(*w, *d_dwn1, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*w, *d_wd, 6*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
 
     cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
 

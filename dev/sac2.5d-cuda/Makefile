@@ -36,7 +36,7 @@ ALLOBJS	=	$(BASICEXOBJS)
 ALLBIN	=	$(Bin)/iosac
 #CUDACCFLAGS = --ptxas-options=-v --device-emulation -DADIABHYDRO
 CUDACCFLAGS = --ptxas-options=-v -DUSE_REAL -DADIABHYDRO
-CCFLAGS = -DUSE_REAL -DADIABHYDRO
+CCFLAGS = -DUSE_REAL  -DADIABHYDRO
 
 #MYLIBS	=	libAgentSimulation2.a
 

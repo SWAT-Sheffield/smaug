@@ -8,7 +8,7 @@
 #ifdef USE_REAL
 DEFINE_PRECISION(float)
 #else
-DEFINE_PRECISION(double)
+DEFINE_PRECISION(float)
 #endif
 
 

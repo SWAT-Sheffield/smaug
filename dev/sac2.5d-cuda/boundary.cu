@@ -30,7 +30,7 @@ int fencode_b (struct params *dp,int ix, int iy, int field) {
 }
 
 
-__global__ void boundary_parallel(struct params *p, real *w, real *wnew)
+__global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *wd)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -75,12 +75,29 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew)
                 if((i==((p->ni)-1)) || (i==((p->ni)-2)))
                   wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,((p->ni)-3),j,f)];
                 if(j==0 || j==1)
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,2,j,f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,2,f)];
                 if((j==((p->nj)-1)) || (j==((p->nj)-2)))
                   wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,((p->nj)-3),f)];
 
                   
-               }		
+               }
+
+               for(int f=3; f<=4; f++)
+               {
+                                      
+                if(i==0 || i==1)
+                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,2,j,f)];
+                if((i==((p->ni)-1)) || (i==((p->ni)-2)))
+                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,((p->ni)-3),j,f)];
+                if(j==0 || j==1)
+                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,2,f)];
+                if((j==((p->nj)-1)) || (j==((p->nj)-2)))
+                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,((p->nj)-3),f)];
+                
+                  
+               }
+
+		
                /*if(i==0 )
 		{
 			un[j*ni] = 2.5*un[1+j*ni] - 2*un[2+j*ni] + 0.5*un[3+j*ni];
@@ -122,7 +139,7 @@ int cuboundary(struct params **p, real **w, real **wnew, struct params **d_p, re
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
  	    //printf("called prop\n"); 
     // cudaThreadSynchronize();
-    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew);
+    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wd);
 	    //printf("called boundary\n");  
      //cudaThreadSynchronize();
 	    //printf("called update\n"); 

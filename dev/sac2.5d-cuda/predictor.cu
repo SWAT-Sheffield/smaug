@@ -73,7 +73,7 @@ real grad_pre(real *wmod,struct params *p,int i,int j,int field,int dir)
 
  }
 
- return -1;
+ return 0;
 }
 
 __device__ __host__
@@ -133,20 +133,20 @@ void computept(real *wmod,real *wd,struct params *p,int i,int j)
 #ifdef ADIABHYDRO
 
 /*below used for adiabatic hydrodynamics*/
- wd[fencode_pre(p,i,j,4)]=(p->adiab)*pow(wmod[fencode_pre(p,i,j,rho)],p->gamma);
+ wd[fencode_pre(p,i,j,pressuret)]=(p->adiab)*pow(wmod[fencode_pre(p,i,j,rho)],p->gamma);
 
 
 #else
 
  //real bsq=wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)];
-  wd[fencode_pre(p,i,j,4)]=  wd[fencode_pre(p,i,j,3)]+0.5*(wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)]);
+  wd[fencode_pre(p,i,j,pressuret)]=  wd[fencode_pre(p,i,j,pressurek)]+0.5*(wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)]);
 
 #endif
 
 
 
-  if(wd[fencode_pre(p,i,j,4)]<0)
-              wd[fencode_pre(p,i,j,4)]=0.001;
+  if(wd[fencode_pre(p,i,j,pressuret)]<0)
+              wd[fencode_pre(p,i,j,pressuret)]=0.001;
 
 
  // return ( status);
@@ -159,13 +159,13 @@ void computepk(real *wmod,real *wd,struct params *p,int i,int j)
 #ifdef ADIABHYDRO
 
 /*below used for adiabatic hydrodynamics*/
-wd[fencode_pre(p,i,j,3)]=(p->adiab)*pow(wmod[fencode_pre(p,i,j,rho)],p->gamma);
+wd[fencode_pre(p,i,j,pressurek)]=(p->adiab)*pow(wmod[fencode_pre(p,i,j,rho)],p->gamma);
 
 #else
 
   //real momsq=wmod[fencode_pre(p,i,j,mom1)]*wmod[fencode_pre(p,i,j,mom1)]+wmod[fencode_pre(p,i,j,mom2)]*wmod[fencode_pre(p,i,j,mom2)]+wmod[fencode_pre(p,i,j,mom3)]*wmod[fencode_pre(p,i,j,mom3)];
   //real bsq=wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)];
-  wd[fencode_pre(p,i,j,3)]=((p->gamma)-1)*(wmod[fencode_pre(p,i,j,energy)]- 0.5*(wmod[fencode_pre(p,i,j,mom1)]*wmod[fencode_pre(p,i,j,mom1)]+wmod[fencode_pre(p,i,j,mom2)]*wmod[fencode_pre(p,i,j,mom2)]+wmod[fencode_pre(p,i,j,mom3)]*wmod[fencode_pre(p,i,j,mom3)])/wmod[fencode_pre(p,i,j,rho)]-0.5*(wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)]) );
+  wd[fencode_pre(p,i,j,pressurek)]=((p->gamma)-1)*(wmod[fencode_pre(p,i,j,energy)]- 0.5*(wmod[fencode_pre(p,i,j,mom1)]*wmod[fencode_pre(p,i,j,mom1)]+wmod[fencode_pre(p,i,j,mom2)]*wmod[fencode_pre(p,i,j,mom2)]+wmod[fencode_pre(p,i,j,mom3)]*wmod[fencode_pre(p,i,j,mom3)])/wmod[fencode_pre(p,i,j,rho)]-0.5*(wmod[fencode_pre(p,i,j,b1)]*wmod[fencode_pre(p,i,j,b1)]+wmod[fencode_pre(p,i,j,b2)]*wmod[fencode_pre(p,i,j,b2)]+wmod[fencode_pre(p,i,j,b3)]*wmod[fencode_pre(p,i,j,b3)]) );
 
 
 #endif
@@ -175,8 +175,8 @@ wd[fencode_pre(p,i,j,3)]=(p->adiab)*pow(wmod[fencode_pre(p,i,j,rho)],p->gamma);
 
 
 
-  if(wd[fencode_pre(p,i,j,3)]<0)
-              wd[fencode_pre(p,i,j,3)]=0.001;
+  if(wd[fencode_pre(p,i,j,pressurek)]<0)
+              wd[fencode_pre(p,i,j,pressurek)]=0.001;
   //return ( status);
 }
 
@@ -246,7 +246,7 @@ if(i<((p->ni)) && j<((p->nj)))
                   wmod[fencode_pre(p,i,j,f)]=w[fencode_pre(p,i,j,f)];
                   wnew[fencode_pre(p,i,j,f)]=0.0;
                }
-               for(int f=current1; f<=soundspeed; f++)
+               for(int f=current1; f<=divb; f++)
                   wd[fencode_pre(p,i,j,f)]=0; 
         }
                __syncthreads();
@@ -257,6 +257,13 @@ if(i<((p->ni)) && j<((p->nj)))
                computej(wmod,wd,p,i,j);
                computepk(wmod,wd,p,i,j);
                computept(wmod,wd,p,i,j);
+
+              // if(j==2)
+              // {
+              //   wd[fencode_pre(p,i,0,3)]=wd[fencode_pre(p,i,j,4)];
+              //   wd[fencode_pre(p,i,1,4)]=wd[fencode_pre(p,i,j,4)];
+
+              // }
                computebdotv(wmod,wd,p,i,j);
                computedivb(wmod,wd,p,i,j);
          }

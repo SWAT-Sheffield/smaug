@@ -101,7 +101,7 @@ real h0 = 5030;
 // Define the x domain
 int ni = 150; 
 //ni=41;
-real xmax = 3.0;                      
+real xmax = 1.0;                      
 real dx = xmax/(ni-1);
 
 
@@ -110,7 +110,7 @@ real dx = xmax/(ni-1);
 // Define the y domain
 int nj = 150;  
 //nj=41;
-real ymax = 3.0;                      
+real ymax = 1.0;                      
 real dy = ymax/(nj-1);
 
 real *x=(real *)calloc(ni,sizeof(real));
@@ -137,10 +137,10 @@ real wavespeed = u0 + sqrt(g*(h0 - b0));
 real dt = 0.68*dx/wavespeed;
 //dt=0.015985;
 //dt=0.15;
-//dt=0.00025;
-dt=0.25;
+dt=0.0025;
+//dt=0.25;
 int nt=(int)((tmax)/dt);
-nt=23;
+//nt=23;
 nt=1000;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -327,23 +327,7 @@ cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state);
 printf("here in runsim\n");
 
 
-printf("here in runsim1\n");
 
-
-
-
-
-
-
-int nli = 0.45*(ni-1)+1;
-int nui = 0.55*(ni-1)+1;
-int nlj = 0.45*(nj-1)+1;
-int nuj = 0.55*(nj-1)+1; 
-
-printf("limits %d %d %d %d\n",nli,nui,nlj,nuj);                           
-int in,ind;
-
-printf("here in runsim2\n");
 
 //For a steerable simulation generate and save a dxformfile that saves a single data step
 //used for the steering dx module
@@ -391,9 +375,14 @@ real time=0.0;
 for( n=0;n<nt;n++)
 //for( n=0;n<1;n++)
 {
+
+    if((n%(p->cfgsavefrequency))==0)
+      writeconfig(name,n,*p, meta , w);
   
    t1=second();
    cupredictor(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
+
    printf("cmax is %f old dt %f new dt %f\n",p->cmax,p->dt,0.68*((p->dx)+(p->dy))/(2.0*(p->cmax)));
    if(order==0 && p->moddton==1)
    {
@@ -443,8 +432,7 @@ for( n=0;n<nt;n++)
      
     }
     
-    if((n%(p->cfgsavefrequency))==0)
-      writeconfig(name,n,*p, meta , w);
+
     
       //save file containing current data
      // sprintf(configfile,"tmp/%ss%d.out",name,n);

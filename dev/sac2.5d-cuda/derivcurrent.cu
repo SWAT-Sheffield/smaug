@@ -73,7 +73,7 @@ real grad_dc(real *wmod,struct params *p,int i,int j,int field,int dir)
 
  }
 
- return -1;
+ return 0;
 }
 
 __device__ __host__
@@ -444,7 +444,7 @@ void derivcurrent (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
       derivcurrentmom(dw,wd,w,p,ix,iy,field,0);
      break;
      case mom2:
-      derivcurrentmom(dw,wd,w,p,ix,iy,field,1);
+       derivcurrentmom(dw,wd,w,p,ix,iy,field,1);
      break;
      case mom3:
       derivcurrentmom(dw,wd,w,p,ix,iy,field,2);
@@ -453,7 +453,7 @@ void derivcurrent (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
        derivcurrentenergy(dw,wd,w,p,ix,iy);
      break;
      case b1:
-      derivcurrentb(dw,wd,w,p,ix,iy,field,0);
+       derivcurrentb(dw,wd,w,p,ix,iy,field,0);
      break;
      case b2:
       derivcurrentb(dw,wd,w,p,ix,iy,field,1);
@@ -496,7 +496,10 @@ __global__ void derivcurrent_parallel(struct params *p, real *w, real *wnew, rea
    j=iindex/ni;
    //i=iindex-j*(iindex/ni);
    i=iindex-(j*ni);
-  if(i>1+(p->sodifon==1) && j >1+(p->sodifon==1) && i<((p->ni)-2-(p->sodifon==1)) && j<((p->nj)-2-(p->sodifon==1)))
+
+
+  //if(i>(1+(p->sodifon==1)) && j >(1+(p->sodifon==1)) && i<((p->ni)-1-(p->sodifon==1)) && j<((p->nj)-1-(p->sodifon==1)))
+if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
 	{		               
                /*for(int f=rho; f<=b3; f++)               
                   wmod[fencode_dc(p,i,j,f)]=w[fencode_dc(p,i,j,f)];
@@ -504,11 +507,12 @@ __global__ void derivcurrent_parallel(struct params *p, real *w, real *wnew, rea
                computepk(wmod,wd,p,i,j);
                computept(wmod,wd,p,i,j);
                computebdotv(wmod,wd,p,i,j);*/
+          
                for(int f=rho; f<=b3; f++)
                {              
                   derivcurrent(dwn1,wd,wmod,p,i,j,f);
                   //dwn1[fencode_dc(p,i,j,f)]=1.0;
-                  __syncthreads();
+                  //__syncthreads();
                }
                
                /*for(int f=rho; f<=b3; f++) 
@@ -541,7 +545,7 @@ __global__ void derivcurrent_parallel(struct params *p, real *w, real *wnew, rea
                      dwn1[fencode_dc(p,i,j,f)]+2.0*dwn2[fencode_dc(p,i,j,f)]
                          +2.0*dwn3[fencode_dc(p,i,j,f)]+dwn4[fencode_dc(p,i,j,f)]);
                }*/
-                __syncthreads();
+              //  __syncthreads();
               /* for(int f=rho; f<=b3; f++)
                    wnew[fencode_dc(p,i,j,f)]=w[fencode_dc(p,i,j,f)]+dt*dwn1[fencode_dc(p,i,j,f)];
                computej(wnew,wd,p,i,j);

@@ -73,7 +73,7 @@ real grad_ds(real *wmod,struct params *p,int i,int j,int field,int dir)
 
  }
 
- return -1;
+ return 0;
 }
 
 __device__ __host__
@@ -93,15 +93,15 @@ real sourcemom (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int
   {
 	case 0:
          src=(w[fencode_ds(p,ix,iy,rho)]*(p->g1))-grad_ds(wd,p,ix,iy,pressuret,0);
-         //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g1));
+        // src=(w[fencode_ds(p,ix,iy,rho)]*(p->g1));
 	break;
 	case 1:
          src=(w[fencode_ds(p,ix,iy,rho)]*(p->g2))-grad_ds(wd,p,ix,iy,pressuret,1);
          //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g2));
 	break;
 	case 2:
-         src=(w[fencode_ds(p,ix,iy,rho)]*(p->g3))-grad_ds(wd,p,ix,iy,pressuret,2);
-          //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g3));
+         //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g3))-grad_ds(wd,p,ix,iy,pressuret,2);
+         src=(w[fencode_ds(p,ix,iy,rho)]*(p->g3));
 	break;
   }
 
@@ -200,6 +200,7 @@ int derivsourceenergy (real *dw, real *wd, real *w, struct params *p,int ix, int
   return ( status);
 }
 
+
 //rho, mom1, mom2, mom3, energy, b1, b2, b3
 __device__ __host__
 void derivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field) {
@@ -275,9 +276,12 @@ __global__ void derivsource_parallel(struct params *p, real *w, real *wnew, real
                computebdotv(wmod,wd,p,i,j);*/
                for(int f=rho; f<=b3; f++)
                {              
-                  derivsource(dwn1,wd,wmod,p,i,j,f);
+                  //if( (f==mom2) && (j==2))
+                  //   ;//derivsource(dwn1,wd,wmod,p,i,j,f);
+                  //else
+                    derivsource(dwn1,wd,wmod,p,i,j,f);
                   //dwn1[fencode_ds(p,i,j,f)]=1.0;
-                  __syncthreads();
+                 // __syncthreads();
                }
                
                /*for(int f=rho; f<=b3; f++) 
@@ -310,7 +314,7 @@ __global__ void derivsource_parallel(struct params *p, real *w, real *wnew, real
                      dwn1[fencode_ds(p,i,j,f)]+2.0*dwn2[fencode_ds(p,i,j,f)]
                          +2.0*dwn3[fencode_ds(p,i,j,f)]+dwn4[fencode_ds(p,i,j,f)]);
                }*/
-                __syncthreads();
+              //  __syncthreads();
               /* for(int f=rho; f<=b3; f++)
                    wnew[fencode_ds(p,i,j,f)]=w[fencode_ds(p,i,j,f)]+dt*dwn1[fencode_ds(p,i,j,f)];
                computej(wnew,wd,p,i,j);
