@@ -15,8 +15,10 @@ BASICEXOBJS	=\
 	initialisation.o\
 	dxroutines.o\
 	derivsource.o\
-	derivcurrent.o\
+	derivcurrent1.o\
+	derivcurrent2.o\
 	predictor.o\
+	corrector.o\
 	boundary.o\
 	init.o\
 	update.o\
@@ -34,9 +36,10 @@ BASICEXOBJS	=\
 	
 ALLOBJS	=	$(BASICEXOBJS)
 ALLBIN	=	$(Bin)/iosac
-#CUDACCFLAGS = --ptxas-options=-v --device-emulation -DADIABHYDRO
-CUDACCFLAGS = --ptxas-options=-v -DUSE_REAL -DADIABHYDRO
-CCFLAGS = -DUSE_REAL  -DADIABHYDRO
+#CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation -DADIABHYDRO  -DUSE_REAL 
+#compiling with  -arch sm_13 enables double precision to be used
+CUDACCFLAGS = --ptxas-options=-v -arch sm_13 -maxrregcount=32  -DUSE_REAL
+CCFLAGS =    -DUSE_REAL 
 
 #MYLIBS	=	libAgentSimulation2.a
 
@@ -81,9 +84,13 @@ iosac:$(BASICEXOBJS)
 
 derivsource.o: derivsource.cu
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-derivcurrent.o: derivcurrent.cu
+derivcurrent1.o: derivcurrent1.cu
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
+derivcurrent2.o: derivcurrent2.cu
 	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 predictor.o: predictor.cu
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
+corrector.o: corrector.cu
 	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 boundary.o: boundary.cu
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<

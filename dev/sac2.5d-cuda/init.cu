@@ -57,7 +57,7 @@ int ni=p->ni;
 
   int seg1,seg2,seg3,seg4;
   int width=10;
-  real m2max=0.001;
+  real m2max=0.01;
   real start=((p->ni)-width)/2;
   seg1=((p->ni)/3)-1;
   seg2=((p->ni)/3);
@@ -103,14 +103,18 @@ int ni=p->ni;
 		    //w[fencode_i(p,i,j,b1)]=15*j;
 		    //w[fencode_i(p,i,j,b3)]=150*j;
 		    
-		   if (i > seg2)
-		    if (i < seg3)
+		   //if (i > seg2)
+		   // if (i < seg3)
+                   if(i<seg2)
 		      w[fencode_i(p,i,j,mom2)]=m2max;
 
 
 		   if (i > seg2)
 		    if (i < seg3)
+                     {
 		      w[fencode_i(p,i,j,mom2)]=m2max*(i-seg2)/(seg3-seg2);
+                      w[fencode_i(p,i,j,b1)]=1.01;
+                      }
 
 		   if (i > seg3)
 		    if (i < seg4)
@@ -130,7 +134,8 @@ int ni=p->ni;
         for(int f=rho; f<=b3; f++)
         {               
                   wnew[fencode_i(p,i,j,f)]=w[fencode_i(p,i,j,f)];
-                  dwn1[fencode_i(p,i,j,f)]=0;
+              for(int ord=0;ord<(1+3*((p->rkon)==1));ord++)
+                  dwn1[8*ord*ni*nj+fencode_i(p,i,j,f)]=0;
                   //dwn2[fencode(p,i,j,f)]=0;
                  // dwn3[fencode(p,i,j,f)]=0;
                   //dwn4[fencode(p,i,j,f)]=0;
@@ -211,7 +216,7 @@ int cuinit(struct params **p, real **w, real **wnew, struct state **state, struc
 
 
   cudaMalloc((void**)d_wmod, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
-  cudaMalloc((void**)d_dwn1, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
+  cudaMalloc((void**)d_dwn1, 8*(1+3*((*p)->rkon))*((*p)->ni)* ((*p)->nj)*sizeof(real));
   cudaMalloc((void**)d_wd, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
 
   cudaMalloc((void**)&adw, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));

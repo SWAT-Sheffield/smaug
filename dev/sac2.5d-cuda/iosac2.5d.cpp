@@ -137,8 +137,9 @@ real wavespeed = u0 + sqrt(g*(h0 - b0));
 real dt = 0.68*dx/wavespeed;
 //dt=0.015985;
 //dt=0.15;
-dt=0.0025;
+//dt=0.0025;
 //dt=0.25;
+dt=0.0005125;
 int nt=(int)((tmax)/dt);
 //nt=23;
 nt=1000;
@@ -249,10 +250,10 @@ p->g3=0.0;
 p->cmax=0.02;
 
 p->rkon=0.0;
-p->sodifon=0.0;
+p->sodifon=1.0;
 p->moddton=0.0;
-p->divbon=0.0;
-p->divbfix=0.0;
+p->divbon=1.0;
+p->divbfix=1.0;
 (p->readini)==0;
 p->cfgsavefrequency=10;
 
@@ -378,13 +379,13 @@ for( n=0;n<nt;n++)
 
     if((n%(p->cfgsavefrequency))==0)
       writeconfig(name,n,*p, meta , w);
-  
+   order=0;
    t1=second();
    cupredictor(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
    cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
 
    printf("cmax is %f old dt %f new dt %f\n",p->cmax,p->dt,0.68*((p->dx)+(p->dy))/(2.0*(p->cmax)));
-   if(order==0 && p->moddton==1)
+   if(p->moddton==1)
    {
       //if((p->cmax)>10)
       //         p->dt=0.68*(((p->dx)+(p->dy))/(2.0*(p->cmax))); 
@@ -394,10 +395,29 @@ for( n=0;n<nt;n++)
                p->dt=2.0*p->dt; 
    }
    printf("new dt %f\n",p->dt);
-   cuderivcurrent(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
-   cuderivsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
+   cuderivcurrent1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+   cuderivcurrent2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+
+   cuderivsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
    if(p->divbon==1)
-       cudivb(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state);
+       cudivb(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state,order);
+
+
+   if((p->rkon)==1)
+     for(order=1; i<4; i++) 
+   {
+           cucorrector(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+           cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
+
+	   cuderivcurrent1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+	   cuderivcurrent2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+
+	   cuderivsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+	   if(p->divbon==1)
+	       cudivb(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state,order);
+
+
+   }
 
    cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
 

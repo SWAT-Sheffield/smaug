@@ -56,21 +56,20 @@ real grad_db(real *wmod,struct params *p,int i,int j,int field,int dir)
 {
  //real valgrad_db;
 
- if(dir == 0)
+  if(dir == 0)
  {
     // valgrad=(2.0/(3.0*(p->dx)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
 //return((1.0/(2.0*(p->dx)))*(wmod[fencode_db(p,i+1,j,field)]-wmod[fencode_db(p,i-1,j,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_db(p,i+1,j,field)]-8*wmod[fencode_db(p,i-1,j,field)]+wmod[fencode_db(p,i-1,j,field)]-wmod[fencode_db(p,i+1,j,field)])/6.0):wmod[fencode_db(p,i+1,j,field)]-wmod[fencode_db(p,i-1,j,field)])/(2.0*(p->dx))    );
+ return(  ( (p->sodifon)?((8*wmod[fencode_db(p,i+1,j,field)]-8*wmod[fencode_db(p,i-1,j,field)]+wmod[fencode_db(p,i-2,j,field)]-wmod[fencode_db(p,i+2,j,field)])/6.0):wmod[fencode_db(p,i+1,j,field)]-wmod[fencode_db(p,i-1,j,field)])/(2.0*(p->dx))    );
  }
  else if(dir == 1)
  {
     // valgrad=(2.0/(3.0*(p->dy)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dy)))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
 // return((1.0/(2.0*(p->dy)))*(wmod[fencode_db(p,i,j+1,field)]-wmod[fencode_db(p,i,j-1,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_db(p,i,j+1,field)]-8*wmod[fencode_db(p,i,j-1,field)]+wmod[fencode_db(p,i,j-1,field)]-wmod[fencode_db(p,i,j+1,field)])/6.0):wmod[fencode_db(p,i,j+1,field)]-wmod[fencode_db(p,i,j-1,field)])/(2.0*(p->dy))    );
+ return(  ( (p->sodifon)?((8*wmod[fencode_db(p,i,j+1,field)]-8*wmod[fencode_db(p,i,j-1,field)]+wmod[fencode_db(p,i,j-2,field)]-wmod[fencode_db(p,i,j+2,field)])/6.0):wmod[fencode_db(p,i,j+1,field)]-wmod[fencode_db(p,i,j-1,field)])/(2.0*(p->dy))    );
+  }
 
- }
-
- return -1;
+ return 0;
 }
 
 __device__ __host__
@@ -211,60 +210,34 @@ void dbderivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy
 
 
 __global__ void divb_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd)
+    real *dwn1, real *wd, int order)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
   // the number of threads per block, blockDim,
   // and the number of the current thread within the block, threadIdx
-   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
-  int index,k;
-  __shared__ int ntot;
 
   int ni=p->ni;
   int nj=p->nj;
-  real dt=p->dt;
-  real dy=p->dy;
-  real dx=p->dx;
-  real g=p->g;
-  real *u,  *v,  *h;
-//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
-  h=w+(p->ni)*(p->nj)*rho;
-  u=w+(p->ni)*(p->nj)*mom1;
-  v=w+(p->ni)*(p->nj)*mom2;
 
-  real *un,  *vn,  *hn;
-//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
-  hn=wnew+(p->ni)*(p->nj)*rho;
-  un=wnew+(p->ni)*(p->nj)*mom1;
-  vn=wnew+(p->ni)*(p->nj)*mom2;
-     j=iindex/ni;
-   //i=iindex-j*(iindex/ni);
-   i=iindex-(j*ni);
-  //if(i>2 && j >2 && i<((p->ni)-3) && j<((p->nj)-3))
+  j=iindex/ni;
+  i=iindex-(j*ni);
 
-
-
-  if(i<p->ni && j<p->nj)
+  if(i>2 && j>2 && i<(ni-2) && j<(nj-2))
 	{
            if(p->divbfix)
            {    
                for(int f=rho; f<=b3; f++)
                {              
-                  dbderivsource(dwn1,wd,wmod,p,i,j,f);
-                  //dwn1[fencode_ds(p,i,j,f)]=1.0;
-                  __syncthreads();
+                  dbderivsource(dwn1+(8*(p->ni)*(p->nj)*order),wd,wmod,p,i,j,f);
+ 
                }
             }
-            // u[i+j*ni]=un[i+j*ni];
-           // v[i+j*ni]=vn[i+j*ni];
-	   // h[i+j*ni]=hn[i+j*ni];
+
 	}
  __syncthreads();
-
-
-
   
 }
 
@@ -295,9 +268,9 @@ void checkErrors_db(char *label)
   }
 }
 
-int cudivb(struct params **p, real **w, real **wnew,  struct state **state,struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state)
+int cudivb(struct params **p, real **w, real **wnew,  struct state **state,struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, int order)
 {
-
+int status=0;
 
 //printf("calling propagate solution\n");
 
@@ -318,7 +291,7 @@ int cudivb(struct params **p, real **w, real **wnew,  struct state **state,struc
      //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
 	    //printf("called boundary\n");  
      //cudaThreadSynchronize();
-    divb_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
+    divb_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
     //cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
@@ -330,7 +303,7 @@ int cudivb(struct params **p, real **w, real **wnew,  struct state **state,struc
   //checkErrors("copy data from device");
 
 
- 
+ return status;
 
 
 }

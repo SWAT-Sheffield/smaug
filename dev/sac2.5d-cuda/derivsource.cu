@@ -59,20 +59,18 @@ real grad_ds(real *wmod,struct params *p,int i,int j,int field,int dir)
 {
  //real valgrad_ds;
 
- if(dir == 0)
+  if(dir == 0)
  {
     // valgrad=(2.0/(3.0*(p->dx)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
 //return((1.0/(2.0*(p->dx)))*(wmod[fencode_ds(p,i+1,j,field)]-wmod[fencode_ds(p,i-1,j,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_ds(p,i+1,j,field)]-8*wmod[fencode_ds(p,i-1,j,field)]+wmod[fencode_ds(p,i-1,j,field)]-wmod[fencode_ds(p,i+1,j,field)])/6.0):wmod[fencode_ds(p,i+1,j,field)]-wmod[fencode_ds(p,i-1,j,field)])/(2.0*(p->dx))    );
+ return(  ( (p->sodifon)?((8*wmod[fencode_ds(p,i+1,j,field)]-8*wmod[fencode_ds(p,i-1,j,field)]+wmod[fencode_ds(p,i-2,j,field)]-wmod[fencode_ds(p,i+2,j,field)])/6.0):wmod[fencode_ds(p,i+1,j,field)]-wmod[fencode_ds(p,i-1,j,field)])/(2.0*(p->dx))    );
  }
  else if(dir == 1)
  {
     // valgrad=(2.0/(3.0*(p->dy)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dy)))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
 // return((1.0/(2.0*(p->dy)))*(wmod[fencode_ds(p,i,j+1,field)]-wmod[fencode_ds(p,i,j-1,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_ds(p,i,j+1,field)]-8*wmod[fencode_ds(p,i,j-1,field)]+wmod[fencode_ds(p,i,j-1,field)]-wmod[fencode_ds(p,i,j+1,field)])/6.0):wmod[fencode_ds(p,i,j+1,field)]-wmod[fencode_ds(p,i,j-1,field)])/(2.0*(p->dy))    );
-
- }
-
+ return(  ( (p->sodifon)?((8*wmod[fencode_ds(p,i,j+1,field)]-8*wmod[fencode_ds(p,i,j-1,field)]+wmod[fencode_ds(p,i,j-2,field)]-wmod[fencode_ds(p,i,j+2,field)])/6.0):wmod[fencode_ds(p,i,j+1,field)]-wmod[fencode_ds(p,i,j-1,field)])/(2.0*(p->dy))    );
+  }
  return 0;
 }
 
@@ -136,22 +134,31 @@ real sourceenergy (real *dw, real *wd, real *w, struct params *p,int ix, int iy)
   real srcg,srcb;
   int field=energy;
   real ddcx,ddcy;
-  real fi,fim1;//fip2,fim2;
+  real fi,fim1,fip2,fim2;
+  fip2=0;
+  fim2=0;
+
       srcg=(p->g1)*w[fencode_ds(p,ix,iy,mom1)]+(p->g2)*w[fencode_ds(p,ix,iy,mom2)]+(p->g3)*w[fencode_ds(p,ix,iy,mom3)];
 
        fi=(w[fencode_ds(p,ix+1,iy,b2)]*wd[fencode_ds(p,ix+1,iy,current3)]-w[fencode_ds(p,ix+1,iy,b3)]*wd[fencode_ds(p,ix+1,iy,current2)]);
        fim1=(w[fencode_ds(p,ix-1,iy,b2)]*wd[fencode_ds(p,ix-1,iy,current3)]-w[fencode_ds(p,ix-1,iy,b3)]*wd[fencode_ds(p,ix-1,iy,current2)]);
-      // fip2=(w[fencode_ds(p,ix+2,iy,b2)]*wd[fencode_ds(p,ix+2,iy,current3)]-w[fencode_ds(p,ix+2,iy,b3)]*wd[fencode_ds(p,ix+2,iy,current2)]);
-     //  fim2=(w[fencode_ds(p,ix-2,iy,b2)]*wd[fencode_ds(p,ix-2,iy,current3)]-w[fencode_ds(p,ix-2,iy,b3)]*wd[fencode_ds(p,ix-2,iy,current2)]);
-      // ddcx=evalgrad_ds(fi,fim1,fip2,fim2,p,0);
-      ddcx=evalgrad_ds(fi,fim1,0,0,p,0);
+    if(p->sodifon)
+     {
+       fip2=(w[fencode_ds(p,ix+2,iy,b2)]*wd[fencode_ds(p,ix+2,iy,current3)]-w[fencode_ds(p,ix+2,iy,b3)]*wd[fencode_ds(p,ix+2,iy,current2)]);
+       fim2=(w[fencode_ds(p,ix-2,iy,b2)]*wd[fencode_ds(p,ix-2,iy,current3)]-w[fencode_ds(p,ix-2,iy,b3)]*wd[fencode_ds(p,ix-2,iy,current2)]);
+      }
+       ddcx=evalgrad_ds(fi,fim1,fip2,fim2,p,0);
+      //ddcx=evalgrad_ds(fi,fim1,0,0,p,0);
 
        fi=(w[fencode_ds(p,ix,iy+1,b3)]*wd[fencode_ds(p,ix,iy+1,current1)]-w[fencode_ds(p,ix,iy+1,b1)]*wd[fencode_ds(p,ix,iy+1,current3)]);
        fim1=(w[fencode_ds(p,ix,iy-1,b3)]*wd[fencode_ds(p,ix,iy-1,current1)]-w[fencode_ds(p,ix,iy-1,b1)]*wd[fencode_ds(p,ix,iy-1,current3)]);
-     //  fip2=(w[fencode_ds(p,ix,iy+2,b3)]*wd[fencode_ds(p,ix,iy+2,current1)]-w[fencode_ds(p,ix,iy+2,b1)]*wd[fencode_ds(p,ix,iy+2,current3)]);
-     //  fim2=(w[fencode_ds(p,ix,iy-2,b3)]*wd[fencode_ds(p,ix,iy-2,current1)]-w[fencode_ds(p,ix,iy-2,b1)]*wd[fencode_ds(p,ix,iy-2,current3)]);
+    if(p->sodifon)
+     {
+       fip2=(w[fencode_ds(p,ix,iy+2,b3)]*wd[fencode_ds(p,ix,iy+2,current1)]-w[fencode_ds(p,ix,iy+2,b1)]*wd[fencode_ds(p,ix,iy+2,current3)]);
+       fim2=(w[fencode_ds(p,ix,iy-2,b3)]*wd[fencode_ds(p,ix,iy-2,current1)]-w[fencode_ds(p,ix,iy-2,b1)]*wd[fencode_ds(p,ix,iy-2,current3)]);
+      }
       // ddcx=evalgrad_ds(fi,fim1,fip2,fim2,p,0);
-      ddcy=evalgrad_ds(fi,fim1,0,0,p,1);
+      ddcy=evalgrad_ds(fi,fim1,fip2,fim2,p,1);
 
       srcb=(isnan(ddcx)?0:ddcx)+(isnan(ddcy)?0:ddcy);
 
@@ -161,41 +168,41 @@ real sourceenergy (real *dw, real *wd, real *w, struct params *p,int ix, int iy)
 
 
 __device__ __host__
-int derivsourcerho (real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
+int derivsourcerho (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int order) {
 
   int status=0;
   int field=rho;
-        dw[fencode_ds(p,ix,iy,field)]=dw[fencode_ds(p,ix,iy,field)]+sourcerho(dw,wd,w,p,ix,iy);
+        dw[(8*(p->ni)*(p->nj)*order)+fencode_ds(p,ix,iy,field)]=dw[(8*(p->ni)*(p->nj)*order)+fencode_ds(p,ix,iy,field)]+sourcerho(dw,wd,w,p,ix,iy);
      	//dw[fencode_ds(p,ix,iy,field)]=w[fencode_ds(p,ix,iy,field)]+10;
   return ( status);
 }
 
 __device__ __host__
-int derivsourcemom (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field, int direction) {
+int derivsourcemom (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field, int direction, int order) {
 
   int status=0;
      	//dw[fencode_ds(p,ix,iy,field)]=w[fencode_ds(p,ix,iy,field)]+20+5*(2*direction+1);
-        dw[fencode_ds(p,ix,iy,field)]=dw[fencode_ds(p,ix,iy,field)]+sourcemom(dw,wd,w,p,ix,iy,field,direction);
+        dw[(8*(p->ni)*(p->nj)*order)+fencode_ds(p,ix,iy,field)]=dw[(8*(p->ni)*(p->nj)*order)+fencode_ds(p,ix,iy,field)]+sourcemom(dw,wd,w,p,ix,iy,field,direction);
         //dw[fencode_ds(p,ix,iy,field)]=-ddotcurrentmom(dw,wd,w,p,ix,iy,field,direction);
 
   return ( status);
 }
 
 __device__ __host__
-int derivsourceb (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field, int direction) {
+int derivsourceb (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field, int direction, int order) {
 
   int status=0;
-        dw[fencode_ds(p,ix,iy,field)]=dw[fencode_ds(p,ix,iy,field)]+sourceb(dw,wd,w,p,ix,iy,field,direction);
+        dw[(8*(p->ni)*(p->nj)*order)+fencode_ds(p,ix,iy,field)]=dw[(8*(p->ni)*(p->nj)*order)+fencode_ds(p,ix,iy,field)]+sourceb(dw,wd,w,p,ix,iy,field,direction);
 
   return ( status);
 }
 
 __device__ __host__
-int derivsourceenergy (real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
+int derivsourceenergy (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int order) {
 
   int status=0;
   int field=energy;
-        dw[fencode_ds(p,ix,iy,field)]=dw[fencode_ds(p,ix,iy,field)]+sourceenergy(dw,wd,w,p,ix,iy);
+        dw[(8*(p->ni)*(p->nj)*order)+fencode_ds(p,ix,iy,field)]=dw[(8*(p->ni)*(p->nj)*order)+fencode_ds(p,ix,iy,field)]+sourceenergy(dw,wd,w,p,ix,iy);
 
   return ( status);
 }
@@ -203,34 +210,34 @@ int derivsourceenergy (real *dw, real *wd, real *w, struct params *p,int ix, int
 
 //rho, mom1, mom2, mom3, energy, b1, b2, b3
 __device__ __host__
-void derivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field) {
+void derivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field, int order) {
 
   //int status=0;
   switch(field)
   {
      case rho:
-      derivsourcerho(dw,wd,w,p,ix,iy);
+      derivsourcerho(dw,wd,w,p,ix,iy,order);
      break;
      case mom1:
-      derivsourcemom(dw,wd,w,p,ix,iy,field,0);
+      derivsourcemom(dw,wd,w,p,ix,iy,field,0,order);
      break;
      case mom2:
-      derivsourcemom(dw,wd,w,p,ix,iy,field,1);
+      derivsourcemom(dw,wd,w,p,ix,iy,field,1,order);
      break;
      case mom3:
-      derivsourcemom(dw,wd,w,p,ix,iy,field,2);
+      derivsourcemom(dw,wd,w,p,ix,iy,field,2,order);
      break;
      case energy:
-       derivsourceenergy(dw,wd,w,p,ix,iy);
+       derivsourceenergy(dw,wd,w,p,ix,iy,order);
      break;
      case b1:
-      derivsourceb(dw,wd,w,p,ix,iy,field,0);
+    derivsourceb(dw,wd,w,p,ix,iy,field,0,order);
      break;
      case b2:
-      derivsourceb(dw,wd,w,p,ix,iy,field,1);
+      derivsourceb(dw,wd,w,p,ix,iy,field,1,order);
      break;
      case b3:
-      derivsourceb(dw,wd,w,p,ix,iy,field,2);
+      derivsourceb(dw,wd,w,p,ix,iy,field,2,order);
      break;
   }
   //return ( status);
@@ -238,7 +245,7 @@ void derivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy, 
 
 
 __global__ void derivsource_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd)
+    real *dwn1, real *wd, int order)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -279,7 +286,7 @@ __global__ void derivsource_parallel(struct params *p, real *w, real *wnew, real
                   //if( (f==mom2) && (j==2))
                   //   ;//derivsource(dwn1,wd,wmod,p,i,j,f);
                   //else
-                    derivsource(dwn1,wd,wmod,p,i,j,f);
+                    derivsource(dwn1,wd,wmod,p,i,j,f,order);
                   //dwn1[fencode_ds(p,i,j,f)]=1.0;
                  // __syncthreads();
                }
@@ -358,7 +365,7 @@ void checkErrors_ds(char *label)
 
 
 
-int cuderivsource(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd)
+int cuderivsource(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order)
 {
 
 
@@ -374,7 +381,7 @@ int cuderivsource(struct params **p, real **w, real **wnew, struct params **d_p,
 //__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-     derivsource_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
+     derivsource_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();

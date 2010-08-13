@@ -8,7 +8,7 @@
 #ifdef USE_REAL
 DEFINE_PRECISION(float)
 #else
-DEFINE_PRECISION(float)
+DEFINE_PRECISION(double)
 #endif
 
 
@@ -40,33 +40,33 @@ struct params {
 	int ni;
  	int nj;
 
-        float xmax;
-        float ymax;
+        real xmax;
+        real ymax;
 	int nt;
-        float tmax;
+        real tmax;
 
-        double *boundxu;
-        double *boundxl;
-        double *boundyu;
-        double *boundyl;
+        real *boundxu;
+        real *boundxl;
+        real *boundyu;
+        real *boundyl;
 
-        float cmax;
+        real cmax;
         int steeringenabled;
         int finishsteering;     
-	float dt;
-        float dx;
-        float dy;
-        float g;
-        float gamma;
+	real dt;
+        real dx;
+        real dy;
+        real g;
+        real gamma;
 /*constant used for adiabatic hydrodynamics*/
          #ifdef ADIABHYDRO
-            float adiab;
+            real adiab;
         #endif
-        float mu;
-        float eta;
-        float g1;
-        float g2;
-        float g3;
+        real mu;
+        real eta;
+        real g1;
+        real g2;
+        real g3;
 	int sodifon;
         int rkon;
         int moddton;
@@ -80,22 +80,22 @@ struct params {
 //it   t   dt    rho m1 m2 e bx by
 struct state{
 	int it;
-	float t;
-	float dt;
-	float rho;
-        float m1;
-	float m2;
-	float m3;
-	float e;
-        float b1;
-        float b2;
-        float b3;
+	real t;
+	real dt;
+	real rho;
+        real m1;
+	real m2;
+	real m3;
+	real e;
+        real b1;
+        real b2;
+        real b3;
 };
 
 struct hydrovars{
     int numvars; //variables each vector component
 	int num;   //total number of dimensions including any ghost variables
-	float *w;
+	real *w;
 
 };
 

@@ -63,13 +63,13 @@ real grad_adv(real *wmod,struct params *p,int i,int j,int field,int dir)
  {
     // valgrad=(2.0/(3.0*(p->dx)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
 //return((1.0/(2.0*(p->dx)))*(wmod[fencode_adv(p,i+1,j,field)]-wmod[fencode_adv(p,i-1,j,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_adv(p,i+1,j,field)]-8*wmod[fencode_adv(p,i-1,j,field)]+wmod[fencode_adv(p,i-1,j,field)]-wmod[fencode_adv(p,i+1,j,field)])/6.0):wmod[fencode_adv(p,i+1,j,field)]-wmod[fencode_adv(p,i-1,j,field)])/(2.0*(p->dx))    );
+ return(  ( (p->sodifon)?((8*wmod[fencode_adv(p,i+1,j,field)]-8*wmod[fencode_adv(p,i-1,j,field)]+wmod[fencode_adv(p,i-2,j,field)]-wmod[fencode_adv(p,i+2,j,field)])/6.0):wmod[fencode_adv(p,i+1,j,field)]-wmod[fencode_adv(p,i-1,j,field)])/(2.0*(p->dx))    );
  }
  else if(dir == 1)
  {
     // valgrad=(2.0/(3.0*(p->dy)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dy)))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
 // return((1.0/(2.0*(p->dy)))*(wmod[fencode_adv(p,i,j+1,field)]-wmod[fencode_adv(p,i,j-1,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_adv(p,i,j+1,field)]-8*wmod[fencode_adv(p,i,j-1,field)]+wmod[fencode_adv(p,i,j-1,field)]-wmod[fencode_adv(p,i,j+1,field)])/6.0):wmod[fencode_adv(p,i,j+1,field)]-wmod[fencode_adv(p,i,j-1,field)])/(2.0*(p->dy))    );
+ return(  ( (p->sodifon)?((8*wmod[fencode_adv(p,i,j+1,field)]-8*wmod[fencode_adv(p,i,j-1,field)]+wmod[fencode_adv(p,i,j-2,field)]-wmod[fencode_adv(p,i,j+2,field)])/6.0):wmod[fencode_adv(p,i,j+1,field)]-wmod[fencode_adv(p,i,j-1,field)])/(2.0*(p->dy))    );
 
  }
 
@@ -253,12 +253,22 @@ __global__ void advance_parallel(struct params *p, real *w, real *wnew, real *wm
                for(int f=rho; f<=b3; f++)
                {
                    
-                   //if((dwn1[fencode_adv(p,i,j,f)]<(big/100)) && ( dwn1[fencode_adv(p,i,j,f)]>(-big/100)) )
+                   
+                  if((p->rkon)==1)
+                  {
+                  wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)]+(dt/6.0)*(dwn1[fencode_adv(p,i,j,f)]+2*dwn1[(8*(p->ni)*(p->nj))+fencode_adv(p,i,j,f)]+2*dwn1[(2*8*(p->ni)*(p->nj))+fencode_adv(p,i,j,f)]+dwn1[(3*8*(p->ni)*(p->nj))+fencode_adv(p,i,j,f)]);
+//wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)]+(dt/6.0)*(dwn1[fencode_adv(p,i,j,f)]+2*dwn1[(8*(p->ni)*(p->nj))+fencode_adv(p,i,j,f)]+2*dwn1[(2*8*(p->ni)*(p->nj))+fencode_adv(p,i,j,f)]+dwn1[(3*8*(p->ni)*(p->nj))+fencode_adv(p,i,j,f)]);
+
+                   }
+                  else
+                  {
+                  //if((dwn1[fencode_adv(p,i,j,f)]<(big/100)) && ( dwn1[fencode_adv(p,i,j,f)]>(-big/100)) )
                   //  if( j!=2)
                     //   wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)]+dt*dwn1[fencode_adv(p,i,j,f)];
 
                    //lax-friedrichs
                   wnew[fencode_adv(p,i,j,f)]=((w[fencode_adv(p,i+1,j,f)]+w[fencode_adv(p,i-1,j,f)]+w[fencode_adv(p,i,j+1,f)]+w[fencode_adv(p,i,j-1,f)])/4.0)+(dt)*(dwn1[fencode_adv(p,i,j,f)]);
+                   }
                   
                    if(isnan(wnew[fencode_adv(p,i,j,f)])) wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)];
                    //if(wnew[fencode_adv(p,i,j,f)]>big)
