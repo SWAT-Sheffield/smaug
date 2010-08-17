@@ -90,10 +90,10 @@ rho=1
 m1=0
 m2=0
 m3=0
-e=0.5
-b1=0.000000001
-b2=1.0
-b3=0.000000001
+e=0.000000001
+b1=1.0
+b2=0.0
+b3=0.000000000
 
 ;b1=0.00000000
 ;b2=0.0
@@ -104,7 +104,7 @@ w(*,*,0)=rho
 w(*,*,1)=m1
 w(*,*,2)=m2
 w(*,*,3)=m3
-w(*,*,4)=0.5
+w(*,*,4)=0.000000001
 w(*,*,5)=b1
 w(*,*,6)=b2
 w(*,*,7)=b3
@@ -130,20 +130,27 @@ m2max=0.001
 for i2=0,n2-1 do begin
   for i1=starty,starty+width-1 do begin
 
+
+
    if (i1 gt seg1) then begin
     if (i1 lt seg2) then begin
+      w(i1,i2,2)=m2max*(i1-seg1)/(seg2-seg1)
+    endif
+   endif
+
+
+   if (i1 gt seg2) then begin
+    if (i1 lt seg3) then begin
       w(i1,i2,2)=m2max
     endif
    endif
 
-   if (i1 gt seg2) then begin
-    if (i1 lt seg3) then begin
-      w(i1,i2,2)=m2max*(i1-seg2)/(seg3-seg2)
-    endif
-   endif
 
-   if (i1 ge seg3) then begin
+
+   if (i1 gt seg3) then begin
+   if (i1 lt seg4) then begin
       w(i1,i2,2)=m2max*(seg4-i1)/(seg4-seg3)
+   endif
    endif
 
   endfor

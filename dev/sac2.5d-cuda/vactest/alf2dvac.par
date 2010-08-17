@@ -7,28 +7,36 @@
  &end
 
  &savelist
-        itsave(1,2)=0
-	dtsave=0.025,0.025
+         itsave(1,2)=0
+         ditsave=1,10
  &end
 
  &stoplist
-        tmax=2.0
+         tmax=1.0
         tmaxexact=T
  &end
 
  &methodlist
 	wnames=		'rho m1 m2 m3 e bx by bz'
-	typefull=	8*'tvdlf'
+        typeadvance=    8*'fourstep'
+	typefull=	8*'cd'
+        divbfix=       T
+        divbwave=      F
+        
         useprimitive=   T
  &end
 
  &boundlist
-	typeB='cont','asymm','symm','symm','cont','cont','cont','cont',
-              'cont','asymm','symm','symm','cont','cont','cont','cont',
-              'cont','symm','asymm','symm','cont','cont','cont','cont',
-              'cont','symm','asymm','symm','cont','cont','cont','cont'
+	typeB='cont','cont','cont','cont','cont','cont','cont','cont',
+              'cont','cont','cont','cont','cont','cont','cont','cont',
+              'cont','cont','cont','cont','cont','cont','cont','cont',
+              'cont','cont','cont','cont','cont','cont','cont','cont'
  &end
 
  &paramlist
 	courantpar=0.8
+        dtpar=0.001
+
+ 
+ 
  &end
