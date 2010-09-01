@@ -11,7 +11,8 @@ double courant;
 
 //elist=list();  parameter used by iome to contain port and server address
 //elist=list();
-
+//printf("createsim1\n");
+//printf("author %s %d %s\n",metadata.author,el.port,el.server);
 //it   t   dt    rho m1 m2 e bx by
 addmetadata_(el.id,"author",metadata.author,el.port,el.server);
 addmetadata_(el.id,"directory",metadata.directory,el.port,el.server);
@@ -33,16 +34,16 @@ addmetadata_(el.id,"output_file",metadata.out_file,el.port,el.server);
 //Domain definition
 // Define the x domain
 //ni = 151; 
-ni=k.ni;
-xmax = k.xmax;                      
-k.dx = xmax/(ni-1);
+ni=k.n[0];
+xmax = k.xmax[0];                      
+k.dx[0] = xmax/(ni-1);
 //x  = [0:dx:xmax];
 
 // Define the y domain
 //nj = 151;  
-nj=k.nj;
-ymax = k.ymax;                      
-k.dy = ymax/(nj-1);
+nj=k.n[1];
+ymax = k.xmax[1];                      
+k.dx[1] = ymax/(nj-1);
 //y  = [0:dy:ymax];
 
 tmax = k.tmax;
@@ -59,10 +60,10 @@ dt=k.dt;
 k.nt=(int)((tmax-1)/dt);
 courant = wavespeed*dt/dx;
 
-adddoubleparam_(el.id,"ni",k.ni,7,el.port,el.server);
-adddoubleparam_(el.id,"nj",k.ni,7,el.port,el.server);
-adddoubleparam_(el.id,"xmax",k.xmax,7,el.port,el.server);
-adddoubleparam_(el.id,"ymax",k.ymax,7,el.port,el.server);
+adddoubleparam_(el.id,"ni",k.n[0],7,el.port,el.server);
+adddoubleparam_(el.id,"nj",k.n[1],7,el.port,el.server);
+adddoubleparam_(el.id,"xmax",k.xmax[0],7,el.port,el.server);
+adddoubleparam_(el.id,"ymax",k.xmax[1],7,el.port,el.server);
 adddoubleparam_(el.id,"tmax",k.tmax,7,el.port,el.server);
 addintparam_(el.id,"nt",k.nt,7,el.port,el.server);
 addintparam_(el.id,"steeringenabled",k.steeringenabled,7,el.port,el.server);
@@ -84,7 +85,12 @@ addintparam_(el.id,"step",k.dt,7,el.port,el.server);
 
 void readsim(params *k,  meta *md,char *simfile, iome el)
 {
-          readsimulation_(el.id,simfile,el.port,el.server);
+    //      readsimulation_(el.id,simfile,el.port,el.server);
+double ni,nj;
+double xmax,ymax;
+double dx,dy,tmax;
+int nt,steeringenabled, finishsteering;
+
 
 getmetadata_(el.id,"author",&(md->author),el.port,el.server);
 getmetadata_(el.id,"directory",&(md->directory),el.port,el.server);
@@ -96,16 +102,37 @@ getmetadata_(el.id,"ini_file",&(md->ini_file),el.port,el.server);
 getmetadata_(el.id,"log_file",&(md->log_file),el.port,el.server);
 getmetadata_(el.id,"out_file",&(md->out_file),el.port,el.server);
 
+getdoubleparam_(el.id,"ni",&ni,el.port,el.server);
+getdoubleparam_(el.id,"nj",&nj,el.port,el.server);
+getdoubleparam_(el.id,"xmax",&xmax,el.port,el.server);
+getdoubleparam_(el.id,"ymax",&ymax,el.port,el.server);
+getintparam_(&el.id,"nt",&nt,&el.port,el.server);
+getintparam_(&el.id,"steeringenabled",&steeringenabled,&el.port,el.server);
+getintparam_(&el.id,"finishsteering",&finishsteering,&el.port,el.server);
+
+
+
+
+k->n[0]=ni;
+k->n[1]=nj;
+k->xmax[0]=xmax;
+k->xmax[1]=ymax;
+k->nt=nt;
+k->steeringenabled=steeringenabled;
+k->finishsteering=finishsteering;
+
+
+  printf("read metadata\n");
 
 }
 
 void initconfig(params *k, meta *md, real *w)
 {
 	int i1,j1;
-        int ni=k->ni;
-        int nj=k->nj;
-        for(i1=0; i1<(k->ni) ;i1++)
-	  for(j1=0; j1<(k->ni) ;j1++)
+        int ni=k->n[0];
+        int nj=k->n[1];
+        for(i1=0; i1<(k->n[0]) ;i1++)
+	  for(j1=0; j1<(k->n[1]) ;j1++)
           {
                     for(int f=rho; f<=b3; f++)
                     {

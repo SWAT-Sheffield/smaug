@@ -14,6 +14,11 @@ BASICEXOBJS	=\
 	iosac2.5d.o\
 	initialisation.o\
 	dxroutines.o\
+	hyperdifmomsource.o\
+	hyperdifesource.o\
+	hyperdifbsource.o\
+	hyperdifrhosource.o\
+	hyperdifvisc.o\
 	derivsource.o\
 	derivcurrent1.o\
 	derivcurrent2.o\
@@ -36,10 +41,10 @@ BASICEXOBJS	=\
 	
 ALLOBJS	=	$(BASICEXOBJS)
 ALLBIN	=	$(Bin)/iosac
-#CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation -DADIABHYDRO  -DUSE_REAL 
+#CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DADIABHYDRO
 #compiling with  -arch sm_13 enables double precision to be used
-CUDACCFLAGS = --ptxas-options=-v -arch sm_13 -maxrregcount=32  -DUSE_REAL
-CCFLAGS =    -DUSE_REAL 
+CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 
+CCFLAGS = 
 
 #MYLIBS	=	libAgentSimulation2.a
 
@@ -82,6 +87,18 @@ iosac:$(BASICEXOBJS)
 #step.o: step.cu
 #	$(NVCC) -o $@ --ptxas-options=-v -c $<
 
+
+
+hyperdifvisc.o: hyperdifvisc.cu
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifrhosource.o: hyperdifrhosource.cu
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifesource.o: hyperdifesource.cu
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifbsource.o: hyperdifbsource.cu
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifmomsource.o: hyperdifmomsource.cu
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 derivsource.o: derivsource.cu
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 derivcurrent1.o: derivcurrent1.cu

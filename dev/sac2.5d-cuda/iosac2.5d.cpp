@@ -84,6 +84,9 @@ int it=0; //test integer to be returned
 
 int i1,i2,i3,j1;
 int i,j;
+
+
+char *portfile=(char *)calloc(500,sizeof(char));
 char *sdir=(char *)calloc(500,sizeof(char));
 char *name=(char *)calloc(500,sizeof(char));
 char *outfile=(char *)calloc(500,sizeof(char));
@@ -95,6 +98,9 @@ real u0 = 0;
 real v0 = 0;
 real b0  = 0;                               
 real h0 = 5030; 
+
+
+
 
 
 //Domain definition
@@ -130,26 +136,25 @@ int steeringenabled=1;
 int finishsteering=0;
 char configfile[300];
 
-// Define the wavespeed
-real wavespeed = u0 + sqrt(g*(h0 - b0));
 
 // Define time-domain
-real dt = 0.68*dx/wavespeed;
+real dt;
 //dt=0.015985;
 //dt=0.15;
 //dt=0.0025;
 //dt=0.25;
-dt=0.0005125;
+dt=0.00015125;
 int nt=(int)((tmax)/dt);
-//nt=23;
+//nt=100;
 nt=1000;
+//nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
 //t = [0:dt:tdomain];
 for(i=0;i<nt;i++)
 		t[i]=i*dt;
 
-real courant = wavespeed*dt/dx;
+//real courant = wavespeed*dt/dx;
 
 
 
@@ -161,7 +166,7 @@ meta meta;
 
 
 
-
+elist.server=(char *)calloc(500,sizeof(char));
 
 
 meta.directory=(char *)calloc(500,sizeof(char));
@@ -190,11 +195,24 @@ strcpy(meta.out_file,"test1.out");
 //meta.desc="A simple test of SAAS";
 //meta.name="tsteer1";
 
+	strcpy(elist.server,"localhost1");
+	elist.port=80801;
+	elist.id=0;
+
+FILE *portf;
+
+if(argc>1)
+{ 
+   sprintf(portfile,"%s0_port.txt",argv[1]) ;  
+   //strcpy(name,argv[1]);
+   portf=fopen(portfile,"r");
+   fscanf(portf,"%d %s",&elist.port,elist.server);
+   fclose(portf);
+
+   printf("read file junk is %d %s\n",elist.port,elist.server);
+}
 
 
-elist.server="localhost";
-elist.port=8080;
-elist.id=0;
 
 
 
@@ -211,18 +229,19 @@ real *d_wnew;
 real *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
 
 real *w,*wnew;
+real *d_wtemp;
 struct params *d_p;
 struct params *p=(struct params *)malloc(sizeof(struct params));
 
 struct state *d_state;
 struct state *state=(struct state *)malloc(sizeof(struct state));
 
-p->ni=ni;
-p->nj=nj;
+p->n[0]=ni;
+p->n[1]=nj;
 p->dt=dt;
-p->dx=dx;
-p->dy=dy;
-p->g=g;
+p->dx[0]=dx;
+p->dx[1]=dy;
+//p->g=g;
 
 
 
@@ -243,29 +262,35 @@ p->gamma=1.4;
 
 p->mu=1.0;
 p->eta=0.0;
-p->g1=0.0;
-p->g2=0.0;
-p->g3=0.0;
+p->g[0]=0.0;
+p->g[1]=0.0;
+p->g[2]=0.0;
 //p->cmax=1.0;
 p->cmax=0.02;
 
-p->rkon=0.0;
+p->rkon=1.0;
 p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=1.0;
 p->divbfix=1.0;
+p->hyperdifmom=0.0;
 (p->readini)==0;
 p->cfgsavefrequency=10;
 
 
-p->xmax=xmax;
+p->xmax[0]=xmax;
 
-p->ymax=ymax;
+p->xmax[1]=ymax;
 p->nt=nt;
 p->tmax=tmax;
 
 p->steeringenabled=steeringenabled;
 p->finishsteering=finishsteering;
+
+p->maxviscoef=0;
+//p->chyp=0.2;       
+p->chyp=0.00000;
+p->chyp3=0.00000;
 
 printf("calling cuinit\n");
 
@@ -291,11 +316,12 @@ printf("calling cuinit\n");
 	//fscanf(fd,"%d",&elist.portelist.id);
 	//fclose(fd);
 	//elist.elist.port=elist.portelist.id;
-        if(argc>1)
+        if(argc>2)
         {
-          readsim(p,&meta,argv[1],elist);
-          if((p->readini)!=0)
-             readconfig(meta.ini_file,*p,meta,w);
+          //simfile already read by 
+          readsim(p,&meta,argv[2],elist);
+          //if((p->readini)!=0)
+          //   readconfig(meta.ini_file,*p,meta,w);
         }
         else
 	  createsim(*p,meta,simfile,elist);
@@ -307,8 +333,8 @@ printf("calling cuinit\n");
 // Build empty u, v, b matrices
 // Define h
 
- w=(real *)calloc(ni*nj*8,sizeof(real ));
- wnew=(real *)calloc(ni*nj*8,sizeof(real ));
+ w=(real *)calloc(ni*nj*NVAR,sizeof(real ));
+ wnew=(real *)calloc(ni*nj*NVAR,sizeof(real ));
 char *cfgfile;
 if((p->readini)==0)
  initconfig(p, &meta, w);
@@ -322,7 +348,7 @@ else
 
 
 
-cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state);
+cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp);
 
 
 printf("here in runsim\n");
@@ -350,12 +376,12 @@ sprintf(outfile,"%s/%s.out",sdir,name);
   gendxgen(sdir,name,nt,ni,nj);
 printf("here in runsim5\n");
 
-sprintf(formfile,"%s/form%s.out",sdir,name);
-FILE *fdform=fopen(formfile,"w");
-  fprintf(fdform, "%d %d %d\n",nt-1, ni, nj);
-fclose(fdform);
+//sprintf(formfile,"%s/form%s.out",sdir,name);
+//FILE *fdform=fopen(formfile,"w");
+//  fprintf(fdform, "%d %d %d\n",nt-1, ni, nj);
+//fclose(fdform);
 
-createlog(meta.log_file);
+//createlog(meta.log_file);
 
 
 // Employ Lax
@@ -378,20 +404,23 @@ for( n=0;n<nt;n++)
 {
 
     if((n%(p->cfgsavefrequency))==0)
+    {
       writeconfig(name,n,*p, meta , w);
+      writevtkconfig(name,n,*p, meta , w);
+    }
    order=0;
    t1=second();
    cupredictor(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
    cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
 
-   printf("cmax is %f old dt %f new dt %f\n",p->cmax,p->dt,0.68*((p->dx)+(p->dy))/(2.0*(p->cmax)));
+   printf("cmax is %f old dt %f new dt %f\n",p->cmax,p->dt,0.68*((p->dx[0])+(p->dx[1]))/(2.0*(p->cmax)));
    if(p->moddton==1)
    {
       //if((p->cmax)>10)
       //         p->dt=0.68*(((p->dx)+(p->dy))/(2.0*(p->cmax))); 
-      if((p->dt)>(((p->dx)+(p->dy))/(2.0*(p->cmax))))
+      if((p->dt)>(((p->dx[0])+(p->dx[1]))/(2.0*(p->cmax))))
                p->dt=(p->dt)/2;
-       else if(2.0*(p->dt)<(((p->dx)+(p->dy))/(2.0*(p->cmax))))
+       else if(2.0*(p->dt)<(((p->dx[0])+(p->dx[1]))/(2.0*(p->cmax))))
                p->dt=2.0*p->dt; 
    }
    printf("new dt %f\n",p->dt);
@@ -401,6 +430,36 @@ for( n=0;n<nt;n++)
    cuderivsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
    if(p->divbon==1)
        cudivb(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state,order);
+   if(p->hyperdifmom==1)
+   {
+     for(int dim=0; dim<=1; dim++)
+     {
+       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+       cuhyperdifrhosource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+     }
+
+     for(int dim=0; dim<=1; dim++)
+     {
+       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+       cuhyperdifesource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+     }
+       
+     for(int f=0; f<=1; f++)
+     for(int dim=0; dim<=1; dim++)
+     {
+       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
+       cuhyperdifmomsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
+     }
+
+     for(int dim=0; dim<=1; dim++)
+     for(int f=0; f<=1; f++)
+     {
+       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
+       cuhyperdifbsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
+     }
+
+
+   }
 
 
    if((p->rkon)==1)
@@ -415,6 +474,34 @@ for( n=0;n<nt;n++)
 	   cuderivsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
 	   if(p->divbon==1)
 	       cudivb(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state,order);
+           if(p->hyperdifmom==1)
+           {
+	     for(int dim=0; dim<=1; dim++)
+	     {
+	       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+	       cuhyperdifrhosource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+	     }
+
+	     for(int dim=0; dim<=1; dim++)
+	     {
+	       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+	       cuhyperdifesource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+	     }
+
+	     for(int f=0; f<=1; f++)
+             for(int dim=0; dim<=1; dim++)
+	     {
+               cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
+               cuhyperdifmomsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
+              }
+
+	     for(int dim=0; dim<=1; dim++)
+	     for(int f=0; f<=1; f++)
+	     {
+	       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
+	       cuhyperdifbsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
+	     }
+           }
 
 
    }
@@ -455,7 +542,7 @@ for( n=0;n<nt;n++)
 
     
       //save file containing current data
-     // sprintf(configfile,"tmp/%ss%d.out",name,n);
+     // sprintf(configfile,"tmp/%ss%d.out",name,n);-
      // printf("check dims %d %d \n",ni,nj);
      // FILE *fdt=fopen(configfile,"w");
      // fprintf(fdt,"%d\n",n);

@@ -34,8 +34,8 @@ int writeconfig(char *name,int n,params p, meta md, real *w)
   char configfile[300];
 
 
-  ni=p.ni;
-  nj=p.nj;
+  ni=p.n[0];
+  nj=p.n[1];
 
 
 
@@ -61,7 +61,7 @@ int writeconfig(char *name,int n,params p, meta md, real *w)
 
       //save file containing current data
       sprintf(configfile,"out/%s.out",name);
-      printf("check dims %d %d \n",ni,nj);
+      printf("write out check dims %s %d %d \n",configfile ,ni,nj);
       fdt=fopen(configfile,"a+");
       fprintf(fdt,"%d\n",n);
      for( j1=0;j1<nj;j1++)
@@ -81,6 +81,196 @@ int writeconfig(char *name,int n,params p, meta md, real *w)
 
   return status;
 }
+
+
+
+int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
+{
+  int status=0;
+  int i1,j1;
+  int ni,nj;
+  char configfile[300];
+  char buffer[800];
+  double dbuffer[10];
+
+  ni=p.n[0];
+  nj=p.n[1];
+
+      //save file containing current data
+      sprintf(configfile,"out/v%s.out",name);
+      printf("check dims %d %d \n",ni,nj);
+      FILE *fdt=fopen(configfile,"a+");
+
+      fwrite(md.name,sizeof(char)*strlen(md.name),1,fdt);
+      //*line2:
+      //*   it          - timestep (integer)
+      //*   t           - time     (real)
+      //*   ndim        - dimensionality, negative sign for gen. coord (integer)
+      //*   neqpar      - number of equation parameters (integer)
+      //*   nw          - number of flow variables (integer)
+      sprintf(buffer,"%d %f 3 4 8\n",st.it,st.t);
+      fwrite(buffer,sizeof(char)*strlen(buffer),1,fdt);
+
+      //line3:
+      //*   nx()        - the grid dimensions      (ndim integers)
+      sprintf(buffer,"%d %d\n",ni,nj);
+      fwrite(buffer,sizeof(char)*strlen(buffer),1,fdt);
+
+      //*line4:
+      //*   eqpar()     - equation parameters from filenameini (neqpar reals)
+      sprintf(buffer,"%f %f %f %f\n",p.eta,p.g[0],p.g[1],p.g[2]);
+      fwrite(buffer,sizeof(char)*strlen(buffer),1,fdt);
+
+      //*line5:
+      //*   varnames    - names of the coordinates, variables, equation parameters
+      //*                 eg. 'x y rho mx my e bx by  gamma eta' (character*79)
+      sprintf(buffer,"x y rho mx my mz e bx by bz gamma eta g1 g2 g3\n");
+      fwrite(buffer,sizeof(char)*strlen(buffer),1,fdt);
+
+        for( i1=0;i1<ni;i1++)
+	{
+         
+     for( j1=0;j1<nj;j1++)
+      {
+
+                dbuffer[0]=i1*p.dx[0];
+                dbuffer[1]=j1*p.dx[1];
+                dbuffer[2]=w[(j1*ni+i1)+(ni*nj*rho)];
+                dbuffer[3]=w[(j1*ni+i1)+(ni*nj*mom1)];
+                dbuffer[4]=w[(j1*ni+i1)+(ni*nj*mom2)];
+                dbuffer[5]=w[(j1*ni+i1)+(ni*nj*mom3)];
+                dbuffer[6]=w[(j1*ni+i1)+(ni*nj*energy)];
+                dbuffer[7]=w[(j1*ni+i1)+(ni*nj*b1)];
+                dbuffer[8]=w[(j1*ni+i1)+(ni*nj*b2)];
+                dbuffer[9]=w[(j1*ni+i1)+(ni*nj*b3)];
+
+                fwrite(dbuffer,10*sizeof(double),1,fdt);		
+
+        }     
+      }
+      fclose(fdt);
+
+  return status;
+}
+
+
+
+
+int writevtkconfig(char *name,int n,params p, meta md, real *w)
+{
+  int status=0;
+  int i1,j1;
+  int ni,nj;
+  char configfile[300];
+  char labels[4][4]={"rho","e","mom","b"};
+
+  ni=p.n[0];
+  nj=p.n[1];
+
+
+
+      //save file containing current data
+
+      //scalar fields
+//n+=10;
+      for(int i=0; i<=4; i+=4)
+      {
+	      if(n<=9)
+                 sprintf(configfile,"vtk/%s%ss00%d.vtk",labels[i/4],name,n);
+              else if(n<=99)
+                 sprintf(configfile,"vtk/%s%ss0%d.vtk",labels[i/4],name,n);
+              else
+                 sprintf(configfile,"vtk/%s%ss%d.vtk",labels[i/4],name,n);
+
+	      printf("check dims %s %s %d %d \n",configfile,labels[i/4],ni,nj);
+	      FILE *fdt=fopen(configfile,"w");
+
+
+	      fprintf(fdt,"# vtk DataFile Version 2.0\n");
+	      fprintf(fdt,"Structured Grid\n");
+	      fprintf(fdt,"ASCII\n");
+	      fprintf(fdt," \n");
+	      fprintf(fdt,"DATASET RECTILINEAR_GRID\n");
+	      fprintf(fdt,"DIMENSIONS %d %d 1\n",ni,nj);
+
+
+	      fprintf(fdt,"X_COORDINATES %d double\n",ni);
+              for(i1=0;i1<ni;i1++)
+	        fprintf(fdt,"%f\n",i1*p.dx[0]);
+
+	      fprintf(fdt,"Y_COORDINATES %d double\n",ni);
+              for(i1=0;i1<nj;i1++)
+	        fprintf(fdt,"%f\n",i1*p.dx[1]);
+
+	      fprintf(fdt,"Z_COORDINATES 1 double\n");
+	      fprintf(fdt,"0\n");
+
+	      fprintf(fdt,"POINT_DATA  %d\n",ni*nj);
+	      fprintf(fdt,"SCALARS %s double 1\n",labels[i/4]);
+
+             fprintf(fdt,"LOOKUP_TABLE TableName \n");
+	     for( j1=0;j1<nj;j1++)
+		for( i1=0;i1<ni;i1++)
+			fprintf(fdt,"%f\n",w[(j1*ni+i1)+(ni*nj*i)]);
+
+	      fclose(fdt);
+      }
+
+      //vector fields
+      int iv;
+      for(int i=2; i<=3; i++)
+      {
+	      if(i==2)
+                iv=1;
+              else
+                iv=5;
+              if(n<=9)
+                 sprintf(configfile,"vtk/%s%ss00%d.vtk",labels[i],name,n);
+              else if(n<=99)
+                 sprintf(configfile,"vtk/%s%ss0%d.vtk",labels[i],name,n);
+              else
+                 sprintf(configfile,"vtk/%s%ss%d.vtk",labels[i],name,n);
+
+	      printf("check dims %s %s %d %d \n",configfile,labels[i],ni,nj);
+	      FILE *fdt=fopen(configfile,"w");
+
+
+	      fprintf(fdt,"# vtk DataFile Version 2.0\n");
+	      fprintf(fdt,"Structured Grid\n");
+	      fprintf(fdt,"ASCII\n");
+	      fprintf(fdt," \n");
+	      fprintf(fdt,"DATASET RECTILINEAR_GRID\n");
+	      fprintf(fdt,"DIMENSIONS %d %d 1\n",ni,nj);
+
+
+	      fprintf(fdt,"X_COORDINATES %d double\n",ni);
+              for(i1=0;i1<ni;i1++)
+	        fprintf(fdt,"%f\n",i1*p.dx[0]);
+
+	      fprintf(fdt,"Y_COORDINATES %d double\n",ni);
+              for(i1=0;i1<nj;i1++)
+	        fprintf(fdt,"%f\n",i1*p.dx[1]);
+
+	      fprintf(fdt,"Z_COORDINATES 1 double\n");
+	      fprintf(fdt,"0\n");
+
+	      fprintf(fdt,"POINT_DATA  %d\n",ni*nj);
+	      fprintf(fdt,"VECTORS %s double \n",labels[i]);
+
+		for( j1=0;j1<nj;j1++)
+	      		for( i1=0;i1<ni;i1++)
+			 fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))],w[(j1*ni+i1)+(ni*nj*(iv+2))]);
+
+	      fclose(fdt);
+      }
+
+
+
+
+  return status;
+}
+
+
 
 int readconfig(char *cfgfile, params p, meta md, real *w)
 {

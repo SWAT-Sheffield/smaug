@@ -17,19 +17,19 @@
 __device__ __host__
 int encode_dc2 (struct params *dp,int ix, int iy) {
 
-  //int kSizeX=(dp)->ni;
-  //int kSizeY=(dp)->nj;
+  //int kSizeX=(dp)->n[0];
+  //int kSizeY=(dp)->n[1];
   
-  return ( iy * ((dp)->ni) + ix);
+  return ( iy * ((dp)->n[0]) + ix);
 }
 
 __device__ __host__
 int fencode_dc2 (struct params *dp,int ix, int iy, int field) {
 
-  //int kSizeX=(dp)->ni;
-  //int kSizeY=(dp)->nj;
+  //int kSizeX=(dp)->n[0];
+  //int kSizeY=(dp)->n[1];
   
-  return ( (iy * ((dp)->ni) + ix)+(field*((dp)->ni)*((dp)->nj)));
+  return ( (iy * ((dp)->n[0]) + ix)+(field*((dp)->n[0])*((dp)->n[1])));
 }
 
 __device__ __host__
@@ -39,15 +39,15 @@ real evalgrad_dc2(real fi, real fim1, real fip2, real fim2,struct params *p,int 
 
  if(dir == 0)
  {
-     //valgrad=(2.0/(3.0*(p->dx)))*(fi-fim1)-(1.0/(12.0*(p->dx)))*(fip2-fim2);
-   //return((1.0/(2.0*(p->dx)))*(fi-fim1));
-   return(p->sodifon?((1.0/(2.0*(p->dx)))*(fi-fim1)):((1.0/(12.0*(p->dx)))*((8*fi-8*fim1+fim2-fip2))));
+     //valgrad=(2.0/(3.0*(p->dx[0])))*(fi-fim1)-(1.0/(12.0*(p->dx[0])))*(fip2-fim2);
+   //return((1.0/(2.0*(p->dx[0])))*(fi-fim1));
+   return(p->sodifon?((1.0/(2.0*(p->dx[0])))*(fi-fim1)):((1.0/(12.0*(p->dx[0])))*((NVAR*fi-NVAR*fim1+fim2-fip2))));
  }
  else if(dir == 1)
  {
-    // valgrad=(2.0/(3.0*(p->dy)))*(fi-fim1)-(1.0/(12.0*(p->dy)))*(fip2-fim2);
-     // return((2.0/(1.0*(p->dy)))*(fi-fim1));
-   return(p->sodifon?((1.0/(2.0*(p->dy)))*(fi-fim1)):((1.0/(12.0*(p->dy)))*((8*fi-8*fim1+fim2-fip2))));
+    // valgrad=(2.0/(3.0*(p->dx[1])))*(fi-fim1)-(1.0/(12.0*(p->dx[1])))*(fip2-fim2);
+     // return((2.0/(1.0*(p->dx[1])))*(fi-fim1));
+   return(p->sodifon?((1.0/(2.0*(p->dx[1])))*(fi-fim1)):((1.0/(12.0*(p->dx[1])))*((NVAR*fi-NVAR*fim1+fim2-fip2))));
  }
 
  return -1;
@@ -61,15 +61,15 @@ real grad_dc2(real *wmod,struct params *p,int i,int j,int field,int dir)
 
   if(dir == 0)
  {
-    // valgrad=(2.0/(3.0*(p->dx)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
-//return((1.0/(2.0*(p->dx)))*(wmod[fencode_dc2(p,i+1,j,field)]-wmod[fencode_dc2(p,i-1,j,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_dc2(p,i+1,j,field)]-8*wmod[fencode_dc2(p,i-1,j,field)]+wmod[fencode_dc2(p,i-2,j,field)]-wmod[fencode_dc2(p,i+2,j,field)])/6.0):wmod[fencode_dc2(p,i+1,j,field)]-wmod[fencode_dc2(p,i-1,j,field)])/(2.0*(p->dx))    );
+    // valgrad=(2.0/(3.0*(p->dx[0])))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx[0])))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
+//return((1.0/(2.0*(p->dx[0])))*(wmod[fencode_dc2(p,i+1,j,field)]-wmod[fencode_dc2(p,i-1,j,field)]));
+ return(  ( (p->sodifon)?((NVAR*wmod[fencode_dc2(p,i+1,j,field)]-NVAR*wmod[fencode_dc2(p,i-1,j,field)]+wmod[fencode_dc2(p,i-2,j,field)]-wmod[fencode_dc2(p,i+2,j,field)])/6.0):wmod[fencode_dc2(p,i+1,j,field)]-wmod[fencode_dc2(p,i-1,j,field)])/(2.0*(p->dx[0]))    );
  }
  else if(dir == 1)
  {
-    // valgrad=(2.0/(3.0*(p->dy)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dy)))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
-// return((1.0/(2.0*(p->dy)))*(wmod[fencode_dc2(p,i,j+1,field)]-wmod[fencode_dc2(p,i,j-1,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_dc2(p,i,j+1,field)]-8*wmod[fencode_dc2(p,i,j-1,field)]+wmod[fencode_dc2(p,i,j-2,field)]-wmod[fencode_dc2(p,i,j+2,field)])/6.0):wmod[fencode_dc2(p,i,j+1,field)]-wmod[fencode_dc2(p,i,j-1,field)])/(2.0*(p->dy))    );
+    // valgrad=(2.0/(3.0*(p->dx[1])))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dx[1])))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
+// return((1.0/(2.0*(p->dx[1])))*(wmod[fencode_dc2(p,i,j+1,field)]-wmod[fencode_dc2(p,i,j-1,field)]));
+ return(  ( (p->sodifon)?((NVAR*wmod[fencode_dc2(p,i,j+1,field)]-NVAR*wmod[fencode_dc2(p,i,j-1,field)]+wmod[fencode_dc2(p,i,j-2,field)]-wmod[fencode_dc2(p,i,j+2,field)])/6.0):wmod[fencode_dc2(p,i,j+1,field)]-wmod[fencode_dc2(p,i,j-1,field)])/(2.0*(p->dx[1]))    );
 }
  return 0;
 }
@@ -361,11 +361,11 @@ __global__ void derivcurrent2_parallel(struct params *p, real *w, real *wnew, re
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
  // int index;
-  //int ni=p->ni;
-  //int nj=p->nj;
+  //int ni=p->n[0];
+  //int nj=p->n[1];
  // real dt=p->dt;
-  //real dy=p->dy;
- // real dx=p->dx;
+  //real dy=p->dx[1];
+ // real dx=p->dx[0];
   //real g=p->g;
  //  dt=1.0;
 //dt=0.05;
@@ -374,13 +374,13 @@ __global__ void derivcurrent2_parallel(struct params *p, real *w, real *wnew, re
 
   
 
-   j=iindex/(p->ni);
+   j=iindex/(p->n[0]);
    //i=iindex-j*(iindex/ni);
-   i=iindex-(j*(p->ni));
+   i=iindex-(j*(p->n[0]));
 
 
-  //if(i>(1+(p->sodifon==1)) && j >(1+(p->sodifon==1)) && i<((p->ni)-1-(p->sodifon==1)) && j<((p->nj)-1-(p->sodifon==1)))
-if(i>1 && j >1 && i<((p->ni)-2) && j<((p->nj)-2))
+  //if(i>(1+(p->sodifon==1)) && j >(1+(p->sodifon==1)) && i<((p->n[0])-1-(p->sodifon==1)) && j<((p->n[1])-1-(p->sodifon==1)))
+if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{		               
                /*for(int f=rho; f<=b3; f++)               
                   wmod[fencode_dc2(p,i,j,f)]=w[fencode_dc2(p,i,j,f)];
@@ -391,7 +391,7 @@ if(i>1 && j >1 && i<((p->ni)-2) && j<((p->nj)-2))
           
                for(int f=energy; f<=b3; f++)
                {              
-                  derivcurrent2(dwn1+(8*(p->ni)*(p->nj)*order),wd,wmod,p,i,j,f);
+                  derivcurrent2(dwn1+(NVAR*(p->n[0])*(p->n[1])*order),wd,wmod,p,i,j,f);
                  // dwn1[fencode_dc2(p,i,j,f)]=1.0;
                   //__syncthreads();
                }
@@ -476,12 +476,12 @@ int cuderivcurrent2(struct params **p, real **w, real **wnew, struct params **d_
 //printf("calling propagate solution\n");
 
     //dim3 dimBlock(blocksize, blocksize);
-    //dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
+    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
  dim3 dimBlock(dimblock, 1);
-    //dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
-    dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
-   int numBlocks = (((*p)->ni)*((*p)->nj)+numThreadsPerBlock-1) / numThreadsPerBlock;
- //  cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+    dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+   int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
+ //  cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
  // if(order==0)
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
 
@@ -498,9 +498,9 @@ int cuderivcurrent2(struct params **p, real **w, real **wnew, struct params **d_
      //update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
 	    //printf("called update\n"); 
    // cudaThreadSynchronize();
-// cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(real), cudaMemcpyDeviceToHost);
+// cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*wnew, *d_wnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*b, *d_b, (((*p)->n[0])* ((*p)->n[1]))*sizeof(real), cudaMemcpyDeviceToHost);
 
   //checkErrors("copy data from device");
 

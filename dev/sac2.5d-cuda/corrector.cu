@@ -13,23 +13,32 @@
 /////////////////////////////////////
 
 
+__device__ __host__
+int dimproduct_cor (struct params *dp) {
+
+  int tot=1;
+  for(int i=0;i<NDIM;i++)
+    tot*=dp->n[i];
+  return tot; 
+}
+
 
 __device__ __host__
 int encode_cor (struct params *dp,int ix, int iy) {
 
-  //int kSizeX=(dp)->ni;
-  //int kSizeY=(dp)->nj;
+  //int kSizeX=(dp)->n[0];
+  //int kSizeY=(dp)->n[1];
   
-  return ( iy * ((dp)->ni) + ix);
+  return ( iy * ((dp)->n[0]) + ix);
 }
 
 __device__ __host__
 int fencode_cor (struct params *dp,int ix, int iy, int field) {
 
-  //int kSizeX=(dp)->ni;
-  //int kSizeY=(dp)->nj;
+  //int kSizeX=(dp)->n[0];
+  //int kSizeY=(dp)->n[1];
   
-  return ( (iy * ((dp)->ni) + ix)+(field*((dp)->ni)*((dp)->nj)));
+  return ( (iy * ((dp)->n[0]) + ix)+(field*((dp)->n[0])*((dp)->n[1])));
 }
 
 __device__ __host__
@@ -39,15 +48,15 @@ real evalgrad_cor(real fi, real fim1, real fip2, real fim2,struct params *p,int 
 
  if(dir == 0)
  {
-     //valgrad=(2.0/(3.0*(p->dx)))*(fi-fim1)-(1.0/(12.0*(p->dx)))*(fip2-fim2);
-   //return((1.0/(2.0*(p->dx)))*(fi-fim1));
-   return(p->sodifon?((1.0/(2.0*(p->dx)))*(fi-fim1)):((1.0/(12.0*(p->dx)))*((8*fi-8*fim1+fim2-fip2))));
+     //valgrad=(2.0/(3.0*(p->dx[0])))*(fi-fim1)-(1.0/(12.0*(p->dx[0])))*(fip2-fim2);
+   //return((1.0/(2.0*(p->dx[0])))*(fi-fim1));
+   return(p->sodifon?((1.0/(2.0*(p->dx[0])))*(fi-fim1)):((1.0/(12.0*(p->dx[0])))*((NVAR*fi-NVAR*fim1+fim2-fip2))));
  }
  else if(dir == 1)
  {
-    // valgrad=(2.0/(3.0*(p->dy)))*(fi-fim1)-(1.0/(12.0*(p->dy)))*(fip2-fim2);
-     // return((2.0/(1.0*(p->dy)))*(fi-fim1));
-   return(p->sodifon?((1.0/(2.0*(p->dy)))*(fi-fim1)):((1.0/(12.0*(p->dy)))*((8*fi-8*fim1+fim2-fip2))));
+    // valgrad=(2.0/(3.0*(p->dx[1])))*(fi-fim1)-(1.0/(12.0*(p->dx[1])))*(fip2-fim2);
+     // return((2.0/(1.0*(p->dx[1])))*(fi-fim1));
+   return(p->sodifon?((1.0/(2.0*(p->dx[1])))*(fi-fim1)):((1.0/(12.0*(p->dx[1])))*((NVAR*fi-NVAR*fim1+fim2-fip2))));
  }
 
  return -1;
@@ -61,15 +70,15 @@ real grad_cor(real *wmod,struct params *p,int i,int j,int field,int dir)
 
  if(dir == 0)
  {
-    // valgrad=(2.0/(3.0*(p->dx)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx)))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
-//return((1.0/(2.0*(p->dx)))*(wmod[fencode_cor(p,i+1,j,field)]-wmod[fencode_cor(p,i-1,j,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_cor(p,i+1,j,field)]-8*wmod[fencode_cor(p,i-1,j,field)]+wmod[fencode_cor(p,i-2,j,field)]-wmod[fencode_cor(p,i+2,j,field)])/6.0):wmod[fencode_cor(p,i+1,j,field)]-wmod[fencode_cor(p,i-1,j,field)])/(2.0*(p->dx))    );
+    // valgrad=(2.0/(3.0*(p->dx[0])))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx[0])))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
+//return((1.0/(2.0*(p->dx[0])))*(wmod[fencode_cor(p,i+1,j,field)]-wmod[fencode_cor(p,i-1,j,field)]));
+ return(  ( (p->sodifon)?((NVAR*wmod[fencode_cor(p,i+1,j,field)]-NVAR*wmod[fencode_cor(p,i-1,j,field)]+wmod[fencode_cor(p,i-2,j,field)]-wmod[fencode_cor(p,i+2,j,field)])/6.0):wmod[fencode_cor(p,i+1,j,field)]-wmod[fencode_cor(p,i-1,j,field)])/(2.0*(p->dx[0]))    );
  }
  else if(dir == 1)
  {
-    // valgrad=(2.0/(3.0*(p->dy)))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dy)))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
-// return((1.0/(2.0*(p->dy)))*(wmod[fencode_cor(p,i,j+1,field)]-wmod[fencode_cor(p,i,j-1,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_cor(p,i,j+1,field)]-8*wmod[fencode_cor(p,i,j-1,field)]+wmod[fencode_cor(p,i,j-2,field)]-wmod[fencode_cor(p,i,j+2,field)])/6.0):wmod[fencode_cor(p,i,j+1,field)]-wmod[fencode_cor(p,i,j-1,field)])/(2.0*(p->dy))    );  
+    // valgrad=(2.0/(3.0*(p->dx[1])))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dx[1])))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
+// return((1.0/(2.0*(p->dx[1])))*(wmod[fencode_cor(p,i,j+1,field)]-wmod[fencode_cor(p,i,j-1,field)]));
+ return(  ( (p->sodifon)?((NVAR*wmod[fencode_cor(p,i,j+1,field)]-NVAR*wmod[fencode_cor(p,i,j-1,field)]+wmod[fencode_cor(p,i,j-2,field)]-wmod[fencode_cor(p,i,j+2,field)])/6.0):wmod[fencode_cor(p,i,j+1,field)]-wmod[fencode_cor(p,i,j-1,field)])/(2.0*(p->dx[1]))    );  
 }
 
 
@@ -191,7 +200,7 @@ void computec_cor(real *wmod,real *wd,struct params *p,int i,int j)
 
 #else
 wd[fencode_cor(p,i,j,soundspeed)]=sqrt(((p->gamma))*wd[fencode_cor(p,i,j,pressuret)]/wmod[fencode_cor(p,i,j,rho)]);
-
+wd[fencode_cor(p,i,j,cfast)]=sqrt(((wmod[fencode_cor(p,i,j,b1)]*wmod[fencode_cor(p,i,j,b1)]+wmod[fencode_cor(p,i,j,b2)]*wmod[fencode_cor(p,i,j,b2)]+wmod[fencode_cor(p,i,j,b3)]*wmod[fencode_cor(p,i,j,b3)])/wmod[fencode_cor(p,i,j,rho)])+(wd[fencode_cor(p,i,j,soundspeed)]*wd[fencode_cor(p,i,j,soundspeed)]));
 #endif
 
 
@@ -206,6 +215,9 @@ void computecmax_cor(real *wmod,real *wd,struct params *p,int i,int j)
        if(wd[fencode_cor(p,i,j,soundspeed)]>(p->cmax))
                     // atomicExch(&(p->cmax),(wd[fencode_cor(p,i,j,soundspeed)]));
                     p->cmax=(wd[fencode_cor(p,i,j,soundspeed)]);
+       if(wd[fencode_cor(p,i,j,cfast)]>(p->cmax))
+                    // atomicExch(&(p->cmax),(wd[fencode_cor(p,i,j,soundspeed)]));
+                    p->cmax=(wd[fencode_cor(p,i,j,cfast)]);
 
 }
 
@@ -223,12 +235,13 @@ __global__ void corrector_parallel(struct params *p,  real *w, real *wnew, real 
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int index,k;
-  int ni=p->ni;
-  int nj=p->nj;
+  int ni=p->n[0];
+  int nj=p->n[1];
   real dt=p->dt;
-  real dy=p->dy;
-  real dx=p->dx;
-  real g=p->g;
+  real dy=p->dx[0];
+  real dx=p->dx[1];
+  int ix[NDIM];
+  //real g=p->g;
  //  dt=1.0;
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
@@ -239,21 +252,23 @@ __global__ void corrector_parallel(struct params *p,  real *w, real *wnew, real 
    j=iindex/ni;
    //i=iindex-j*(iindex/ni);
    i=iindex-(j*ni);
+   ix[0]=i;
+   ix[1]=j;
    if(order==1 || order==2)
      dt=(p->dt)/2.0;
 
   //advance the solution for one of the corrector steps
-  if(i>1 && j >1 && i<((p->ni)-2) && j<((p->nj)-2))
+  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{ 
    
 		for(int f=rho; f<=b3; f++)           
- 			//wmod[fencode_cor(p,i,j,f)]=((w[fencode_cor(p,i+1,j,f)]+w[fencode_cor(p,i-1,j,f)]+w[fencode_cor(p,i,j+1,f)]+w[fencode_cor(p,i,j-1,f)])/4.0)+dt*dwn1[(8*ni*nj*(order-1))+fencode_cor(p,i,j,f)];
-wmod[fencode_cor(p,i,j,f)]=(w[fencode_cor(p,i,j,f)])+dt*dwn1[(8*ni*nj*(order-1))+fencode_cor(p,i,j,f)];
+ 			wmod[fencode_cor(p,i,j,f)]=((w[fencode_cor(p,i+1,j,f)]+w[fencode_cor(p,i-1,j,f)]+w[fencode_cor(p,i,j+1,f)]+w[fencode_cor(p,i,j-1,f)])/4.0)+dt*dwn1[(NVAR*ni*nj*(order-1))+fencode_cor(p,i,j,f)];
+//wmod[fencode_cor(p,i,j,f)]=(w[fencode_cor(p,i,j,f)])+dt*dwn1[(NVAR*ni*nj*(order-1))+fencode_cor(p,i,j,f)];
 	}
 
  __syncthreads();
 
-if(i<((p->ni)) && j<((p->nj)))
+if(i<((p->n[0])) && j<((p->n[1])))
 	{		
                //for(int f=rho; f<=b3; f++)
                //{               
@@ -266,7 +281,7 @@ if(i<((p->ni)) && j<((p->nj)))
                __syncthreads();
 
 
-  if(i>1 && j >1 && i<((p->ni)-2) && j<((p->nj)-2))
+  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{		               
                computej_cor(wmod,wd,p,i,j);
                computepk_cor(wmod,wd,p,i,j);
@@ -276,7 +291,7 @@ if(i<((p->ni)) && j<((p->nj)))
                computedivb_cor(wmod,wd,p,i,j);
          }
               __syncthreads();
-  if(i>1 && j >1 && i<((p->ni)-2) && j<((p->nj)-2))
+  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{
  //determin cmax
                computec_cor(wmod,wd,p,i,j);
@@ -323,11 +338,11 @@ int cucorrector(struct params **p, real **w, real **wnew, struct params **d_p, r
 //printf("calling propagate solution\n");
 
     //dim3 dimBlock(blocksize, blocksize);
-    //dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
+    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
  dim3 dimBlock(dimblock, 1);
-    //dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
-    dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
-   int numBlocks = (((*p)->ni)*((*p)->nj)+numThreadsPerBlock-1) / numThreadsPerBlock;
+    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+    dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+   int numBlocks = (dimproduct_cor(*p)+numThreadsPerBlock-1) / numThreadsPerBlock;
 
 //__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
@@ -342,12 +357,14 @@ int cucorrector(struct params **p, real **w, real **wnew, struct params **d_p, r
      //update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
 	    //printf("called update\n"); 
    // cudaThreadSynchronize();
-     cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+ 
+
+  //  cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
 
      //following used for testing to check current soundspeeds etc
-     //cudaMemcpy(*w, *d_wd, 7*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(real), cudaMemcpyDeviceToHost);
+     //cudaMemcpy(*w, *d_wd, 7*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*wnew, *d_wnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*b, *d_b, (((*p)->n[0])* ((*p)->n[1]))*sizeof(real), cudaMemcpyDeviceToHost);
 
   //checkErrors("copy data from device");
 

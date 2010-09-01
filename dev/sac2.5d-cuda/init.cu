@@ -14,25 +14,25 @@
 __device__ __host__
 int encode_i (struct params *dp,int ix, int iy) {
 
-  //int kSizeX=(dp)->ni;
-  //int kSizeY=(dp)->nj;
+  //int kSizeX=(dp)->n[0];
+  //int kSizeY=(dp)->n[1];
   
-  return ( iy * ((dp)->ni) + ix);
+  return ( iy * ((dp)->n[0]) + ix);
 }
 
 __device__ __host__
 int fencode_i (struct params *dp,int ix, int iy, int field) {
 
-  //int kSizeX=(dp)->ni;
-  //int kSizeY=(dp)->nj;
+  //int kSizeX=(dp)->n[0];
+  //int kSizeY=(dp)->n[1];
   
-  return ( (iy * ((dp)->ni) + ix)+(field*((dp)->ni)*((dp)->nj)));
+  return ( (iy * ((dp)->n[0]) + ix)+(field*((dp)->n[0])*((dp)->n[1])));
 }
 
 //*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd
 
 __global__ void init_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd)
+    real *dwn1, real *wd, real *wtemp)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -43,8 +43,8 @@ __global__ void init_parallel(struct params *p, real *w, real *wnew, real *wmod,
 
  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int index,k;
-int ni=p->ni;
-  int nj=p->nj;
+int ni=p->n[0];
+  int nj=p->n[1];
 
 // Block index
     int bx = blockIdx.x;
@@ -57,12 +57,14 @@ int ni=p->ni;
 
   int seg1,seg2,seg3,seg4;
   int width=10;
-  real m2max=0.01;
-  real start=((p->ni)-width)/2;
-  seg1=((p->ni)/3)-1;
-  seg2=((p->ni)/3);
-  seg3=(2*(p->ni)/3)-1;
-  seg4=(2*(p->ni)/3)-1;
+  real m2max=0.001;
+  real start=((p->n[0])-width)/2;
+  //seg1=((p->n[0])/3)-1;
+  seg1=(p->n[0])/6;
+  seg2=((p->n[0])/3);
+  seg3=(2*(p->n[0])/3)-1;
+  //seg4=(2*(p->n[0])/3);
+  seg4=(p->n[0])-seg1;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
 
@@ -72,9 +74,9 @@ int ni=p->ni;
    j=iindex/ni;
    //i=iindex-j*(iindex/ni);
    i=iindex-(j*ni);
-  if(i<p->ni && j<p->nj)
+  if(i<p->n[0] && j<p->n[1])
 	{
-		//b[i+j*(p->ni)]=0;
+		//b[i+j*(p->n[0])]=0;
 
                  //Define b	
 
@@ -86,36 +88,36 @@ int ni=p->ni;
 	//if no initial config read
 	if(p->readini==0)
 	{
-	    for(int f=0; f<=6; f++)
+	    for(int f=0; f<=NVAR; f++)
             { 
 		          w[fencode_i(p,i,j,f)]=0;
 	    }
             w[fencode_i(p,i,j,rho)]=1.0;
             #ifdef ADIABHYDRO
-		    if(i>73 && i<77 && j>73 && j<77 ) 
+		    if(i> (((p->n[0])/2)-2) && i<(((p->n[0])/2)+2) && j>(((p->n[1])/2)-2) && j<(((p->n[1])/2)+2) ) 
 				w[fencode_i(p,i,j,rho)]=1.3;
             #else
 
 		    w[fencode_i(p,i,j,rho)]=1.0;
-		    w[fencode_i(p,i,j,b2)]=1.0;
-		    w[fencode_i(p,i,j,energy)]=0.0001;
+		    w[fencode_i(p,i,j,b1)]=1.0;
+		    w[fencode_i(p,i,j,energy)]=0.01;
 
 		    //w[fencode_i(p,i,j,b1)]=15*j;
 		    //w[fencode_i(p,i,j,b3)]=150*j;
 		    
 		   //if (i > seg2)
-		   // if (i < seg3)
-                   if(i<seg2)
-		      w[fencode_i(p,i,j,mom2)]=m2max;
+		    //if (i < seg3)
+                   // if (i < seg1)
+		   //   w[fencode_i(p,i,j,mom2)]=0.0;
 
+		   if (i > seg1)
+		    if (i < seg2)
+		      w[fencode_i(p,i,j,mom2)]=m2max*(i-seg1)/(seg2-seg1);
 
 		   if (i > seg2)
 		    if (i < seg3)
-                     {
-		      w[fencode_i(p,i,j,mom2)]=m2max*(i-seg2)/(seg3-seg2);
-                      w[fencode_i(p,i,j,b1)]=1.01;
-                      }
-
+		      //w[fencode_i(p,i,j,mom2)]=m2max*(i-seg2)/(seg3-seg2);
+                      w[fencode_i(p,i,j,mom2)]=m2max;
 		   if (i > seg3)
 		    if (i < seg4)
 		      w[fencode_i(p,i,j,mom2)]=m2max*(seg4-i)/(seg4-seg3);
@@ -129,23 +131,28 @@ int ni=p->ni;
 			}	
 	 __syncthreads();
 
-  if(i<p->ni && j<p->nj)
+  if(i<p->n[0] && j<p->n[1])
 	{
         for(int f=rho; f<=b3; f++)
         {               
                   wnew[fencode_i(p,i,j,f)]=w[fencode_i(p,i,j,f)];
               for(int ord=0;ord<(1+3*((p->rkon)==1));ord++)
-                  dwn1[8*ord*ni*nj+fencode_i(p,i,j,f)]=0;
+                  dwn1[NVAR*ord*ni*nj+fencode_i(p,i,j,f)]=0;
                   //dwn2[fencode(p,i,j,f)]=0;
                  // dwn3[fencode(p,i,j,f)]=0;
                   //dwn4[fencode(p,i,j,f)]=0;
                  
         }
+
+        for(int f=tmp1; f<=tmprhor; f++)
+                 wtemp[fencode_i(p,i,j,f)]=0;
+
+
 }
 
  __syncthreads();
-        if(i<p->ni && j<p->nj)
-               for(int f=current1; f<=divb; f++)
+        if(i<p->n[0] && j<p->n[1])
+               for(int f=current1; f<=hdnul; f++)
                     wd[fencode_i(p,i,j,f)]=0.0;
 
  __syncthreads(); 
@@ -179,7 +186,7 @@ void checkErrors_i(char *label)
 
 
 
-int cuinit(struct params **p, real **w, real **wnew, struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state)
+int cuinit(struct params **p, real **w, real **wnew, struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp)
 {
 
 
@@ -215,18 +222,19 @@ int cuinit(struct params **p, real **w, real **wnew, struct state **state, struc
   struct state *ads;
 
 
-  cudaMalloc((void**)d_wmod, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
-  cudaMalloc((void**)d_dwn1, 8*(1+3*((*p)->rkon))*((*p)->ni)* ((*p)->nj)*sizeof(real));
-  cudaMalloc((void**)d_wd, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
+  cudaMalloc((void**)d_wmod, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
+  cudaMalloc((void**)d_dwn1, NVAR*(1+3*((*p)->rkon))*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
+  cudaMalloc((void**)d_wd, NDERV*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
+  cudaMalloc((void**)d_wtemp, NDERV*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
 
-  cudaMalloc((void**)&adw, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
-  cudaMalloc((void**)&adwnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real));
+  cudaMalloc((void**)&adw, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
+  cudaMalloc((void**)&adwnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
   
   cudaMalloc((void**)&adp, sizeof(struct params));
   cudaMalloc((void**)&ads, sizeof(struct state));
   checkErrors_i("memory allocation");
 
-printf("ni is %d\n",(*p)->nj);
+printf("ni is %d\n",(*p)->n[1]);
 
    // *d_b=adb;
     *d_p=adp;
@@ -235,33 +243,33 @@ printf("ni is %d\n",(*p)->nj);
     *d_state=ads;
 
 
-    cudaMemcpy(*d_w, *w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyHostToDevice);
-   // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyHostToDevice);
+    cudaMemcpy(*d_w, *w, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
+   // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
     
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_state, *state, sizeof(struct state), cudaMemcpyHostToDevice);
     
     dim3 dimBlock(16, 1);
-    //dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
-    dim3 dimGrid(((*p)->ni)/dimBlock.x,((*p)->nj)/dimBlock.y);
-   int numBlocks = (((*p)->ni)*((*p)->nj)+numThreadsPerBlock-1) / numThreadsPerBlock;
+    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+    dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+   int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
    
 
     printf("calling initialiser\n");
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
     // init_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
     // init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_b);
-     init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd);
+     init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd, *d_wtemp);
      cudaThreadSynchronize();
 	    printf("called initialiser\n");
-	cudaMemcpy(*w, *d_w, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
+	cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
 
 	cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
         cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
-	cudaMemcpy(*wnew, *d_wnew, 8*((*p)->ni)* ((*p)->nj)*sizeof(real), cudaMemcpyDeviceToHost);
-	//cudaMemcpy(*b, *d_b, (((*p)->ni)* ((*p)->nj))*sizeof(real), cudaMemcpyDeviceToHost);
+	//cudaMemcpy(*wnew, *d_wnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+	//cudaMemcpy(*b, *d_b, (((*p)->n[0])* ((*p)->n[1]))*sizeof(real), cudaMemcpyDeviceToHost);
 
-         printf("mod times step %f %f\n",(*p)->dt, ((*wnew)[10+16*((*p)->ni)+((*p)->ni)*((*p)->nj)*b1]));
+        // printf("mod times step %f %f\n",(*p)->dt, ((*wnew)[10+16*((*p)->n[0])+((*p)->n[0])*((*p)->n[1])*b1]));
 
 
 
