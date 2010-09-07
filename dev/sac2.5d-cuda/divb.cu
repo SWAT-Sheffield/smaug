@@ -11,66 +11,9 @@
 /////////////////////////////////////
 // kernel function (CUDA device)
 /////////////////////////////////////
-__device__ __host__
-int encode_db (struct params *dp,int ix, int iy) {
+#include "gradops_db.cuh"
+#include "dervfields_db.cuh"
 
-  //int kSizeX=(dp)->n[0];
-  //int kSizeY=(dp)->n[1];
-  
-  return ( iy * ((dp)->n[0]) + ix);
-}
-
-__device__ __host__
-int fencode_db (struct params *dp,int ix, int iy, int field) {
-
-  //int kSizeX=(dp)->n[0];
-  //int kSizeY=(dp)->n[1];
-  
-  return ( (iy * ((dp)->n[0]) + ix)+(field*((dp)->n[0])*((dp)->n[1])));
-}
-
-__device__ __host__
-real evalgrad_db(real fi, real fim1, real fip2, real fim2,struct params *p,int dir)
-{
- //real valgrad_db;
-
- if(dir == 0)
- {
-     //valgrad=(2.0/(3.0*(p->dx[0])))*(fi-fim1)-(1.0/(12.0*(p->dx[0])))*(fip2-fim2);
-   //return((1.0/(2.0*(p->dx[0])))*(fi-fim1));
-   return(p->sodifon?((1.0/(2.0*(p->dx[0])))*(fi-fim1)):((1.0/(12.0*(p->dx[0])))*((8*fi-8*fim1+fim2-fip2))));
- }
- else if(dir == 1)
- {
-    // valgrad=(2.0/(3.0*(p->dx[1])))*(fi-fim1)-(1.0/(12.0*(p->dx[1])))*(fip2-fim2);
-     // return((2.0/(1.0*(p->dx[1])))*(fi-fim1));
-   return(p->sodifon?((1.0/(2.0*(p->dx[1])))*(fi-fim1)):((1.0/(12.0*(p->dx[1])))*((8*fi-8*fim1+fim2-fip2))));
- }
-
- return -1;
-}
-
-
-__device__ __host__
-real grad_db(real *wmod,struct params *p,int i,int j,int field,int dir)
-{
- //real valgrad_db;
-
-  if(dir == 0)
- {
-    // valgrad=(2.0/(3.0*(p->dx[0])))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx[0])))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
-//return((1.0/(2.0*(p->dx[0])))*(wmod[fencode_db(p,i+1,j,field)]-wmod[fencode_db(p,i-1,j,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_db(p,i+1,j,field)]-8*wmod[fencode_db(p,i-1,j,field)]+wmod[fencode_db(p,i-2,j,field)]-wmod[fencode_db(p,i+2,j,field)])/6.0):wmod[fencode_db(p,i+1,j,field)]-wmod[fencode_db(p,i-1,j,field)])/(2.0*(p->dx[0]))    );
- }
- else if(dir == 1)
- {
-    // valgrad=(2.0/(3.0*(p->dx[1])))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dx[1])))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
-// return((1.0/(2.0*(p->dx[1])))*(wmod[fencode_db(p,i,j+1,field)]-wmod[fencode_db(p,i,j-1,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_db(p,i,j+1,field)]-8*wmod[fencode_db(p,i,j-1,field)]+wmod[fencode_db(p,i,j-2,field)]-wmod[fencode_db(p,i,j+2,field)])/6.0):wmod[fencode_db(p,i,j+1,field)]-wmod[fencode_db(p,i,j-1,field)])/(2.0*(p->dx[1]))    );
-  }
-
- return 0;
-}
 
 __device__ __host__
 real dbsourcerho (real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
@@ -231,7 +174,7 @@ __global__ void divb_parallel(struct params *p, real *w, real *wnew, real *wmod,
            {    
                for(int f=rho; f<=b3; f++)
                {              
-                  dbderivsource(dwn1+(8*(p->n[0])*(p->n[1])*order),wd,wmod,p,i,j,f);
+                  dbderivsource(dwn1+(NVAR*(p->n[0])*(p->n[1])*order),wd,wmod,p,i,j,f);
  
                }
             }

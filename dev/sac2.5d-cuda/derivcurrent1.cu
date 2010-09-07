@@ -11,68 +11,8 @@
 /////////////////////////////////////
 // kernel function (CUDA device)
 /////////////////////////////////////
+#include "gradops_dc1.cuh"
 
-
-
-__device__ __host__
-int encode_dc1 (struct params *dp,int ix, int iy) {
-
-  //int kSizeX=(dp)->n[0];
-  //int kSizeY=(dp)->n[1];
-  
-  return ( iy * ((dp)->n[0]) + ix);
-}
-
-__device__ __host__
-int fencode_dc1 (struct params *dp,int ix, int iy, int field) {
-
-  //int kSizeX=(dp)->n[0];
-  //int kSizeY=(dp)->n[1];
-  
-  return ( (iy * ((dp)->n[0]) + ix)+(field*((dp)->n[0])*((dp)->n[1])));
-}
-
-__device__ __host__
-real evalgrad_dc1(real fi, real fim1, real fip2, real fim2,struct params *p,int dir)
-{
- //real valgrad_dc1;
-
- if(dir == 0)
- {
-     //valgrad=(2.0/(3.0*(p->dx[0])))*(fi-fim1)-(1.0/(12.0*(p->dx[0])))*(fip2-fim2);
-   //return((1.0/(2.0*(p->dx[0])))*(fi-fim1));
-   return(p->sodifon?((1.0/(2.0*(p->dx[0])))*(fi-fim1)):((1.0/(12.0*(p->dx[0])))*((NVAR*fi-NVAR*fim1+fim2-fip2))));
- }
- else if(dir == 1)
- {
-    // valgrad=(2.0/(3.0*(p->dx[1])))*(fi-fim1)-(1.0/(12.0*(p->dx[1])))*(fip2-fim2);
-     // return((2.0/(1.0*(p->dx[1])))*(fi-fim1));
-   return(p->sodifon?((1.0/(2.0*(p->dx[1])))*(fi-fim1)):((1.0/(12.0*(p->dx[1])))*((NVAR*fi-NVAR*fim1+fim2-fip2))));
- }
-
- return -1;
-}
-
-
-__device__ __host__
-real grad_dc1(real *wmod,struct params *p,int i,int j,int field,int dir)
-{
- //real valgrad_dc1;
-
-  if(dir == 0)
- {
-    // valgrad=(2.0/(3.0*(p->dx[0])))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx[0])))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
-//return((1.0/(2.0*(p->dx[0])))*(wmod[fencode_dc1(p,i+1,j,field)]-wmod[fencode_dc1(p,i-1,j,field)]));
- return(  ( (p->sodifon)?((NVAR*wmod[fencode_dc1(p,i+1,j,field)]-NVAR*wmod[fencode_dc1(p,i-1,j,field)]+wmod[fencode_dc1(p,i-2,j,field)]-wmod[fencode_dc1(p,i+2,j,field)])/6.0):wmod[fencode_dc1(p,i+1,j,field)]-wmod[fencode_dc1(p,i-1,j,field)])/(2.0*(p->dx[0]))    );
- }
- else if(dir == 1)
- {
-    // valgrad=(2.0/(3.0*(p->dx[1])))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dx[1])))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
-// return((1.0/(2.0*(p->dx[1])))*(wmod[fencode_dc1(p,i,j+1,field)]-wmod[fencode_dc1(p,i,j-1,field)]));
- return(  ( (p->sodifon)?((NVAR*wmod[fencode_dc1(p,i,j+1,field)]-NVAR*wmod[fencode_dc1(p,i,j-1,field)]+wmod[fencode_dc1(p,i,j-2,field)]-wmod[fencode_dc1(p,i,j+2,field)])/6.0):wmod[fencode_dc1(p,i,j+1,field)]-wmod[fencode_dc1(p,i,j-1,field)])/(2.0*(p->dx[1]))    );
-}
- return 0;
-}
 
 __device__ __host__
 real ddotcurrentrho (real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
@@ -88,7 +28,7 @@ real ddotcurrentrho (real *dw, real *wd, real *w, struct params *p,int ix, int i
 		fim1=(w[fencode_dc1(p,ix-1,iy,rhob)]*w[fencode_dc1(p,ix-1,iy,mom1)]/(w[fencode_dc1(p,ix-1,iy,rho)]+w[fencode_dc1(p,ix-1,iy,rhob)]  ));
 		if(p->sodifon)
 		{
-		fip2=(w[fencode_dc1(p,ix,iy+1,rhob)]*w[fencode_dc1(p,ix,iy+1,mom1)]/(w[fencode_dc1(p,ix,iy+1,rho)]+w[fencode_dc1(p,ix,iy+1,rhob)]));
+		fip2=(w[fencode_dc1(p,ix+2,iy,rhob)]*w[fencode_dc1(p,ix+2,iy,mom1)]/(w[fencode_dc1(p,ix+2,iy,rho)]+w[fencode_dc1(p,ix,iy+1,rhob)]));
 		fim2=(w[fencode_dc1(p,ix-2,iy,rhob)]*w[fencode_dc1(p,ix-2,iy,mom1)]/(w[fencode_dc1(p,ix-2,iy,rho)]+w[fencode_dc1(p,ix-2,iy,rhob)]));
 		}
 		ddcx=evalgrad_dc1(fi,fim1,fip2,fim2,p,0);
@@ -97,7 +37,7 @@ real ddotcurrentrho (real *dw, real *wd, real *w, struct params *p,int ix, int i
 		fim1=(w[fencode_dc1(p,ix,iy-1,rhob)]*w[fencode_dc1(p,ix,iy-1,mom1)]/(w[fencode_dc1(p,ix,iy-1,rho)]+w[fencode_dc1(p,ix,iy-1,rhob)]));
 		if(p->sodifon)
 		{
-		fip2=(w[fencode_dc1(p,ix+2,iy,rhob)]*w[fencode_dc1(p,ix+2,iy,mom1)]/(w[fencode_dc1(p,ix+2,iy,rho)]+w[fencode_dc1(p,ix+2,iy,rhob)]));
+		fip2=(w[fencode_dc1(p,ix,iy+2,rhob)]*w[fencode_dc1(p,ix,iy+2,mom1)]/(w[fencode_dc1(p,ix,iy+2,rho)]+w[fencode_dc1(p,ix+2,iy,rhob)]));
 		fim2=(w[fencode_dc1(p,ix,iy-2,rhob)]*w[fencode_dc1(p,ix,iy-2,mom1)]/(w[fencode_dc1(p,ix,iy-2,rho)]+w[fencode_dc1(p,ix-2,iy,rhob)]));
 		}
 		ddcy=evalgrad_dc1(fi,fim1,fip2,fim2,p,1);
@@ -113,6 +53,7 @@ real ddotcurrentrho (real *dw, real *wd, real *w, struct params *p,int ix, int i
   return ( isnan(ddc)?0:ddc);
 }
 
+//compute momentum contributions for momentum current
 __device__ __host__
 real ddotcurrentmom1 (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field, int direction) {
 
@@ -270,9 +211,10 @@ real ddotcurrentmom1 (real *dw, real *wd, real *w, struct params *p,int ix, int 
   //return ( ddc1-ddc2);
 }
 
+
+//compute field contributions for momentum current
 __device__ __host__
 real ddotcurrentmom2 (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field, int direction) {
-
   real ddc=0;
   real fi, fim1;
   real  fip2=0, fim2=0;
@@ -297,77 +239,70 @@ real ddotcurrentmom2 (real *dw, real *wd, real *w, struct params *p,int ix, int 
   switch(direction)
   {
     case 0:
+ 
+	       fi=w[fencode_dc1(p,ix+1,iy,b1)]*w[fencode_dc1(p,ix+1,iy,b1)];
+	       fim1=w[fencode_dc1(p,ix-1,iy,b1)]*w[fencode_dc1(p,ix-1,iy,b1)];
+	      if(p->sodifon)
+	      {
+	      fip2=w[fencode_dc1(p,ix+2,iy,b1)]*w[fencode_dc1(p,ix+2,iy,b1)];
+	       fim2=w[fencode_dc1(p,ix-2,iy,b1)]*w[fencode_dc1(p,ix-2,iy,b1)];
+	      }
   
-       fi=w[fencode_dc1(p,ix+1,iy,b1)]*w[fencode_dc1(p,ix+1,iy,b1)];
-       fim1=w[fencode_dc1(p,ix-1,iy,b1)]*w[fencode_dc1(p,ix-1,iy,b1)];
-      if(p->sodifon)
-      {
-      fip2=w[fencode_dc1(p,ix+2,iy,b1)]*w[fencode_dc1(p,ix+2,iy,b1)];
-       fim2=w[fencode_dc1(p,ix-2,iy,b1)]*w[fencode_dc1(p,ix-2,iy,b1)];
-      }
-
-
        ddcx=evalgrad_dc1(fi,fim1,fip2,fim2,p,0);
 
-
-       fi=w[fencode_dc1(p,ix,iy+1,b1)]*w[fencode_dc1(p,ix,iy+1,b2)];
-       fim1=w[fencode_dc1(p,ix,iy-1,b1)]*w[fencode_dc1(p,ix,iy-1,b2)];
-           if(p->sodifon)
-      {
-       fip2=w[fencode_dc1(p,ix,iy+2,b1)]*w[fencode_dc1(p,ix,iy+2,b2)];
-       fim2=w[fencode_dc1(p,ix,iy-2,b1)]*w[fencode_dc1(p,ix,iy-2,b2)];
-      }
-
+	       fi=w[fencode_dc1(p,ix,iy+1,b1)]*w[fencode_dc1(p,ix,iy+1,b2)];
+	       fim1=w[fencode_dc1(p,ix,iy-1,b1)]*w[fencode_dc1(p,ix,iy-1,b2)];
+		   if(p->sodifon)
+	      {
+	       fip2=w[fencode_dc1(p,ix,iy+2,b1)]*w[fencode_dc1(p,ix,iy+2,b2)];
+	       fim2=w[fencode_dc1(p,ix,iy-2,b1)]*w[fencode_dc1(p,ix,iy-2,b2)];
+	      }
+  
        ddcy=evalgrad_dc1(fi,fim1,fip2,fim2,p,1);
     break;
     case 1:
 
+	       fi=w[fencode_dc1(p,ix+1,iy,b2)]*w[fencode_dc1(p,ix+1,iy,b1)];
+	       fim1=w[fencode_dc1(p,ix-1,iy,b2)]*w[fencode_dc1(p,ix-1,iy,b1)];
 
-       fi=w[fencode_dc1(p,ix+1,iy,b2)]*w[fencode_dc1(p,ix+1,iy,b1)];
-       fim1=w[fencode_dc1(p,ix-1,iy,b2)]*w[fencode_dc1(p,ix-1,iy,b1)];
-
-     if(p->sodifon)
-      {
-       fip2=w[fencode_dc1(p,ix+2,iy,b2)]*w[fencode_dc1(p,ix+2,iy,b1)];
-       fim2=w[fencode_dc1(p,ix-2,iy,b2)]*w[fencode_dc1(p,ix-2,iy,b1)];
-      }
-
-       ddcx=evalgrad_dc1(fi,fim1,fip2,fim2,p,0);
+	     if(p->sodifon)
+	      {
+	       fip2=w[fencode_dc1(p,ix+2,iy,b2)]*w[fencode_dc1(p,ix+2,iy,b1)];
+	       fim2=w[fencode_dc1(p,ix-2,iy,b2)]*w[fencode_dc1(p,ix-2,iy,b1)];
+	      }
+ 
+	       ddcx=evalgrad_dc1(fi,fim1,fip2,fim2,p,0);
 
 
-       fi=w[fencode_dc1(p,ix,iy+1,b2)]*w[fencode_dc1(p,ix,iy+1,b2)];
-       fim1=w[fencode_dc1(p,ix,iy-1,b2)]*w[fencode_dc1(p,ix,iy-1,b2)];
+	       fi=w[fencode_dc1(p,ix,iy+1,b2)]*w[fencode_dc1(p,ix,iy+1,b2)];
+	       fim1=w[fencode_dc1(p,ix,iy-1,b2)]*w[fencode_dc1(p,ix,iy-1,b2)];
 
-      if(p->sodifon)
-      {
-       fip2=w[fencode_dc1(p,ix,iy+2,b2)]*w[fencode_dc1(p,ix,iy+2,b2)];
-       fim2=w[fencode_dc1(p,ix,iy-2,b2)]*w[fencode_dc1(p,ix,iy-2,b2)];
-      }
-
+	      if(p->sodifon)
+	      {
+	       fip2=w[fencode_dc1(p,ix,iy+2,b2)]*w[fencode_dc1(p,ix,iy+2,b2)];
+	       fim2=w[fencode_dc1(p,ix,iy-2,b2)]*w[fencode_dc1(p,ix,iy-2,b2)];
+	      }
+ 
        ddcy=evalgrad_dc1(fi,fim1,fip2,fim2,p,1);
     break;
     case 2:
+	       fi=w[fencode_dc1(p,ix+1,iy,b3)]*w[fencode_dc1(p,ix+1,iy,b1)];
+	       fim1=w[fencode_dc1(p,ix-1,iy,b3)]*w[fencode_dc1(p,ix-1,iy,b1)];
 
-
-       fi=w[fencode_dc1(p,ix+1,iy,b3)]*w[fencode_dc1(p,ix+1,iy,b1)];
-       fim1=w[fencode_dc1(p,ix-1,iy,b3)]*w[fencode_dc1(p,ix-1,iy,b1)];
-
-      if(p->sodifon)
-      {
-       fip2=w[fencode_dc1(p,ix+2,iy,b3)]*w[fencode_dc1(p,ix+2,iy,b1)];
-       fim2=w[fencode_dc1(p,ix-2,iy,b3)]*w[fencode_dc1(p,ix-2,iy,b1)];
-       }
-
+	      if(p->sodifon)
+	      {
+	       fip2=w[fencode_dc1(p,ix+2,iy,b3)]*w[fencode_dc1(p,ix+2,iy,b1)];
+	       fim2=w[fencode_dc1(p,ix-2,iy,b3)]*w[fencode_dc1(p,ix-2,iy,b1)];
+	       }
        ddcx=evalgrad_dc1(fi,fim1,fip2,fim2,p,0);
 
-       fi=w[fencode_dc1(p,ix,iy+1,b3)]*w[fencode_dc1(p,ix,iy+1,b2)];
-       fim1=w[fencode_dc1(p,ix,iy-1,b3)]*w[fencode_dc1(p,ix,iy-1,b2)];
-            if(p->sodifon)
-      {
-       fip2=w[fencode_dc1(p,ix,iy+2,b3)]*w[fencode_dc1(p,ix,iy+2,b2)];
-       fim2=w[fencode_dc1(p,ix,iy-2,b3)]*w[fencode_dc1(p,ix,iy-2,b2)];
-       }
-
+	       fi=w[fencode_dc1(p,ix,iy+1,b3)]*w[fencode_dc1(p,ix,iy+1,b2)];
+	       fim1=w[fencode_dc1(p,ix,iy-1,b3)]*w[fencode_dc1(p,ix,iy-1,b2)];
+		    if(p->sodifon)
+	      {
+	       fip2=w[fencode_dc1(p,ix,iy+2,b3)]*w[fencode_dc1(p,ix,iy+2,b2)];
+	       fim2=w[fencode_dc1(p,ix,iy-2,b3)]*w[fencode_dc1(p,ix,iy-2,b2)];
+	       }
 
        ddcy=evalgrad_dc1(fi,fim1,fip2,fim2,p,1);
     break;
@@ -378,6 +313,8 @@ return(isnan(ddcx)?0:-ddcx)-(isnan(ddcy)?0:ddcy);
   //ddc=ddc1-ddc2;
 
   //return ( ddc1-ddc2);
+
+
 }
 
 

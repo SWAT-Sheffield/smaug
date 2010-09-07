@@ -11,70 +11,7 @@
 /////////////////////////////////////
 // kernel function (CUDA device)
 /////////////////////////////////////
-
-
-
-__device__ __host__
-int encode_dc2 (struct params *dp,int ix, int iy) {
-
-  //int kSizeX=(dp)->n[0];
-  //int kSizeY=(dp)->n[1];
-  
-  return ( iy * ((dp)->n[0]) + ix);
-}
-
-__device__ __host__
-int fencode_dc2 (struct params *dp,int ix, int iy, int field) {
-
-  //int kSizeX=(dp)->n[0];
-  //int kSizeY=(dp)->n[1];
-  
-  return ( (iy * ((dp)->n[0]) + ix)+(field*((dp)->n[0])*((dp)->n[1])));
-}
-
-__device__ __host__
-real evalgrad_dc2(real fi, real fim1, real fip2, real fim2,struct params *p,int dir)
-{
- //real valgrad_dc2;
-
- if(dir == 0)
- {
-     //valgrad=(2.0/(3.0*(p->dx[0])))*(fi-fim1)-(1.0/(12.0*(p->dx[0])))*(fip2-fim2);
-   //return((1.0/(2.0*(p->dx[0])))*(fi-fim1));
-   return(p->sodifon?((1.0/(2.0*(p->dx[0])))*(fi-fim1)):((1.0/(12.0*(p->dx[0])))*((NVAR*fi-NVAR*fim1+fim2-fip2))));
- }
- else if(dir == 1)
- {
-    // valgrad=(2.0/(3.0*(p->dx[1])))*(fi-fim1)-(1.0/(12.0*(p->dx[1])))*(fip2-fim2);
-     // return((2.0/(1.0*(p->dx[1])))*(fi-fim1));
-   return(p->sodifon?((1.0/(2.0*(p->dx[1])))*(fi-fim1)):((1.0/(12.0*(p->dx[1])))*((NVAR*fi-NVAR*fim1+fim2-fip2))));
- }
-
- return -1;
-}
-
-
-__device__ __host__
-real grad_dc2(real *wmod,struct params *p,int i,int j,int field,int dir)
-{
- //real valgrad_dc2;
-
-  if(dir == 0)
- {
-    // valgrad=(2.0/(3.0*(p->dx[0])))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx[0])))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
-//return((1.0/(2.0*(p->dx[0])))*(wmod[fencode_dc2(p,i+1,j,field)]-wmod[fencode_dc2(p,i-1,j,field)]));
- return(  ( (p->sodifon)?((NVAR*wmod[fencode_dc2(p,i+1,j,field)]-NVAR*wmod[fencode_dc2(p,i-1,j,field)]+wmod[fencode_dc2(p,i-2,j,field)]-wmod[fencode_dc2(p,i+2,j,field)])/6.0):wmod[fencode_dc2(p,i+1,j,field)]-wmod[fencode_dc2(p,i-1,j,field)])/(2.0*(p->dx[0]))    );
- }
- else if(dir == 1)
- {
-    // valgrad=(2.0/(3.0*(p->dx[1])))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dx[1])))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
-// return((1.0/(2.0*(p->dx[1])))*(wmod[fencode_dc2(p,i,j+1,field)]-wmod[fencode_dc2(p,i,j-1,field)]));
- return(  ( (p->sodifon)?((NVAR*wmod[fencode_dc2(p,i,j+1,field)]-NVAR*wmod[fencode_dc2(p,i,j-1,field)]+wmod[fencode_dc2(p,i,j-2,field)]-wmod[fencode_dc2(p,i,j+2,field)])/6.0):wmod[fencode_dc2(p,i,j+1,field)]-wmod[fencode_dc2(p,i,j-1,field)])/(2.0*(p->dx[1]))    );
-}
- return 0;
-}
-
-
+#include "gradops_dc2.cuh"
 
 __device__ __host__
 real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field, int direction) {
@@ -88,6 +25,15 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
   switch(direction)
   {
 	case 0:
+         #ifdef USE_SAC
+	       fi=w[fencode_dc2(p,ix+1,iy,mom1)]*(w[fencode_dc2(p,ix+1,iy,b1)]+w[fencode_dc2(p,ix+1,iy,b1b)])/(w[fencode_dc2(p,ix+1,iy,rho)]+w[fencode_dc2(p,ix+1,iy,rhob)]);
+	       fim1=w[fencode_dc2(p,ix-1,iy,mom1)]*(w[fencode_dc2(p,ix-1,iy,b1)]+w[fencode_dc2(p,ix-1,iy,b1b)])/(w[fencode_dc2(p,ix-1,iy,rho)]+w[fencode_dc2(p,ix-1,iy,rhob)]);
+               if(p->sodifon)
+               {
+	       fip2=w[fencode_dc2(p,ix+2,iy,mom1)]*(w[fencode_dc2(p,ix+2,iy,b1)]+w[fencode_dc2(p,ix+2,iy,b1b)])/(w[fencode_dc2(p,ix+2,iy,rho)]+w[fencode_dc2(p,ix+2,iy,rhob)]);
+	       fim2=w[fencode_dc2(p,ix-2,iy,mom1)]*(w[fencode_dc2(p,ix-2,iy,b1)]+w[fencode_dc2(p,ix-2,iy,b1b)])/(w[fencode_dc2(p,ix-2,iy,rho)]+w[fencode_dc2(p,ix-2,iy,rhob)]);
+               }
+         #else
 	       fi=w[fencode_dc2(p,ix+1,iy,mom1)]*w[fencode_dc2(p,ix+1,iy,b1)]/w[fencode_dc2(p,ix+1,iy,rho)];
 	       fim1=w[fencode_dc2(p,ix-1,iy,mom1)]*w[fencode_dc2(p,ix-1,iy,b1)]/w[fencode_dc2(p,ix-1,iy,rho)];
                if(p->sodifon)
@@ -95,7 +41,19 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
 	       fip2=w[fencode_dc2(p,ix+2,iy,mom1)]*w[fencode_dc2(p,ix+2,iy,b1)]/w[fencode_dc2(p,ix+2,iy,rho)];
 	       fim2=w[fencode_dc2(p,ix-2,iy,mom1)]*w[fencode_dc2(p,ix-2,iy,b1)]/w[fencode_dc2(p,ix-2,iy,rho)];
                }
+         #endif
+
 	       ddcx=evalgrad_dc2(fi,fim1,fip2,fim2,p,0);
+
+         #ifdef USE_SAC
+	       fi=w[fencode_dc2(p,ix,iy+1,mom1)]*(w[fencode_dc2(p,ix,iy+1,b2)]+w[fencode_dc2(p,ix,iy+1,b2b)])/(w[fencode_dc2(p,ix,iy+1,rho)]+w[fencode_dc2(p,ix,iy+1,rhob)]);
+	       fim1=w[fencode_dc2(p,ix,iy-1,mom1)]*(w[fencode_dc2(p,ix,iy-1,b2)]+w[fencode_dc2(p,ix,iy-1,b2b)])/(w[fencode_dc2(p,ix,iy-1,rho)]+w[fencode_dc2(p,ix,iy-1,rhob)]);
+               if(p->sodifon)
+               {
+	       fip2=w[fencode_dc2(p,ix,iy+2,mom1)]*(w[fencode_dc2(p,ix,iy+2,b2)]+w[fencode_dc2(p,ix,iy+2,b2b)])/(w[fencode_dc2(p,ix,iy+2,rho)]+w[fencode_dc2(p,ix,iy+2,rhob)]);
+	       fim2=w[fencode_dc2(p,ix,iy-2,mom1)]*(w[fencode_dc2(p,ix,iy-2,b2)]+w[fencode_dc2(p,ix,iy-2,b2b)])/(w[fencode_dc2(p,ix,iy-2,rho)]+w[fencode_dc2(p,ix,iy-2,rhob)]);
+               }
+         #else
 	       fi=w[fencode_dc2(p,ix,iy+1,mom1)]*w[fencode_dc2(p,ix,iy+1,b2)]/w[fencode_dc2(p,ix,iy+1,rho)];
 	       fim1=w[fencode_dc2(p,ix,iy-1,mom1)]*w[fencode_dc2(p,ix,iy-1,b2)]/w[fencode_dc2(p,ix,iy-1,rho)];
                if(p->sodifon)
@@ -103,9 +61,22 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
 	       fip2=w[fencode_dc2(p,ix,iy+2,mom1)]*w[fencode_dc2(p,ix,iy+2,b2)]/w[fencode_dc2(p,ix,iy+2,rho)];
 	       fim2=w[fencode_dc2(p,ix,iy-2,mom1)]*w[fencode_dc2(p,ix,iy-2,b2)]/w[fencode_dc2(p,ix,iy-2,rho)];
                }
+         #endif
+
 	       ddcy=evalgrad_dc2(fi,fim1,fip2,fim2,p,1);
         break;
 	case 1:
+
+         #ifdef USE_SAC
+	       fi=w[fencode_dc2(p,ix+1,iy,mom2)]*(w[fencode_dc2(p,ix+1,iy,b1)]+w[fencode_dc2(p,ix+1,iy,b1b)])/(w[fencode_dc2(p,ix+1,iy,rho)]+w[fencode_dc2(p,ix+1,iy,rhob)]);
+	       fim1=w[fencode_dc2(p,ix-1,iy,mom2)]*(w[fencode_dc2(p,ix-1,iy,b1)]+w[fencode_dc2(p,ix-1,iy,b1b)])/(w[fencode_dc2(p,ix-1,iy,rho)]+w[fencode_dc2(p,ix-1,iy,rhob)]);
+
+               if(p->sodifon)
+               {
+	       fip2=w[fencode_dc2(p,ix+2,iy,mom2)]*(w[fencode_dc2(p,ix+2,iy,b1)]+w[fencode_dc2(p,ix+2,iy,b1b)])/(w[fencode_dc2(p,ix+2,iy,rho)]+w[fencode_dc2(p,ix+2,iy,rhob)]);
+	       fim2=w[fencode_dc2(p,ix-2,iy,mom2)]*(w[fencode_dc2(p,ix-2,iy,b1)]+w[fencode_dc2(p,ix-2,iy,b1b)])/(w[fencode_dc2(p,ix-2,iy,rho)]+w[fencode_dc2(p,ix-2,iy,rhob)]);
+               }
+         #else
 	       fi=w[fencode_dc2(p,ix+1,iy,mom2)]*w[fencode_dc2(p,ix+1,iy,b1)]/w[fencode_dc2(p,ix+1,iy,rho)];
 	       fim1=w[fencode_dc2(p,ix-1,iy,mom2)]*w[fencode_dc2(p,ix-1,iy,b1)]/w[fencode_dc2(p,ix-1,iy,rho)];
 
@@ -114,8 +85,19 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
 	       fip2=w[fencode_dc2(p,ix+2,iy,mom2)]*w[fencode_dc2(p,ix+2,iy,b1)]/w[fencode_dc2(p,ix+2,iy,rho)];
 	       fim2=w[fencode_dc2(p,ix-2,iy,mom2)]*w[fencode_dc2(p,ix-2,iy,b1)]/w[fencode_dc2(p,ix-2,iy,rho)];
                }
+         #endif
+
 	       ddcx=evalgrad_dc2(fi,fim1,fip2,fim2,p,0);
 
+         #ifdef USE_SAC
+	       fi=w[fencode_dc2(p,ix,iy+1,mom2)]*(w[fencode_dc2(p,ix,iy+1,b2)]+w[fencode_dc2(p,ix,iy+1,b2b)])/(w[fencode_dc2(p,ix,iy+1,rho)]+w[fencode_dc2(p,ix,iy+1,rhob)]);
+	       fim1=w[fencode_dc2(p,ix,iy-1,mom2)]*(w[fencode_dc2(p,ix,iy-1,b2)]+w[fencode_dc2(p,ix,iy-1,b2b)])/(w[fencode_dc2(p,ix,iy-1,rho)]+w[fencode_dc2(p,ix,iy-1,rhob)]);
+               if(p->sodifon)
+               {
+	       fip2=w[fencode_dc2(p,ix,iy+2,mom2)]*(w[fencode_dc2(p,ix,iy+2,b2)]+w[fencode_dc2(p,ix,iy+2,b2b)])/(w[fencode_dc2(p,ix,iy+2,rho)]+w[fencode_dc2(p,ix,iy+2,rhob)]);
+	       fim2=w[fencode_dc2(p,ix,iy-2,mom2)]*(w[fencode_dc2(p,ix,iy-2,b2)]+w[fencode_dc2(p,ix,iy-2,b2b)])/(w[fencode_dc2(p,ix,iy-2,rho)]+w[fencode_dc2(p,ix,iy-2,rhob)]);
+               }
+         #else
 	       fi=w[fencode_dc2(p,ix,iy+1,mom2)]*w[fencode_dc2(p,ix,iy+1,b2)]/w[fencode_dc2(p,ix,iy+1,rho)];
 	       fim1=w[fencode_dc2(p,ix,iy-1,mom2)]*w[fencode_dc2(p,ix,iy-1,b2)]/w[fencode_dc2(p,ix,iy-1,rho)];
                if(p->sodifon)
@@ -123,9 +105,21 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
 	       fip2=w[fencode_dc2(p,ix,iy+2,mom2)]*w[fencode_dc2(p,ix,iy+2,b2)]/w[fencode_dc2(p,ix,iy+2,rho)];
 	       fim2=w[fencode_dc2(p,ix,iy-2,mom2)]*w[fencode_dc2(p,ix,iy-2,b2)]/w[fencode_dc2(p,ix,iy-2,rho)];
                }
+         #endif
+
 	       ddcy=evalgrad_dc2(fi,fim1,fip2,fim2,p,1);
         break;
 	case 2:
+
+         #ifdef USE_SAC
+	       fi=w[fencode_dc2(p,ix+1,iy,mom3)]*(w[fencode_dc2(p,ix+1,iy,b1)]+w[fencode_dc2(p,ix+1,iy,b1b)])/(w[fencode_dc2(p,ix+1,iy,rho)]+w[fencode_dc2(p,ix+1,iy,rhob)]);
+	       fim1=w[fencode_dc2(p,ix-1,iy,mom3)]*(w[fencode_dc2(p,ix-1,iy,b1)]+w[fencode_dc2(p,ix-1,iy,b1b)])/(w[fencode_dc2(p,ix-1,iy,rho)]+w[fencode_dc2(p,ix-1,iy,rhob)]);
+               if(p->sodifon)
+               {
+	       fip2=w[fencode_dc2(p,ix+2,iy,mom3)]*(w[fencode_dc2(p,ix+2,iy,b1)]+w[fencode_dc2(p,ix+2,iy,b1b)])/(w[fencode_dc2(p,ix+2,iy,rho)]+w[fencode_dc2(p,ix+2,iy,rhob)]);
+	       fim2=w[fencode_dc2(p,ix-2,iy,mom3)]*(w[fencode_dc2(p,ix-2,iy,b1)]+w[fencode_dc2(p,ix-2,iy,b1b)])/(w[fencode_dc2(p,ix-2,iy,rho)]+w[fencode_dc2(p,ix-2,iy,rhob)]);
+               }
+         #else
 	       fi=w[fencode_dc2(p,ix+1,iy,mom3)]*w[fencode_dc2(p,ix+1,iy,b1)]/w[fencode_dc2(p,ix+1,iy,rho)];
 	       fim1=w[fencode_dc2(p,ix-1,iy,mom3)]*w[fencode_dc2(p,ix-1,iy,b1)]/w[fencode_dc2(p,ix-1,iy,rho)];
                if(p->sodifon)
@@ -133,7 +127,20 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
 	       fip2=w[fencode_dc2(p,ix+2,iy,mom3)]*w[fencode_dc2(p,ix+2,iy,b1)]/w[fencode_dc2(p,ix+2,iy,rho)];
 	       fim2=w[fencode_dc2(p,ix-2,iy,mom3)]*w[fencode_dc2(p,ix-2,iy,b1)]/w[fencode_dc2(p,ix-2,iy,rho)];
                }
+         #endif
+
 	       ddcx=evalgrad_dc2(fi,fim1,fip2,fim2,p,0);
+
+         #ifdef USE_SAC
+	       fi=w[fencode_dc2(p,ix,iy+1,mom3)]*(w[fencode_dc2(p,ix,iy+1,b2)]+w[fencode_dc2(p,ix,iy+1,b2b)])/(w[fencode_dc2(p,ix,iy+1,rho)]+w[fencode_dc2(p,ix,iy+1,rhob)]);
+	       fim1=w[fencode_dc2(p,ix,iy-1,mom3)]*(w[fencode_dc2(p,ix,iy-1,b2)]+w[fencode_dc2(p,ix,iy-1,b2b)])/(w[fencode_dc2(p,ix,iy-1,rho)]+w[fencode_dc2(p,ix,iy-1,rhob)]);
+               if(p->sodifon)
+               {
+	       fip2=w[fencode_dc2(p,ix,iy+2,mom3)]*(w[fencode_dc2(p,ix,iy+2,b2)]+w[fencode_dc2(p,ix,iy+2,b2b)])/(w[fencode_dc2(p,ix,iy+2,rho)]+w[fencode_dc2(p,ix,iy+2,rhob)]);
+	       fim2=w[fencode_dc2(p,ix,iy-2,mom3)]*(w[fencode_dc2(p,ix,iy-2,b2)]+w[fencode_dc2(p,ix,iy-2,b2b)])/(w[fencode_dc2(p,ix,iy-2,rho)]+w[fencode_dc2(p,ix,iy-2,rhob)]);
+               }
+
+         #else
 	       fi=w[fencode_dc2(p,ix,iy+1,mom3)]*w[fencode_dc2(p,ix,iy+1,b2)]/w[fencode_dc2(p,ix,iy+1,rho)];
 	       fim1=w[fencode_dc2(p,ix,iy-1,mom3)]*w[fencode_dc2(p,ix,iy-1,b2)]/w[fencode_dc2(p,ix,iy-1,rho)];
                if(p->sodifon)
@@ -141,6 +148,8 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
 	       fip2=w[fencode_dc2(p,ix,iy+2,mom3)]*w[fencode_dc2(p,ix,iy+2,b2)]/w[fencode_dc2(p,ix,iy+2,rho)];
 	       fim2=w[fencode_dc2(p,ix,iy-2,mom3)]*w[fencode_dc2(p,ix,iy-2,b2)]/w[fencode_dc2(p,ix,iy-2,rho)];
                }
+         #endif
+
 	       ddcy=evalgrad_dc2(fi,fim1,fip2,fim2,p,1);
 
         break;
@@ -152,6 +161,16 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
   switch(direction)
   {
 	case 0:
+         #ifdef USE_SAC
+	       fi=(w[fencode_dc2(p,ix+1,iy,b1)]+w[fencode_dc2(p,ix+1,iy,b1b)])*w[fencode_dc2(p,ix+1,iy,mom1)]/(w[fencode_dc2(p,ix+1,iy,rho)]+w[fencode_dc2(p,ix+1,iy,rhob)]);
+	       fim1=(w[fencode_dc2(p,ix-1,iy,b1)]+w[fencode_dc2(p,ix-1,iy,b1b)])*w[fencode_dc2(p,ix-1,iy,mom1)]/(w[fencode_dc2(p,ix-1,iy,rho)]+w[fencode_dc2(p,ix-1,iy,rhob)]);
+               if(p->sodifon)
+               {
+	       fip2=(w[fencode_dc2(p,ix+2,iy,b1)]+w[fencode_dc2(p,ix+2,iy,b1b)])*w[fencode_dc2(p,ix+2,iy,mom1)]/(w[fencode_dc2(p,ix+2,iy,rho)]+w[fencode_dc2(p,ix+2,iy,rhob)]);
+	       fim2=(w[fencode_dc2(p,ix-2,iy,b1)]+w[fencode_dc2(p,ix-2,iy,b1b)])*w[fencode_dc2(p,ix-2,iy,mom1)]/(w[fencode_dc2(p,ix-2,iy,rho)]+w[fencode_dc2(p,ix-2,iy,rhob)]);
+               }
+         #else
+
 	       fi=w[fencode_dc2(p,ix+1,iy,b1)]*w[fencode_dc2(p,ix+1,iy,mom1)]/w[fencode_dc2(p,ix+1,iy,rho)];
 	       fim1=w[fencode_dc2(p,ix-1,iy,b1)]*w[fencode_dc2(p,ix-1,iy,mom1)]/w[fencode_dc2(p,ix-1,iy,rho)];
                if(p->sodifon)
@@ -159,7 +178,19 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
 	       fip2=w[fencode_dc2(p,ix+2,iy,b1)]*w[fencode_dc2(p,ix+2,iy,mom1)]/w[fencode_dc2(p,ix+2,iy,rho)];
 	       fim2=w[fencode_dc2(p,ix-2,iy,b1)]*w[fencode_dc2(p,ix-2,iy,mom1)]/w[fencode_dc2(p,ix-2,iy,rho)];
                }
+         #endif
+
 	       ddcx=evalgrad_dc2(fi,fim1,fip2,fim2,p,0);
+
+         #ifdef USE_SAC
+	       fi=(w[fencode_dc2(p,ix,iy+1,b1)]+w[fencode_dc2(p,ix,iy+1,b1b)])*w[fencode_dc2(p,ix,iy+1,mom2)]/(w[fencode_dc2(p,ix,iy+1,rho)]+w[fencode_dc2(p,ix,iy+1,rhob)]);
+	       fim1=(w[fencode_dc2(p,ix,iy-1,b1)]+w[fencode_dc2(p,ix,iy-1,b1b)])*w[fencode_dc2(p,ix,iy-1,mom2)]/(w[fencode_dc2(p,ix,iy-1,rho)]+w[fencode_dc2(p,ix,iy-1,rhob)]);
+               if(p->sodifon)
+               {
+	       fip2=(w[fencode_dc2(p,ix,iy+2,b1)]+w[fencode_dc2(p,ix,iy+2,b1b)])*w[fencode_dc2(p,ix,iy+2,mom2)]/(w[fencode_dc2(p,ix,iy+2,rho)]+w[fencode_dc2(p,ix,iy+2,rhob)]);
+	       fim2=(w[fencode_dc2(p,ix,iy-2,b1)]+w[fencode_dc2(p,ix,iy-2,b1b)])*w[fencode_dc2(p,ix,iy-2,mom2)]/(w[fencode_dc2(p,ix,iy-2,rho)]+w[fencode_dc2(p,ix,iy-2,rhob)]);
+               }
+         #else
 	       fi=w[fencode_dc2(p,ix,iy+1,b1)]*w[fencode_dc2(p,ix,iy+1,mom2)]/w[fencode_dc2(p,ix,iy+1,rho)];
 	       fim1=w[fencode_dc2(p,ix,iy-1,b1)]*w[fencode_dc2(p,ix,iy-1,mom2)]/w[fencode_dc2(p,ix,iy-1,rho)];
                if(p->sodifon)
@@ -167,9 +198,21 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
 	       fip2=w[fencode_dc2(p,ix,iy+2,b1)]*w[fencode_dc2(p,ix,iy+2,mom2)]/w[fencode_dc2(p,ix,iy+2,rho)];
 	       fim2=w[fencode_dc2(p,ix,iy-2,b1)]*w[fencode_dc2(p,ix,iy-2,mom2)]/w[fencode_dc2(p,ix,iy-2,rho)];
                }
+         #endif
+
 	       ddcy=evalgrad_dc2(fi,fim1,fip2,fim2,p,1);
         break;
 	case 1:
+         #ifdef USE_SAC
+
+	       fi=(w[fencode_dc2(p,ix+1,iy,b2)]+w[fencode_dc2(p,ix+1,iy,b2b)])*w[fencode_dc2(p,ix+1,iy,mom1)]/(w[fencode_dc2(p,ix+1,iy,rho)]+w[fencode_dc2(p,ix+1,iy,rho)]);
+	       fim1=(w[fencode_dc2(p,ix-1,iy,b2)]+w[fencode_dc2(p,ix-1,iy,b2b)])*w[fencode_dc2(p,ix-1,iy,mom1)]/(w[fencode_dc2(p,ix-1,iy,rho)]+w[fencode_dc2(p,ix-1,iy,rho)]);
+               if(p->sodifon)
+               {
+	       fip2=(w[fencode_dc2(p,ix+2,iy,b2)]+w[fencode_dc2(p,ix+2,iy,b2b)])*w[fencode_dc2(p,ix+2,iy,mom1)]/(w[fencode_dc2(p,ix+2,iy,rho)]+w[fencode_dc2(p,ix+2,iy,rho)]);
+	       fim2=(w[fencode_dc2(p,ix-2,iy,b2)]+w[fencode_dc2(p,ix-2,iy,b2b)])*w[fencode_dc2(p,ix-2,iy,mom1)]/(w[fencode_dc2(p,ix-2,iy,rho)]+w[fencode_dc2(p,ix-2,iy,rho)]);
+               }
+         #else
 	       fi=w[fencode_dc2(p,ix+1,iy,b2)]*w[fencode_dc2(p,ix+1,iy,mom1)]/w[fencode_dc2(p,ix+1,iy,rho)];
 	       fim1=w[fencode_dc2(p,ix-1,iy,b2)]*w[fencode_dc2(p,ix-1,iy,mom1)]/w[fencode_dc2(p,ix-1,iy,rho)];
                if(p->sodifon)
@@ -177,7 +220,22 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
 	       fip2=w[fencode_dc2(p,ix+2,iy,b2)]*w[fencode_dc2(p,ix+2,iy,mom1)]/w[fencode_dc2(p,ix+2,iy,rho)];
 	       fim2=w[fencode_dc2(p,ix-2,iy,b2)]*w[fencode_dc2(p,ix-2,iy,mom1)]/w[fencode_dc2(p,ix-2,iy,rho)];
                }
+         #endif
+
+
+
+
 	       ddcx=evalgrad_dc2(fi,fim1,fip2,fim2,p,0);
+
+         #ifdef USE_SAC
+	       fi=(w[fencode_dc2(p,ix,iy+1,b2)]+w[fencode_dc2(p,ix,iy+1,b2b)])*w[fencode_dc2(p,ix,iy+1,mom2)]/(w[fencode_dc2(p,ix,iy+1,rho)]+w[fencode_dc2(p,ix,iy+1,rhob)]);
+	       fim1=(w[fencode_dc2(p,ix,iy-1,b2)]+w[fencode_dc2(p,ix,iy-1,b2b)])*w[fencode_dc2(p,ix,iy-1,mom2)]/(w[fencode_dc2(p,ix,iy-1,rho)]+w[fencode_dc2(p,ix,iy-1,rhob)]);
+               if(p->sodifon)
+               {
+	       fip2=(w[fencode_dc2(p,ix,iy+2,b2)]+w[fencode_dc2(p,ix,iy+2,b2b)])*w[fencode_dc2(p,ix,iy+2,mom2)]/(w[fencode_dc2(p,ix,iy+2,rho)]+w[fencode_dc2(p,ix,iy+2,rhob)]);
+	       fim2=(w[fencode_dc2(p,ix,iy-2,b2)]+w[fencode_dc2(p,ix,iy-2,b2b)])*w[fencode_dc2(p,ix,iy-2,mom2)]/(w[fencode_dc2(p,ix,iy-2,rho)]+w[fencode_dc2(p,ix,iy-2,rhob)]);
+               }
+         #else
 	       fi=w[fencode_dc2(p,ix,iy+1,b2)]*w[fencode_dc2(p,ix,iy+1,mom2)]/w[fencode_dc2(p,ix,iy+1,rho)];
 	       fim1=w[fencode_dc2(p,ix,iy-1,b2)]*w[fencode_dc2(p,ix,iy-1,mom2)]/w[fencode_dc2(p,ix,iy-1,rho)];
                if(p->sodifon)
@@ -185,9 +243,20 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
 	       fip2=w[fencode_dc2(p,ix,iy+2,b2)]*w[fencode_dc2(p,ix,iy+2,mom2)]/w[fencode_dc2(p,ix,iy+2,rho)];
 	       fim2=w[fencode_dc2(p,ix,iy-2,b2)]*w[fencode_dc2(p,ix,iy-2,mom2)]/w[fencode_dc2(p,ix,iy-2,rho)];
                }
+         #endif
+
 	       ddcy=evalgrad_dc2(fi,fim1,fip2,fim2,p,1);
         break;
 	case 2:
+         #ifdef USE_SAC
+	       fi=(w[fencode_dc2(p,ix+1,iy,b3)]+w[fencode_dc2(p,ix+1,iy,b3b)])*w[fencode_dc2(p,ix+1,iy,mom1)]/(w[fencode_dc2(p,ix+1,iy,rho)]+w[fencode_dc2(p,ix+1,iy,rhob)]);
+	       fim1=(w[fencode_dc2(p,ix-1,iy,b3)]+w[fencode_dc2(p,ix-1,iy,b3b)])*w[fencode_dc2(p,ix-1,iy,mom1)]/(w[fencode_dc2(p,ix-1,iy,rho)]+w[fencode_dc2(p,ix-1,iy,rhob)]);
+               if(p->sodifon)
+               {
+	       fip2=(w[fencode_dc2(p,ix+2,iy,b3)]+w[fencode_dc2(p,ix+2,iy,b3b)])*w[fencode_dc2(p,ix+2,iy,mom1)]/(w[fencode_dc2(p,ix+2,iy,rho)]+w[fencode_dc2(p,ix+2,iy,rhob)]);
+	       fim2=(w[fencode_dc2(p,ix-2,iy,b3)]+w[fencode_dc2(p,ix-2,iy,b3b)])*w[fencode_dc2(p,ix-2,iy,mom1)]/(w[fencode_dc2(p,ix-2,iy,rho)]+w[fencode_dc2(p,ix-2,iy,rhob)]);
+               }
+         #else
 	       fi=w[fencode_dc2(p,ix+1,iy,b3)]*w[fencode_dc2(p,ix+1,iy,mom1)]/w[fencode_dc2(p,ix+1,iy,rho)];
 	       fim1=w[fencode_dc2(p,ix-1,iy,b3)]*w[fencode_dc2(p,ix-1,iy,mom1)]/w[fencode_dc2(p,ix-1,iy,rho)];
                if(p->sodifon)
@@ -195,7 +264,19 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
 	       fip2=w[fencode_dc2(p,ix+2,iy,b3)]*w[fencode_dc2(p,ix+2,iy,mom1)]/w[fencode_dc2(p,ix+2,iy,rho)];
 	       fim2=w[fencode_dc2(p,ix-2,iy,b3)]*w[fencode_dc2(p,ix-2,iy,mom1)]/w[fencode_dc2(p,ix-2,iy,rho)];
                }
+         #endif
+
 	       ddcx=evalgrad_dc2(fi,fim1,fip2,fim2,p,0);
+
+         #ifdef USE_SAC
+	       fi=(w[fencode_dc2(p,ix,iy+1,b3)]+w[fencode_dc2(p,ix,iy+1,b3b)])*w[fencode_dc2(p,ix,iy+1,mom2)]/(w[fencode_dc2(p,ix,iy+1,rho)]+w[fencode_dc2(p,ix,iy+1,rhob)]);
+	       fim1=(w[fencode_dc2(p,ix,iy-1,b3)]+w[fencode_dc2(p,ix,iy-1,b3b)])*w[fencode_dc2(p,ix,iy-1,mom2)]/(w[fencode_dc2(p,ix,iy-1,rho)]+w[fencode_dc2(p,ix,iy-1,rhob)]);
+               if(p->sodifon)
+               {
+	       fip2=(w[fencode_dc2(p,ix,iy+2,b3)]+w[fencode_dc2(p,ix,iy+2,b3b)])*w[fencode_dc2(p,ix,iy+2,mom2)]/(w[fencode_dc2(p,ix,iy+2,rho)]+w[fencode_dc2(p,ix,iy+2,rhob)]);
+	       fim2=(w[fencode_dc2(p,ix,iy-2,b3)]+w[fencode_dc2(p,ix,iy-2,b3b)])*w[fencode_dc2(p,ix,iy-2,mom2)]/(w[fencode_dc2(p,ix,iy-2,rho)]+w[fencode_dc2(p,ix,iy-2,rhob)]);
+               }
+         #else
 	       fi=w[fencode_dc2(p,ix,iy+1,b3)]*w[fencode_dc2(p,ix,iy+1,mom2)]/w[fencode_dc2(p,ix,iy+1,rho)];
 	       fim1=w[fencode_dc2(p,ix,iy-1,b3)]*w[fencode_dc2(p,ix,iy-1,mom2)]/w[fencode_dc2(p,ix,iy-1,rho)];
                if(p->sodifon)
@@ -203,6 +284,8 @@ real ddotcurrentb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,
 	       fip2=w[fencode_dc2(p,ix,iy+2,b3)]*w[fencode_dc2(p,ix,iy+2,mom2)]/w[fencode_dc2(p,ix,iy+2,rho)];
 	       fim2=w[fencode_dc2(p,ix,iy-2,b3)]*w[fencode_dc2(p,ix,iy-2,mom2)]/w[fencode_dc2(p,ix,iy-2,rho)];
                }
+         #endif
+
 	       ddcy=evalgrad_dc2(fi,fim1,fip2,fim2,p,1);
         break;
   }
@@ -227,23 +310,50 @@ real ddotcurrentenergy (real *dw, real *wd, real *w, struct params *p,int ix, in
 
   //fi=w[fencode_dc2(p,ix+1,iy,energy)]*w[fencode_dc2(p,ix+1,iy,mom1)]/w[fencode_dc2(p,ix,iy,rho)];
   //fim1=w[fencode_dc2(p,ix-1,iy,energy)]*w[fencode_dc2(p,ix-1,iy,mom1)]/w[fencode_dc2(p,ix-1,iy,rho)];
-if(p->sodifon==1)
-{
-  fip2=w[fencode_dc2(p,ix+2,iy,energy)]*w[fencode_dc2(p,ix+2,iy,mom1)]/w[fencode_dc2(p,ix+2,iy,rho)];
-  fim2=w[fencode_dc2(p,ix-2,iy,energy)]*w[fencode_dc2(p,ix-2,iy,mom1)]/w[fencode_dc2(p,ix-2,iy,rho)];
-}
- // ddcx=evalgrad_dc2(fi,fim1,0,0,p,0);
-  ddcx=evalgrad_dc2(w[fencode_dc2(p,ix+1,iy,energy)]*w[fencode_dc2(p,ix+1,iy,mom1)]/w[fencode_dc2(p,ix+1,iy,rho)],w[fencode_dc2(p,ix-1,iy,energy)]*w[fencode_dc2(p,ix-1,iy,mom1)]/w[fencode_dc2(p,ix-1,iy,rho)],fip2,fim2,p,0);
+
+
+        #ifdef USE_SAC
+		if(p->sodifon==1)
+		{
+		  fip2=(w[fencode_dc2(p,ix+2,iy,energy)]+w[fencode_dc2(p,ix+2,iy,energyb)])*w[fencode_dc2(p,ix+2,iy,mom1)]/(w[fencode_dc2(p,ix+2,iy,rho)]+w[fencode_dc2(p,ix+2,iy,rhob)]);
+		  fim2=(w[fencode_dc2(p,ix-2,iy,energy)]+w[fencode_dc2(p,ix-2,iy,energyb)])*w[fencode_dc2(p,ix-2,iy,mom1)]/(w[fencode_dc2(p,ix-2,iy,rho)]+w[fencode_dc2(p,ix-2,iy,rhob)]);
+		}
+		 // ddcx=evalgrad_dc2(fi,fim1,0,0,p,0);
+		  ddcx=evalgrad_dc2((w[fencode_dc2(p,ix+1,iy,energy)]+w[fencode_dc2(p,ix+1,iy,energyb)])*w[fencode_dc2(p,ix+1,iy,mom1)]/(w[fencode_dc2(p,ix+1,iy,rho)]+w[fencode_dc2(p,ix+1,iy,rhob)]),(w[fencode_dc2(p,ix-1,iy,energy)]+w[fencode_dc2(p,ix-1,iy,energyb)])*w[fencode_dc2(p,ix-1,iy,mom1)]/(w[fencode_dc2(p,ix-1,iy,rho)]+w[fencode_dc2(p,ix-1,iy,rhob)]),fip2,fim2,p,0);
+         #else
+		if(p->sodifon==1)
+		{
+		  fip2=w[fencode_dc2(p,ix+2,iy,energy)]*w[fencode_dc2(p,ix+2,iy,mom1)]/w[fencode_dc2(p,ix+2,iy,rho)];
+		  fim2=w[fencode_dc2(p,ix-2,iy,energy)]*w[fencode_dc2(p,ix-2,iy,mom1)]/w[fencode_dc2(p,ix-2,iy,rho)];
+		}
+		 // ddcx=evalgrad_dc2(fi,fim1,0,0,p,0);
+		  ddcx=evalgrad_dc2(w[fencode_dc2(p,ix+1,iy,energy)]*w[fencode_dc2(p,ix+1,iy,mom1)]/w[fencode_dc2(p,ix+1,iy,rho)],w[fencode_dc2(p,ix-1,iy,energy)]*w[fencode_dc2(p,ix-1,iy,mom1)]/w[fencode_dc2(p,ix-1,iy,rho)],fip2,fim2,p,0);
+         #endif
+
 
  // fi=w[fencode_dc2(p,ix,iy+1,energy)]*w[fencode_dc2(p,ix,iy+1,mom2)]/w[fencode_dc2(p,ix,iy+1,rho)];
  // fim1=w[fencode_dc2(p,ix,iy-1,energy)]*w[fencode_dc2(p,ix,iy-1,mom2)]/w[fencode_dc2(p,ix,iy-1,rho)];
-if(p->sodifon==1)
-{
-  fip2=w[fencode_dc2(p,ix,iy+2,energy)]*w[fencode_dc2(p,ix,iy+2,mom2)]/w[fencode_dc2(p,ix,iy+2,rho)];
-  fim2=w[fencode_dc2(p,ix,iy-2,energy)]*w[fencode_dc2(p,ix,iy-2,mom2)]/w[fencode_dc2(p,ix,iy-2,rho)];
-}
-  //ddcy=evalgrad_dc2(fi,fim1,0,0,p,1);
-  ddcy=evalgrad_dc2(w[fencode_dc2(p,ix,iy+1,energy)]*w[fencode_dc2(p,ix,iy+1,mom2)]/w[fencode_dc2(p,ix,iy+1,rho)],w[fencode_dc2(p,ix,iy-1,energy)]*w[fencode_dc2(p,ix,iy-1,mom2)]/w[fencode_dc2(p,ix,iy-1,rho)],fip2,fim2,p,1);
+
+
+
+        #ifdef USE_SAC
+	if(p->sodifon==1)
+	{
+	  fip2=(w[fencode_dc2(p,ix,iy+2,energy)]+w[fencode_dc2(p,ix,iy+2,energyb)])*w[fencode_dc2(p,ix,iy+2,mom2)]/(w[fencode_dc2(p,ix,iy+2,rho)]+w[fencode_dc2(p,ix,iy+2,rhob)]);
+	  fim2=(w[fencode_dc2(p,ix,iy-2,energy)]+w[fencode_dc2(p,ix,iy-2,energyb)])*w[fencode_dc2(p,ix,iy-2,mom2)]/(w[fencode_dc2(p,ix,iy-2,rho)]+w[fencode_dc2(p,ix,iy-2,rhob)]);
+	}
+	  //ddcy=evalgrad_dc2(fi,fim1,0,0,p,1);
+	  ddcy=evalgrad_dc2((w[fencode_dc2(p,ix,iy+1,energy)]+w[fencode_dc2(p,ix,iy+1,energyb)])*w[fencode_dc2(p,ix,iy+1,mom2)]/(w[fencode_dc2(p,ix,iy+1,rho)]+w[fencode_dc2(p,ix,iy+1,rhob)]),(w[fencode_dc2(p,ix,iy-1,energy)]+w[fencode_dc2(p,ix,iy-1,energyb)])*w[fencode_dc2(p,ix,iy-1,mom2)]/(w[fencode_dc2(p,ix,iy-1,rho)]+w[fencode_dc2(p,ix,iy-1,rhob)]),fip2,fim2,p,1);
+         #else
+	if(p->sodifon==1)
+	{
+	  fip2=w[fencode_dc2(p,ix,iy+2,energy)]*w[fencode_dc2(p,ix,iy+2,mom2)]/w[fencode_dc2(p,ix,iy+2,rho)];
+	  fim2=w[fencode_dc2(p,ix,iy-2,energy)]*w[fencode_dc2(p,ix,iy-2,mom2)]/w[fencode_dc2(p,ix,iy-2,rho)];
+	}
+	  //ddcy=evalgrad_dc2(fi,fim1,0,0,p,1);
+	  ddcy=evalgrad_dc2(w[fencode_dc2(p,ix,iy+1,energy)]*w[fencode_dc2(p,ix,iy+1,mom2)]/w[fencode_dc2(p,ix,iy+1,rho)],w[fencode_dc2(p,ix,iy-1,energy)]*w[fencode_dc2(p,ix,iy-1,mom2)]/w[fencode_dc2(p,ix,iy-1,rho)],fip2,fim2,p,1);
+         #endif
+
 
   dd1=(isnan(ddcx)?0:ddcx)+(isnan(ddcy)?0:ddcy);
 
@@ -260,13 +370,26 @@ if(p->sodifon==1)
  // ddcx=evalgrad_dc2(fi,fim1,0,0,p,0);
  //  ddcx=evalgrad_dc2(((w[fencode_dc2(p,ix+1,iy,b1)]*w[fencode_dc2(p,ix+1,iy,mom1)]+w[fencode_dc2(p,ix+1,iy,b2)]*w[fencode_dc2(p,ix+1,iy,mom2)]+w[fencode_dc2(p,ix+1,iy,b3)]*w[fencode_dc2(p,ix+1,iy,mom3)])/w[fencode_dc2(p,ix+1,iy,rho)])*w[fencode_dc2(p,ix+1,iy,b1)],((w[fencode_dc2(p,ix-1,iy,b1)]*w[fencode_dc2(p,ix-1,iy,mom1)]+w[fencode_dc2(p,ix-1,iy,b2)]*w[fencode_dc2(p,ix-1,iy,mom2)]+w[fencode_dc2(p,ix-1,iy,b3)]*w[fencode_dc2(p,ix-1,iy,mom3)])/w[fencode_dc2(p,ix-1,iy,rho)])*w[fencode_dc2(p,ix-1,iy,b1)],0,0,p,0);
 
-if(p->sodifon==1)
-{
-  fip2=wd[fencode_dc2(p,ix+2,iy,bdotv)]*w[fencode_dc2(p,ix+2,iy,b1)];
-  fim2=wd[fencode_dc2(p,ix-2,iy,bdotv)]*w[fencode_dc2(p,ix-2,iy,b1)];
-}
 
-  ddcx=evalgrad_dc2(wd[fencode_dc2(p,ix+1,iy,bdotv)]*w[fencode_dc2(p,ix+1,iy,b1)],wd[fencode_dc2(p,ix-1,iy,bdotv)]*w[fencode_dc2(p,ix-1,iy,b1)],fip2,fim2,p,0);
+        #ifdef USE_SAC
+	if(p->sodifon==1)
+	{
+	  fip2=wd[fencode_dc2(p,ix+2,iy,bdotv)]*(w[fencode_dc2(p,ix+2,iy,b1)]+w[fencode_dc2(p,ix+2,iy,b1b)]);
+	  fim2=wd[fencode_dc2(p,ix-2,iy,bdotv)]*(w[fencode_dc2(p,ix-2,iy,b1)]+w[fencode_dc2(p,ix-2,iy,b1b)]);
+	}
+
+	  ddcx=evalgrad_dc2(wd[fencode_dc2(p,ix+1,iy,bdotv)]*(w[fencode_dc2(p,ix+1,iy,b1)]+w[fencode_dc2(p,ix+1,iy,b1b)]),wd[fencode_dc2(p,ix-1,iy,bdotv)]*(w[fencode_dc2(p,ix-1,iy,b1)]+w[fencode_dc2(p,ix-1,iy,b1b)]),fip2,fim2,p,0);
+         #else
+	if(p->sodifon==1)
+	{
+	  fip2=wd[fencode_dc2(p,ix+2,iy,bdotv)]*w[fencode_dc2(p,ix+2,iy,b1)];
+	  fim2=wd[fencode_dc2(p,ix-2,iy,bdotv)]*w[fencode_dc2(p,ix-2,iy,b1)];
+	}
+
+	  ddcx=evalgrad_dc2(wd[fencode_dc2(p,ix+1,iy,bdotv)]*(w[fencode_dc2(p,ix+1,iy,b1)]),wd[fencode_dc2(p,ix-1,iy,bdotv)]*(w[fencode_dc2(p,ix-1,iy,b1)]),fip2,fim2,p,0);
+         #endif
+
+
 
  // dpi=(w[fencode_dc2(p,ix,iy+1,b1)]*w[fencode_dc2(p,ix,iy+1,mom1)]+w[fencode_dc2(p,ix,iy+1,b2)]*w[fencode_dc2(p,ix,iy+1,mom2)]+w[fencode_dc2(p,ix,iy+1,b3)]*w[fencode_dc2(p,ix,iy+1,mom3)])/w[fencode_dc2(p,ix,iy+1,rho)];
  // dpim1=(w[fencode_dc2(p,ix,iy-1,b1)]*w[fencode_dc2(p,ix,iy-1,mom1)]+w[fencode_dc2(p,ix,iy-1,b2)]*w[fencode_dc2(p,ix,iy-1,mom2)]+w[fencode_dc2(p,ix,iy-1,b3)]*w[fencode_dc2(p,ix,iy-1,mom3)])/w[fencode_dc2(p,ix,iy-1,rho)];  
@@ -275,24 +398,45 @@ if(p->sodifon==1)
 
  // fi=dpi*w[fencode_dc2(p,ix,iy+1,b2)];
  // fim1=dpim1*w[fencode_dc2(p,ix,iy-1,b2)];
-if(p->sodifon==1)
-{
-  fip2=wd[fencode_dc2(p,ix,iy+2,bdotv)]*w[fencode_dc2(p,ix,iy+2,b2)];
-  fim2=wd[fencode_dc2(p,ix,iy-2,bdotv)]*w[fencode_dc2(p,ix,iy-2,b2)];
-}
 
-//fi=w[fencode_dc2(p,ix,iy+1,b2)];
-//  fim1=w[fencode_dc2(p,ix,iy-1,b2)];
-  ddcy=evalgrad_dc2(wd[fencode_dc2(p,ix,iy+1,bdotv)]*w[fencode_dc2(p,ix,iy+1,b2)],wd[fencode_dc2(p,ix,iy-1,bdotv)]*w[fencode_dc2(p,ix,iy-1,b2)],fip2,fim2,p,1);
+        #ifdef USE_SAC
+		if(p->sodifon==1)
+		{
+		  fip2=wd[fencode_dc2(p,ix,iy+2,bdotv)]*(w[fencode_dc2(p,ix,iy+2,b2)]+w[fencode_dc2(p,ix,iy+2,b2b)]);
+		  fim2=wd[fencode_dc2(p,ix,iy-2,bdotv)]*(w[fencode_dc2(p,ix,iy-2,b2)]+w[fencode_dc2(p,ix,iy-2,b2b)]);
+		}
+
+		//fi=w[fencode_dc2(p,ix,iy+1,b2)];
+		//  fim1=w[fencode_dc2(p,ix,iy-1,b2)];
+		  ddcy=evalgrad_dc2(wd[fencode_dc2(p,ix,iy+1,bdotv)]*(w[fencode_dc2(p,ix,iy+1,b2)]+w[fencode_dc2(p,ix,iy+1,b2b)]),wd[fencode_dc2(p,ix,iy-1,bdotv)]*(w[fencode_dc2(p,ix,iy-1,b2)]+w[fencode_dc2(p,ix,iy-1,b2b)]),fip2,fim2,p,1);
+         #else
+		if(p->sodifon==1)
+		{
+		  fip2=wd[fencode_dc2(p,ix,iy+2,bdotv)]*w[fencode_dc2(p,ix,iy+2,b2)];
+		  fim2=wd[fencode_dc2(p,ix,iy-2,bdotv)]*w[fencode_dc2(p,ix,iy-2,b2)];
+		}
+
+		//fi=w[fencode_dc2(p,ix,iy+1,b2)];
+		//  fim1=w[fencode_dc2(p,ix,iy-1,b2)];
+		  ddcy=evalgrad_dc2(wd[fencode_dc2(p,ix,iy+1,bdotv)]*w[fencode_dc2(p,ix,iy+1,b2)],wd[fencode_dc2(p,ix,iy-1,bdotv)]*w[fencode_dc2(p,ix,iy-1,b2)],fip2,fim2,p,1);
+         #endif
+
+
 //ddcx=0;
 //ddcy=evalgrad_dc2(((w[fencode_dc2(p,ix,iy+1,b1)]*w[fencode_dc2(p,ix,iy+1,mom1)]+w[fencode_dc2(p,ix,iy+1,b2)]*w[fencode_dc2(p,ix,iy+1,mom2)]+w[fencode_dc2(p,ix,iy+1,b3)]*w[fencode_dc2(p,ix,iy+1,mom3)])/w[fencode_dc2(p,ix,iy+1,rho)])*w[fencode_dc2(p,ix,iy+1,b2)],((w[fencode_dc2(p,ix,iy-1,b1)]*w[fencode_dc2(p,ix,iy-1,mom1)]+w[fencode_dc2(p,ix,iy-1,b2)]*w[fencode_dc2(p,ix,iy-1,mom2)]+w[fencode_dc2(p,ix,iy-1,b3)]*w[fencode_dc2(p,ix,iy-1,mom3)])/w[fencode_dc2(p,ix,iy-1,rho)])*w[fencode_dc2(p,ix,iy-1,b2)],0,0,p,1);
 
   dd2=(isnan(ddcx)?0:ddcx)+(isnan(ddcy)?0:ddcy);
 
+       #ifdef USE_SAC
+	  ddcx=wd[fencode_dc2(p,ix,iy,pressuret)]*grad_dc2(w,p,ix,iy,mom1,0)/(w[fencode_dc2(p,ix,iy,rho)]+w[fencode_dc2(p,ix,iy,rhob)]);
+	  ddcy=wd[fencode_dc2(p,ix,iy,pressuret)]*grad_dc2(w,p,ix,iy,mom2,1)/(w[fencode_dc2(p,ix,iy,rho)]+w[fencode_dc2(p,ix,iy,rhob)]);
 
+         #else
+	  ddcx=wd[fencode_dc2(p,ix,iy,pressuret)]*grad_dc2(w,p,ix,iy,mom1,0)/w[fencode_dc2(p,ix,iy,rho)];
+	  ddcy=wd[fencode_dc2(p,ix,iy,pressuret)]*grad_dc2(w,p,ix,iy,mom2,1)/w[fencode_dc2(p,ix,iy,rho)];
 
-  ddcx=wd[fencode_dc2(p,ix,iy,pressuret)]*grad_dc2(w,p,ix,iy,mom1,0)/w[fencode_dc2(p,ix,iy,rho)];
-  ddcy=wd[fencode_dc2(p,ix,iy,pressuret)]*grad_dc2(w,p,ix,iy,mom2,1)/w[fencode_dc2(p,ix,iy,rho)];
+         #endif
+
 
 
   dd3=(isnan(ddcx)?0:ddcx)+(isnan(ddcy)?0:ddcy);

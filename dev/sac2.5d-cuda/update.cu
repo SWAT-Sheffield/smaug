@@ -11,23 +11,8 @@
 /////////////////////////////////////
 // kernel function (CUDA device)
 /////////////////////////////////////
-__device__ __host__
-int encode_u (struct params *dp,int ix, int iy) {
+#include "gradops_u.cuh"
 
-  //int kSizeX=(dp)->n[0];
-  //int kSizeY=(dp)->n[1];
-  
-  return ( iy * ((dp)->n[0]) + ix);
-}
-
-__device__ __host__
-int fencode_u (struct params *dp,int ix, int iy, int field) {
-
-  //int kSizeX=(dp)->n[0];
-  //int kSizeY=(dp)->n[1];
-  
-  return ( (iy * ((dp)->n[0]) + ix)+(field*((dp)->n[0])*((dp)->n[1])));
-}
 
 __device__ __host__
 int updatestate (struct params *p, struct state *s, real *w ,int i, int j, int field) {
@@ -240,7 +225,7 @@ int cuupdate(struct params **p, real **w, real **wnew, struct state **state,stru
      update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_state,*d_w,*d_wnew);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
-    cudaMemcpy(*w, *d_w, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+    cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
 
 //cudaMemcpy(*w, *d_wd, 6*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
 

@@ -11,23 +11,8 @@
 /////////////////////////////////////
 // kernel function (CUDA device)
 /////////////////////////////////////
-__device__ __host__
-int encode_i (struct params *dp,int ix, int iy) {
+#include "gradops_i.cuh"
 
-  //int kSizeX=(dp)->n[0];
-  //int kSizeY=(dp)->n[1];
-  
-  return ( iy * ((dp)->n[0]) + ix);
-}
-
-__device__ __host__
-int fencode_i (struct params *dp,int ix, int iy, int field) {
-
-  //int kSizeX=(dp)->n[0];
-  //int kSizeY=(dp)->n[1];
-  
-  return ( (iy * ((dp)->n[0]) + ix)+(field*((dp)->n[0])*((dp)->n[1])));
-}
 
 //*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd
 

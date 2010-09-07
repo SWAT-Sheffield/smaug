@@ -20,11 +20,13 @@ DEFINE_PRECISION(double)
 #define NVECDIM 3
 #ifdef USE_SAC
    #define NVAR 13
+   #define NDERV 12
+
  #else
    #define NVAR 8
+   #define NDERV 11
  #endif
 
-#define NDERV 11
 
 
 struct Meta {
@@ -114,14 +116,19 @@ struct hydrovars{
          #endif*/
 
 
-        #ifdef USE_SAC
-           typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3,rhob,energyb,b1b,b2b,b3b} CEV;
-         #else
-           typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3} CEV;
-         #endif
+#ifdef USE_SAC
+   typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3,rhob,energyb,b1b,b2b,b3b} CEV;
+#else
+   typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3} CEV;
+#endif
 
+#ifdef USE_SAC
+	typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv,soundspeed,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
 
-typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv,soundspeed,divb,cfast,hdnur,hdnul} DEV;
+#else
+	typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv,soundspeed,divb,cfast,hdnur,hdnul} DEV;
+
+#endif
 typedef enum tempvars {tmp1, tmp2, tmp3,tmp4,tmp5,tmp6,tmp7,tmp8,tmp9, tmprhol, tmprhor } TEV;
 
 typedef struct Source source;

@@ -11,46 +11,9 @@
 /////////////////////////////////////
 // kernel function (CUDA device)
 /////////////////////////////////////
-__device__ __host__
-int dimproduct_b (struct params *dp) {
-
-  int tot=1;
-  for(int i=0;i<NDIM;i++)
-    tot*=dp->n[i];
-  return tot; 
-}
+#include "gradops_b.cuh"
 
 
-__device__ __host__
-int encode_b (struct params *dp,int ix, int iy) {
-
-  return (iy * ((dp)->n[0]) + ix);
-}
-
-__device__ __host__
-int encode3_b (struct params *dp,int ix, int iy, int iz) {
-
-  return (iz*((dp)->n[0])*((dp)->n[1])  + iy * ((dp)->n[0]) + ix);
-}
-
-__device__ __host__
-int fencode_b (struct params *dp,int ix, int iy, int field) {
-
-  //int kSizeX=(dp)->n[0];
-  //int kSizeY=(dp)->n[1];
-  
-  return(( (iy * ((dp)->n[0]) + ix)+(field*((dp)->n[0])*((dp)->n[1]))));
-}
-
-
-__device__ __host__
-int fencode3_b (struct params *dp,int ix, int iy, int iz, int field) {
-
-  //int kSizeX=(dp)->n[0];
-  //int kSizeY=(dp)->n[1];
-  
-  return(  iz*((dp)->n[0])*((dp)->n[1])+ (iy * ((dp)->n[0]) + ix)+(field*((dp)->n[0])*((dp)->n[1])*((dp)->n[2]))  );
-}
 
 
 __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *wd, real *wmod)
