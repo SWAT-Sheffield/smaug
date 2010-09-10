@@ -39,6 +39,7 @@ void computebdotv_MODID(real *wmod,real *wd,struct params *p,int i,int j)
  //real bsq=wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,b3)];
 //  wd[fencode_MODID(p,i,j,4)]=  wd[fencode_MODID(p,i,j,3)]+0.5*(wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,b3)]);
         #ifdef USE_SAC
+
 wd[fencode_MODID(p,i,j,bdotv)]=((wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b1b)])*wmod[fencode_MODID(p,i,j,mom1)]+(wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b2b)])*wmod[fencode_MODID(p,i,j,mom2)]+(wmod[fencode_MODID(p,i,j,b3)]+wmod[fencode_MODID(p,i,j,b3b)])*wmod[fencode_MODID(p,i,j,mom3)])/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]);
          #else
 wd[fencode_MODID(p,i,j,bdotv)]=(wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,mom1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,mom2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,mom3)])/wmod[fencode_MODID(p,i,j,rho)];
@@ -100,14 +101,24 @@ void computepk_MODID(real *wmod,real *wd,struct params *p,int i,int j)
 
 /*below used for adiabatic hydrodynamics*/
 wd[fencode_MODID(p,i,j,pressurek)]=(p->adiab)*pow(wmod[fencode_MODID(p,i,j,rho)],p->gamma);
+wd[fencode_MODID(p,i,j,vel1)]=wmod[fencode_MODID(p,i,j,mom1)]/(wmod[fencode_MODID(p,i,j,rho)]);
+wd[fencode_MODID(p,i,j,vel2)]=wmod[fencode_MODID(p,i,j,mom2)]/(wmod[fencode_MODID(p,i,j,rho)]);
+wd[fencode_MODID(p,i,j,vel3)]=wmod[fencode_MODID(p,i,j,mom3)]/(wmod[fencode_MODID(p,i,j,rho)]);
 #elif defined(USE_SAC)
+
+wd[fencode_MODID(p,i,j,vel1)]=wmod[fencode_MODID(p,i,j,mom1)]/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]);
+wd[fencode_MODID(p,i,j,vel2)]=wmod[fencode_MODID(p,i,j,mom2)]/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]);
+wd[fencode_MODID(p,i,j,vel3)]=wmod[fencode_MODID(p,i,j,mom3)]/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]);
+
  wd[fencode_MODID(p,i,j,pressurek)]=((p->gamma)-1)*(wmod[fencode_MODID(p,i,j,energy)]- 0.5*(wmod[fencode_MODID(p,i,j,mom1)]*wmod[fencode_MODID(p,i,j,mom1)]+wmod[fencode_MODID(p,i,j,mom2)]*wmod[fencode_MODID(p,i,j,mom2)]+wmod[fencode_MODID(p,i,j,mom3)]*wmod[fencode_MODID(p,i,j,mom3)])-0.5*(wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,b3)]) -(wmod[fencode_MODID(p,i,j,b1b)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2b)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3b)]*wmod[fencode_MODID(p,i,j,b3)]) );
 
 
 wd[fencode_MODID(p,i,j,pkb)]=((p->gamma)-1)*(wmod[fencode_MODID(p,i,j,energyb)]- 0.5*(wmod[fencode_MODID(p,i,j,b1b)]*wmod[fencode_MODID(p,i,j,b1b)]+wmod[fencode_MODID(p,i,j,b2b)]*wmod[fencode_MODID(p,i,j,b2b)]+wmod[fencode_MODID(p,i,j,b3b)]*wmod[fencode_MODID(p,i,j,b3b)]) );
 
 #else
-
+wd[fencode_MODID(p,i,j,vel1)]=wmod[fencode_MODID(p,i,j,mom1)]/(wmod[fencode_MODID(p,i,j,rho)]);
+wd[fencode_MODID(p,i,j,vel2)]=wmod[fencode_MODID(p,i,j,mom2)]/(wmod[fencode_MODID(p,i,j,rho)]);
+wd[fencode_MODID(p,i,j,vel3)]=wmod[fencode_MODID(p,i,j,mom3)]/(wmod[fencode_MODID(p,i,j,rho)]);
   //real momsq=wmod[fencode_MODID(p,i,j,mom1)]*wmod[fencode_MODID(p,i,j,mom1)]+wmod[fencode_MODID(p,i,j,mom2)]*wmod[fencode_MODID(p,i,j,mom2)]+wmod[fencode_MODID(p,i,j,mom3)]*wmod[fencode_MODID(p,i,j,mom3)];
   //real bsq=wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,b3)];
   wd[fencode_MODID(p,i,j,pressurek)]=((p->gamma)-1)*(wmod[fencode_MODID(p,i,j,energy)]- 0.5*(wmod[fencode_MODID(p,i,j,mom1)]*wmod[fencode_MODID(p,i,j,mom1)]+wmod[fencode_MODID(p,i,j,mom2)]*wmod[fencode_MODID(p,i,j,mom2)]+wmod[fencode_MODID(p,i,j,mom3)]*wmod[fencode_MODID(p,i,j,mom3)])/wmod[fencode_MODID(p,i,j,rho)]-0.5*(wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,b3)]) );

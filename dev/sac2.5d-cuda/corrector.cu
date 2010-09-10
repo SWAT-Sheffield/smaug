@@ -56,8 +56,8 @@ __global__ void corrector_parallel(struct params *p,  real *w, real *wnew, real 
 	{ 
    
 		for(int f=rho; f<=b3; f++)           
- 			wmod[fencode_cor(p,i,j,f)]=((w[fencode_cor(p,i+1,j,f)]+w[fencode_cor(p,i-1,j,f)]+w[fencode_cor(p,i,j+1,f)]+w[fencode_cor(p,i,j-1,f)])/4.0)+dt*dwn1[(NVAR*ni*nj*(order-1))+fencode_cor(p,i,j,f)];
-//wmod[fencode_cor(p,i,j,f)]=(w[fencode_cor(p,i,j,f)])+dt*dwn1[(NVAR*ni*nj*(order-1))+fencode_cor(p,i,j,f)];
+ 			//wmod[fencode_cor(p,i,j,f)]=((w[fencode_cor(p,i+1,j,f)]+w[fencode_cor(p,i-1,j,f)]+w[fencode_cor(p,i,j+1,f)]+w[fencode_cor(p,i,j-1,f)])/4.0)+dt*dwn1[(NVAR*ni*nj*(order-1))+fencode_cor(p,i,j,f)];
+                   wmod[fencode_cor(p,i,j,f)]=(w[fencode_cor(p,i,j,f)])+dt*dwn1[(NVAR*ni*nj*(order-1))+fencode_cor(p,i,j,f)];
 	}
 
  __syncthreads();
@@ -69,7 +69,7 @@ if(i<((p->n[0])) && j<((p->n[1])))
                //   wmod[fencode_cor(p,i,j,f)]=w[fencode_cor(p,i,j,f)];
                //   wnew[fencode_cor(p,i,j,f)]=0.0;
                //}
-               for(int f=current1; f<=divb; f++)
+               for(int f=current1; f<=f3; f++)
                   wd[fencode_cor(p,i,j,f)]=0; 
         }
                __syncthreads();

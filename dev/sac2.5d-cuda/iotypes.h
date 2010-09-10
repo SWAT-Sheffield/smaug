@@ -20,11 +20,11 @@ DEFINE_PRECISION(double)
 #define NVECDIM 3
 #ifdef USE_SAC
    #define NVAR 13
-   #define NDERV 12
+   #define NDERV 19
 
  #else
    #define NVAR 8
-   #define NDERV 11
+   #define NDERV 18
  #endif
 
 
@@ -123,10 +123,10 @@ struct hydrovars{
 #endif
 
 #ifdef USE_SAC
-	typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv,soundspeed,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
+	typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv,soundspeed,divb,cfast,hdnur,hdnul,ptb,pkb,vel1,vel2,vel3,f1,f2,f3} DEV;
 
 #else
-	typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv,soundspeed,divb,cfast,hdnur,hdnul} DEV;
+	typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv,soundspeed,divb,cfast,hdnur,hdnul,vel1,vel2,vel3,f1,f2,f3} DEV;
 
 #endif
 typedef enum tempvars {tmp1, tmp2, tmp3,tmp4,tmp5,tmp6,tmp7,tmp8,tmp9, tmprhol, tmprhor } TEV;

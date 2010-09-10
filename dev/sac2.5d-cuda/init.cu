@@ -137,7 +137,7 @@ int ni=p->n[0];
 
  __syncthreads();
         if(i<p->n[0] && j<p->n[1])
-               for(int f=current1; f<=hdnul; f++)
+               for(int f=current1; f<=f3; f++)
                     wd[fencode_i(p,i,j,f)]=0.0;
 
  __syncthreads(); 

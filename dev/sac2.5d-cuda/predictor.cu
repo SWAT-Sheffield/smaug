@@ -53,7 +53,7 @@ if(i<((p->n[0])) && j<((p->n[1])))
                   wmod[fencode_pre(p,i,j,f)]=w[fencode_pre(p,i,j,f)];
                   wnew[fencode_pre(p,i,j,f)]=0.0;
                }
-               for(int f=current1; f<=divb; f++)
+               for(int f=current1; f<=f3; f++)
                   wd[fencode_pre(p,i,j,f)]=0; 
         }
                __syncthreads();
