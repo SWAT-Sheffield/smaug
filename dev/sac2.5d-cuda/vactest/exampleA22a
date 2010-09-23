@@ -11,12 +11,11 @@
  /
 
  &savelist
-	itsave(1,2)=0
-	ditsave=5,5
+	ditsave=1,1
  /
 
  &stoplist
-	itmax=400
+	itmax=100
  /
 
  &methodlist
@@ -37,4 +36,6 @@
 
  &paramlist
 	courantpar=0.8
+        dtpar=0.0003625
+        dtcantgrow=T
  /
