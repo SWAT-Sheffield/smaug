@@ -205,7 +205,7 @@ __global__ void derivcurrent2_parallel(struct params *p, real *w, real *wnew, re
    i=iindex-(j*(p->n[0]));
 
 
-               for(int f=energy; f<=b3; f++)
+               for(int f=energy; f<NVAR; f++)
                {
 
 			if(i>1 && j >1 && i<(ni-2) && j<(nj-2))

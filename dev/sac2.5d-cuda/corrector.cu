@@ -55,7 +55,7 @@ __global__ void corrector_parallel(struct params *p,  real *w, real *wnew, real 
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{ 
    
-		for(int f=rho; f<=b3; f++)           
+		for(int f=rho; f<NVAR; f++)           
  			//wmod[fencode_cor(p,i,j,f)]=((w[fencode_cor(p,i+1,j,f)]+w[fencode_cor(p,i-1,j,f)]+w[fencode_cor(p,i,j+1,f)]+w[fencode_cor(p,i,j-1,f)])/4.0)+dt*dwn1[(NVAR*ni*nj*(order-1))+fencode_cor(p,i,j,f)];
                    wmod[fencode_cor(p,i,j,f)]=(w[fencode_cor(p,i,j,f)])+dt*dwn1[(NVAR*ni*nj*(order-1))+fencode_cor(p,i,j,f)];
 	}
@@ -69,7 +69,7 @@ if(i<((p->n[0])) && j<((p->n[1])))
                //   wmod[fencode_cor(p,i,j,f)]=w[fencode_cor(p,i,j,f)];
                //   wnew[fencode_cor(p,i,j,f)]=0.0;
                //}
-               for(int f=current1; f<=f3; f++)
+               for(int f=f1; f<NDERV; f++)
                   wd[fencode_cor(p,i,j,f)]=0; 
         }
                __syncthreads();
@@ -77,12 +77,18 @@ if(i<((p->n[0])) && j<((p->n[1])))
 
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{		               
+               #ifdef ADIABHYDRO
+               computepk_cor(wmod,wd,p,i,j);
+               computept_cor(wmod,wd,p,i,j);
+
+               #else
                computej_cor(wmod,wd,p,i,j);
                computepk_cor(wmod,wd,p,i,j);
                computept_cor(wmod,wd,p,i,j);
 
                computebdotv_cor(wmod,wd,p,i,j);
                computedivb_cor(wmod,wd,p,i,j);
+               #endif
          }
               __syncthreads();
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))

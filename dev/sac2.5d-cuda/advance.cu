@@ -48,15 +48,15 @@ __global__ void advance_parallel(struct params *p, real *w, real *wnew, real *wm
 	{		               
  
                float big=9999.0;
-               for(int f=rho; f<=b3; f++)
+               for(int f=rho; f<NVAR; f++)
                {
                    
                    
                   if((p->rkon)==1)
                   {
-                  wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)]+(dt/6.0)*(dwn1[fencode_adv(p,i,j,f)]+2*dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]+2*dwn1[(2*NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]+dwn1[(3*NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]);
+                  //wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)]+(dt/6.0)*(dwn1[fencode_adv(p,i,j,f)]+2*dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]+2*dwn1[(2*NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]+dwn1[(3*NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]);
                  // wnew[fencode_adv(p,i,j,f)]=((w[fencode_adv(p,i+1,j,f)]+w[fencode_adv(p,i-1,j,f)]+w[fencode_adv(p,i,j+1,f)]+w[fencode_adv(p,i,j-1,f)])/4.0)+(dt/6.0)*(dwn1[fencode_adv(p,i,j,f)]+2*dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]+2*dwn1[(2*NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]+dwn1[(3*NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]);
-
+wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)]+(dt/5.0)*(dwn1[fencode_adv(p,i,j,f)]+2*dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]+2*dwn1[(2*NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]);
                    }
                   else
                   {

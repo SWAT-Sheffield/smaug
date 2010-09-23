@@ -160,13 +160,18 @@ wd[fencode_MODID(p,i,j,cfast)]=sqrt(((wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode
 __device__ __host__
 void computecmax_MODID(real *wmod,real *wd,struct params *p,int i,int j)
 {
-
+#ifdef ADIABHYDRO
+       if(wd[fencode_MODID(p,i,j,soundspeed)]>(p->cmax))
+                    // atomicExch(&(p->cmax),(wd[fencode_MODID(p,i,j,soundspeed)]));
+                    p->cmax=(wd[fencode_MODID(p,i,j,soundspeed)]);
+#else
        if(wd[fencode_MODID(p,i,j,soundspeed)]>(p->cmax))
                     // atomicExch(&(p->cmax),(wd[fencode_MODID(p,i,j,soundspeed)]));
                     p->cmax=(wd[fencode_MODID(p,i,j,soundspeed)]);
        if(wd[fencode_MODID(p,i,j,cfast)]>(p->cmax))
                     // atomicExch(&(p->cmax),(wd[fencode_MODID(p,i,j,soundspeed)]));
                     p->cmax=(wd[fencode_MODID(p,i,j,cfast)]);
+#endif
 
 }
 

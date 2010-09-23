@@ -284,7 +284,7 @@ __global__ void derivsource_parallel(struct params *p, real *w, real *wnew, real
                computepk(wmod,wd,p,i,j);
                computept(wmod,wd,p,i,j);
                computebdotv(wmod,wd,p,i,j);*/
-               for(int f=rho; f<=b3; f++)
+               for(int f=rho; f<NVAR; f++)
                {              
                   //if( (f==mom2) && (j==2))
                   //   ;//derivsource(dwn1,wd,wmod,p,i,j,f);

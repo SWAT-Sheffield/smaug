@@ -48,12 +48,12 @@ __global__ void predictor_parallel(struct params *p,  real *w, real *wnew, real 
    i=iindex-(j*ni);
 if(i<((p->n[0])) && j<((p->n[1])))
 	{		
-               for(int f=rho; f<=b3; f++)
+               for(int f=rho; f<NVAR; f++)
                {               
                   wmod[fencode_pre(p,i,j,f)]=w[fencode_pre(p,i,j,f)];
                   wnew[fencode_pre(p,i,j,f)]=0.0;
                }
-               for(int f=current1; f<=f3; f++)
+               for(int f=vel1; f<NDERV; f++)
                   wd[fencode_pre(p,i,j,f)]=0; 
         }
                __syncthreads();
@@ -61,12 +61,19 @@ if(i<((p->n[0])) && j<((p->n[1])))
 
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{		               
+             #ifdef ADIABHYDRO
+               computepk_pre(wmod,wd,p,i,j);
+               computept_pre(wmod,wd,p,i,j);
+             #else
                computej_pre(wmod,wd,p,i,j);
                computepk_pre(wmod,wd,p,i,j);
                computept_pre(wmod,wd,p,i,j);
 
                computebdotv_pre(wmod,wd,p,i,j);
                computedivb_pre(wmod,wd,p,i,j);
+
+             #endif
+
          }
               __syncthreads();
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))

@@ -73,7 +73,7 @@ int ni=p->n[0];
 	//if no initial config read
 	if(p->readini==0)
 	{
-	    for(int f=0; f<=NVAR; f++)
+	    for(int f=0; f<NVAR; f++)
             { 
 		          w[fencode_i(p,i,j,f)]=0;
 	    }
@@ -118,7 +118,7 @@ int ni=p->n[0];
 
   if(i<p->n[0] && j<p->n[1])
 	{
-        for(int f=rho; f<=b3; f++)
+        for(int f=rho; f<NVAR; f++)
         {               
                   wnew[fencode_i(p,i,j,f)]=w[fencode_i(p,i,j,f)];
               for(int ord=0;ord<(1+3*((p->rkon)==1));ord++)
@@ -129,7 +129,7 @@ int ni=p->n[0];
                  
         }
 
-        for(int f=tmp1; f<=tmprhor; f++)
+        for(int f=tmp1; f<NTEMP; f++)
                  wtemp[fencode_i(p,i,j,f)]=0;
 
 
@@ -137,7 +137,7 @@ int ni=p->n[0];
 
  __syncthreads();
         if(i<p->n[0] && j<p->n[1])
-               for(int f=current1; f<=f3; f++)
+               for(int f=vel1; f<NDERV; f++)
                     wd[fencode_i(p,i,j,f)]=0.0;
 
  __syncthreads(); 
@@ -210,7 +210,7 @@ int cuinit(struct params **p, real **w, real **wnew, struct state **state, struc
   cudaMalloc((void**)d_wmod, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
   cudaMalloc((void**)d_dwn1, NVAR*(1+3*((*p)->rkon))*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
   cudaMalloc((void**)d_wd, NDERV*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
-  cudaMalloc((void**)d_wtemp, NDERV*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
+  cudaMalloc((void**)d_wtemp, NTEMP*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
 
   cudaMalloc((void**)&adw, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
   cudaMalloc((void**)&adwnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
@@ -228,7 +228,7 @@ printf("ni is %d\n",(*p)->n[1]);
     *d_state=ads;
 
 
-    cudaMemcpy(*d_w, *w, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
+    cudaMemcpy(*d_w, *w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
    // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
     
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);

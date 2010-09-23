@@ -124,13 +124,25 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
     switch(direction)
   {
      case 0:
-     wd[fencode_dc1(p,ix,iy,f1)]= transportflux(dw,wd,w,p,ix,iy,field,direction)+fluxmom1(dw,wd,w,p,ix,iy,field,direction);
+        #ifdef ADIABHYDRO
+     		wd[fencode_dc1(p,ix,iy,f1)]= transportflux(dw,wd,w,p,ix,iy,field,direction);
+        #else
+    		 wd[fencode_dc1(p,ix,iy,f1)]= transportflux(dw,wd,w,p,ix,iy,field,direction)+fluxmom1(dw,wd,w,p,ix,iy,field,direction);
+        #endif
      break;
      case 1:
-     wd[fencode_dc1(p,ix,iy,f2)]= transportflux(dw,wd,w,p,ix,iy,field,direction)+fluxmom1(dw,wd,w,p,ix,iy,field,direction);
+        #ifdef ADIABHYDRO
+	     wd[fencode_dc1(p,ix,iy,f2)]= transportflux(dw,wd,w,p,ix,iy,field,direction);
+        #else
+	     wd[fencode_dc1(p,ix,iy,f2)]= transportflux(dw,wd,w,p,ix,iy,field,direction)+fluxmom1(dw,wd,w,p,ix,iy,field,direction);
+        #endif
      break;
      case 2:
-     wd[fencode_dc1(p,ix,iy,f3)]= transportflux(dw,wd,w,p,ix,iy,field,direction)+fluxmom1(dw,wd,w,p,ix,iy,field,direction);
+        #ifdef ADIABHYDRO
+	     wd[fencode_dc1(p,ix,iy,f3)]= transportflux(dw,wd,w,p,ix,iy,field,direction);
+        #else
+	     wd[fencode_dc1(p,ix,iy,f3)]= transportflux(dw,wd,w,p,ix,iy,field,direction)+fluxmom1(dw,wd,w,p,ix,iy,field,direction);
+        #endif
      break;
    }
 }

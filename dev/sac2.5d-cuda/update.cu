@@ -85,7 +85,7 @@ __global__ void update_parallel(struct params *p, struct state *s, real *w, real
 if (threadIdx.x == 0) 
 {
  ntot=(p->n[0])*(p->n[1]);
- for(int f=rho; f<=b3; f++) 
+ for(int f=rho; f<=NVAR; f++) 
  {
                     switch(f)
                     {
@@ -121,7 +121,7 @@ if (threadIdx.x == 0)
 __syncthreads();
   if(i>1 && j>1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{
-             for(int f=rho; f<=b3; f++)
+             for(int f=rho; f<NVAR; f++)
              {               
                   w[fencode_u(p,i,j,f)]=wnew[fencode_u(p,i,j,f)];
                   updatestate (p, s, w ,i, j, f);
@@ -134,7 +134,7 @@ __syncthreads();
 
 if (threadIdx.x == 0) 
 {
- for(int f=rho; f<=b3; f++) 
+ for(int f=rho; f<NVAR; f++) 
  {
                     switch(f)
                     {

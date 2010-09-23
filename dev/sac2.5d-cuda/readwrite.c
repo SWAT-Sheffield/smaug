@@ -49,7 +49,11 @@ int writeconfig(char *name,int n,params p, meta md, real *w)
         for( i1=0;i1<ni;i1++)
 	{
                // printf("%d %d ", i1,j1);
+ #ifdef ADIABHYDRO
+		fprintf(fdt,"%d %d %f %f %f %f \n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[(j1*ni+i1)+(ni*nj*mom1)],w[(j1*ni+i1)+(ni*nj*mom2)],w[j1*ni+i1+(ni*nj*mom3)]);
+#else
 		fprintf(fdt,"%d %d %f %f %f %f %f %f %f %f\n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[(j1*ni+i1)+(ni*nj*mom1)],w[(j1*ni+i1)+(ni*nj*mom2)],w[j1*ni+i1+(ni*nj*mom3)],w[j1*ni+i1+(ni*nj*energy)],w[j1*ni+i1+(ni*nj*b1)],w[j1*ni+i1+(ni*nj*b2)],w[j1*ni+i1+(ni*nj*b3)]);
+#endif
            //fprintf(fdt,"%d %f %f %f ",j1+i1*nj, u[j1+i1*nj],v[j1+i1*nj],h[j1+i1*nj]);
                // fprintf(fdt,"%f ",h[j1+i1*nj]);
         }     
@@ -69,7 +73,12 @@ int writeconfig(char *name,int n,params p, meta md, real *w)
         for( i1=0;i1<ni;i1++)
 	{
                // printf("%d %d ", i1,j1);
-		fprintf(fdt,"%d %d %f %f %f %f %f %f %f %f\n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[(j1*ni+i1)+(ni*nj*mom1)],w[(j1*ni+i1)+(ni*nj*mom2)],w[j1*ni+i1+(ni*nj*mom3)],w[j1*ni+i1+(ni*nj*energy)],w[j1*ni+i1+(ni*nj*b1)],w[j1*ni+i1+(ni*nj*b2)],w[j1*ni+i1+(ni*nj*b3)]);
+ #ifdef ADIABHYDRO
+ fprintf(fdt,"%d %d %f %f %f %f \n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[(j1*ni+i1)+(ni*nj*mom1)],w[(j1*ni+i1)+(ni*nj*mom2)],w[j1*ni+i1+(ni*nj*mom3)]);
+#else
+fprintf(fdt,"%d %d %f %f %f %f %f %f %f %f\n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[(j1*ni+i1)+(ni*nj*mom1)],w[(j1*ni+i1)+(ni*nj*mom2)],w[j1*ni+i1+(ni*nj*mom3)],w[j1*ni+i1+(ni*nj*energy)],w[j1*ni+i1+(ni*nj*b1)],w[j1*ni+i1+(ni*nj*b2)],w[j1*ni+i1+(ni*nj*b3)]);
+        #endif
+		
            //fprintf(fdt,"%d %f %f %f ",j1+i1*nj, u[j1+i1*nj],v[j1+i1*nj],h[j1+i1*nj]);
                // fprintf(fdt,"%f ",h[j1+i1*nj]);
         }     
@@ -173,7 +182,11 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
 
       //scalar fields
 //n+=10;
+        #ifdef ADIABHYDRO
+      for(int i=0; i<=3; i+=4)
+       #else
       for(int i=0; i<=4; i+=4)
+        #endif
       {
 	      if(n<=9)
                  sprintf(configfile,"vtk/%s%ss00%d.vtk",labels[i/4],name,n);
@@ -218,7 +231,12 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
 
       //vector fields
       int iv;
+        #ifdef ADIABHYDRO
+      for(int i=2; i<3; i++)
+       #else
       for(int i=2; i<=3; i++)
+        #endif
+
       {
 	      if(i==2)
                 iv=1;

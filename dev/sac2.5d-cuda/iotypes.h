@@ -16,17 +16,24 @@ DEFINE_PRECISION(double)
 
 #undef DEFINE_PRECISION
 
+
 #define NDIM 2
 #define NVECDIM 3
 #ifdef USE_SAC
    #define NVAR 13
    #define NDERV 19
-
- #else
+   #define NTEMP 11
+#endif
+ #ifdef USE_VAC
    #define NVAR 8
    #define NDERV 18
+   #define NTEMP 11
  #endif
-
+ #ifdef ADIABHYDRO
+   #define NVAR 4
+   #define NDERV 9
+   #define NTEMP 1
+ #endif
 
 
 struct Meta {
@@ -123,13 +130,17 @@ struct hydrovars{
 #endif
 
 #ifdef USE_SAC
-	typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv,soundspeed,divb,cfast,hdnur,hdnul,ptb,pkb,vel1,vel2,vel3,f1,f2,f3} DEV;
+	typedef enum dvars {vel1,vel2,vel3,f1,f2,f3,soundspeed,pressuret,pressurek,current1,current2,current3,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
 
 #else
-	typedef enum dvars {current1,current2,current3,pressuret,pressurek,bdotv,soundspeed,divb,cfast,hdnur,hdnul,vel1,vel2,vel3,f1,f2,f3} DEV;
+	typedef enum dvars {vel1,vel2,vel3,f1,f2,f3,soundspeed,pressuret,pressurek,current1,current2,current3,bdotv,divb,cfast,hdnur,hdnul} DEV;
 
 #endif
+
+
 typedef enum tempvars {tmp1, tmp2, tmp3,tmp4,tmp5,tmp6,tmp7,tmp8,tmp9, tmprhol, tmprhor } TEV;
+
+
 
 typedef struct Source source;
 typedef struct Constants constants;
