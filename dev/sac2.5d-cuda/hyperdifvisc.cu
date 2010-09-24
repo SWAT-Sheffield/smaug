@@ -52,7 +52,17 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
                  wtemp[fencode_hdv(p,i,j,f)]=0;
 
         //temp value for viscosity
+
+#ifdef USE_SAC
+        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)]/((field==rho || field>mom3)+(field>rho && field<energy)*(wmod[fencode_hdv(p,i,j,rho)]+wmod[fencode_hdv(p,i,j,rhob)]));
+        if(field=rho)
+           wtemp[fencode_hdv(p,i,j,tmp1)]+=wmod[fencode_hdv(p,i,j,rhob)];
+
+       if(field=b1 || field==b2)
+           wtemp[fencode_hdv(p,i,j,tmp1)]+=wmod[fencode_hdv(p,i,j,field+5)];
+#else
         wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)]/((field==rho || field>mom3)+(field>rho && field<energy)*wmod[fencode_hdv(p,i,j,rho)]);
+#endif
         wd[fencode_hdv(p,i,j,hdnur)]=0;
         wd[fencode_hdv(p,i,j,hdnul)]=0;
    }

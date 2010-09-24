@@ -147,7 +147,7 @@ dt=0.000425;
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
 //nt=100;
-nt=100;
+nt=200;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -283,7 +283,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=0.0;
 p->readini=0;
-p->cfgsavefrequency=20;
+p->cfgsavefrequency=1;
 
 
 p->xmax[0]=xmax;

@@ -31,10 +31,18 @@ void init_alftest (real *w, struct params *p,int i, int j) {
   //seg4=(2*(p->n[0])/3);
   seg4=(p->n[0])-seg1;
 
+	#ifdef USE_SAC
 
+		    w[fencode_i(p,i,j,rhob)]=1.0;
+		    w[fencode_i(p,i,j,b1b)]=1.0;
+		    w[fencode_i(p,i,j,energy)]=0.01;
+
+       #else
 		    w[fencode_i(p,i,j,rho)]=1.0;
 		    w[fencode_i(p,i,j,b1)]=1.0;
 		    w[fencode_i(p,i,j,energy)]=0.01;
+
+       #endif
 
 		    //w[fencode_i(p,i,j,b1)]=15*j;
 		    //w[fencode_i(p,i,j,b3)]=150*j;
@@ -55,6 +63,12 @@ void init_alftest (real *w, struct params *p,int i, int j) {
 		   if (i > seg3)
 		    if (i < seg4)
 		      w[fencode_i(p,i,j,mom2)]=m2max*(seg4-i)/(seg4-seg3);
+
+
+
+
+
+
 }
 
 
@@ -64,6 +78,29 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
                     real b0=1.0/sqrt(4.0*PI);
                     real ptot=5.0/(12.0*PI);
                     real rrho;
+
+
+	#ifdef USE_SAC
+		    w[fencode_i(p,i,j,rhob)]=25.0/(36.0*PI);
+
+		    w[fencode_i(p,i,j,b1b)]=-b0*sin(2.0*PI*(p->dx[1])*j);
+		    w[fencode_i(p,i,j,b2b)]=b0*sin(4.0*PI*(p->dx[0])*i);
+		    
+
+                    //vx=-sin(2pi y)
+                    //vy=sin(2pi x)
+		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rhob)]*sin(2.0*PI*j*(p->dx[1]));
+                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rhob)]*sin(2.0*PI*j*(p->dx[0]));
+		    w[fencode_i(p,i,j,mom3)]=0;
+
+                    //p=5/12pi  use this to determine the energy
+                    //p=(gamma -1)*(e-0.5 rho v**2 - b**2/2)
+                    rrho=1.0/(w[fencode_i(p,i,j,rhob)]);
+		    w[fencode_i(p,i,j,energy)]=+0.5*rrho*(w[fencode_i(p,i,j,mom1)]*w[fencode_i(p,i,j,mom1)]+w[fencode_i(p,i,j,mom2)]*w[fencode_i(p,i,j,mom2)]);
+		    w[fencode_i(p,i,j,energyb)]=(ptot/((p->gamma)-1))+0.5*(w[fencode_i(p,i,j,b1)]*w[fencode_i(p,i,j,b1)]+w[fencode_i(p,i,j,b2)]*w[fencode_i(p,i,j,b2)]);
+
+
+       #else
 		    w[fencode_i(p,i,j,rho)]=25.0/(36.0*PI);
 
 		    w[fencode_i(p,i,j,b1)]=-b0*sin(2.0*PI*(p->dx[1])*j);
@@ -80,6 +117,12 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
                     //p=(gamma -1)*(e-0.5 rho v**2 - b**2/2)
                     rrho=1.0/w[fencode_i(p,i,j,rho)];
 		    w[fencode_i(p,i,j,energy)]=(ptot/((p->gamma)-1))+0.5*rrho*(w[fencode_i(p,i,j,mom1)]*w[fencode_i(p,i,j,mom1)]+w[fencode_i(p,i,j,mom2)]*w[fencode_i(p,i,j,mom2)])+0.5*(w[fencode_i(p,i,j,b1)]*w[fencode_i(p,i,j,b1)]+w[fencode_i(p,i,j,b2)]*w[fencode_i(p,i,j,b2)]);
+
+
+       #endif
+
+
+
 
 
 }
@@ -145,9 +188,9 @@ int ni=p->n[0];
 				w[fencode_i(p,i,j,rho)]=1.3;
             #else
                    // init_alftest (real *w, struct params *p,int i, int j)
-                    //init_alftest(w,p,i,j);
+                    init_alftest(w,p,i,j);
                    // init_ozttest (real *w, struct params *p,int i, int j)
-                    init_ozttest(w,p,i,j);
+                   // init_ozttest(w,p,i,j);
            #endif
 
 	}
@@ -269,7 +312,7 @@ printf("ni is %d\n",(*p)->n[1]);
     *d_wnew=adwnew;
     *d_state=ads;
 
-
+printf("allocating\n");
     cudaMemcpy(*d_w, *w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
    // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
     

@@ -12,7 +12,51 @@
 // kernel function (CUDA device)
 /////////////////////////////////////
 #include "gradops_b.cuh"
+__device__ __host__
+void bc_cont(real *wt, struct params *p,int i, int j, int f) {
 
+                if(i<2 && j<2)
+                {
+                  if(i==j)
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,i+2,j,f)];
+                  else                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,i,j+2,f)];                  
+                }
+                else if(i<2 && j>((p->n[1])-3))
+                {
+                  if(i==(j-(p->n[1])))                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,i+2,j,f)];                  
+                  else                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,i,(j-3),f)];                  
+                }
+                else if(i>((p->n[0])-3) && j<2)
+                {
+                  if((i-(p->n[0]))==j)                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,(i-3),j,f)];                  
+                  else                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,i,j+2,f)];                  
+                }
+                else if(i>((p->n[0])-3) && j>((p->n[1])-3))
+                {
+                  if(i==j)                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,(i-3),j,f)];                   
+                  else                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,i,(j-3),f)];                  
+                }                       
+                else if(i==0 || i==1)                
+                  wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,i+2,j,f)];                
+                else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))                
+                  wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,(i-3),j,f)];                
+                else if(j==0 || j==1)                
+                  wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,i,j+2,f)];                
+                else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)))                
+                  wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,i,(j-3),f)];
+                
+
+
+
+
+}
 
 
 
@@ -46,136 +90,14 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
                
                for(int f=rho; f<NVAR; f++)
                {
-                if(i<2 && j<2)
-                {
-                  if(i==j)
-                  {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i+2,j,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i+2,j,f)];
-                  }
-                  else
-                  {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,j+2,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,j+2,f)];
-                  }
-                }
-                else if(i<2 && j>((p->n[1])-3))
-                {
-                  if(i==(j-(p->n[1])))
-                  {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i+2,j,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i+2,j,f)];
-                  }
-                  else
-                  {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,(j-3),f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,(j-3),f)];
-                  }
-                }
-                else if(i>((p->n[0])-3) && j<2)
-                {
-                  if((i-(p->n[0]))==j)
-                  {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,(i-3),j,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,(i-3),j,f)];
-                  }
-                  else
-                  {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,j+2,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,j+2,f)];
-                  }
-                }
-                else if(i>((p->n[0])-3) && j>((p->n[1])-3))
-                {
-                  if(i==j)
-                  {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,(i-3),j,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,(i-3),j,f)];
-                  }
-                  else
-                  {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,(j-3),f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,(j-3),f)];
-                  }
-                }                       
-                else if(i==0 || i==1)
-                {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i+2,j,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i+2,j,f)];
-                }
-                else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))
-                {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,(i-3),j,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,(i-3),j,f)];
-                }
-                else if(j==0 || j==1)
-                {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,j+2,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,j+2,f)];
-                }
-                else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)))
-                {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,(j-3),f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,(j-3),f)];
-                }
-
-                  
+                  bc_cont(wmod,p,i,j,f);
+                  bc_cont(wnew,p,i,j,f);
                }
 
                for(int f=vel1; f<NDERV; f++)
                {
-                if(i<2 && j<2)
-                {
-                  if(i==j)
-                  {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i+2,j,f)];
-                   }
-                  else
-                  {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,j+2,f)];
-                   }                 
-                }
-                else if(i<2 && j>((p->n[1])-3))
-                {
-                  if(i==(j-(p->n[1])))
-                  {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i+2,j,f)];
-                   }
-                  else
-                  {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,j-3,f)];
-                   }                 
-                }
-                else if(i>((p->n[0])-3) && j>((p->n[1])-3))
-                {
-                  if(i==j)
-                  {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i-3,j,f)];
-                   }
-                  else
-                  {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,j-3,f)];
-                   }                 
-                }
-                else if(i>((p->n[0])-3) && j<2)
-                {
-                  if((i-(p->n[0]))==j)
-                  {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i-3,j,f)];
-                   }
-                  else
-                  {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,i+2,f)];
-                   }                 
-                }                                       
-                else if(i==0 || i==1)
-                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i+2,j,f)];
-                else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))
-                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i-3,j,f)];
-                else if(j==0 || j==1)
-                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,j+2,f)];
-                else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)))
-                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,j-3,f)];
+                  bc_cont(wd,p,i,j,f);
+
                 
                   
                }

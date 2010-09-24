@@ -26,7 +26,7 @@ DEFINE_PRECISION(double)
 #endif
  #ifdef USE_VAC
    #define NVAR 8
-   #define NDERV 18
+   #define NDERV 17
    #define NTEMP 11
  #endif
  #ifdef ADIABHYDRO
