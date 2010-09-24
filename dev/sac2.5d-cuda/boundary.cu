@@ -50,73 +50,73 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
                 {
                   if(i==j)
                   {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,2,j,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,2,j,f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i+2,j,f)];
+                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i+2,j,f)];
                   }
                   else
                   {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,2,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,2,f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,j+2,f)];
+                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,j+2,f)];
                   }
                 }
                 else if(i<2 && j>((p->n[1])-3))
                 {
                   if(i==(j-(p->n[1])))
                   {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,2,j,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,2,j,f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i+2,j,f)];
+                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i+2,j,f)];
                   }
                   else
                   {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,((p->n[1])-3),f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,((p->n[1])-3),f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,(j-3),f)];
+                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,(j-3),f)];
                   }
                 }
                 else if(i>((p->n[0])-3) && j<2)
                 {
                   if((i-(p->n[0]))==j)
                   {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,((p->n[0])-3),j,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,((p->n[0])-3),j,f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,(i-3),j,f)];
+                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,(i-3),j,f)];
                   }
                   else
                   {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,2,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,2,f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,j+2,f)];
+                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,j+2,f)];
                   }
                 }
                 else if(i>((p->n[0])-3) && j>((p->n[1])-3))
                 {
                   if(i==j)
                   {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,((p->n[0])-3),j,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,((p->n[0])-3),j,f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,(i-3),j,f)];
+                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,(i-3),j,f)];
                   }
                   else
                   {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,((p->n[1])-3),f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,((p->n[1])-3),f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,(j-3),f)];
+                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,(j-3),f)];
                   }
                 }                       
                 else if(i==0 || i==1)
                 {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,2,j,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,2,j,f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i+2,j,f)];
+                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i+2,j,f)];
                 }
                 else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))
                 {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,((p->n[0])-3),j,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,((p->n[0])-3),j,f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,(i-3),j,f)];
+                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,(i-3),j,f)];
                 }
                 else if(j==0 || j==1)
                 {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,2,f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,2,f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,j+2,f)];
+                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,j+2,f)];
                 }
                 else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)))
                 {
-                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,((p->n[1])-3),f)];
-                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,((p->n[1])-3),f)];
+                  wnew[fencode_b(p,i,j,f)]=wnew[fencode_b(p,i,(j-3),f)];
+                  wmod[fencode_b(p,i,j,f)]=wmod[fencode_b(p,i,(j-3),f)];
                 }
 
                   
@@ -128,54 +128,54 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
                 {
                   if(i==j)
                   {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,2,j,f)];
+                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i+2,j,f)];
                    }
                   else
                   {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,2,f)];
+                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,j+2,f)];
                    }                 
                 }
                 else if(i<2 && j>((p->n[1])-3))
                 {
                   if(i==(j-(p->n[1])))
                   {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,2,j,f)];
+                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i+2,j,f)];
                    }
                   else
                   {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,((p->n[1])-3),f)];
+                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,j-3,f)];
                    }                 
                 }
                 else if(i>((p->n[0])-3) && j>((p->n[1])-3))
                 {
                   if(i==j)
                   {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,((p->n[0])-3),j,f)];
+                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i-3,j,f)];
                    }
                   else
                   {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,((p->n[1])-3),f)];
+                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,j-3,f)];
                    }                 
                 }
                 else if(i>((p->n[0])-3) && j<2)
                 {
                   if((i-(p->n[0]))==j)
                   {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,((p->n[0])-3),j,f)];
+                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i-3,j,f)];
                    }
                   else
                   {
-                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,2,f)];
+                     wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,i+2,f)];
                    }                 
                 }                                       
                 else if(i==0 || i==1)
-                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,2,j,f)];
+                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i+2,j,f)];
                 else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))
-                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,((p->n[0])-3),j,f)];
+                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i-3,j,f)];
                 else if(j==0 || j==1)
-                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,2,f)];
+                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,j+2,f)];
                 else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)))
-                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,((p->n[1])-3),f)];
+                  wd[fencode_b(p,i,j,f)]=wd[fencode_b(p,i,j-3,f)];
                 
                   
                }

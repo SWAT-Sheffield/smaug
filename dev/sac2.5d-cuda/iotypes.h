@@ -35,7 +35,7 @@ DEFINE_PRECISION(double)
    #define NTEMP 1
  #endif
 
-
+#define PI 3.14159265358979
 struct Meta {
    char *directory ;
    char *author;

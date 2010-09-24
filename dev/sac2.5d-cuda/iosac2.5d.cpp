@@ -105,19 +105,19 @@ real h0 = 5030;
 
 //Domain definition
 // Define the x domain
-int ni = 150; 
+int ni = 102; 
 //ni=41;
 real xmax = 1.0;                      
-real dx = xmax/(ni-1);
+real dx = 0.55*xmax/(ni-4);
 
 
 
 
 // Define the y domain
-int nj = 150;  
+int nj = 102;  
 //nj=41;
 real ymax = 1.0;                      
-real dy = ymax/(nj-1);
+real dy = 0.55*ymax/(nj-4);
 
 real *x=(real *)calloc(ni,sizeof(real));
 for(i=0;i<ni;i++)
@@ -141,12 +141,13 @@ char configfile[300];
 real dt;
 //dt=0.015985;
 //dt=0.15;
-dt=0.0029;
+//dt=0.00145;
+dt=0.000425;
 //dt=0.25;
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
 //nt=100;
-nt=200;
+nt=100;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -252,9 +253,16 @@ p->adiab=0.5;
 */
 #ifdef ADIABHYDRO
 p->gamma=2.0;
-p->adiab=0.5;
+p->adiab=1.0;
+
 #else
+
+//ozt test
+//p->gamma=5/3;
+
+//alfven test
 p->gamma=1.4;
+
 #endif
 
 
@@ -275,7 +283,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=0.0;
 p->readini=0;
-p->cfgsavefrequency=1;
+p->cfgsavefrequency=20;
 
 
 p->xmax[0]=xmax;
@@ -332,7 +340,7 @@ printf("calling cuinit\n");
 
 // Build empty u, v, b matrices
 // Define h
-
+printf("allocating w and wnew\n");
  w=(real *)calloc(ni*nj*NVAR,sizeof(real ));
  wnew=(real *)calloc(ni*nj*NVAR,sizeof(real ));
 char *cfgfile;
@@ -346,7 +354,7 @@ else
   u=w+(ni)*(nj)*mom1;
   v=w+(ni)*(nj)*mom2;
 
-
+printf("about to call cuinit\n");
 
 cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp);
 
@@ -405,7 +413,7 @@ for( n=0;n<nt;n++)
 
     if((n%(p->cfgsavefrequency))==0)
     {
-      writeconfig(name,n,*p, meta , w);
+      //writeconfig(name,n,*p, meta , w);
       writevtkconfig(name,n,*p, meta , w);
     }
    order=0;

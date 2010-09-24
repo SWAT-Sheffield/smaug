@@ -14,6 +14,77 @@
 #include "gradops_i.cuh"
 
 
+
+
+
+
+__device__ __host__
+void init_alftest (real *w, struct params *p,int i, int j) {
+  int seg1,seg2,seg3,seg4;
+  int width=10;
+  real m2max=0.001;
+  real start=((p->n[0])-width)/2;
+  //seg1=((p->n[0])/3)-1;
+  seg1=(p->n[0])/6;
+  seg2=((p->n[0])/3);
+  seg3=(2*(p->n[0])/3)-1;
+  //seg4=(2*(p->n[0])/3);
+  seg4=(p->n[0])-seg1;
+
+
+		    w[fencode_i(p,i,j,rho)]=1.0;
+		    w[fencode_i(p,i,j,b1)]=1.0;
+		    w[fencode_i(p,i,j,energy)]=0.01;
+
+		    //w[fencode_i(p,i,j,b1)]=15*j;
+		    //w[fencode_i(p,i,j,b3)]=150*j;
+		    
+		   //if (i > seg2)
+		    //if (i < seg3)
+                   // if (i < seg1)
+		   //   w[fencode_i(p,i,j,mom2)]=0.0;
+
+		   if (i > seg1)
+		    if (i < seg2)
+		      w[fencode_i(p,i,j,mom2)]=m2max*(i-seg1)/(seg2-seg1);
+
+		   if (i > seg2)
+		    if (i < seg3)
+		      //w[fencode_i(p,i,j,mom2)]=m2max*(i-seg2)/(seg3-seg2);
+                      w[fencode_i(p,i,j,mom2)]=m2max;
+		   if (i > seg3)
+		    if (i < seg4)
+		      w[fencode_i(p,i,j,mom2)]=m2max*(seg4-i)/(seg4-seg3);
+}
+
+
+__device__ __host__
+void init_ozttest (real *w, struct params *p,int i, int j) {
+                    
+                    real b0=1.0/sqrt(4.0*PI);
+                    real ptot=5.0/(12.0*PI);
+                    real rrho;
+		    w[fencode_i(p,i,j,rho)]=25.0/(36.0*PI);
+
+		    w[fencode_i(p,i,j,b1)]=-b0*sin(2.0*PI*(p->dx[1])*j);
+		    w[fencode_i(p,i,j,b2)]=b0*sin(4.0*PI*(p->dx[0])*i);
+		    w[fencode_i(p,i,j,b3)]=0.0;
+
+                    //vx=-sin(2pi y)
+                    //vy=sin(2pi x)
+		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(2.0*PI*j*(p->dx[1]));
+                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(2.0*PI*j*(p->dx[0]));
+		    w[fencode_i(p,i,j,mom3)]=0;
+
+                    //p=5/12pi  use this to determine the energy
+                    //p=(gamma -1)*(e-0.5 rho v**2 - b**2/2)
+                    rrho=1.0/w[fencode_i(p,i,j,rho)];
+		    w[fencode_i(p,i,j,energy)]=(ptot/((p->gamma)-1))+0.5*rrho*(w[fencode_i(p,i,j,mom1)]*w[fencode_i(p,i,j,mom1)]+w[fencode_i(p,i,j,mom2)]*w[fencode_i(p,i,j,mom2)])+0.5*(w[fencode_i(p,i,j,b1)]*w[fencode_i(p,i,j,b1)]+w[fencode_i(p,i,j,b2)]*w[fencode_i(p,i,j,b2)]);
+
+
+}
+
+
 //*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd
 
 __global__ void init_parallel(struct params *p, real *w, real *wnew, real *wmod, 
@@ -27,7 +98,7 @@ __global__ void init_parallel(struct params *p, real *w, real *wnew, real *wmod,
   // int j = blockIdx.y * blockDim.y + threadIdx.y;
 
  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
-  int index,k;
+ // int index,k;
 int ni=p->n[0];
   int nj=p->n[1];
 
@@ -40,16 +111,7 @@ int ni=p->n[0];
     
   real *u,  *v,  *h;
 
-  int seg1,seg2,seg3,seg4;
-  int width=10;
-  real m2max=0.001;
-  real start=((p->n[0])-width)/2;
-  //seg1=((p->n[0])/3)-1;
-  seg1=(p->n[0])/6;
-  seg2=((p->n[0])/3);
-  seg3=(2*(p->n[0])/3)-1;
-  //seg4=(2*(p->n[0])/3);
-  seg4=(p->n[0])-seg1;
+
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
 
@@ -82,30 +144,10 @@ int ni=p->n[0];
 		    if(i> (((p->n[0])/2)-2) && i<(((p->n[0])/2)+2) && j>(((p->n[1])/2)-2) && j<(((p->n[1])/2)+2) ) 
 				w[fencode_i(p,i,j,rho)]=1.3;
             #else
-
-		    w[fencode_i(p,i,j,rho)]=1.0;
-		    w[fencode_i(p,i,j,b1)]=1.0;
-		    w[fencode_i(p,i,j,energy)]=0.01;
-
-		    //w[fencode_i(p,i,j,b1)]=15*j;
-		    //w[fencode_i(p,i,j,b3)]=150*j;
-		    
-		   //if (i > seg2)
-		    //if (i < seg3)
-                   // if (i < seg1)
-		   //   w[fencode_i(p,i,j,mom2)]=0.0;
-
-		   if (i > seg1)
-		    if (i < seg2)
-		      w[fencode_i(p,i,j,mom2)]=m2max*(i-seg1)/(seg2-seg1);
-
-		   if (i > seg2)
-		    if (i < seg3)
-		      //w[fencode_i(p,i,j,mom2)]=m2max*(i-seg2)/(seg3-seg2);
-                      w[fencode_i(p,i,j,mom2)]=m2max;
-		   if (i > seg3)
-		    if (i < seg4)
-		      w[fencode_i(p,i,j,mom2)]=m2max*(seg4-i)/(seg4-seg3);
+                   // init_alftest (real *w, struct params *p,int i, int j)
+                    //init_alftest(w,p,i,j);
+                   // init_ozttest (real *w, struct params *p,int i, int j)
+                    init_ozttest(w,p,i,j);
            #endif
 
 	}
