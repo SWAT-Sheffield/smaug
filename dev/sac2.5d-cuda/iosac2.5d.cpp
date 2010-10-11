@@ -105,7 +105,7 @@ real h0 = 5030;
 
 //Domain definition
 // Define the x domain
-int ni = 102; 
+int ni = 110; 
 //ni=41;
 real xmax = 1.0;                      
 real dx = 0.55*xmax/(ni-4);
@@ -114,7 +114,7 @@ real dx = 0.55*xmax/(ni-4);
 
 
 // Define the y domain
-int nj = 102;  
+int nj = 110;  
 //nj=41;
 real ymax = 1.0;                      
 real dy = 0.55*ymax/(nj-4);
@@ -142,7 +142,7 @@ real dt;
 //dt=0.015985;
 //dt=0.15;
 //dt=0.00145;
-dt=0.000425;
+dt=0.00025;
 //dt=0.25;
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
@@ -299,6 +299,7 @@ p->maxviscoef=0;
 //p->chyp=0.2;       
 p->chyp=0.00000;
 p->chyp3=0.00000;
+p->mnthreads=10;
 
 printf("calling cuinit\n");
 
@@ -518,7 +519,7 @@ for( n=0;n<nt;n++)
 
    cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
    cuupdate(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state);
-
+   printf("nummaxthreads %d\n",p->mnthreads);
 
    t2=second()-t1;
    ttot+=t2;

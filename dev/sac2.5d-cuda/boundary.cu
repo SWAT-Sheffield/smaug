@@ -58,7 +58,101 @@ void bc_cont(real *wt, struct params *p,int i, int j, int f) {
 
 }
 
+__device__ __host__
+void bc_fixed(real *wt, struct params *p,int i, int j, int f, real val) {
 
+
+                //(UPPER or LOWER)*NDIM*NVAR+dim*NVAR+varnum = picks out correct value for fixed BC
+                //for array of values for fixed BC's
+
+                if(i<2 && j<2)
+                {
+                  if(i==j)
+                    wt[fencode_b(p,i,j,f)]=val;
+                  else                  
+                    wt[fencode_b(p,i,j,f)]=val;                  
+                }
+                else if(i<2 && j>((p->n[1])-3))
+                {
+                  if(i==(j-(p->n[1])))                  
+                    wt[fencode_b(p,i,j,f)]=val;                  
+                  else                  
+                    wt[fencode_b(p,i,j,f)]=val;                  
+                }
+                else if(i>((p->n[0])-3) && j<2)
+                {
+                  if((i-(p->n[0]))==j)                  
+                    wt[fencode_b(p,i,j,f)]=val;                  
+                  else                  
+                    wt[fencode_b(p,i,j,f)]=val;                  
+                }
+                else if(i>((p->n[0])-3) && j>((p->n[1])-3))
+                {
+                  if(i==j)                  
+                    wt[fencode_b(p,i,j,f)]=val;                   
+                  else                  
+                    wt[fencode_b(p,i,j,f)]=val;                  
+                }                       
+                else if(i==0 || i==1)                
+                  wt[fencode_b(p,i,j,f)]=val;                
+                else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))                
+                  wt[fencode_b(p,i,j,f)]=val;                
+                else if(j==0 || j==1)                
+                  wt[fencode_b(p,i,j,f)]=val;                
+                else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)))                
+                  wt[fencode_b(p,i,j,f)]=val;
+                
+
+
+
+
+}
+
+__device__ __host__
+void bc_periodic(real *wt, struct params *p,int i, int j, int f) {
+
+               if(i<2 && j<2)
+                {
+                  if(i==j)
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,(p->n[0])-3+i,(p->n[1])-3+j,f)];
+                  else                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,(p->n[0])-3+i,(p->n[1])-3+j,f)];                  
+                }
+                else if(i<2 && j>((p->n[1])-3))
+                {
+                  if(i==(j-(p->n[1])))                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,(p->n[0])-3+i,2+((p->n[1])-j),f)];                  
+                  else                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,(p->n[0])-3+i,2+((p->n[1])-j),f)];                  
+                }
+                else if(i>((p->n[0])-3) && j<2)
+                {
+                  if((i-(p->n[0]))==j)                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,2+((p->n[0])-i),(p->n[1])-3+j,f)];                  
+                  else                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,2+((p->n[0])-i),(p->n[1])-3+j,f)];                  
+                }
+                else if(i>((p->n[0])-3) && j>((p->n[1])-3))
+                {
+                  if(i==j)                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,2+((p->n[0])-i),2+((p->n[1])-j),f)];                   
+                  else                  
+                    wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,2+((p->n[0])-i),2+((p->n[1])-j),f)];                  
+                }                       
+                else if(i==0 || i==1)                
+                  wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,(p->n[0])-3+i,j,f)];                
+                else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))                
+                  wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,2+((p->n[0])-i),j,f)];                
+                else if(j==0 || j==1)                
+                  wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,i,(p->n[1])-3+j,f)];                
+               else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)))                
+                  wt[fencode_b(p,i,j,f)]=wt[fencode_b(p,i,2+((p->n[1])-j),f)];
+                
+
+
+
+
+}
 
 __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *wd, real *wmod)
 {
@@ -75,6 +169,7 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
   real dt=p->dt;
   real dy=p->dx[0];
   real dx=p->dx[1];
+                real val=0;
   
 
 
@@ -87,18 +182,36 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
 
                //default continuous BC for all
                //gradient kept zero by copying variable values from edge of mesh to ghost cells
+                  bc_cont(wmod,p,i,j,rho);
+                  bc_cont(wnew,p,i,j,rho);
+               //   bc_fixed(wmod,p,i,j,rho,1.0);
+               //   bc_fixed(wnew,p,i,j,rho,1.0);
+               //   bc_periodic(wmod,p,i,j,rho);
+               //   bc_periodic(wnew,p,i,j,rho);
+
                
-               for(int f=rho; f<NVAR; f++)
+               for(int f=rho+1; f<NVAR; f++)
                {
+
                   bc_cont(wmod,p,i,j,f);
                   bc_cont(wnew,p,i,j,f);
+
+                 // bc_fixed(wmod,p,i,j,f,val);
+                 // bc_fixed(wnew,p,i,j,f,val);
+
+                //  bc_periodic(wmod,p,i,j,f);
+                //  bc_periodic(wnew,p,i,j,f);
+
+
                }
 
                for(int f=vel1; f<NDERV; f++)
                {
                   bc_cont(wd,p,i,j,f);
 
-                
+                // bc_fixed(wd,p,i,j,f,val);
+                 //   bc_periodic(wd,p,i,j,f);
+
                   
                }
 

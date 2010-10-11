@@ -185,7 +185,8 @@ int derivsourcemom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
 
   int status=0;
      	//dw[fencode_ds(p,ix,iy,field)]=w[fencode_ds(p,ix,iy,field)]+20+5*(2*direction+1);
-        dw[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_ds(p,ix,iy,field)]=dw[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_ds(p,ix,iy,field)]+0.3*sourcemom(dw,wd,w,p,ix,iy,field,direction);
+        //factor 0.3333 providwed to get agreement with adiabatic hd shallowwater
+        dw[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_ds(p,ix,iy,field)]=dw[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_ds(p,ix,iy,field)]+1.0*sourcemom(dw,wd,w,p,ix,iy,field,direction);
         //dw[fencode_ds(p,ix,iy,field)]=-ddotcurrentmom(dw,wd,w,p,ix,iy,field,direction);
 
   return ( status);

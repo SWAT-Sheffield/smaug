@@ -67,6 +67,8 @@ real fluxmom1 (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int 
          #else
       		flux= -w[fencode_dc1(p,ix,iy,field+4)]*w[fencode_dc1(p,ix,iy,b1)];
          #endif
+        if((field==mom1 ) )
+                       flux+=wd[fencode_dc1(p,ix,iy,pressuret)];
      break;
      case 1:
         #ifdef USE_SAC
@@ -74,6 +76,8 @@ real fluxmom1 (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int 
          #else
 	      flux= -w[fencode_dc1(p,ix,iy,field+4)]*w[fencode_dc1(p,ix,iy,b2)];
          #endif
+         if((field==mom2 && direction==1)   )
+                     flux+=wd[fencode_dc1(p,ix,iy,pressuret)];
      break;
      case 2:
         #ifdef USE_SAC
@@ -81,8 +85,14 @@ real fluxmom1 (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int 
          #else
       		flux= -w[fencode_dc1(p,ix,iy,field+4)]*w[fencode_dc1(p,ix,iy,b3)];	
          #endif
+         if((field==mom3 && direction==2))
+                    flux+=wd[fencode_dc1(p,ix,iy,pressuret)];
      break;
    }
+
+
+
+
   return flux;
 
 

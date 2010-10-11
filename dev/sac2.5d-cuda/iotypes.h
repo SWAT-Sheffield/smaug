@@ -91,7 +91,9 @@ struct params {
 
         real maxviscoef;
         real chyp;
-        real chyp3;      
+        real chyp3;   
+
+        int mnthreads;   
 };
 
 //it   t   dt    rho m1 m2 e bx by

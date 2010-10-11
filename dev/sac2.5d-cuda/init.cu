@@ -75,22 +75,31 @@ void init_alftest (real *w, struct params *p,int i, int j) {
 __device__ __host__
 void init_ozttest (real *w, struct params *p,int i, int j) {
                     
-                    real b0=1.0/sqrt(4.0*PI);
-                    real ptot=5.0/(12.0*PI);
+                    //real b0=1.0/sqrt(4.0*PI);
+                    real b0=1.0;
+                    //real ptot=5.0/(12.0*PI);
+                    real ptot=5.0/3.0;
                     real rrho;
+                    real rgamm1;
 
 
 	#ifdef USE_SAC
 		    w[fencode_i(p,i,j,rhob)]=25.0/(36.0*PI);
 
-		    w[fencode_i(p,i,j,b1b)]=-b0*sin(2.0*PI*(p->dx[1])*j);
-		    w[fencode_i(p,i,j,b2b)]=b0*sin(4.0*PI*(p->dx[0])*i);
+		    //w[fencode_i(p,i,j,b1b)]=-b0*sin(2.0*PI*(p->dx[1])*j);
+		    //w[fencode_i(p,i,j,b2b)]=b0*sin(4.0*PI*(p->dx[0])*i);
+		    w[fencode_i(p,i,j,b1b)]=-b0*sin((p->dx[1])*j);
+		    w[fencode_i(p,i,j,b2b)]=b0*sin(2.0*(p->dx[0])*i);
 		    
 
                     //vx=-sin(2pi y)
                     //vy=sin(2pi x)
-		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rhob)]*sin(2.0*PI*j*(p->dx[1]));
-                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rhob)]*sin(2.0*PI*j*(p->dx[0]));
+		    //w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rhob)]*sin(2.0*PI*j*(p->dx[1]));
+                    //w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rhob)]*sin(2.0*PI*j*(p->dx[0]));
+
+		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rhob)]*sin(i*(p->dx[1]));
+                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rhob)]*sin(j*(p->dx[0]));
+
 		    w[fencode_i(p,i,j,mom3)]=0;
 
                     //p=5/12pi  use this to determine the energy
@@ -101,23 +110,35 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
 
 
        #else
-		    w[fencode_i(p,i,j,rho)]=25.0/(36.0*PI);
+		    //w[fencode_i(p,i,j,rho)]=25.0/(36.0*PI);
+                    w[fencode_i(p,i,j,rho)]=25.0/9.0;
+		    //w[fencode_i(p,i,j,b1)]=-b0*sin(2.0*PI*(p->dx[1])*j);
+		    //w[fencode_i(p,i,j,b2)]=b0*sin(4.0*PI*(p->dx[0])*i);
+		    w[fencode_i(p,i,j,b1)]=-b0*sin((p->dx[1])*i);
+		    w[fencode_i(p,i,j,b2)]=b0*sin(2.0*(p->dx[0])*j);
 
-		    w[fencode_i(p,i,j,b1)]=-b0*sin(2.0*PI*(p->dx[1])*j);
-		    w[fencode_i(p,i,j,b2)]=b0*sin(4.0*PI*(p->dx[0])*i);
 		    w[fencode_i(p,i,j,b3)]=0.0;
 
                     //vx=-sin(2pi y)
                     //vy=sin(2pi x)
-		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(2.0*PI*j*(p->dx[1]));
-                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(2.0*PI*j*(p->dx[0]));
+		    //w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(2.0*PI*j*(p->dx[1]));
+                    //w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(2.0*PI*j*(p->dx[0]));
+		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(i*(p->dx[1]));
+                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(j*(p->dx[0]));
+
 		    w[fencode_i(p,i,j,mom3)]=0;
 
                     //p=5/12pi  use this to determine the energy
                     //p=(gamma -1)*(e-0.5 rho v**2 - b**2/2)
                     rrho=1.0/w[fencode_i(p,i,j,rho)];
-		    w[fencode_i(p,i,j,energy)]=(ptot/((p->gamma)-1))+0.5*rrho*(w[fencode_i(p,i,j,mom1)]*w[fencode_i(p,i,j,mom1)]+w[fencode_i(p,i,j,mom2)]*w[fencode_i(p,i,j,mom2)])+0.5*(w[fencode_i(p,i,j,b1)]*w[fencode_i(p,i,j,b1)]+w[fencode_i(p,i,j,b2)]*w[fencode_i(p,i,j,b2)]);
+                    rgamm1=1.0/((p->gamma)-1);
+		    //w[fencode_i(p,i,j,energy)]=(ptot/((p->gamma)-1))+0.5*rrho*(w[fencode_i(p,i,j,mom1)]*w[fencode_i(p,i,j,mom1)]+w[fencode_i(p,i,j,mom2)]*w[fencode_i(p,i,j,mom2)])+0.5*(w[fencode_i(p,i,j,b1)]*w[fencode_i(p,i,j,b1)]+w[fencode_i(p,i,j,b2)]*w[fencode_i(p,i,j,b2)]);
+//w[fencode_i(p,i,j,energy)]=(ptot/((p->gamma)-1))+0.5*rrho;
+		    //w[fencode_i(p,i,j,energy)]=(ptot-(p->gamma)*0.5*(w[fencode_i(p,i,j,b1)]*w[fencode_i(p,i,j,b1)]+w[fencode_i(p,i,j,b2)]*w[fencode_i(p,i,j,b2)]))*rgamm1+0.5*rrho*(w[fencode_i(p,i,j,mom1)]*w[fencode_i(p,i,j,mom1)]+w[fencode_i(p,i,j,mom2)]*w[fencode_i(p,i,j,mom2)]);
+//w[fencode_i(p,i,j,energy)]=(ptot/((p->gamma)-1))+0.5*rrho*(w[fencode_i(p,i,j,mom1)]*w[fencode_i(p,i,j,mom1)]+w[fencode_i(p,i,j,mom2)]*w[fencode_i(p,i,j,mom2)])+0.5*(w[fencode_i(p,i,j,b1)]*w[fencode_i(p,i,j,b1)]+w[fencode_i(p,i,j,b2)]*w[fencode_i(p,i,j,b2)]);
 
+//gives agreement with vac ozt
+w[fencode_i(p,i,j,energy)]=-sin(i*(p->dx[1]));
 
        #endif
 
@@ -188,9 +209,9 @@ int ni=p->n[0];
 				w[fencode_i(p,i,j,rho)]=1.3;
             #else
                    // init_alftest (real *w, struct params *p,int i, int j)
-                    init_alftest(w,p,i,j);
+                   // init_alftest(w,p,i,j);
                    // init_ozttest (real *w, struct params *p,int i, int j)
-                   // init_ozttest(w,p,i,j);
+                    init_ozttest(w,p,i,j);
            #endif
 
 	}
