@@ -16,14 +16,14 @@ void computej_MODID(real *wmod,real *wd,struct params *p,int i,int j)
  // dbydx=grad_MODID(wmod,p,i,j,b2,0);
  // dbxdy=grad_MODID(wmod,p,i,j,b1,1);
 
-  wd[fencode_MODID(p,i,j,0)]=(grad_MODID(wmod,p,i,j,b3,1))/(p->mu);
-  wd[fencode_MODID(p,i,j,1)]=(grad_MODID(wmod,p,i,j,b3,0))/(p->mu);
-  wd[fencode_MODID(p,i,j,2)]=(grad_MODID(wmod,p,i,j,b2,0)-grad_MODID(wmod,p,i,j,b1,1))/(p->mu);
+  wd[fencode_MODID(p,i,j,current1)]=(grad_MODID(wmod,p,i,j,b3,1))/(p->mu);
+  wd[fencode_MODID(p,i,j,current2)]=(grad_MODID(wmod,p,i,j,b3,0))/(p->mu);
+  wd[fencode_MODID(p,i,j,current3)]=(grad_MODID(wmod,p,i,j,b2,0)-grad_MODID(wmod,p,i,j,b1,1))/(p->mu);
   
           #ifdef USE_SAC
-	  wd[fencode_MODID(p,i,j,0)]+=(grad_MODID(wmod,p,i,j,b3b,1))/(p->mu);
-	  wd[fencode_MODID(p,i,j,1)]+=(grad_MODID(wmod,p,i,j,b3b,0))/(p->mu);
-	  wd[fencode_MODID(p,i,j,2)]+=(grad_MODID(wmod,p,i,j,b2b,0)-grad_MODID(wmod,p,i,j,b1b,1))/(p->mu);
+	  wd[fencode_MODID(p,i,j,current1)]+=(grad_MODID(wmod,p,i,j,b3b,1))/(p->mu);
+	  wd[fencode_MODID(p,i,j,current2)]+=(grad_MODID(wmod,p,i,j,b3b,0))/(p->mu);
+	  wd[fencode_MODID(p,i,j,current3)]+=(grad_MODID(wmod,p,i,j,b2b,0)-grad_MODID(wmod,p,i,j,b1b,1))/(p->mu);
 
 
          #endif
@@ -71,6 +71,8 @@ void computept_MODID(real *wmod,real *wd,struct params *p,int i,int j)
 
 /*below used for adiabatic hydrodynamics*/
  wd[fencode_MODID(p,i,j,pressuret)]=(p->adiab)*pow(wmod[fencode_MODID(p,i,j,rho)],p->gamma);
+// wd[fencode_MODID(p,i,j,pressuret)]=(p->adiab)*wmod[fencode_MODID(p,i,j,rho)]*wmod[fencode_MODID(p,i,j,rho)];
+//wd[fencode_MODID(p,i,j,pressuret)]=1.0;
 #elif defined(USE_SAC)
   wd[fencode_MODID(p,i,j,pressuret)]=  wd[fencode_MODID(p,i,j,pressurek)]+0.5*(wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,b3)])+(wmod[fencode_MODID(p,i,j,b1b)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2b)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3b)]*wmod[fencode_MODID(p,i,j,b3)]);
 
@@ -80,7 +82,11 @@ void computept_MODID(real *wmod,real *wd,struct params *p,int i,int j)
 #else
 
  //real bsq=wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,b3)];
-  wd[fencode_MODID(p,i,j,pressuret)]=  wd[fencode_MODID(p,i,j,pressurek)]+0.5*(wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,b3)]);
+//  wd[fencode_MODID(p,i,j,pressuret)]=  wd[fencode_MODID(p,i,j,pressurek)]+0.5*(wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,b3)]);
+
+
+
+  wd[fencode_MODID(p,i,j,pressuret)]=  ((p->gamma)-1.0)*wmod[fencode_MODID(p,i,j,energy)]+(1.0-0.5*(p->gamma))*(wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,b3)])+0.5*(1.0-(p->gamma))*(wmod[fencode_MODID(p,i,j,mom1)]*wmod[fencode_MODID(p,i,j,mom1)]+wmod[fencode_MODID(p,i,j,mom2)]*wmod[fencode_MODID(p,i,j,mom2)]+wmod[fencode_MODID(p,i,j,mom3)]*wmod[fencode_MODID(p,i,j,mom3)])/wmod[fencode_MODID(p,i,j,rho)];
 
 #endif
 
@@ -160,6 +166,7 @@ wd[fencode_MODID(p,i,j,cfast)]=sqrt(((wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode
 __device__ __host__
 void computecmax_MODID(real *wmod,real *wd,struct params *p,int i,int j)
 {
+ p->cmax=0.02;
 #ifdef ADIABHYDRO
        if(wd[fencode_MODID(p,i,j,soundspeed)]>(p->cmax))
                     // atomicExch(&(p->cmax),(wd[fencode_MODID(p,i,j,soundspeed)]));

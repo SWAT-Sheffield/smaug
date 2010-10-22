@@ -142,12 +142,12 @@ real dt;
 //dt=0.015985;
 //dt=0.15;
 //dt=0.00145;
-dt=0.00025;
+dt=0.0025;
 //dt=0.25;
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
 //nt=100;
-nt=200;
+nt=50;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -406,6 +406,8 @@ printf("here in runsim5\n");
 // nt=24; 
 real t1,t2,ttot;
 int order=0;
+int ordero=0;
+int order1;
 ttot=0;
 real time=0.0;
 for( n=0;n<nt;n++)
@@ -419,8 +421,8 @@ for( n=0;n<nt;n++)
     }
    order=0;
    t1=second();
-   cupredictor(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
-   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
+   //cupredictor(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+   //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
 
    printf("cmax is %f old dt %f new dt %f\n",p->cmax,p->dt,0.68*((p->dx[0])+(p->dx[1]))/(2.0*(p->cmax)));
    if(p->moddton==1)
@@ -433,12 +435,23 @@ for( n=0;n<nt;n++)
                p->dt=2.0*p->dt; 
    }
    printf("new dt %f\n",p->dt);
-   cuderivcurrent1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
-   cuderivcurrent2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
 
-   cuderivsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+if((p->rkon)==0)
+{
+  ordero=0;
+ 
+ cucomputedervfields(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero);
+ order=1; 
+   //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+   for(int f=rho; f<=mom3; f++)
+      cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f);
+
+   //for(int f=energy; f<NVAR; f++)
+   //   cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f);
+
+   //cuderivsource(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
    if(p->divbon==1)
-       cudivb(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state,order);
+	       cudivb(&p,&w,&state,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, &d_state,order,ordero,p->dt);
    if(p->hyperdifmom==1)
    {
      for(int dim=0; dim<=1; dim++)
@@ -469,20 +482,45 @@ for( n=0;n<nt;n++)
 
 
    }
-
+   //cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order);
+   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+}
 
    if((p->rkon)==1)
-     for(order=1; i<4; i++) 
-   {
-           cucorrector(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
-           cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
+     for(order=0; order<4; order++) 
+   {	   
+           ordero=order+1;
+           dt=(p->dt)/2.0;
+           //if(order==1)
+           //{
+           //   dt=(p->dt);
+           //   //ordero=0;
+           //}
 
-	   cuderivcurrent1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
-	   cuderivcurrent2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
 
-	   cuderivsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+           if(order==2)
+              dt=(p->dt);
+
+
+           if(order==3)
+           {
+              dt=(p->dt)/6.0;
+              ordero=0;
+
+           }
+
+
+           cucomputedervfields(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero);
+	   //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+           for(int f=rho; f<=mom3; f++)
+	       cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f);
+
+           //for(int f=energy; f<NVAR; f++)
+	   //    cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f);
+
+	   //cuderivsource(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
 	   if(p->divbon==1)
-	       cudivb(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state,order);
+	       cudivb(&p,&w,&state,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, &d_state,order,ordero,p->dt);
            if(p->hyperdifmom==1)
            {
 	     for(int dim=0; dim<=1; dim++)
@@ -512,13 +550,13 @@ for( n=0;n<nt;n++)
 	     }
            }
 
+           cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order);
+	   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
 
    }
 
-   cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
 
-   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
-   cuupdate(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd, &d_state);
+   cuupdate(&p,&w,&wnew,&state,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, &d_state);
    printf("nummaxthreads %d\n",p->mnthreads);
 
    t2=second()-t1;

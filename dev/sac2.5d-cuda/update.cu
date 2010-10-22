@@ -51,7 +51,7 @@ int updatestate (struct params *p, struct state *s, real *w ,int i, int j, int f
 
 
 
-__global__ void update_parallel(struct params *p, struct state *s, real *w, real *wnew)
+__global__ void update_parallel(struct params *p, struct state *s, real *w, real *wmod)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -72,11 +72,7 @@ __global__ void update_parallel(struct params *p, struct state *s, real *w, real
   u=w+(p->n[0])*(p->n[1])*mom1;
   v=w+(p->n[0])*(p->n[1])*mom2;
 
-  real *un,  *vn,  *hn;
-//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
-  hn=wnew+(p->n[0])*(p->n[1])*rho;
-  un=wnew+(p->n[0])*(p->n[1])*mom1;
-  vn=wnew+(p->n[0])*(p->n[1])*mom2;
+
      j=iindex/ni;
    //i=iindex-j*(iindex/ni);
    i=iindex-(j*ni);
@@ -119,11 +115,13 @@ if (threadIdx.x == 0)
                  
 }
 __syncthreads();
-  if(i>1 && j>1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+ // if(i>1 && j>1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+ //if(i>0 && j>0 && i<((p->n[0])) && j<((p->n[1])))
+if( i<((p->n[0])) && j<((p->n[1])))
 	{
              for(int f=rho; f<NVAR; f++)
              {               
-                  w[fencode_u(p,i,j,f)]=wnew[fencode_u(p,i,j,f)];
+                  w[fencode_u(p,i,j,f)]=wmod[fencode_u(p,i,j,f)];
                   updatestate (p, s, w ,i, j, f);
               }
             // u[i+j*ni]=un[i+j*ni];
@@ -199,7 +197,7 @@ void checkErrors_u(char *label)
 }
 
 
-int cuupdate(struct params **p, real **w, real **wnew, struct state **state,struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state)
+int cuupdate(struct params **p, real **w, real **wnew, struct state **state,struct params **d_p, real **d_w, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state)
 {
 
 
@@ -222,7 +220,7 @@ int cuupdate(struct params **p, real **w, real **wnew, struct state **state,stru
      //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
 	    //printf("called boundary\n");  
      //cudaThreadSynchronize();
-     update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_state,*d_w,*d_wnew);
+     update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_state,*d_w,*d_wmod);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
     cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);

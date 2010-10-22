@@ -20,9 +20,9 @@ BASICEXOBJS	=\
 	hyperdifrhosource.o\
 	hyperdifvisc.o\
 	derivsource.o\
-	derivcurrent1.o\
-	derivcurrent2.o\
-	predictor.o\
+	centdiff1.o\
+	centdiff2.o\
+	computedervfields.o\
 	corrector.o\
 	boundary.o\
 	init.o\
@@ -44,8 +44,8 @@ ALLOBJS	=	$(BASICEXOBJS)
 ALLBIN	=	$(Bin)/iosac
 #CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DADIABHYDRO -DUSE_VAC
 #compiling with  -arch sm_13 enables double precision to be used
-CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DADIABHYDRO
-CCFLAGS = -DADIABHYDRO
+CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DADIABHYDRO 
+CCFLAGS = -DADIABHYDRO 
 
 #MYLIBS	=	libAgentSimulation2.a
 
@@ -108,15 +108,15 @@ hyperdifmomsource.o: hyperdifmomsource.cu
 derivsource.o: derivsource.cu
 	sed 's/MODID/ds/g' < gradops.cu > gradops_ds.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-derivcurrent1.o: derivcurrent1.cu
-	sed 's/MODID/dc1/g' < gradops.cu > gradops_dc1.cuh
+centdiff1.o: centdiff1.cu
+	sed 's/MODID/cd1/g' < gradops.cu > gradops_cd1.cuh
 	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
-derivcurrent2.o: derivcurrent2.cu
-	sed 's/MODID/dc2/g' < gradops.cu > gradops_dc2.cuh
+centdiff2.o: centdiff2.cu
+	sed 's/MODID/cd2/g' < gradops.cu > gradops_cd2.cuh
 	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
-predictor.o: predictor.cu
-	sed 's/MODID/pre/g' < gradops.cu > gradops_pre.cuh
-	sed 's/MODID/pre/g' < dervfields.cu > dervfields_pre.cuh
+computedervfields.o: computedervfields.cu
+	sed 's/MODID/cdf/g' < gradops.cu > gradops_cdf.cuh
+	sed 's/MODID/cdf/g' < dervfields.cu > dervfields_cdf.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS)   -c $<
 corrector.o: corrector.cu
 	sed 's/MODID/cor/g' < gradops.cu > gradops_cor.cuh

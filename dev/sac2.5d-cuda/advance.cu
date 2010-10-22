@@ -15,8 +15,8 @@
 #include "dervfields_adv.cuh"
 
 
-__global__ void advance_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd)
+__global__ void advance_parallel(struct params *p, real *w, real *wmod,  
+    real *dwn1, real *wd, int order)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -44,43 +44,66 @@ __global__ void advance_parallel(struct params *p, real *w, real *wnew, real *wm
    j=iindex/ni;
    //i=iindex-j*(iindex/ni);
    i=iindex-(j*ni);
-  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+if( i<((p->n[0])) && j<((p->n[1])))
 	{		               
  
                float big=9999.0;
                for(int f=rho; f<NVAR; f++)
                {
-                   
+                  
                    
                   if((p->rkon)==1)
                   {
-                  //wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)]+(dt/6.0)*(dwn1[fencode_adv(p,i,j,f)]+2*dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]+2*dwn1[(2*NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]+dwn1[(3*NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]);
-                 // wnew[fencode_adv(p,i,j,f)]=((w[fencode_adv(p,i+1,j,f)]+w[fencode_adv(p,i-1,j,f)]+w[fencode_adv(p,i,j+1,f)]+w[fencode_adv(p,i,j-1,f)])/4.0)+(dt/6.0)*(dwn1[fencode_adv(p,i,j,f)]+2*dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]+2*dwn1[(2*NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]+dwn1[(3*NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]);
-wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)]+(dt/5.0)*(dwn1[fencode_adv(p,i,j,f)]+2*dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]+2*dwn1[(2*NVAR*(p->n[0])*(p->n[1]))+fencode_adv(p,i,j,f)]);
+                     //wmod[fencode_adv(p,i,j,f)]=wmod[fencode_adv(p,i,j,f)+((p->n[0])*(p->n[1])*NVAR)];
+                    switch(order)
+                     {
+                        case 0:
+                       wmod[fencode_adv(p,i,j,f)+(2*(p->n[0])*(p->n[1])*NVAR)]=wmod[fencode_adv(p,i,j,f)];
+                       // wmod[fencode_adv(p,i,j,f)]=wmod[fencode_adv(p,i,j,f)+((p->n[0])*(p->n[1])*NVAR)];
+
+                         break;
+                        case 1:
+                       wmod[fencode_adv(p,i,j,f)+(3*(p->n[0])*(p->n[1])*NVAR)]=wmod[fencode_adv(p,i,j,f)];
+                      // wmod[fencode_adv(p,i,j,f)]=wmod[fencode_adv(p,i,j,f)+(2*(p->n[0])*(p->n[1])*NVAR)];
+
+                         break;
+                        case 2:
+                       wmod[fencode_adv(p,i,j,f)+((p->n[0])*(p->n[1])*NVAR)]=(wmod[fencode_adv(p,i,j,f)+((p->n[0])*(p->n[1])*NVAR)]+2.0*wmod[fencode_adv(p,i,j,f)+(2*(p->n[0])*(p->n[1])*NVAR)]+wmod[fencode_adv(p,i,j,f)+(3*(p->n[0])*(p->n[1])*NVAR)]-4.0*wmod[fencode_adv(p,i,j,f)])/3;
+
+
+                         break;
+                        case 3:
+                       wmod[fencode_adv(p,i,j,f)]=wmod[fencode_adv(p,i,j,f)]+wmod[fencode_adv(p,i,j,f)+((p->n[0])*(p->n[1])*NVAR)];
+
+
+                         break;
+
+                     }
                    }
                   else
                   {
                   //if((dwn1[fencode_adv(p,i,j,f)]<(big/100)) && ( dwn1[fencode_adv(p,i,j,f)]>(-big/100)) )
                   //  if( j!=2)
-                       wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)]+dt*dwn1[fencode_adv(p,i,j,f)];
-
+                       //wmod[fencode_adv(p,i,j,f)]=wmod[fencode_adv(p,i,j,f)+(order*(p->n[0])*(p->n[1])*NVAR)];
+                      wmod[fencode_adv(p,i,j,f)]=wmod[fencode_adv(p,i,j,f)+((p->n[0])*(p->n[1])*NVAR)];
                    //lax-friedrichs
-                  //wnew[fencode_adv(p,i,j,f)]=((w[fencode_adv(p,i+1,j,f)]+w[fencode_adv(p,i-1,j,f)]+w[fencode_adv(p,i,j+1,f)]+w[fencode_adv(p,i,j-1,f)])/4.0)+(dt)*(dwn1[fencode_adv(p,i,j,f)]);
+                  //wmod[fencode_adv(p,i,j,f)]=((w[fencode_adv(p,i+1,j,f)]+w[fencode_adv(p,i-1,j,f)]+w[fencode_adv(p,i,j+1,f)]+w[fencode_adv(p,i,j-1,f)])/4.0)+(dt)*(dwn1[fencode_adv(p,i,j,f)]);
                    }
                   
-                   if(isnan(wnew[fencode_adv(p,i,j,f)])) wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)];
-                   if(wnew[fencode_adv(p,i,j,f)]>big)
-                           wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)];
-                   if(wnew[fencode_adv(p,i,j,f)]<-big)
-                           wnew[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)];
+                   if(isnan(wmod[fencode_adv(p,i,j,f)])) wmod[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)];
+                   if(wmod[fencode_adv(p,i,j,f)]>big)
+                           wmod[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)];
+                   if(wmod[fencode_adv(p,i,j,f)]<-big)
+                           wmod[fencode_adv(p,i,j,f)]=w[fencode_adv(p,i,j,f)];
 
                      if(f==rho)
-                            if(wnew[fencode_adv(p,i,j,f)]<0)
-                               wnew[fencode_adv(p,i,j,f)]=1.001;
+                            if(wmod[fencode_adv(p,i,j,f)]<0)
+                               wmod[fencode_adv(p,i,j,f)]=1.00;
                }
-               //computej_adv(wnew,wd,p,i,j);
-               //computepk_adv(wnew,wd,p,i,j);
-               //computept_adv(wnew,wd,p,i,j);
+               //computej_adv(wmod,wd,p,i,j);
+               //computepk_adv(wmod,wd,p,i,j);
+               //computept_adv(wmod,wd,p,i,j);
 
 
 	}
@@ -118,7 +141,7 @@ void checkErrors_adv(char *label)
 
 
 
-int cuadvance(struct params **p, real **w, real **wnew,struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd)
+int cuadvance(struct params **p, real **w, real **wmod,struct params **d_p, real **d_w, real **d_wmod,  real **d_dwn1, real **d_wd, int order)
 {
 
 
@@ -131,21 +154,21 @@ int cuadvance(struct params **p, real **w, real **wnew,struct params **d_p, real
     dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
 
-//__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
+//__global__ void prop_parallel(struct params *p, real *b, real *w, real *wmod, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-     advance_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
+     advance_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wmod,  *d_dwn1,  *d_wd, order);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();
-     //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
+     //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wmod);
 	    //printf("called boundary\n");  
      //cudaThreadSynchronize();
-     //update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
+     //update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wmod);
 	    //printf("called update\n"); 
    // cudaThreadSynchronize();
 // cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*wnew, *d_wnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*wmod, *d_wmod, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
 //cudaMemcpy(*b, *d_b, (((*p)->n[0])* ((*p)->n[1]))*sizeof(real), cudaMemcpyDeviceToHost);
 
   //checkErrors("copy data from device");

@@ -152,8 +152,8 @@ void dbderivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy
 }
 
 
-__global__ void divb_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd, int order)
+__global__ void divb_parallel(struct params *p, real *w, real *wmod, 
+    real *dwn1, real *wd, int order,int ordero, real dt)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -211,7 +211,7 @@ void checkErrors_db(char *label)
   }
 }
 
-int cudivb(struct params **p, real **w, real **wnew,  struct state **state,struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, int order)
+int cudivb(struct params **p, real **w,  struct state **state,struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, int order,int ordero, real dt)
 {
 int status=0;
 
@@ -234,7 +234,7 @@ int status=0;
      //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
 	    //printf("called boundary\n");  
      //cudaThreadSynchronize();
-    divb_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order);
+    divb_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
     //cudaMemcpy(*w, *d_w, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);

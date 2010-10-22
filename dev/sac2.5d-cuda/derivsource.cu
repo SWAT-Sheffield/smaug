@@ -36,13 +36,13 @@ real sourcemom (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int
   switch(direction)
   {
 	case 0:
-         src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[0]))-grad_ds(wd,p,ix,iy,pressuret,0)-(p->chyp)*(grad2_ds(w,p,ix,iy,mom1,0)+grad2_ds(w,p,ix,iy,mom1,1));
-
+         //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[0]))-grad_ds(wd,p,ix,iy,pressuret,0)-(p->chyp)*(grad2_ds(w,p,ix,iy,mom1,0)+grad2_ds(w,p,ix,iy,mom1,1));
+         src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[0]))-(p->chyp)*(grad2_ds(w,p,ix,iy,mom1,0)+grad2_ds(w,p,ix,iy,mom1,1));
         // src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[0]));
 	break;
 	case 1:
-         src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[1]))-grad_ds(wd,p,ix,iy,pressuret,1)-(p->chyp)*(grad2_ds(w,p,ix,iy,mom2,1)+grad2_ds(w,p,ix,iy,mom2,0));
-
+         //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[1]))-grad_ds(wd,p,ix,iy,pressuret,1)-(p->chyp)*(grad2_ds(w,p,ix,iy,mom2,1)+grad2_ds(w,p,ix,iy,mom2,0));
+         src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[1]))-(p->chyp)*(grad2_ds(w,p,ix,iy,mom2,1)+grad2_ds(w,p,ix,iy,mom2,0));
          //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[1]));
 	break;
 	case 2:
@@ -175,7 +175,7 @@ int derivsourcerho (real *dw, real *wd, real *w, struct params *p,int ix, int iy
 
   int status=0;
   int field=rho;
-        dw[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_ds(p,ix,iy,field)]=dw[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_ds(p,ix,iy,field)]+0.3*sourcerho(dw,wd,w,p,ix,iy);
+        dw[fencode_ds(p,ix,iy,field)]=+0.3*sourcerho(dw,wd,w,p,ix,iy);
      	//dw[fencode_ds(p,ix,iy,field)]=w[fencode_ds(p,ix,iy,field)]+10;
   return ( status);
 }
@@ -186,7 +186,7 @@ int derivsourcemom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
   int status=0;
      	//dw[fencode_ds(p,ix,iy,field)]=w[fencode_ds(p,ix,iy,field)]+20+5*(2*direction+1);
         //factor 0.3333 providwed to get agreement with adiabatic hd shallowwater
-        dw[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_ds(p,ix,iy,field)]=dw[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_ds(p,ix,iy,field)]+1.0*sourcemom(dw,wd,w,p,ix,iy,field,direction);
+        dw[fencode_ds(p,ix,iy,field)]=+1.0*sourcemom(dw,wd,w,p,ix,iy,field,direction);
         //dw[fencode_ds(p,ix,iy,field)]=-ddotcurrentmom(dw,wd,w,p,ix,iy,field,direction);
 
   return ( status);
@@ -196,7 +196,7 @@ __device__ __host__
 int derivsourceb (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field, int direction, int order) {
 
   int status=0;
-        dw[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_ds(p,ix,iy,field)]=dw[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_ds(p,ix,iy,field)]+sourceb(dw,wd,w,p,ix,iy,field,direction);
+        dw[fencode_ds(p,ix,iy,field)]=sourceb(dw,wd,w,p,ix,iy,field,direction);
 
   return ( status);
 }
@@ -206,7 +206,7 @@ int derivsourceenergy (real *dw, real *wd, real *w, struct params *p,int ix, int
 
   int status=0;
   int field=energy;
-        dw[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_ds(p,ix,iy,field)]=dw[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_ds(p,ix,iy,field)]+sourceenergy(dw,wd,w,p,ix,iy);
+        dw[fencode_ds(p,ix,iy,field)]=sourceenergy(dw,wd,w,p,ix,iy);
 
   return ( status);
 }
@@ -214,7 +214,7 @@ int derivsourceenergy (real *dw, real *wd, real *w, struct params *p,int ix, int
 
 //rho, mom1, mom2, mom3, energy, b1, b2, b3
 __device__ __host__
-void derivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field, int order) {
+void derivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field, int order,int ordero) {
 
   //int status=0;
   switch(field)
@@ -248,8 +248,8 @@ void derivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy, 
 }
 
 
-__global__ void derivsource_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd, int order)
+__global__ void derivsource_parallel(struct params *p, real *w, real *wmod, 
+    real *dwn1, real *wd, int order, int ordero, real dt)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -263,7 +263,7 @@ __global__ void derivsource_parallel(struct params *p, real *w, real *wnew, real
   int index,k;
   int ni=p->n[0];
   int nj=p->n[1];
-  real dt=p->dt;
+  //real dt=p->dt;
   real dy=p->dx[1];
   real dx=p->dx[0];
   //real g=p->g;
@@ -279,63 +279,23 @@ __global__ void derivsource_parallel(struct params *p, real *w, real *wnew, real
    i=iindex-(j*ni);
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{		               
-               /*for(int f=rho; f<=b3; f++)               
-                  wmod[fencode_ds(p,i,j,f)]=w[fencode_ds(p,i,j,f)];
-               computej(wmod,wd,p,i,j);
-               computepk(wmod,wd,p,i,j);
-               computept(wmod,wd,p,i,j);
-               computebdotv(wmod,wd,p,i,j);*/
-               for(int f=rho; f<NVAR; f++)
+              for(int f=rho; f<NVAR; f++)
                {              
-                  //if( (f==mom2) && (j==2))
-                  //   ;//derivsource(dwn1,wd,wmod,p,i,j,f);
-                  //else
-                    derivsource(dwn1,wd,wmod,p,i,j,f,order);
-                  //dwn1[fencode_ds(p,i,j,f)]=1.0;
-                 // __syncthreads();
-               }
-               
-               /*for(int f=rho; f<=b3; f++) 
-                  wmod[fencode_ds(p,i,j,f)]=w[fencode_ds(p,i,j,f)]+0.5*dt*dwn1[fencode_ds(p,i,j,f)];
-               computej(wmod,wd,p,i,j);
-               computepk(wmod,wd,p,i,j);
-               computept(wmod,wd,p,i,j);
-               for(int f=rho; f<=b3; f++) 
-                  deriv(dwn2,wd,wmod,p,i,j,f);
-               
-               for(int f=rho; f<=b3; f++) 
-                  wmod[fencode_ds(p,i,j,f)]=w[fencode_ds(p,i,j,f)]+0.5*dt*dwn2[fencode_ds(p,i,j,f)];
-               computej(wmod,wd,p,i,j);
-               computepk(wmod,wd,p,i,j);
-               computept(wmod,wd,p,i,j);
-               for(int f=rho; f<=b3; f++) 
-                  deriv(dwn3,wd,wmod,p,i,j,f);
-               
-               for(int f=rho; f<=b3; f++) 
-                  wmod[fencode_ds(p,i,j,f)]=w[fencode_ds(p,i,j,f)]+dt*dwn3[fencode_ds(p,i,j,f)];
-               computej(wmod,wd,p,i,j);
-               computepk(wmod,wd,p,i,j);
-               computept(wmod,wd,p,i,j);
-               for(int f=rho; f<=b3; f++) 
-                  deriv(dwn4,wd,wmod,p,i,j,f);
-               
-               for(int f=rho; f<=b3; f++) 
-                  {
-                  wnew[fencode_ds(p,i,j,f)]=w[fencode_ds(p,i,j,f)]+(dt/6.0)*(
-                     dwn1[fencode_ds(p,i,j,f)]+2.0*dwn2[fencode_ds(p,i,j,f)]
-                         +2.0*dwn3[fencode_ds(p,i,j,f)]+dwn4[fencode_ds(p,i,j,f)]);
-               }*/
-              //  __syncthreads();
-              /* for(int f=rho; f<=b3; f++)
-                   wnew[fencode_ds(p,i,j,f)]=w[fencode_ds(p,i,j,f)]+dt*dwn1[fencode_ds(p,i,j,f)];
-               computej(wnew,wd,p,i,j);
-               computepk(wnew,wd,p,i,j);
-               computept(wnew,wd,p,i,j);*/ 
-
-
+                     derivsource(dwn1,wd,wmod,p,i,j,f,order,ordero);
+                 }
+ 	}
+ __syncthreads();
+   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+	{		               
+              for(int f=rho; f<NVAR; f++)
+              {              
+                              //                                                                                  - sign here same as vac maybe a +
+                              wmod[fencode_ds(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]=wmod[fencode_ds(p,i,j,f)]+dt*dwn1[fencode_ds(p,i,j,f)]; 
+                              //wmod[fencode_ds(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]=wmod[fencode_ds(p,i,j,f)]+0.1;
+                              //dwn1[fencode_ds(p,i,j,f)]=0;
+              }
 	}
  __syncthreads();
-  
 }
 
 
@@ -369,7 +329,7 @@ void checkErrors_ds(char *label)
 
 
 
-int cuderivsource(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order)
+int cuderivsource(struct params **p, real **w, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt)
 {
 
 
@@ -385,7 +345,7 @@ int cuderivsource(struct params **p, real **w, real **wnew, struct params **d_p,
 //__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-     derivsource_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order);
+     derivsource_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();

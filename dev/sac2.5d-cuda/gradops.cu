@@ -72,22 +72,38 @@ real grad_MODID(real *wmod,struct params *p,int i,int j,int field,int dir)
 
  if(dir == 0)
  {
-    // valgrad=(2.0/(3.0*(p->dx[0])))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i-1,j,field)])-(1.0/(12.0*(p->dx[0])))*(wmod[fencode(p,i+2,j,field)]-wmod[fencode(p,i-2,j,field)]);
-//return((1.0/(2.0*(p->dx[0])))*(wmod[fencode_MODID(p,i+1,j,field)]-wmod[fencode_MODID(p,i-1,j,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_MODID(p,i+1,j,field)]-8*wmod[fencode_MODID(p,i-1,j,field)]+wmod[fencode_MODID(p,i-2,j,field)]-wmod[fencode_MODID(p,i+2,j,field)])/6.0):wmod[fencode_MODID(p,i+1,j,field)]-wmod[fencode_MODID(p,i-1,j,field)])/(2.0*(p->dx[0]))    );
+ 
+// return(  ( (p->sodifon)?((8*wmod[fencode_MODID(p,i+1,j,field)]-8*wmod[fencode_MODID(p,i-1,j,field)]+wmod[fencode_MODID(p,i-2,j,field)]-wmod[fencode_MODID(p,i+2,j,field)])/6.0):wmod[fencode_MODID(p,i+1,j,field)]-wmod[fencode_MODID(p,i-1,j,field)])/(2.0*(p->dx[0]))    );
+ return(  ( ((8*wmod[fencode_MODID(p,i+1,j,field)]-8*wmod[fencode_MODID(p,i-1,j,field)]+wmod[fencode_MODID(p,i-2,j,field)]-wmod[fencode_MODID(p,i+2,j,field)])/6.0))/(2.0*(p->dx[0]))    );
 
  }
  else if(dir == 1)
  {
-    // valgrad=(2.0/(3.0*(p->dx[1])))*(wmod[fencode(p,i,j,field)]-wmod[fencode(p,i,j-1,field)])-(1.0/(12.0*(p->dx[1])))*(wmod[fencode(p,i,j+2,field)]-wmod[fencode(p,i,j-2,field)]);
-// return((1.0/(2.0*(p->dx[1])))*(wmod[fencode_MODID(p,i,j+1,field)]-wmod[fencode_MODID(p,i,j-1,field)]));
- return(  ( (p->sodifon)?((8*wmod[fencode_MODID(p,i,j+1,field)]-8*wmod[fencode_MODID(p,i,j-1,field)]+wmod[fencode_MODID(p,i,j-2,field)]-wmod[fencode_MODID(p,i,j+2,field)])/6.0):wmod[fencode_MODID(p,i,j+1,field)]-wmod[fencode_MODID(p,i,j-1,field)])/(2.0*(p->dx[1]))    ); 
 
+// return(  ( (p->sodifon)?((8*wmod[fencode_MODID(p,i,j+1,field)]-8*wmod[fencode_MODID(p,i,j-1,field)]+wmod[fencode_MODID(p,i,j-2,field)]-wmod[fencode_MODID(p,i,j+2,field)])/6.0):wmod[fencode_MODID(p,i,j+1,field)]-wmod[fencode_MODID(p,i,j-1,field)])/(2.0*(p->dx[1]))    ); 
+return(  ( ((8*wmod[fencode_MODID(p,i,j+1,field)]-8*wmod[fencode_MODID(p,i,j-1,field)]+wmod[fencode_MODID(p,i,j-2,field)]-wmod[fencode_MODID(p,i,j+2,field)])/6.0))/(2.0*(p->dx[1]))    ); 
 }
 
 
  return 0;
 }
+
+__device__ __host__
+real gradd0_MODID(real *wmod,struct params *p,int i,int j,int field,int dir)
+{
+
+ return(  ( ((8*wmod[fencode_MODID(p,i+1,j,field)]-8*wmod[fencode_MODID(p,i-1,j,field)]+wmod[fencode_MODID(p,i-2,j,field)]-wmod[fencode_MODID(p,i+2,j,field)])/6.0))/(2.0*(p->dx[0]))    );
+
+}
+
+__device__ __host__
+real gradd1_MODID(real *wmod,struct params *p,int i,int j,int field,int dir)
+{
+ 
+return(  ( ((8*wmod[fencode_MODID(p,i,j+1,field)]-8*wmod[fencode_MODID(p,i,j-1,field)]+wmod[fencode_MODID(p,i,j-2,field)]-wmod[fencode_MODID(p,i,j+2,field)])/6.0))/(2.0*(p->dx[1]))    ); 
+
+}
+
 
 
 
@@ -207,4 +223,155 @@ else if(dir == 2)
  return -1;
 }
 
+__device__ __host__
+void bc_cont_MODID(real *wt, struct params *p,int i, int j, int f) {
+
+                if(i<2 && j<2)
+                {
+                  if(i==j)
+                    //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i+2,j,f)];
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,2,j,f)];
+                  else                  
+                    //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,j+2,f)];
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,2,f)];                  
+                }
+                else if(i<2 && j>((p->n[1])-3))
+                {
+                  if(i==(j-(p->n[1])))                  
+                    //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i+2,j,f)]; 
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,2,j,f)];                     
+                  else                  
+                    //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(j-3),f)];
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,((p->n[1])-3),f)];                   
+                }
+                else if(i>((p->n[0])-3) && j<2)
+                {
+                  if((i-(p->n[0]))==j)                  
+                    //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(i-3),j,f)];
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,((p->n[0])-3),j,f)];                  
+                  else                  
+                   // wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,j+2,f)];
+                   wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,2,f)];                        
+                }
+                else if(i>((p->n[0])-3) && j>((p->n[1])-3))
+                {
+                  if(i==j)                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(i-3),j,f)];                   
+                  else                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(j-3),f)];                  
+                }                       
+                else if(i==0 || i==1)                
+                  //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i+2,j,f)];   
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,2,j,f)];              
+                else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))                
+                  //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(i-3),j,f)];    
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-3,j,f)];                            
+                else if(j==0 || j==1)                
+                  //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,j+2,f)]; 
+                   wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,2,f)];                    
+                else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)))                
+                  //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(j-3),f)];
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-3,f)];
+                
+
+
+
+
+}
+
+__device__ __host__
+void bc_fixed_MODID(real *wt, struct params *p,int i, int j, int f, real val) {
+
+
+                //(UPPER or LOWER)*NDIM*NVAR+dim*NVAR+varnum = picks out correct value for fixed BC
+                //for array of values for fixed BC's
+
+                if(i<2 && j<2)
+                {
+                  if(i==j)
+                    wt[fencode_MODID(p,i,j,f)]=val;
+                  else                  
+                    wt[fencode_MODID(p,i,j,f)]=val;                  
+                }
+                else if(i<2 && j>((p->n[1])-3))
+                {
+                  if(i==(j-(p->n[1])))                  
+                    wt[fencode_MODID(p,i,j,f)]=val;                  
+                  else                  
+                    wt[fencode_MODID(p,i,j,f)]=val;                  
+                }
+                else if(i>((p->n[0])-3) && j<2)
+                {
+                  if((i-(p->n[0]))==j)                  
+                    wt[fencode_MODID(p,i,j,f)]=val;                  
+                  else                  
+                    wt[fencode_MODID(p,i,j,f)]=val;                  
+                }
+                else if(i>((p->n[0])-3) && j>((p->n[1])-3))
+                {
+                  if(i==j)                  
+                    wt[fencode_MODID(p,i,j,f)]=val;                   
+                  else                  
+                    wt[fencode_MODID(p,i,j,f)]=val;                  
+                }                       
+                else if(i==0 || i==1)                
+                  wt[fencode_MODID(p,i,j,f)]=val;                
+                else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))                
+                  wt[fencode_MODID(p,i,j,f)]=val;                
+                else if(j==0 || j==1)                
+                  wt[fencode_MODID(p,i,j,f)]=val;                
+                else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)))                
+                  wt[fencode_MODID(p,i,j,f)]=val;
+                
+
+
+
+
+}
+
+__device__ __host__
+void bc_periodic_MODID(real *wt, struct params *p,int i, int j, int f) {
+
+               if(i<2 && j<2)
+                {
+                  if(i==j)
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-3+i,(p->n[1])-3+j,f)];
+                  else                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-3+i,(p->n[1])-3+j,f)];                  
+                }
+                else if(i<2 && j>((p->n[1])-3))
+                {
+                  if(i==(j-(p->n[1])))                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-3+i,2+((p->n[1])-j),f)];                  
+                  else                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-3+i,2+((p->n[1])-j),f)];                  
+                }
+                else if(i>((p->n[0])-3) && j<2)
+                {
+                  if((i-(p->n[0]))==j)                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,2+((p->n[0])-i),(p->n[1])-3+j,f)];                  
+                  else                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,2+((p->n[0])-i),(p->n[1])-3+j,f)];                  
+                }
+                else if(i>((p->n[0])-3) && j>((p->n[1])-3))
+                {
+                  if(i==j)                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,2+((p->n[0])-i),2+((p->n[1])-j),f)];                   
+                  else                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,2+((p->n[0])-i),2+((p->n[1])-j),f)];                  
+                }                       
+                else if(i==0 || i==1)                
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-3+i,j,f)];                
+                else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))                
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,2+((p->n[0])-i),j,f)];                
+                else if(j==0 || j==1)                
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-3+j,f)];                
+               else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)))                
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,2+((p->n[1])-j),f)];
+                
+
+
+
+
+}
 

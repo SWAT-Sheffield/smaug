@@ -226,12 +226,10 @@ int ni=p->n[0];
 	{
         for(int f=rho; f<NVAR; f++)
         {               
-                  wnew[fencode_i(p,i,j,f)]=w[fencode_i(p,i,j,f)];
-              for(int ord=0;ord<(1+3*((p->rkon)==1));ord++)
-                  dwn1[NVAR*ord*ni*nj+fencode_i(p,i,j,f)]=0;
-                  //dwn2[fencode(p,i,j,f)]=0;
-                 // dwn3[fencode(p,i,j,f)]=0;
-                  //dwn4[fencode(p,i,j,f)]=0;
+                  wmod[fencode_i(p,i,j,f)]=w[fencode_i(p,i,j,f)];
+              
+                  dwn1[fencode_i(p,i,j,f)]=0;
+                
                  
         }
 
@@ -312,9 +310,12 @@ int cuinit(struct params **p, real **w, real **wnew, struct state **state, struc
   struct params *adp;
   struct state *ads;
 
+if(((*p)->rkon)==1)
+  cudaMalloc((void**)d_wmod, 5*NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
+else
+  cudaMalloc((void**)d_wmod, 2*NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
 
-  cudaMalloc((void**)d_wmod, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
-  cudaMalloc((void**)d_dwn1, NVAR*(1+3*((*p)->rkon))*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
+  cudaMalloc((void**)d_dwn1, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
   cudaMalloc((void**)d_wd, NDERV*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
   cudaMalloc((void**)d_wtemp, NTEMP*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
 
@@ -333,6 +334,7 @@ printf("ni is %d\n",(*p)->n[1]);
     *d_wnew=adwnew;
     *d_state=ads;
 
+     
 printf("allocating\n");
     cudaMemcpy(*d_w, *w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
    // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
