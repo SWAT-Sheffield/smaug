@@ -105,19 +105,35 @@ real h0 = 5030;
 
 //Domain definition
 // Define the x domain
-int ni = 110; 
-//ni=41;
-real xmax = 1.0;                      
-real dx = 0.55*xmax/(ni-4);
+//adiab hydro
+//int ni = 110;
+//real xmax = 1.0;  
+//real dx = 0.55*xmax/(ni-4);
+
+//vac ozt
+int ni = 196;
+ni=110;
+real xmax = 6.2831853;  
+real dx = xmax/(ni-4);
 
 
 
 
 // Define the y domain
-int nj = 110;  
+//adiab hydro
+//int nj = 110;
+//nj=196;
+//real ymax = 1.0;  
+//real dy = 0.55*ymax/(nj-4);
+
+//vac ozt
+int nj = 196;
+nj=110;
+real ymax = 6.2831853;  
+real dy = ymax/(nj-4);    
 //nj=41;
-real ymax = 1.0;                      
-real dy = 0.55*ymax/(nj-4);
+                    
+
 
 real *x=(real *)calloc(ni,sizeof(real));
 for(i=0;i<ni;i++)
@@ -142,12 +158,12 @@ real dt;
 //dt=0.015985;
 //dt=0.15;
 //dt=0.00145;
-dt=0.0025;
+dt=0.00025;
 //dt=0.25;
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
 //nt=100;
-nt=50;
+nt=1740;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -258,10 +274,10 @@ p->adiab=1.0;
 #else
 
 //ozt test
-//p->gamma=5/3;
+p->gamma=5/3;
 
 //alfven test
-p->gamma=1.4;
+//p->gamma=1.4;
 
 #endif
 
@@ -283,7 +299,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=0.0;
 p->readini=0;
-p->cfgsavefrequency=1;
+p->cfgsavefrequency=10;
 
 
 p->xmax[0]=xmax;
@@ -446,8 +462,8 @@ if((p->rkon)==0)
    for(int f=rho; f<=mom3; f++)
       cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f);
 
-   //for(int f=energy; f<NVAR; f++)
-   //   cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f);
+   for(int f=energy; f<NVAR; f++)
+      cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f);
 
    //cuderivsource(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
    if(p->divbon==1)
@@ -515,8 +531,8 @@ if((p->rkon)==0)
            for(int f=rho; f<=mom3; f++)
 	       cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f);
 
-           //for(int f=energy; f<NVAR; f++)
-	   //    cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f);
+           for(int f=energy; f<NVAR; f++)
+	       cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f);
 
 	   //cuderivsource(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
 	   if(p->divbon==1)

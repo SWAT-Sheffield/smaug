@@ -41,24 +41,24 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
 
                //default continuous BC for all
                //gradient kept zero by copying variable values from edge of mesh to ghost cells
-                  bc_cont_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho);
-                 //bc_cont(wnew,p,i,j,rho);
+                 // bc_cont_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho);
+               
                  // bc_fixed_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,1.0);
                //   bc_fixed(wnew,p,i,j,rho,1.0);
-               //   bc_periodic(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho);
+                  bc_periodic_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho);
                //   bc_periodic(wnew,p,i,j,rho);
 
                
                for(int f=rho+1; f<NVAR; f++)
                {
 
-                  bc_cont_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
-                //  bc_cont(wnew,p,i,j,f);
+                 // bc_cont_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
+                
 
                 //  bc_fixed_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,0.0);
                  // bc_fixed(wnew,p,i,j,f,val);
 
-                //  bc_periodic(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
+                  bc_periodic_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
                 //  bc_periodic(wnew,p,i,j,f);
 
 

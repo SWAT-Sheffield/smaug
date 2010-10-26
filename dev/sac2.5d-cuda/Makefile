@@ -44,8 +44,8 @@ ALLOBJS	=	$(BASICEXOBJS)
 ALLBIN	=	$(Bin)/iosac
 #CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DADIABHYDRO -DUSE_VAC
 #compiling with  -arch sm_13 enables double precision to be used
-CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DADIABHYDRO 
-CCFLAGS = -DADIABHYDRO 
+CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DUSE_VAC
+CCFLAGS = -DUSE_VAC 
 
 #MYLIBS	=	libAgentSimulation2.a
 

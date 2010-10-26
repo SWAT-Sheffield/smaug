@@ -114,8 +114,8 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
                     w[fencode_i(p,i,j,rho)]=25.0/9.0;
 		    //w[fencode_i(p,i,j,b1)]=-b0*sin(2.0*PI*(p->dx[1])*j);
 		    //w[fencode_i(p,i,j,b2)]=b0*sin(4.0*PI*(p->dx[0])*i);
-		    w[fencode_i(p,i,j,b1)]=-b0*sin((p->dx[1])*i);
-		    w[fencode_i(p,i,j,b2)]=b0*sin(2.0*(p->dx[0])*j);
+		    w[fencode_i(p,i,j,b1)]=-b0*sin((1.0*p->dx[1])*j);
+		    w[fencode_i(p,i,j,b2)]=b0*sin(2.0*(p->dx[0])*i);
 
 		    w[fencode_i(p,i,j,b3)]=0.0;
 
@@ -123,8 +123,10 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
                     //vy=sin(2pi x)
 		    //w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(2.0*PI*j*(p->dx[1]));
                     //w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(2.0*PI*j*(p->dx[0]));
-		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(i*(p->dx[1]));
-                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(j*(p->dx[0]));
+		    //w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(i*(p->dx[1]));
+                    //w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(j*(p->dx[0]));
+		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(j*(p->dx[1]));
+                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(i*(p->dx[0]));
 
 		    w[fencode_i(p,i,j,mom3)]=0;
 
