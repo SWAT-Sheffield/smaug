@@ -148,9 +148,9 @@ void initconfig(params *k, meta *md, real *w)
 		              case mom2:
 		            	w[j1*ni+i1+(ni*nj*f)]=0.01;
 			      break;
-		              case mom3:
-		            	w[j1*ni+i1+(ni*nj*f)]=0.0;
-			      break;
+		              //case mom3:
+		            	//w[j1*ni+i1+(ni*nj*f)]=0.0;
+			      //break;
 		              case energy:
 		            	w[j1*ni+i1+(ni*nj*f)]=0.0;
 			      break;
@@ -160,9 +160,9 @@ void initconfig(params *k, meta *md, real *w)
 		              case b2:
 		            	w[j1*ni+i1+(ni*nj*f)]=0.0;
 			      break;
-		              case b3:
-		            	w[j1*ni+i1+(ni*nj*f)]=0.0;
-			      break;
+		              //case b3:
+		            //	w[j1*ni+i1+(ni*nj*f)]=0.0;
+			     // break;
 		            }; //end of switch to check for field
 
 			}//end of loop over f

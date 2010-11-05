@@ -172,7 +172,7 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
   int ni,nj;
   char configfile[300];
   char labels[4][4]={"rho","e","mom","b"};
-
+  int is;
   ni=p.n[0];
   nj=p.n[1];
 
@@ -184,8 +184,10 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
 //n+=10;
         #ifdef ADIABHYDRO
       for(int i=0; i<=3; i+=4)
+      //for(int i=0; i<=4; i+=3)
        #else
-      for(int i=0; i<=4; i+=4)
+      for(int i=0,is=0; i<=4; i+=4,is+=3)
+      //for(int i=0; i<=4; i+=3)
         #endif
       {
 	      if(n<=9)
@@ -222,9 +224,10 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
 	      fprintf(fdt,"SCALARS %s double 1\n",labels[i/4]);
 
              fprintf(fdt,"LOOKUP_TABLE TableName \n");
+
 	     for( j1=0;j1<nj;j1++)
 		for( i1=0;i1<ni;i1++)
-			fprintf(fdt,"%f\n",w[(j1*ni+i1)+(ni*nj*i)]);
+			fprintf(fdt,"%f\n",w[(j1*ni+i1)+(ni*nj*is)]);
 
 	      fclose(fdt);
       }
@@ -241,7 +244,8 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
 	      if(i==2)
                 iv=1;
               else
-                iv=5;
+                //iv=5;
+                iv=4;
               if(n<=9)
                  sprintf(configfile,"vtk/%s%ss00%d.vtk",labels[i],name,n);
               else if(n<=99)
@@ -277,7 +281,8 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
 
 		for( j1=0;j1<nj;j1++)
 	      		for( i1=0;i1<ni;i1++)
-			 fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))],w[(j1*ni+i1)+(ni*nj*(iv+2))]);
+			 //fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))],w[(j1*ni+i1)+(ni*nj*(iv+2))]);
+                         fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))]);
 
 	      fclose(fdt);
       }

@@ -20,19 +20,31 @@ DEFINE_PRECISION(double)
 #define NDIM 2
 #define NVECDIM 3
 #ifdef USE_SAC
-   #define NVAR 13
-   #define NDERV 19
+   //#define NVAR 13
+   #define NVAR 10
+   //#define NDERV 19
+   #define NDERV 16
    #define NTEMP 11
+   #define NDIM 2
+   #define NVECDIM 2
 #endif
  #ifdef USE_VAC
-   #define NVAR 8
-   #define NDERV 17
+   //#define NVAR 8
+   #define NVAR 6
+   //#define NDERV 17
+   #define NDERV 14
    #define NTEMP 11
+   #define NDIM 2
+   #define NVECDIM 2
  #endif
  #ifdef ADIABHYDRO
-   #define NVAR 4
-   #define NDERV 9
+   //#define NVAR 4
+   #define NVAR 3
+   //#define NDERV 9
+   #define NDERV 6
    #define NTEMP 1
+   #define NDIM 2
+   #define NVECDIM 3
  #endif
 
 #define PI 3.14159265358979
@@ -124,19 +136,22 @@ struct hydrovars{
 
          #endif*/
 
-
+typedef enum oldvars {mom3, b3,b3b} CEVOLD;
 #ifdef USE_SAC
-   typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3,rhob,energyb,b1b,b2b,b3b} CEV;
+   //typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3,rhob,energyb,b1b,b2b,b3b} CEV;
+   typedef enum vars {rho, mom1, mom2, energy, b1, b2,rhob,energyb,b1b,b2b} CEV;
 #else
-   typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3} CEV;
+   //typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3} CEV;
+   typedef enum vars {rho, mom1, mom2, energy, b1, b2} CEV;
 #endif
 
 #ifdef USE_SAC
-	typedef enum dvars {vel1,vel2,vel3,f1,f2,f3,soundspeed,pressuret,pressurek,current1,current2,current3,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
+//	typedef enum dvars {vel1,vel2,vel3,f1,f2,f3,soundspeed,pressuret,pressurek,current1,current2,current3,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
 
+	typedef enum dvars {vel1,vel2,f1,f2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
 #else
-	typedef enum dvars {vel1,vel2,vel3,f1,f2,f3,soundspeed,pressuret,pressurek,current1,current2,current3,bdotv,divb,cfast,hdnur,hdnul} DEV;
-
+//	typedef enum dvars {vel1,vel2,vel3,f1,f2,f3,soundspeed,pressuret,pressurek,current1,current2,current3,bdotv,divb,cfast,hdnur,hdnul} DEV;
+	typedef enum dvars {vel1,vel2,f1,f2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul} DEV;
 #endif
 
 

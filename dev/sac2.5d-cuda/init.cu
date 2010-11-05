@@ -100,7 +100,7 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
 		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rhob)]*sin(i*(p->dx[1]));
                     w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rhob)]*sin(j*(p->dx[0]));
 
-		    w[fencode_i(p,i,j,mom3)]=0;
+		    //w[fencode_i(p,i,j,mom3)]=0;
 
                     //p=5/12pi  use this to determine the energy
                     //p=(gamma -1)*(e-0.5 rho v**2 - b**2/2)
@@ -117,7 +117,7 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
 		    w[fencode_i(p,i,j,b1)]=-b0*sin((1.0*p->dx[1])*j);
 		    w[fencode_i(p,i,j,b2)]=b0*sin(2.0*(p->dx[0])*i);
 
-		    w[fencode_i(p,i,j,b3)]=0.0;
+		    //w[fencode_i(p,i,j,b3)]=0.0;
 
                     //vx=-sin(2pi y)
                     //vy=sin(2pi x)
@@ -128,7 +128,7 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
 		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(j*(p->dx[1]));
                     w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(i*(p->dx[0]));
 
-		    w[fencode_i(p,i,j,mom3)]=0;
+		    //w[fencode_i(p,i,j,mom3)]=0;
 
                     //p=5/12pi  use this to determine the energy
                     //p=(gamma -1)*(e-0.5 rho v**2 - b**2/2)

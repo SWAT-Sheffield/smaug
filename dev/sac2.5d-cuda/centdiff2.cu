@@ -33,9 +33,9 @@ real transportflux_cd2 (real *dw, real *wd, real *w, struct params *p,int ix, in
      case 1:
       flux= wd[fencode_cd2(p,ix,iy,vel2)]*w[fencode_cd2(p,ix,iy,field)];
      break;
-     case 2:
+     /*case 2:
       flux= wd[fencode_cd2(p,ix,iy,vel3)]*w[fencode_cd2(p,ix,iy,field)];
-     break;
+     break;*/
    }
   return flux;
 
@@ -64,7 +64,8 @@ real fluxb1(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int fie
 
       if(direction !=0)
         #ifdef USE_SAC
-      		flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+5)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
+      		//flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+5)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
+               flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+4)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
          #endif
         #ifdef USE_VAC
       		flux= -w[fencode_cd2(p,ix,iy,field)]*w[fencode_cd2(p,ix,iy,mom1+direction)]/w[fencode_cd2(p,ix,iy,rho)];
@@ -74,14 +75,15 @@ real fluxb1(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int fie
       case b2:
       if(direction !=1)
         #ifdef USE_SAC
-      		flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+5)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
+      		//flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+5)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
+		flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+4)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
          #endif
         #ifdef USE_VAC
       		flux= -w[fencode_cd2(p,ix,iy,field)]*w[fencode_cd2(p,ix,iy,mom1+direction)]/w[fencode_cd2(p,ix,iy,rho)];
          #endif
        break;
 
-      case b3:
+     /* case b3:
       if(direction !=2)
         #ifdef USE_SAC
       		flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+5)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
@@ -89,7 +91,7 @@ real fluxb1(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int fie
         #ifdef USE_VAC
       		flux= -w[fencode_cd2(p,ix,iy,field)]*w[fencode_cd2(p,ix,iy,mom1+direction)]/w[fencode_cd2(p,ix,iy,rho)];
          #endif
-       break;
+       break;*/
 
      }
 
@@ -136,7 +138,7 @@ int computefluxe(real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
 
   int field, direction;
   int status=0;
-  for(direction=0;direction<3;direction++)
+  for(direction=0;direction<2;direction++)
          #ifdef USE_SAC
 	     wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,energy,direction)+transportflux_cd2(dw,wd,w,p,ix,iy,energyb,direction)+fluxe1(dw,wd,w,p,ix,iy,direction);
          #endif
@@ -152,7 +154,7 @@ int computefluxb (real *dw, real *wd, real *w, struct params *p,int ix, int iy, 
 
   int direction;
   int status=0;
-  for(direction=0;direction<3;direction++)
+  for(direction=0;direction<2;direction++)
   {
 
      switch(field)
@@ -191,7 +193,7 @@ wd[fencode_cd2(p,ix,iy,f1+direction)]= +fluxb1(dw,wd,w,p,ix,iy,field,direction);
          #endif
        break;
 
-       case b3 :
+   /*    case b3 :
          #ifdef USE_SAC
       if(direction==2)
          //wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+transportflux_cd2(dw,wd,w,p,ix,iy,field+5,direction);
@@ -206,7 +208,7 @@ wd[fencode_cd2(p,ix,iy,f1+direction)]= 0;
        else
        wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+fluxb1(dw,wd,w,p,ix,iy,field,direction);
          #endif
-       break;
+       break;*/
 
     }
    
@@ -247,9 +249,9 @@ void computeflux_cd2 (real *dw, real *wd, real *w, struct params *p,int ix, int 
      case b2:
        computefluxb(dw,wd,w,p,ix,iy,field);
      break;
-     case b3:
+     /*case b3:
       computefluxb(dw,wd,w,p,ix,iy,field);
-     break;
+     break;*/
   }
   //return ( status);
 }
@@ -290,7 +292,7 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                //for(int f=energy; f<NVAR; f++)
                //{
 			if(i<(ni) && j<(nj))
-                 	    for(fid=0;fid<3;fid++)
+                 	    for(fid=0;fid<2;fid++)
                                dwn1[fencode_cd2(p,i,j,f1+fid)]=0.0;
                              __syncthreads();
 
@@ -304,7 +306,7 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                         __syncthreads();
 
         if( i<(ni) && j<(nj))
-             for(fid=0;fid<3;fid++)
+             for(fid=0;fid<2;fid++)
                   //bc_cont_cd2(dwn1,p,i,j,f1+fid);
                   bc_periodic_cd2(dwn1,p,i,j,f1+fid);
                 __syncthreads();

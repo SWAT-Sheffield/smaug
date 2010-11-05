@@ -369,17 +369,17 @@ void bc_periodic_MODID(real *wt, struct params *p,int i, int j, int f) {
                     wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,2,2,f)];                                   
                 }                       
                 else if(i==0 || i==1)                
-                  //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-2+i,j,f)];
-                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-3,j,f)];                
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-3+i,j,f)];
+                    //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-3,j,f)];                
                 else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))                
-                  //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,2+((p->n[0])-i),j,f)];
-                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,2,j,f)];                
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,4-(p->n[0])+i,j,f)];
+                    //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,2,j,f)];                
                 else if(j==0 || j==1)                
-                  //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-2+j,f)];
-                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-3,f)];                                
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-3+j,f)];
+                  //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-3,f)];                                
                else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)))                
-                 // wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,2+((p->n[1])-j),f)];
-                 wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,2,f)];
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,4-(p->n[1])+j,f)];
+                 //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,2,f)];
                 
 
 

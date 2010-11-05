@@ -30,9 +30,9 @@ int updatestate (struct params *p, struct state *s, real *w ,int i, int j, int f
                       case mom2:
                     	s->m2=s->m2+(w[fencode_u(p,i,j,field)]);
 		      break;
-                      case mom3:
+                      /*case mom3:
                     	s->m3=s->m3+(w[fencode_u(p,i,j,field)]);
-		      break;
+		      break;*/
                       case energy:
                     	s->e=s->e+(w[fencode_u(p,i,j,field)]);
 		      break;
@@ -42,9 +42,9 @@ int updatestate (struct params *p, struct state *s, real *w ,int i, int j, int f
                       case b2:
                     	s->b2=s->b2+(w[fencode_u(p,i,j,field)]);
 		      break;
-                      case b3:
+                      /*case b3:
                     	s->b3=s->b3+(w[fencode_u(p,i,j,field)]);
-		      break;
+		      break;*/
                     };
   return status;
 }
@@ -94,9 +94,9 @@ if (threadIdx.x == 0)
                       case mom2:
                     	s->m2=0;
 		      break;
-                      case mom3:
+                      /*case mom3:
                     	s->m3=0;
-		      break;
+		      break;*/
                       case energy:
                     	s->e=0;
 		      break;
@@ -106,9 +106,9 @@ if (threadIdx.x == 0)
                       case b2:
                     	s->b2=0;
 		      break;
-                      case b3:
+                      /*case b3:
                     	s->b3=0;
-		      break;
+		      break;*/
                     };
 
   }              
@@ -145,9 +145,9 @@ if (threadIdx.x == 0)
                       case mom2:
                     	s->m2=(s->m2)/ntot;
 		      break;
-                      case mom3:
+                      /*case mom3:
                     	s->m3=(s->m3)/ntot;
-		      break;
+		      break;*/
                       case energy:
                     	s->e=(s->e)/ntot;
 		      break;
@@ -157,9 +157,9 @@ if (threadIdx.x == 0)
                       case b2:
                     	s->b2=(s->b2)/ntot;
 		      break;
-                      case b3:
+                      /*case b3:
                     	s->b3=(s->b3)/ntot;
-		      break;
+		      break;*/
                     };
 
   }              

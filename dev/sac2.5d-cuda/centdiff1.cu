@@ -32,9 +32,9 @@ real transportflux (real *dw, real *wd, real *w, struct params *p,int ix, int iy
      case 1:
      flux= wd[fencode_cd1(p,ix,iy,vel2)]*w[fencode_cd1(p,ix,iy,field)];
      break;
-     case 2:
+    /* case 2:
      flux= wd[fencode_cd1(p,ix,iy,vel3)]*w[fencode_cd1(p,ix,iy,field)];
-     break;
+     break;*/
    }
   return flux;
 
@@ -63,30 +63,37 @@ real fluxmom1 (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int 
   {
      case 0:
         #ifdef USE_SAC
-      		flux= -w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b1)]-w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b1b)]-w[fencode_cd1(p,ix,iy,field+9)]*w[fencode_cd1(p,ix,iy,b1)];
+      		//flux= -w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b1)]-w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b1b)]-w[fencode_cd1(p,ix,iy,field+9)]*w[fencode_cd1(p,ix,iy,b1)];
+     		flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b1)]-w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b1b)]-w[fencode_cd1(p,ix,iy,field+7)]*w[fencode_cd1(p,ix,iy,b1)];
         #endif
         #ifdef USE_VAC
-      		flux= -w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b1)];
+      		//flux= -w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b1)];
+                flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b1)];
          #endif
        // if((field==mom1 ) )
         //               flux+=wd[fencode_cd1(p,ix,iy,pressuret)];
      break;
      case 1:
         #ifdef USE_SAC
-	      flux= -w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b2)]-w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b2b)]-w[fencode_cd1(p,ix,iy,field+9)]*w[fencode_cd1(p,ix,iy,b2)];
+	      //flux= -w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b2)]-w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b2b)]-w[fencode_cd1(p,ix,iy,field+9)]*w[fencode_cd1(p,ix,iy,b2)];
+                flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b2)]-w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b2b)]-w[fencode_cd1(p,ix,iy,field+7)]*w[fencode_cd1(p,ix,iy,b2)];
          #endif
         #ifdef USE_VAC
-	      flux= -w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b2)];
+	      //flux= -w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b2)];
+              flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b2)];
          #endif
         // if((field==mom2 && direction==1)   )
         //             flux+=wd[fencode_cd1(p,ix,iy,pressuret)];
      break;
      case 2:
         #ifdef USE_SAC
-     	 	flux= -w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b3)]-w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b3b)]-w[fencode_cd1(p,ix,iy,field+9)]*w[fencode_cd1(p,ix,iy,b3)];
+     	 	//flux= -w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b3)]-w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b3b)]-w[fencode_cd1(p,ix,iy,field+9)]*w[fencode_cd1(p,ix,iy,b3)];
+               flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b3)]-w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b3b)]-w[fencode_cd1(p,ix,iy,field+7)]*w[fencode_cd1(p,ix,iy,b3)];
          #endif
         #ifdef USE_VAC
-      		flux= -w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b3)];	
+      		//flux= -w[fencode_cd1(p,ix,iy,field+4)]*w[fencode_cd1(p,ix,iy,b3)];
+      		flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b3)];	
+	
          #endif
         // if((field==mom3 && direction==2))
          //           flux+=wd[fencode_cd1(p,ix,iy,pressuret)];
@@ -117,7 +124,7 @@ int computefluxrho (real *dw, real *wd, real *w, struct params *p,int ix, int iy
   int field, direction;
   int status=0;
   
-   for(direction=0;direction<3;direction++)
+   for(direction=0;direction<2;direction++)
          #ifdef USE_SAC
 	      wd[fencode_cd1(p,ix,iy,f1+direction)]= transportflux(dw,wd,w,p,ix,iy,rho,direction)+transportflux(dw,wd,w,p,ix,iy,rhob,direction);
          #else
@@ -132,7 +139,7 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
 
   int direction;
   int status=0;
-  for(direction=0;direction<3;direction++)
+  for(direction=0;direction<2;direction++)
   {
     switch(field)
   {
@@ -156,7 +163,7 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
                if(direction==1)
                   wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
      break;
-     case mom3:
+     /*case mom3:
         #ifdef ADIABHYDRO
      		wd[fencode_cd1(p,ix,iy,f1+direction)]= transportflux(dw,wd,w,p,ix,iy,field,direction);
         #else
@@ -165,7 +172,7 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
         #endif
                 if(direction==2)
                   wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
-     break;
+     break;*/
    }
 }
         
@@ -205,10 +212,10 @@ void computeflux (real *dw, real *wd, real *w, struct params *p,int ix, int iy, 
        computefluxmom(dw,wd,w,p,ix,iy,field);
        //wd[fencode_cd1(p,ix,iy,f2)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
      break;
-     case mom3:
+     /*case mom3:
       computefluxmom(dw,wd,w,p,ix,iy,field);
       //wd[fencode_cd1(p,ix,iy,f3)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
-     break;
+     break;*/
   }
   //return ( status);
 }
@@ -250,7 +257,7 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
              //  {
 			if(i<(ni) && j<(nj))
                         {
-                  	    for(fid=0;fid<3;fid++)
+                  	    for(fid=0;fid<2;fid++)
                                dwn1[fencode_cd1(p,i,j,f1+fid)]=0.0;
 
                         }
@@ -266,7 +273,7 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
                         __syncthreads();
 
           if( i<(ni) && j<(nj))
-             for(fid=0;fid<3;fid++)
+             for(fid=0;fid<2;fid++)
                   //bc_cont_cd1(dwn1,p,i,j,f1+fid);
                   bc_periodic_cd1(dwn1,p,i,j,f1+fid);
                 __syncthreads();

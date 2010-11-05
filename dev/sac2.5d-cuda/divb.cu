@@ -37,9 +37,9 @@ real dbsourcemom (real *dw, real *wd, real *w, struct params *p,int ix, int iy,i
 	case 1:
          src= -wd[fencode_db(p,ix,iy,divb)]*w[fencode_db(p,ix,iy,b2)];
 	break;
-	case 2:
+	/*case 2:
          src= -wd[fencode_db(p,ix,iy,divb)]*w[fencode_db(p,ix,iy,b3)];
-	break;
+	break;*/
   }
 
   return(isnan(src)?0:src);
@@ -59,9 +59,9 @@ real dbsourceb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int
 	case 1:
          src= -wd[fencode_db(p,ix,iy,divb)]*w[fencode_db(p,ix,iy,mom2)]/w[fencode_db(p,ix,iy,rho)];
 	break;
-	case 2:
+	/*case 2:
          src= -wd[fencode_db(p,ix,iy,divb)]*w[fencode_db(p,ix,iy,mom3)]/w[fencode_db(p,ix,iy,rho)];
-	break;
+	break;*/
   }
    return(isnan(src)?0:src);
 }
@@ -132,9 +132,9 @@ void dbderivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy
      case mom2:
       dbderivsourcemom(dw,wd,w,p,ix,iy,field,1);
      break;
-     case mom3:
+     /*case mom3:
       dbderivsourcemom(dw,wd,w,p,ix,iy,field,2);
-     break;
+     break;*/
      case energy:
        dbderivsourceenergy(dw,wd,w,p,ix,iy);
      break;
@@ -144,9 +144,9 @@ void dbderivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy
      case b2:
       dbderivsourceb(dw,wd,w,p,ix,iy,field,1);
      break;
-     case b3:
+    /* case b3:
       dbderivsourceb(dw,wd,w,p,ix,iy,field,2);
-     break;
+     break;*/
   }
   //return ( status);
 }
@@ -171,8 +171,9 @@ __global__ void divb_parallel(struct params *p, real *w, real *wmod,
   if(i>2 && j>2 && i<(ni-2) && j<(nj-2))
 	{
            if(p->divbfix)
-           {    
-               for(int f=rho; f<=b3; f++)
+           {   
+               for(int f=rho; f<=b2; f++) 
+               //for(int f=rho; f<=b3; f++)
                {              
                   dbderivsource(dwn1+(NVAR*(p->n[0])*(p->n[1])*order),wd,wmod,p,i,j,f);
  

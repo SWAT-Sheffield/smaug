@@ -45,11 +45,11 @@ real sourcemom (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int
          src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[1]))-(p->chyp)*(grad2_ds(w,p,ix,iy,mom2,1)+grad2_ds(w,p,ix,iy,mom2,0));
          //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[1]));
 	break;
-	case 2:
+	/*case 2:
          //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[2]))-grad_ds(wd,p,ix,iy,pressuret,2);
          src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[2]));
 
-	break;
+	break;*/
   }
 
   return(isnan(src)?0:src);
@@ -64,14 +64,14 @@ real sourceb (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int f
   switch(direction)
   {
 	case 0:
-         src=(p->eta)*grad_ds(wd,p,ix,iy,current3,1);
+        ;// src=(p->eta)*grad_ds(wd,p,ix,iy,current3,1);
 	break;
 	case 1:
-         src= -(p->eta)*grad_ds(wd,p,ix,iy,current3,0);
+        ;// src= -(p->eta)*grad_ds(wd,p,ix,iy,current3,0);
 	break;
-	case 2:
+	/*case 2:
          src= (p->eta)*(grad_ds(wd,p,ix,iy,current2,0)-grad_ds(wd,p,ix,iy,current1,1));
-	break;
+	break;*/
   }
    return(isnan(src)?0:src);
 }
@@ -87,15 +87,18 @@ real sourceenergy (real *dw, real *wd, real *w, struct params *p,int ix, int iy)
   fip2=0;
   fim2=0;
   srcc=0.0;
+  srcb=0.0;
 
          #ifdef USE_SAC
-  	    srcg=w[fencode_ds(p,ix,iy,rho)]*(((p->g[0])*w[fencode_ds(p,ix,iy,mom1)]+(p->g[1])*w[fencode_ds(p,ix,iy,mom2)]+(p->g[2])*w[fencode_ds(p,ix,iy,mom3)]))/(w[fencode_ds(p,ix,iy,rho)]+w[fencode_ds(p,ix,iy,rhob)]);
+  	   // srcg=w[fencode_ds(p,ix,iy,rho)]*(((p->g[0])*w[fencode_ds(p,ix,iy,mom1)]+(p->g[1])*w[fencode_ds(p,ix,iy,mom2)]+(p->g[2])*w[fencode_ds(p,ix,iy,mom3)]))/(w[fencode_ds(p,ix,iy,rho)]+w[fencode_ds(p,ix,iy,rhob)]);
+           srcg=w[fencode_ds(p,ix,iy,rho)]*(((p->g[0])*w[fencode_ds(p,ix,iy,mom1)]+(p->g[1])*w[fencode_ds(p,ix,iy,mom2)]))/(w[fencode_ds(p,ix,iy,rho)]+w[fencode_ds(p,ix,iy,rhob)]);
          #else
-     		 srcg=(p->g[0])*w[fencode_ds(p,ix,iy,mom1)]+(p->g[1])*w[fencode_ds(p,ix,iy,mom2)]+(p->g[2])*w[fencode_ds(p,ix,iy,mom3)];
+     		// srcg=(p->g[0])*w[fencode_ds(p,ix,iy,mom1)]+(p->g[1])*w[fencode_ds(p,ix,iy,mom2)]+(p->g[2])*w[fencode_ds(p,ix,iy,mom3)];
+                srcg=(p->g[0])*w[fencode_ds(p,ix,iy,mom1)]+(p->g[1])*w[fencode_ds(p,ix,iy,mom2)];
          #endif
 
 
-         #ifdef USE_SAC
+     /*    #ifdef USE_SAC
 	       fi=((w[fencode_ds(p,ix+1,iy,b2)]+w[fencode_ds(p,ix+1,iy,b2b)])*wd[fencode_ds(p,ix+1,iy,current3)]-(w[fencode_ds(p,ix+1,iy,b3)]+w[fencode_ds(p,ix+1,iy,b3b)])*wd[fencode_ds(p,ix+1,iy,current2)]);
 	       fim1=((w[fencode_ds(p,ix-1,iy,b2)]+w[fencode_ds(p,ix-1,iy,b2b)])*wd[fencode_ds(p,ix-1,iy,current3)]-(w[fencode_ds(p,ix-1,iy,b3)]+w[fencode_ds(p,ix-1,iy,b3b)])*wd[fencode_ds(p,ix-1,iy,current2)]);
 	    if(p->sodifon)
@@ -114,10 +117,10 @@ real sourceenergy (real *dw, real *wd, real *w, struct params *p,int ix, int iy)
 
          #endif
 
-       ddcx=evalgrad_ds(fi,fim1,fip2,fim2,p,0);
+       ddcx=evalgrad_ds(fi,fim1,fip2,fim2,p,0);*/
       //ddcx=evalgrad_ds(fi,fim1,0,0,p,0);
 
-         #ifdef USE_SAC
+     /*    #ifdef USE_SAC
 	      fi=((w[fencode_ds(p,ix,iy+1,b3)]+w[fencode_ds(p,ix,iy+1,b3b)])*wd[fencode_ds(p,ix,iy+1,current1)]-(w[fencode_ds(p,ix,iy+1,b1)]+w[fencode_ds(p,ix,iy+1,b1b)])*wd[fencode_ds(p,ix,iy+1,current3)]);
 	       fim1=((w[fencode_ds(p,ix,iy-1,b3)]+w[fencode_ds(p,ix,iy-1,b3b)])*wd[fencode_ds(p,ix,iy-1,current1)]-(w[fencode_ds(p,ix,iy-1,b1)]+w[fencode_ds(p,ix,iy-1,b1b)])*wd[fencode_ds(p,ix,iy-1,current3)]);
 	    if(p->sodifon)
@@ -137,7 +140,7 @@ real sourceenergy (real *dw, real *wd, real *w, struct params *p,int ix, int iy)
       // ddcx=evalgrad_ds(fi,fim1,fip2,fim2,p,0);
       ddcy=evalgrad_ds(fi,fim1,fip2,fim2,p,1);
 
-      srcb=(p->eta)*((isnan(ddcx)?0:ddcx)+(isnan(ddcy)?0:ddcy));
+      srcb=(p->eta)*((isnan(ddcx)?0:ddcx)+(isnan(ddcy)?0:ddcy));*/
 
         #ifdef USE_SAC
          //calc gradv
@@ -228,9 +231,9 @@ void derivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy, 
      case mom2:
       derivsourcemom(dw,wd,w,p,ix,iy,field,1,order);
      break;
-     case mom3:
+     /*case mom3:
       derivsourcemom(dw,wd,w,p,ix,iy,field,2,order);
-     break;
+     break;*/
      case energy:
        derivsourceenergy(dw,wd,w,p,ix,iy,order);
      break;
@@ -240,9 +243,9 @@ void derivsource (real *dw, real *wd, real *w, struct params *p,int ix, int iy, 
      case b2:
       derivsourceb(dw,wd,w,p,ix,iy,field,1,order);
      break;
-     case b3:
+     /*case b3:
       derivsourceb(dw,wd,w,p,ix,iy,field,2,order);
-     break;
+     break;*/
   }
   //return ( status);
 }

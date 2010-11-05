@@ -125,7 +125,7 @@ __syncthreads();
  if(i<(p->n[0]) && j<(p->n[1]))
 	{ 
               // for(int f=vel1; f<NDERV; f++)
-              for(int f=current1; f<=current3; f++)
+              for(int f=current1; f<=current2; f++)
                   bc_cont_cdf(wd,p,i,j,f);
 
 	}

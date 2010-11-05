@@ -112,7 +112,7 @@ real h0 = 5030;
 
 //vac ozt
 int ni = 196;
-ni=110;
+ni=104;
 real xmax = 6.2831853;  
 real dx = xmax/(ni-4);
 
@@ -128,7 +128,7 @@ real dx = xmax/(ni-4);
 
 //vac ozt
 int nj = 196;
-nj=110;
+nj=104;
 real ymax = 6.2831853;  
 real dy = ymax/(nj-4);    
 //nj=41;
@@ -158,12 +158,12 @@ real dt;
 //dt=0.015985;
 //dt=0.15;
 //dt=0.00145;
-dt=0.00025;
+dt=0.0018;
 //dt=0.25;
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
 //nt=100;
-nt=1740;
+nt=500;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -459,7 +459,8 @@ if((p->rkon)==0)
  cucomputedervfields(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero);
  order=1; 
    //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
-   for(int f=rho; f<=mom3; f++)
+   //for(int f=rho; f<=mom3; f++)
+  for(int f=rho; f<=mom2; f++)
       cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f);
 
    for(int f=energy; f<NVAR; f++)
@@ -528,7 +529,8 @@ if((p->rkon)==0)
 
            cucomputedervfields(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero);
 	   //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
-           for(int f=rho; f<=mom3; f++)
+           //for(int f=rho; f<=mom3; f++)
+           for(int f=rho; f<=mom2; f++)
 	       cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f);
 
            for(int f=energy; f<NVAR; f++)
