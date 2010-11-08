@@ -39,7 +39,7 @@ DEFINE_PRECISION(double)
  #endif
  #ifdef ADIABHYDRO
    //#define NVAR 4
-   #define NVAR 3
+   #define NVAR 4
    //#define NDERV 9
    #define NDERV 6
    #define NTEMP 1
