@@ -62,24 +62,27 @@ real fluxb1(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int fie
       case b1:
 
 
-      if(direction !=0)
+      //if(direction !=0)
         #ifdef USE_SAC
       		//flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+5)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
                flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+4)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
          #endif
         #ifdef USE_VAC
-      		flux= -w[fencode_cd2(p,ix,iy,field)]*w[fencode_cd2(p,ix,iy,mom1+direction)]/w[fencode_cd2(p,ix,iy,rho)];
+      		//flux= -w[fencode_cd2(p,ix,iy,field)]*w[fencode_cd2(p,ix,iy,mom1+direction)]/w[fencode_cd2(p,ix,iy,rho)];
+                flux= -w[fencode_cd2(p,ix,iy,b1+direction)]*w[fencode_cd2(p,ix,iy,mom1)]/w[fencode_cd2(p,ix,iy,rho)];
          #endif
        break;
 
       case b2:
-      if(direction !=1)
+      //if(direction !=1)
         #ifdef USE_SAC
       		//flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+5)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
 		flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+4)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
          #endif
         #ifdef USE_VAC
-      		flux= -w[fencode_cd2(p,ix,iy,field)]*w[fencode_cd2(p,ix,iy,mom1+direction)]/w[fencode_cd2(p,ix,iy,rho)];
+      		//flux= -w[fencode_cd2(p,ix,iy,field)]*w[fencode_cd2(p,ix,iy,mom1+direction)]/w[fencode_cd2(p,ix,iy,rho)];
+                flux= -w[fencode_cd2(p,ix,iy,b1+direction)]*w[fencode_cd2(p,ix,iy,mom2)]/w[fencode_cd2(p,ix,iy,rho)];
+
          #endif
        break;
 
@@ -118,6 +121,7 @@ real fluxe1(real *dw, real *wd, real *w, struct params *p,int ix, int iy, int di
          #endif
         #ifdef USE_VAC
       		flux= -w[fencode_cd2(p,ix,iy,b1+direction)]*wd[fencode_cd2(p,ix,iy,bdotv)]+(w[fencode_cd2(p,ix,iy,mom1+direction)]*wd[fencode_cd2(p,ix,iy,pressuret)]/w[fencode_cd2(p,ix,iy,rho)]);
+               
          #endif
 
   return flux;
@@ -165,14 +169,14 @@ int computefluxb (real *dw, real *wd, real *w, struct params *p,int ix, int iy, 
      //wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+transportflux_cd2(dw,wd,w,p,ix,iy,field+5,direction);
 wd[fencode_cd2(p,ix,iy,f1+direction)]= 0.0;
       else
-wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+fluxb1(dw,wd,w,p,ix,iy,field,direction);
+wd[fencode_cd2(p,ix,iy,f1+direction)]= /*transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+*/fluxb1(dw,wd,w,p,ix,iy,field,direction);
          #endif
          #ifdef USE_VAC
       if(direction==0)
     // wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction);
  wd[fencode_cd2(p,ix,iy,f1+direction)]= 0.0;
       else
-wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+fluxb1(dw,wd,w,p,ix,iy,field,direction);
+wd[fencode_cd2(p,ix,iy,f1+direction)]= /*transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+*/fluxb1(dw,wd,w,p,ix,iy,field,direction);
          #endif
        break;
 
@@ -182,14 +186,14 @@ wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,d
      //wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+transportflux_cd2(dw,wd,w,p,ix,iy,field+5,direction);
 wd[fencode_cd2(p,ix,iy,f1+direction)]= 0.0;
 else
-wd[fencode_cd2(p,ix,iy,f1+direction)]= +fluxb1(dw,wd,w,p,ix,iy,field,direction);
+wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+fluxb1(dw,wd,w,p,ix,iy,field,direction);
          #endif
          #ifdef USE_VAC
       if(direction==1)
     // wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction);
  wd[fencode_cd2(p,ix,iy,f1+direction)]= 0.0;
       else
-wd[fencode_cd2(p,ix,iy,f1+direction)]= +fluxb1(dw,wd,w,p,ix,iy,field,direction);
+wd[fencode_cd2(p,ix,iy,f1+direction)]= /*transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+*/fluxb1(dw,wd,w,p,ix,iy,field,direction);
          #endif
        break;
 

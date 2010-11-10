@@ -74,8 +74,8 @@ if( i<((p->n[0])) && j<((p->n[1])))
 
                          break;
                         case 3:
-                       wmod[fencode_adv(p,i,j,f)]=wmod[fencode_adv(p,i,j,f)]+wmod[fencode_adv(p,i,j,f)+((p->n[0])*(p->n[1])*NVAR)];
-
+                      // wmod[fencode_adv(p,i,j,f)]=wmod[fencode_adv(p,i,j,f)]+wmod[fencode_adv(p,i,j,f)+((p->n[0])*(p->n[1])*NVAR)];
+                        wmod[fencode_adv(p,i,j,f)]=wmod[fencode_adv(p,i,j,f)]+wmod[fencode_adv(p,i,j,f)+((p->n[0])*(p->n[1])*NVAR)];
 
                          break;
 

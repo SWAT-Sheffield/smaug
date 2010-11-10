@@ -112,10 +112,12 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
        #else
 		    //w[fencode_i(p,i,j,rho)]=25.0/(36.0*PI);
                     w[fencode_i(p,i,j,rho)]=25.0/9.0;
-		    //w[fencode_i(p,i,j,b1)]=-b0*sin(2.0*PI*(p->dx[1])*j);
-		    //w[fencode_i(p,i,j,b2)]=b0*sin(4.0*PI*(p->dx[0])*i);
-		    w[fencode_i(p,i,j,b1)]=-b0*sin((1.0*p->dx[1])*j);
-		    w[fencode_i(p,i,j,b2)]=b0*sin(2.0*(p->dx[0])*i);
+		    //w[fencode_i(p,i,j,b1)]=-b0*sin((p->dx[0])*i);
+		    //w[fencode_i(p,i,j,b2)]=b0*sin(2.0*(p->dx[1])*j);
+		    //w[fencode_i(p,i,j,b1)]=b0*sin((2.0*p->dx[1])*(p->n[0] -j));
+		    //w[fencode_i(p,i,j,b2)]=-b0*sin(1.0*(p->dx[0])*(p->n[1] -i));
+		    w[fencode_i(p,i,j,b1)]=b0*sin((2.0*p->dx[1])*j);
+		    w[fencode_i(p,i,j,b2)]=-b0*sin(1.0*(p->dx[0])*i);
 
 		    //w[fencode_i(p,i,j,b3)]=0.0;
 
@@ -123,10 +125,10 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
                     //vy=sin(2pi x)
 		    //w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(2.0*PI*j*(p->dx[1]));
                     //w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(2.0*PI*j*(p->dx[0]));
-		    //w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(i*(p->dx[1]));
-                    //w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(j*(p->dx[0]));
-		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(j*(p->dx[1]));
-                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(i*(p->dx[0]));
+		    //w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(i*(p->dx[0]));
+                    //w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(j*(p->dx[1]));
+		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(1.0*j*(p->dx[1]));
+                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(1.0*i*(p->dx[0]));
 
 		    //w[fencode_i(p,i,j,mom3)]=0;
 
@@ -140,7 +142,7 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
 //w[fencode_i(p,i,j,energy)]=(ptot/((p->gamma)-1))+0.5*rrho*(w[fencode_i(p,i,j,mom1)]*w[fencode_i(p,i,j,mom1)]+w[fencode_i(p,i,j,mom2)]*w[fencode_i(p,i,j,mom2)])+0.5*(w[fencode_i(p,i,j,b1)]*w[fencode_i(p,i,j,b1)]+w[fencode_i(p,i,j,b2)]*w[fencode_i(p,i,j,b2)]);
 
 //gives agreement with vac ozt
-w[fencode_i(p,i,j,energy)]=-sin(i*(p->dx[1]));
+w[fencode_i(p,i,j,energy)]=-sin(1.0*i*(p->dx[1]));
 
        #endif
 
@@ -177,7 +179,7 @@ int ni=p->n[0];
     
   real *u,  *v,  *h;
 
-
+   int ord;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
 
@@ -204,6 +206,8 @@ int ni=p->n[0];
 	    for(int f=0; f<NVAR; f++)
             { 
 		          w[fencode_i(p,i,j,f)]=0;
+                          for(ord=0;ord<(2+3*(p->rkon==1));ord++)
+                              wmod[fencode_i(p,i,j,f)+ord*NVAR*(p->n[0])*(p->n[1])]=0;
 	    }
             w[fencode_i(p,i,j,rho)]=1.0;
             #ifdef ADIABHYDRO

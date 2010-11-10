@@ -157,12 +157,12 @@ char configfile[300];
 real dt;
 //dt=0.015985;
 //dt=0.15;
-dt=0.00145;
-//dt=0.0018;
+dt=0.0018;
+//dt=0.00009;
 //dt=0.25;
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
-nt=100;
+nt=250;
 //nt=1000;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
@@ -274,7 +274,7 @@ p->adiab=1.0;
 #else
 
 //ozt test
-p->gamma=5/3;
+p->gamma=5.0/3.0;
 
 //alfven test
 //p->gamma=1.4;
@@ -315,7 +315,7 @@ p->maxviscoef=0;
 //p->chyp=0.2;       
 p->chyp=0.00000;
 p->chyp3=0.00000;
-p->mnthreads=10;
+p->mnthreads=1;
 
 printf("calling cuinit\n");
 
@@ -533,7 +533,7 @@ if((p->rkon)==0)
            for(int f=rho; f<=mom2; f++)
 	       cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f);
 
-           for(int f=energy; f<NVAR; f++)
+           for(int f=energy; f<=b2; f++)
 	       cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f);
 
 	   //cuderivsource(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
@@ -567,9 +567,9 @@ if((p->rkon)==0)
 	       cuhyperdifbsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
 	     }
            }
-
+           cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
            cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order);
-	   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+	   
 
    }
 

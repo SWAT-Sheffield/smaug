@@ -22,6 +22,7 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int index,k;
+  int f;
 
   int ni=p->n[0];
   int nj=p->n[1];
@@ -45,11 +46,11 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
                
                  // bc_fixed_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,1.0);
                //   bc_fixed(wnew,p,i,j,rho,1.0);
-                  bc_periodic_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho);
+               //   bc_periodic_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho);
                
 
                
-               for(int f=rho+1; f<NVAR; f++)
+               for( f=rho; f<NVAR; f++)
                {
 
                   //bc_cont_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
