@@ -59,7 +59,7 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
                 //  bc_fixed_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,0.0);
                  // bc_fixed(wnew,p,i,j,f,val);
 
-                  bc_periodic_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
+                  bc_periodic1_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
                 
 
 
@@ -77,6 +77,16 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
 
 	}
  __syncthreads();
+
+
+  //This second call makes sure corners are set correctly
+  if(i<p->n[0] && j<p->n[1])
+             for( f=rho; f<NVAR; f++)
+                  bc_periodic2_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f); 
+ __syncthreads();
+
+
+
   
 }
 
