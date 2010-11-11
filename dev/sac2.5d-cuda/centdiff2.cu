@@ -333,8 +333,13 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                //for(int f=energy; f<NVAR; f++)
                //{
 			if(i<(ni) && j<(nj))
+                        {
+                            dwn1[fencode_cd2(p,i,j,f)]=0.0;
+
                  	    for(fid=0;fid<2;fid++)
                                dwn1[fencode_cd2(p,i,j,f1+fid)]=0.0;
+
+                        }
                              __syncthreads();
 
                              

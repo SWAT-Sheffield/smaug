@@ -127,8 +127,8 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
                     //w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(2.0*PI*j*(p->dx[0]));
 		    //w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(i*(p->dx[0]));
                     //w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(j*(p->dx[1]));
-		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rho)]*sin(1.0*j*(p->dx[1]));
-                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rho)]*sin(1.0*i*(p->dx[0]));
+		    w[fencode_i(p,i,j,mom1)]=w[fencode_i(p,i,j,rho)]*sin(1.0*j*(p->dx[1]));
+                    w[fencode_i(p,i,j,mom2)]=-w[fencode_i(p,i,j,rho)]*sin(1.0*i*(p->dx[0]));
 
 		    //w[fencode_i(p,i,j,mom3)]=0;
 
@@ -232,11 +232,9 @@ int ni=p->n[0];
 	{
         for(int f=rho; f<NVAR; f++)
         {               
-                  wmod[fencode_i(p,i,j,f)]=w[fencode_i(p,i,j,f)];
-              
+                  wmod[fencode_i(p,i,j,f)]=w[fencode_i(p,i,j,f)];              
                   dwn1[fencode_i(p,i,j,f)]=0;
-                
-                 
+                            
         }
 
         for(int f=tmp1; f<NTEMP; f++)

@@ -138,8 +138,9 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
                   wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressureb)];
  
         #endif
-               if(direction==0)
-                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
+              // if(direction==0)
+              //    wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
+ 
      break;
      case mom2:
         #ifdef ADIABHYDRO
@@ -155,8 +156,9 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
                   wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressureb)];
  
         #endif
-               if(direction==1)
-                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
+              // if(direction==1)
+              //    wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
+ 
      break;
  
    }
@@ -171,7 +173,19 @@ int divflux1(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int fi
   int direction;
   int status=0;
   real divflux=0;
-  dw[fencode_cd1(p,ix,iy,field)]= grad_cd1(wd,p,ix,iy,f1,0)+grad_cd1(wd,p,ix,iy,f2,1);      
+  dw[fencode_cd1(p,ix,iy,field)]= grad_cd1(wd,p,ix,iy,f1,0)+grad_cd1(wd,p,ix,iy,f2,1);  
+ /*switch(field)
+  {
+     case mom1:
+       dw[fencode_cd1(p,ix,iy,field)]+= grad_cd1(wd,p,ix,iy,pressuret,0);
+      break;
+
+    case mom2:
+      dw[fencode_cd1(p,ix,iy,field)]+= grad_cd1(wd,p,ix,iy,pressuret,1);
+      break;
+
+
+  }    */
  // dw[fencode_cd1(p,ix,iy,field)]= gradd0_cd1(wd,p,ix,iy,f1,0)+gradd1_cd1(wd,p,ix,iy,f2,1);    
   return ( status);
 }
@@ -243,6 +257,8 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
              //  {
 			if(i<(ni) && j<(nj))
                         {
+                            dwn1[fencode_cd1(p,i,j,f)]=0.0;
+
                   	    for(fid=0;fid<2;fid++)
                                dwn1[fencode_cd1(p,i,j,f1+fid)]=0.0;
 
@@ -292,7 +308,7 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
 			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
                          {
                               //                                                                                  - sign here same as vac maybe a +
-                              wmod[fencode_cd1(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]=wmod[fencode_cd1(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]-dt*dwn1[fencode_cd1(p,i,j,f)]; 
+                              wmod[fencode_cd1(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_cd1(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]-dt*dwn1[fencode_cd1(p,i,j,f)]; 
 //wmod[fencode_cd1(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]=dwn1[fencode_cd1(p,i,j,f2)];
                               //dwn1[fencode_cd1(p,i,j,f)]=0;
                          }
