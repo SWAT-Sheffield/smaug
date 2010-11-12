@@ -27,10 +27,12 @@ real transportflux (real *dw, real *wd, real *w, struct params *p,int ix, int iy
     switch(direction)
   {
      case 0:
-     flux= wd[fencode_cd1(p,ix,iy,vel1)]*w[fencode_cd1(p,ix,iy,field)];
+     //flux= wd[fencode_cd1(p,ix,iy,vel1)]*w[fencode_cd1(p,ix,iy,field)];
+     flux= w[fencode_cd1(p,ix,iy,mom1)]*w[fencode_cd1(p,ix,iy,field)]/w[fencode_cd1(p,ix,iy,rho)];
      break;
      case 1:
-     flux= wd[fencode_cd1(p,ix,iy,vel2)]*w[fencode_cd1(p,ix,iy,field)];
+     //flux= wd[fencode_cd1(p,ix,iy,vel2)]*w[fencode_cd1(p,ix,iy,field)];
+     flux= w[fencode_cd1(p,ix,iy,mom2)]*w[fencode_cd1(p,ix,iy,field)]/w[fencode_cd1(p,ix,iy,rho)];
      break;
     /* case 2:
      flux= wd[fencode_cd1(p,ix,iy,vel3)]*w[fencode_cd1(p,ix,iy,field)];
@@ -138,8 +140,9 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
                   wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressureb)];
  
         #endif
-              // if(direction==0)
-              //    wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
+               if(direction==0)
+                  //wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
+                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=((p->gamma)-1.0)*w[fencode_cd1(p,ix,iy,energy)]+(1.0-0.5*(p->gamma))*(w[fencode_cd1(p,ix,iy,b1)]*w[fencode_cd1(p,ix,iy,b1)]+w[fencode_cd1(p,ix,iy,b2)]*w[fencode_cd1(p,ix,iy,b2)])+0.5*(1.0-(p->gamma))*(w[fencode_cd1(p,ix,iy,mom1)]*w[fencode_cd1(p,ix,iy,mom1)]+w[fencode_cd1(p,ix,iy,mom2)]*w[fencode_cd1(p,ix,iy,mom2)])/w[fencode_cd1(p,ix,iy,rho)];
  
      break;
      case mom2:
@@ -156,8 +159,8 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
                   wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressureb)];
  
         #endif
-              // if(direction==1)
-              //    wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
+               if(direction==1)
+                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=((p->gamma)-1.0)*w[fencode_cd1(p,ix,iy,energy)]+(1.0-0.5*(p->gamma))*(w[fencode_cd1(p,ix,iy,b1)]*w[fencode_cd1(p,ix,iy,b1)]+w[fencode_cd1(p,ix,iy,b2)]*w[fencode_cd1(p,ix,iy,b2)])+0.5*(1.0-(p->gamma))*(w[fencode_cd1(p,ix,iy,mom1)]*w[fencode_cd1(p,ix,iy,mom1)]+w[fencode_cd1(p,ix,iy,mom2)]*w[fencode_cd1(p,ix,iy,mom2)])/w[fencode_cd1(p,ix,iy,rho)];
  
      break;
  
