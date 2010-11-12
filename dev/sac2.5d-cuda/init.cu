@@ -84,30 +84,26 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
 
 
 	#ifdef USE_SAC
+                    b0=1.0/sqrt(4.0*PI);
+                    ptot=5.0/(12.0*PI);
 		    w[fencode_i(p,i,j,rhob)]=25.0/(36.0*PI);
+                    //w[fencode_i(p,i,j,rhob)]=25.0/9.0;
 
-		    //w[fencode_i(p,i,j,b1b)]=-b0*sin(2.0*PI*(p->dx[1])*j);
-		    //w[fencode_i(p,i,j,b2b)]=b0*sin(4.0*PI*(p->dx[0])*i);
-		    w[fencode_i(p,i,j,b1b)]=-b0*sin((p->dx[1])*j);
-		    w[fencode_i(p,i,j,b2b)]=b0*sin(2.0*(p->dx[0])*i);
+                    rgamm1=1.0/((p->gamma)-1);
 		    
+		    w[fencode_i(p,i,j,b2b)]=-b0*sin((2.0*PI*p->dx[1])*j);
+		    w[fencode_i(p,i,j,b1b)]=b0*sin(4.0*PI*(p->dx[0])*i);
 
                     //vx=-sin(2pi y)
                     //vy=sin(2pi x)
 		    //w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rhob)]*sin(2.0*PI*j*(p->dx[1]));
                     //w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rhob)]*sin(2.0*PI*j*(p->dx[0]));
 
-		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rhob)]*sin(i*(p->dx[1]));
-                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rhob)]*sin(j*(p->dx[0]));
+		    w[fencode_i(p,i,j,mom1)]=-w[fencode_i(p,i,j,rhob)]*sin(2.0*PI*i*(p->dx[1]));
+                    w[fencode_i(p,i,j,mom2)]=w[fencode_i(p,i,j,rhob)]*sin(2.0*PI*j*(p->dx[0]));
 
-		    //w[fencode_i(p,i,j,mom3)]=0;
 
-                    //p=5/12pi  use this to determine the energy
-                    //p=(gamma -1)*(e-0.5 rho v**2 - b**2/2)
-                    rrho=1.0/(w[fencode_i(p,i,j,rhob)]);
-		    w[fencode_i(p,i,j,energy)]=+0.5*rrho*(w[fencode_i(p,i,j,mom1)]*w[fencode_i(p,i,j,mom1)]+w[fencode_i(p,i,j,mom2)]*w[fencode_i(p,i,j,mom2)]);
-		    w[fencode_i(p,i,j,energyb)]=(ptot/((p->gamma)-1))+0.5*(w[fencode_i(p,i,j,b1)]*w[fencode_i(p,i,j,b1)]+w[fencode_i(p,i,j,b2)]*w[fencode_i(p,i,j,b2)]);
-
+                    w[fencode_i(p,i,j,energyb)]=ptot*rgamm1;
 
        #else
 		    //w[fencode_i(p,i,j,rho)]=25.0/(36.0*PI);
@@ -142,7 +138,7 @@ void init_ozttest (real *w, struct params *p,int i, int j) {
 //w[fencode_i(p,i,j,energy)]=(ptot/((p->gamma)-1))+0.5*rrho*(w[fencode_i(p,i,j,mom1)]*w[fencode_i(p,i,j,mom1)]+w[fencode_i(p,i,j,mom2)]*w[fencode_i(p,i,j,mom2)])+0.5*(w[fencode_i(p,i,j,b1)]*w[fencode_i(p,i,j,b1)]+w[fencode_i(p,i,j,b2)]*w[fencode_i(p,i,j,b2)]);
 
 //gives agreement with vac ozt
-w[fencode_i(p,i,j,energy)]=-sin(1.0*i*(p->dx[1]));
+w[fencode_i(p,i,j,energy)]=-sin(1.0*i*(p->dx[0]));
 
        #endif
 
