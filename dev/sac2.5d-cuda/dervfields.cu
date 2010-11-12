@@ -74,9 +74,9 @@ void computept_MODID(real *wmod,real *wd,struct params *p,int i,int j)
  
  wd[fencode_MODID(p,i,j,pressuret)]=  ((p->gamma)-2)*((wmod[fencode_MODID(p,i,j,b1b)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2b)]*wmod[fencode_MODID(p,i,j,b2)]))+0.5*(wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]);
 
-wd[fencode_MODID(p,i,j,pressuret)]= ((p->gamma)-2)*(wmod[fencode_MODID(p,i,j,e)]-0.5*(wmod[fencode_MODID(p,i,j,mom1)]*wmod[fencode_MODID(p,i,j,mom1)]+wmod[fencode_MODID(p,i,j,mom2)]*wmod[fencode_MODID(p,i,j,mom2)])/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]))-wd[fencode_MODID(p,i,j,pressuret)];
+wd[fencode_MODID(p,i,j,pressuret)]= ((p->gamma)-2)*(wmod[fencode_MODID(p,i,j,energy)]-0.5*(wmod[fencode_MODID(p,i,j,mom1)]*wmod[fencode_MODID(p,i,j,mom1)]+wmod[fencode_MODID(p,i,j,mom2)]*wmod[fencode_MODID(p,i,j,mom2)])/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]))-wd[fencode_MODID(p,i,j,pressuret)];
 
- wd[fencode_MODID(p,i,j,ptb)]=  ((p->gamma)-1)*wmod[fencode_MODID(p,i,j,eb)]- 0.5*((p->gamma)-2)*(wmod[fencode_MODID(p,i,j,b1b)]*wmod[fencode_MODID(p,i,j,b1b)]+wmod[fencode_MODID(p,i,j,b2b)]*wmod[fencode_MODID(p,i,j,b2b)]) ;
+ wd[fencode_MODID(p,i,j,ptb)]=  ((p->gamma)-1)*(wmod[fencode_MODID(p,i,j,energy)]-0.5*((wmod[fencode_MODID(p,i,j,mom1)]*wmod[fencode_MODID(p,i,j,mom2)])/wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]))- 0.5*((p->gamma)-2)*(wmod[fencode_MODID(p,i,j,b1b)]*wmod[fencode_MODID(p,i,j,b1b)]+wmod[fencode_MODID(p,i,j,b2b)]*wmod[fencode_MODID(p,i,j,b2b)]) ;
 
 
 #else

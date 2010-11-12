@@ -163,7 +163,7 @@ real fluxe2(real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
 
         #ifdef USE_SAC
       		flux= wd[fencode_cd2(p,ix,iy,ptb)]*(grad_cd2(wd,p,ix,iy,vel1,0)+grad_cd2(wd,p,ix,iy,vel2,1));
-                flux      +=w[fencode_cd2(p,ix,iy,b1b)]*([fencode_cd2(p,ix,iy,b1b)]*grad_cd2(wd,p,ix,iy,vel1,0)+[fencode_cd2(p,ix,iy,b2b)]*grad_cd2(wd,p,ix,iy,vel2,1)) +w[fencode_cd2(p,ix,iy,b2b)]*([fencode_cd2(p,ix,iy,b1b)]*grad_cd2(wd,p,ix,iy,vel1,0)+[fencode_cd2(p,ix,iy,b2b)]*grad_cd2(wd,p,ix,iy,vel2,1));  
+                flux      +=w[fencode_cd2(p,ix,iy,b1b)]*(w[fencode_cd2(p,ix,iy,b1b)]*grad_cd2(wd,p,ix,iy,vel1,0)+w[fencode_cd2(p,ix,iy,b2b)]*grad_cd2(wd,p,ix,iy,vel2,1)) +w[fencode_cd2(p,ix,iy,b2b)]*(w[fencode_cd2(p,ix,iy,b1b)]*grad_cd2(wd,p,ix,iy,vel1,0)+w[fencode_cd2(p,ix,iy,b2b)]*grad_cd2(wd,p,ix,iy,vel2,1));  
          #endif
 
   return flux;

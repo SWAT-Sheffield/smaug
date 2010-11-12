@@ -137,7 +137,7 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
         #ifdef USE_SAC
     		wd[fencode_cd1(p,ix,iy,f1+direction)]= transportflux(dw,wd,w,p,ix,iy,field,direction)+fluxmom1(dw,wd,w,p,ix,iy,field,direction);
                if(direction==0)
-                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressureb)];
+                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
  
         #endif
                if(direction==0)
@@ -156,7 +156,7 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
         #ifdef USE_SAC
     		wd[fencode_cd1(p,ix,iy,f1+direction)]= transportflux(dw,wd,w,p,ix,iy,field,direction)+fluxmom1(dw,wd,w,p,ix,iy,field,direction);
                if(direction==1)
-                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressureb)];
+                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
  
         #endif
                if(direction==1)
