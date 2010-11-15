@@ -168,20 +168,49 @@ __global__ void divb_parallel(struct params *p, real *w, real *wmod,
   j=iindex/ni;
   i=iindex-(j*ni);
 
+  if(i<(ni) && j<(nj))
+     for(int f=rho; f<=b2; f++)
+                dwn1[fencode_db(p,i,j,f)]=0;
+ __syncthreads();
+
   if(i>2 && j>2 && i<(ni-2) && j<(nj-2))
 	{
            if(p->divbfix)
            {   
+
+               wd[fencode_db(p,i,j,divb)]=grad_db(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,b1,0)+grad_db(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,b2,1);
+               #ifdef USE_SAC
+		wd[fencode_db(p,i,j,divb)]+=grad_db(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,b1b,0)+grad_db(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,b2b,1);
+                #endif
+
                for(int f=rho; f<=b2; f++) 
                //for(int f=rho; f<=b3; f++)
                {              
-                  dbderivsource(dwn1+(NVAR*(p->n[0])*(p->n[1])*order),wd,wmod,p,i,j,f);
+                  //dbderivsource(dwn1+(NVAR*(p->n[0])*(p->n[1])*order),wd,wmod,p,i,j,f);
+                  dbderivsource(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
  
                }
             }
 
 	}
  __syncthreads();
+
+    if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+                         {
+                         if(p->divbfix)
+                          { 
+                             for(int f=rho; f<=b2; f++) 
+                             //                                                  - sign here same as vac maybe a +
+                              wmod[fencode_db(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_db(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]-dt*dwn1[fencode_db(p,i,j,f)]; 
+                          }
+
+                         }
+              //  }	
+
+  __syncthreads();
+
+
+
   
 }
 
