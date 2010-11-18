@@ -140,7 +140,7 @@ wd[fencode_cd2(p,ix,iy,bdotv)]=(w[fencode_cd2(p,ix,iy,b1)]*w[fencode_cd2(p,ix,iy
 wd[fencode_cd2(p,ix,iy,pressuret)]=(((p->gamma)-1.0)*w[fencode_cd2(p,ix,iy,energy)]+(1.0-0.5*(p->gamma))*(w[fencode_cd2(p,ix,iy,b1)]*w[fencode_cd2(p,ix,iy,b1)]+w[fencode_cd2(p,ix,iy,b2)]*w[fencode_cd2(p,ix,iy,b2)])+0.5*(1.0-(p->gamma))*(w[fencode_cd2(p,ix,iy,mom1)]*w[fencode_cd2(p,ix,iy,mom1)]+w[fencode_cd2(p,ix,iy,mom2)]*w[fencode_cd2(p,ix,iy,mom2)])/w[fencode_cd2(p,ix,iy,rho)]);
 
  flux= -w[fencode_cd2(p,ix,iy,b1+direction)]*wd[fencode_cd2(p,ix,iy,bdotv)]+(w[fencode_cd2(p,ix,iy,mom1+direction)]*wd[fencode_cd2(p,ix,iy,pressuret)]/w[fencode_cd2(p,ix,iy,rho)]);
-    
+//flux= -w[fencode_cd2(p,ix,iy,b1+direction)]*wd[fencode_cd2(p,ix,iy,bdotv)];    
          #endif
 
   return flux;
@@ -163,7 +163,7 @@ real fluxe2(real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
 
         #ifdef USE_SAC
       		flux= wd[fencode_cd2(p,ix,iy,ptb)]*(grad_cd2(wd,p,ix,iy,vel1,0)+grad_cd2(wd,p,ix,iy,vel2,1));
-                flux      +=w[fencode_cd2(p,ix,iy,b1b)]*(w[fencode_cd2(p,ix,iy,b1b)]*grad_cd2(wd,p,ix,iy,vel1,0)+w[fencode_cd2(p,ix,iy,b2b)]*grad_cd2(wd,p,ix,iy,vel2,1)) +w[fencode_cd2(p,ix,iy,b2b)]*(w[fencode_cd2(p,ix,iy,b1b)]*grad_cd2(wd,p,ix,iy,vel1,0)+w[fencode_cd2(p,ix,iy,b2b)]*grad_cd2(wd,p,ix,iy,vel2,1));  
+                //flux      +=w[fencode_cd2(p,ix,iy,b1b)]*(w[fencode_cd2(p,ix,iy,b1b)]*grad_cd2(wd,p,ix,iy,vel1,0)+w[fencode_cd2(p,ix,iy,b2b)]*grad_cd2(wd,p,ix,iy,vel2,1)) +w[fencode_cd2(p,ix,iy,b2b)]*(w[fencode_cd2(p,ix,iy,b1b)]*grad_cd2(wd,p,ix,iy,vel1,0)+w[fencode_cd2(p,ix,iy,b2b)]*grad_cd2(wd,p,ix,iy,vel2,1));  
          #endif
 
   return flux;
@@ -180,11 +180,11 @@ real fluxe2(real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
 
 
 __device__ __host__
-int computefluxe(real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
+int computefluxe(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int direction) {
 
-  int field, direction;
+  int field;//, direction;
   int status=0;
-  for(direction=0;direction<2;direction++)
+  //for(direction=0;direction<2;direction++)
          #ifdef USE_SAC
 	     wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,energy,direction)+transportflux_cd2(dw,wd,w,p,ix,iy,energyb,direction)+fluxe1(dw,wd,w,p,ix,iy,direction);
          #endif
@@ -196,12 +196,12 @@ int computefluxe(real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
 }
 
 __device__ __host__
-int computefluxb (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field) {
+int computefluxb (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field,int direction) {
 
-  int direction;
+ // int direction;
   int status=0;
-  for(direction=0;direction<2;direction++)
-  {
+//  for(direction=0;direction<2;direction++)
+//  {
 
      switch(field)
      {
@@ -211,14 +211,14 @@ int computefluxb (real *dw, real *wd, real *w, struct params *p,int ix, int iy, 
      //wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+transportflux_cd2(dw,wd,w,p,ix,iy,field+5,direction);
 wd[fencode_cd2(p,ix,iy,f1+direction)]= 0.0;
       else
-wd[fencode_cd2(p,ix,iy,f1+direction)]= /*transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+*/fluxb1(dw,wd,w,p,ix,iy,field,direction);
+wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+fluxb1(dw,wd,w,p,ix,iy,field,direction);
          #endif
          #ifdef USE_VAC
       if(direction==0)
     // wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction);
  wd[fencode_cd2(p,ix,iy,f1+direction)]= 0.0;
       else
-wd[fencode_cd2(p,ix,iy,f1+direction)]= /*transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+*/fluxb1(dw,wd,w,p,ix,iy,field,direction);
+wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+fluxb1(dw,wd,w,p,ix,iy,field,direction);
          #endif
        break;
 
@@ -228,14 +228,14 @@ wd[fencode_cd2(p,ix,iy,f1+direction)]= /*transportflux_cd2(dw,wd,w,p,ix,iy,field
      //wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+transportflux_cd2(dw,wd,w,p,ix,iy,field+5,direction);
 wd[fencode_cd2(p,ix,iy,f1+direction)]= 0.0;
 else
-wd[fencode_cd2(p,ix,iy,f1+direction)]= /*transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+*/fluxb1(dw,wd,w,p,ix,iy,field,direction);
+wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+fluxb1(dw,wd,w,p,ix,iy,field,direction);
          #endif
          #ifdef USE_VAC
       if(direction==1)
     // wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction);
  wd[fencode_cd2(p,ix,iy,f1+direction)]= 0.0;
       else
-wd[fencode_cd2(p,ix,iy,f1+direction)]= /*transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+*/fluxb1(dw,wd,w,p,ix,iy,field,direction);
+wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+fluxb1(dw,wd,w,p,ix,iy,field,direction);
          #endif
        break;
 
@@ -258,22 +258,22 @@ wd[fencode_cd2(p,ix,iy,f1+direction)]= 0;
 
     }
    
-  }     
+ // }     
   return ( status);
 }
 
 __device__ __host__
-int divflux_cd2(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field) {
+int divflux_cd2(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field,int dir) {
 
   int direction;
   int status=0;
   real divflux=0;
-  dw[fencode_cd2(p,ix,iy,field)]= grad_cd2(wd,p,ix,iy,f1,0)+grad_cd2(wd,p,ix,iy,f2,1); 
+  dw[fencode_cd2(p,ix,iy,field)]= grad_cd2(wd,p,ix,iy,f1+dir,dir);//+grad_cd2(wd,p,ix,iy,f2,1); 
 
 
  #ifdef USE_SAC
   if(field==energy)     
-     dw[fencode_cd2(p,ix,iy,field)]+=fluxe2(dw, wd, w, p,ix, iy);
+     dw[fencode_cd2(p,ix,iy,field)]+=fluxe2(dw, wd, w, p,ix, iy,dir);
 
 
  #endif
@@ -286,21 +286,21 @@ int divflux_cd2(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int
 
 //rho, mom1, mom2, mom3, energy, b1, b2, b3
 __device__ __host__
-void computeflux_cd2 (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field) {
+void computeflux_cd2 (real *dw, real *wd, real *w, struct params *p,int ix, int iy, int field,int dir) {
 
   //int status=0;
   switch(field)
   {
      case energy:
-      computefluxe(dw,wd,w,p,ix,iy);
+      computefluxe(dw,wd,w,p,ix,iy,dir);
       // add the following terms for SAC
       // del((b bb+ bb b).v)+ptb del v - bb bb del v
      break;
      case b1:
-      computefluxb(dw,wd,w,p,ix,iy,field);
+      computefluxb(dw,wd,w,p,ix,iy,field,dir);
      break;
      case b2:
-       computefluxb(dw,wd,w,p,ix,iy,field);
+       computefluxb(dw,wd,w,p,ix,iy,field,dir);
      break;
      /*case b3:
       computefluxb(dw,wd,w,p,ix,iy,field);
@@ -312,7 +312,7 @@ void computeflux_cd2 (real *dw, real *wd, real *w, struct params *p,int ix, int 
 
 
 __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod, 
-    real *dwn1, real *wd, int order, int ordero, real dt,int f)
+    real *dwn1, real *wd, int order, int ordero, real dt,int f,int dir)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -349,7 +349,7 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                             dwn1[fencode_cd2(p,i,j,f)]=0.0;
 
                  	    for(fid=0;fid<2;fid++)
-                               dwn1[fencode_cd2(p,i,j,f1+fid)]=0.0;
+                               wd[fencode_cd2(p,i,j,f1+fid)]=0.0;
 
                         }
                              __syncthreads();
@@ -358,28 +358,28 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
 	
 			if( i<(ni) && j<(nj))
                   		//computeflux_cd2(dwn1,wd,wmod,p,i,j,f);
-                                computeflux_cd2(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f); 
+                                computeflux_cd2(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir); 
                //}
                         //might need to set boundaries correctly 
                         __syncthreads();
 
-        if( i<(ni) && j<(nj))
+       if( i<(ni) && j<(nj))
              for(fid=0;fid<2;fid++)
                   //bc_cont_cd2(dwn1,p,i,j,f1+fid);
-                  bc_periodic1_cd2(dwn1,p,i,j,f1+fid);
+                  bc_periodic1_cd2(wd,p,i,j,f1+fid);
                 __syncthreads();
 
         if( i<(ni) && j<(nj))
              for(fid=0;fid<2;fid++)
                   //bc_cont_cd2(dwn1,p,i,j,f1+fid);
-                  bc_periodic2_cd2(dwn1,p,i,j,f1+fid);
+                  bc_periodic2_cd2(wd,p,i,j,f1+fid);
                 __syncthreads();
 
 
              // for(int f=energy; f<NVAR; f++)
               // {
 			if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
-                                divflux_cd2(dwn1,wd,wmod,p,i,j,f); 
+                                divflux_cd2(dwn1,wd,wmod,p,i,j,f,dir); 
                // }
                         __syncthreads();
 
@@ -427,7 +427,7 @@ void checkErrors_cd2(char *label)
 
 
 
-int cucentdiff2(struct params **p, real **w, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real dt, int field)
+int cucentdiff2(struct params **p, real **w, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real dt, int field,int dir)
 {
 
 
@@ -446,7 +446,7 @@ int cucentdiff2(struct params **p, real **w, struct params **d_p, real **d_w,  r
 //__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-     centdiff2_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt,field);
+     centdiff2_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt,field,dir);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();

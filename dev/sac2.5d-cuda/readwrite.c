@@ -281,8 +281,13 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
 
 		for( j1=0;j1<nj;j1++)
 	      		for( i1=0;i1<ni;i1++)
-			 //fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))],w[(j1*ni+i1)+(ni*nj*(iv+2))]);
+			 //fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))],w[(j1*ni+i1)+(ni*nj*(iv+2))]);    
                          fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))]);
+
+                       //printing mag fields including backround for SAC
+                       //if(iv==4)
+                       //  fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)]+w[(j1*ni+i1)+(ni*nj*(iv+4))],w[(j1*ni+i1)+(ni*nj*(iv+1))]+w[(j1*ni+i1)+(ni*nj*(iv+1+4))]);
+
 
 	      fclose(fdt);
       }

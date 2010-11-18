@@ -51,17 +51,18 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
         for(int f=tmp1; f<=tmp9; f++)
                  wtemp[fencode_hdv(p,i,j,f)]=0;
 
+
         //temp value for viscosity
 
 #ifdef USE_SAC
-        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)]/((field==rho || field>mom3)+(field>rho && field<energy)*(wmod[fencode_hdv(p,i,j,rho)]+wmod[fencode_hdv(p,i,j,rhob)]));
+        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)+order*NVAR*(p->n[0])*(p->n[1])]/((field==rho || field>mom3)+(field>rho && field<energy)*(wmod[fencode_hdv(p,i,j,rho)+order*NVAR*(p->n[0])*(p->n[1])]+wmod[fencode_hdv(p,i,j,rhob)]+order*NVAR*(p->n[0])*(p->n[1])));
         if(field=rho)
-           wtemp[fencode_hdv(p,i,j,tmp1)]+=wmod[fencode_hdv(p,i,j,rhob)];
+           wtemp[fencode_hdv(p,i,j,tmp1)]+=wmod[fencode_hdv(p,i,j,rhob)+order*NVAR*(p->n[0])*(p->n[1])];
 
        if(field=b1 || field==b2)
-           wtemp[fencode_hdv(p,i,j,tmp1)]+=wmod[fencode_hdv(p,i,j,field+5)];
+           wtemp[fencode_hdv(p,i,j,tmp1)]+=wmod[fencode_hdv(p,i,j,field+5)+order*NVAR*(p->n[0])*(p->n[1])];
 #else
-        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)]/((field==rho || field>mom3)+(field>rho && field<energy)*wmod[fencode_hdv(p,i,j,rho)]);
+        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)+order*NVAR*(p->n[0])*(p->n[1])]/( (field==rho || field>mom3)+(field>rho && field<energy)*wmod[fencode_hdv(p,i,j,rho)+order*NVAR*(p->n[0])*(p->n[1])] );
 #endif
         wd[fencode_hdv(p,i,j,hdnur)]=0;
         wd[fencode_hdv(p,i,j,hdnul)]=0;
@@ -108,9 +109,13 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
 //compute d3r and d1r
    //tmp2  d3r
     //tmp3 d1r
+ 
    if(i>1 && j>1 && i<((p->n[0])-1) && j<((p->n[1])-1))            
    { 
-           wtemp[fencode_hdv(p,i,j,tmp2)]=fabs(3.0*(wtemp[fencode_hdv(p,i+(dim==0),j+(dim==1),tmp1)] - wtemp[fencode_hdv(p,i,j,tmp1)] - wtemp[fencode_hdv(p,i+2*(dim==0),j+2*(dim==1),tmp1)] - wtemp[fencode_hdv(p,i-(dim==0),j-(dim==1),tmp1)]    ));
+           wtemp[fencode_hdv(p,i,j,tmp2)]=fabs(3.0*(wtemp[fencode_hdv(p,i+(dim==0),j+(dim==1),tmp1)] - wtemp[fencode_hdv(p,i,j,tmp1)] ) - (wtemp[fencode_hdv(p,i+2*(dim==0),j+2*(dim==1),tmp1)] - wtemp[fencode_hdv(p,i-(dim==0),j-(dim==1),tmp1)]    ));
+
+
+
            wtemp[fencode_hdv(p,i,j,tmp3)]=fabs((wtemp[fencode_hdv(p,i+(dim==0),j+(dim==1),tmp1)] - wtemp[fencode_hdv(p,i,j,tmp1)] ));
    }
    __syncthreads();
