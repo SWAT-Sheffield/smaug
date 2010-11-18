@@ -157,7 +157,7 @@ char configfile[300];
 real dt;
 //dt=0.015985;
 //dt=0.15;
-dt=0.0018;
+dt=0.0013;
 //dt=0.00009;
 //dt=0.25;
 //dt=0.00015125;
@@ -424,6 +424,7 @@ real t1,t2,ttot;
 int order=0;
 int ordero=0;
 int order1;
+int orderb=0;
 ttot=0;
 real time=0.0;
 for( n=0;n<nt;n++)
@@ -460,11 +461,15 @@ if((p->rkon)==0)
  order=1; 
    //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
    //for(int f=rho; f<=mom3; f++)
+
+ for(int dir=0;dir<2; dir++)
+ {
   for(int f=rho; f<=mom2; f++)
-      cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f);
+      cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
 
    for(int f=energy; f<NVAR; f++)
-      cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f);
+      cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
+  }
 
    //cuderivsource(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
    if(p->divbon==1)
@@ -474,10 +479,10 @@ if((p->rkon)==0)
      for(int dim=0; dim<=1; dim++)
      {
        cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
-       cuhyperdifrhosource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+       cuhyperdifrhosource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim);
      }
 
-     for(int dim=0; dim<=1; dim++)
+    /* for(int dim=0; dim<=1; dim++)
      {
        cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
        cuhyperdifesource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
@@ -495,12 +500,12 @@ if((p->rkon)==0)
      {
        cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
        cuhyperdifbsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
-     }
+     }*/
 
 
    }
    //cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order);
-   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
 }
 
    if((p->rkon)==1)
@@ -513,29 +518,34 @@ if((p->rkon)==0)
            //   dt=(p->dt);
            //   //ordero=0;
            //}
-
+           orderb=order+2;
 
            if(order==2)
+           {
               dt=(p->dt);
+              orderb=1;
+            }
 
 
            if(order==3)
            {
               dt=(p->dt)/6.0;
               ordero=0;
-
+              orderb=0;
            }
 
 
            cucomputedervfields(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero);
 	   //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
            //for(int f=rho; f<=mom3; f++)
+ for(int dir=0;dir<2; dir++)
+ {
            for(int f=rho; f<=mom2; f++)
-	       cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f);
+	       cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f,dir);
 
            for(int f=energy; f<=b2; f++)
-	       cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f);
-
+	       cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
+}
 	   //cuderivsource(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
 	   if(p->divbon==1)
 	       cudivb(&p,&w,&state,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, &d_state,order,ordero,p->dt);
@@ -544,10 +554,10 @@ if((p->rkon)==0)
 	     for(int dim=0; dim<=1; dim++)
 	     {
 	       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
-	       cuhyperdifrhosource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+	       cuhyperdifrhosource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim);
 	     }
 
-	     for(int dim=0; dim<=1; dim++)
+	     /*for(int dim=0; dim<=1; dim++)
 	     {
 	       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
 	       cuhyperdifesource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
@@ -565,14 +575,14 @@ if((p->rkon)==0)
 	     {
 	       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
 	       cuhyperdifbsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
-	     }
+	     }*/
            }
-           cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
+           cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
            cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order);
+           cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,orderb);
 	   
 
    }
-
 
    cuupdate(&p,&w,&wnew,&state,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, &d_state);
    printf("nummaxthreads %d\n",p->mnthreads);
