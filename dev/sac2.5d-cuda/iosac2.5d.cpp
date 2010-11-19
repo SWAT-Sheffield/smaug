@@ -297,7 +297,7 @@ p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=0.0;
+p->hyperdifmom=1.0;
 p->readini=0;
 p->cfgsavefrequency=1;
 
@@ -312,8 +312,8 @@ p->steeringenabled=steeringenabled;
 p->finishsteering=finishsteering;
 
 p->maxviscoef=0;
-//p->chyp=0.2;       
-p->chyp=0.00000;
+p->chyp=0.01;       
+//p->chyp=0.00000;
 p->chyp3=0.00000;
 p->mnthreads=1;
 
@@ -478,8 +478,13 @@ if((p->rkon)==0)
    {
      for(int dim=0; dim<=1; dim++)
      {
-       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim,0);
+       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim,1);
+
+	//       cuhyperdifviscmax(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+
        cuhyperdifrhosource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim);
+
      }
 
     /* for(int dim=0; dim<=1; dim++)
@@ -553,7 +558,10 @@ if((p->rkon)==0)
            {
 	     for(int dim=0; dim<=1; dim++)
 	     {
-	       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+	       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim,0);
+	       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim,1);
+	      // cuhyperdifviscmax(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
+
 	       cuhyperdifrhosource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim);
 	     }
 

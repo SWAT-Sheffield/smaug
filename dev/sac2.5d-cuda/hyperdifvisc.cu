@@ -14,7 +14,7 @@
 #include "gradops_hdv.cuh"
 
 __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd, int order, real *wtemp, int field, int dim)
+    real *dwn1, real *wd, int order, real *wtemp, int field, int dim,int hand)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -44,6 +44,9 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
    //i=iindex-j*(iindex/ni);
    i=iindex-(j*ni);
 
+int bfac1=(field==rho || field>mom3)+(field>rho && field<energy);
+int bfac2= (field==rho || field>mom3);
+int bfac3=(field>rho && field<energy);
 
     //set viscosities
    if(i<((p->n[0])) && j<((p->n[1])))
@@ -54,15 +57,16 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
 
         //temp value for viscosity
 
+
 #ifdef USE_SAC
-        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)+order*NVAR*(p->n[0])*(p->n[1])]/((field==rho || field>mom3)+(field>rho && field<energy)*(wmod[fencode_hdv(p,i,j,rho)+order*NVAR*(p->n[0])*(p->n[1])]+wmod[fencode_hdv(p,i,j,rhob)]+order*NVAR*(p->n[0])*(p->n[1])));
+        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)+order*NVAR*(p->n[0])*(p->n[1])]/(bfac1*(wmod[fencode_hdv(p,i,j,rho)+order*NVAR*(p->n[0])*(p->n[1])]+wmod[fencode_hdv(p,i,j,rhob)]+order*NVAR*(p->n[0])*(p->n[1])));
         if(field=rho)
            wtemp[fencode_hdv(p,i,j,tmp1)]+=wmod[fencode_hdv(p,i,j,rhob)+order*NVAR*(p->n[0])*(p->n[1])];
 
        if(field=b1 || field==b2)
            wtemp[fencode_hdv(p,i,j,tmp1)]+=wmod[fencode_hdv(p,i,j,field+5)+order*NVAR*(p->n[0])*(p->n[1])];
 #else
-        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)+order*NVAR*(p->n[0])*(p->n[1])]/( (field==rho || field>mom3)+(field>rho && field<energy)*wmod[fencode_hdv(p,i,j,rho)+order*NVAR*(p->n[0])*(p->n[1])] );
+        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)+order*NVAR*(p->n[0])*(p->n[1])]/(bfac2+bfac3*wmod[fencode_hdv(p,i,j,rho)+order*NVAR*(p->n[0])*(p->n[1])] );
 #endif
         wd[fencode_hdv(p,i,j,hdnur)]=0;
         wd[fencode_hdv(p,i,j,hdnul)]=0;
@@ -70,8 +74,8 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
 
    __syncthreads();
 
-
-   //boundaries
+/*
+  //boundaries
      if(i<((p->n[0])) && j<((p->n[1])))            
                {                                                      
                 if(dim==0)
@@ -91,7 +95,7 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
                 }
                }
                
-   __syncthreads();
+   __syncthreads();*/
 
    //tmp1  tmp_nuI
    //tmp2  d3r
@@ -104,6 +108,8 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
 //tmp9    md1l
 
 
+
+
    //tmp1  tmp_nuI
  
 //compute d3r and d1r
@@ -112,11 +118,17 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
  
    if(i>1 && j>1 && i<((p->n[0])-1) && j<((p->n[1])-1))            
    { 
+     if(hand==0)
+     {
            wtemp[fencode_hdv(p,i,j,tmp2)]=fabs(3.0*(wtemp[fencode_hdv(p,i+(dim==0),j+(dim==1),tmp1)] - wtemp[fencode_hdv(p,i,j,tmp1)] ) - (wtemp[fencode_hdv(p,i+2*(dim==0),j+2*(dim==1),tmp1)] - wtemp[fencode_hdv(p,i-(dim==0),j-(dim==1),tmp1)]    ));
 
-
-
            wtemp[fencode_hdv(p,i,j,tmp3)]=fabs((wtemp[fencode_hdv(p,i+(dim==0),j+(dim==1),tmp1)] - wtemp[fencode_hdv(p,i,j,tmp1)] ));
+     }
+     else
+     {
+           wtemp[fencode_hdv(p,i,j,tmp2)]=fabs(3.0*(wtemp[fencode_hdv(p,i,j,tmp1)] - wtemp[fencode_hdv(p,i-(dim==0),j-(dim==0),tmp1)] - wtemp[fencode_hdv(p,i+(dim==0),j+(dim==1),tmp1)] - wtemp[fencode_hdv(p,i-2*(dim==0),j-2*(dim==1),tmp1)]    ));
+           wtemp[fencode_hdv(p,i,j,tmp3)]=fabs((wtemp[fencode_hdv(p,i,j,tmp1)] - wtemp[fencode_hdv(p,i-(dim==0),j-(dim==1),tmp1)] ));
+     }
    }
    __syncthreads();
 
@@ -132,7 +144,7 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
                 for(js=-(dim==1); js<=(dim==1); js++)
                 {
                    if(wtemp[fencode_hdv(p,i+is,j+js,tmp2)]>maxt)
-                         wtemp[fencode_hdv(p,i+is,j+js,tmp2)]=maxt;
+                         maxt=wtemp[fencode_hdv(p,i+is,j+js,tmp2)];
 
                 }
           wtemp[fencode_hdv(p,i,j,tmp4)]=maxt;
@@ -149,56 +161,9 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
    }
 
 
-
-  //compute d3l and d1l
-//tmp6    d3l
-//tmp7    d1l
-
-
-
-
-
-
-   if(i>1 && j>1 && i<((p->n[0])-1) && j<((p->n[1])-1))            
-   { 
-           wtemp[fencode_hdv(p,i,j,tmp6)]=fabs(3.0*(wtemp[fencode_hdv(p,i,j,tmp1)] - wtemp[fencode_hdv(p,i-(dim==0),j-(dim==0),tmp1)] - wtemp[fencode_hdv(p,i+(dim==0),j+(dim==1),tmp1)] - wtemp[fencode_hdv(p,i-2*(dim==0),j-2*(dim==1),tmp1)]    ));
-           wtemp[fencode_hdv(p,i,j,tmp7)]=fabs((wtemp[fencode_hdv(p,i,j,tmp1)] - wtemp[fencode_hdv(p,i-(dim==0),j-(dim==1),tmp1)] ));
-   }
-   __syncthreads();
-
-
-
-  //compute md3l and md1l
-//tmp6    d3l
-//tmp7    d1l
-//tmp8    md3l
-//tmp9    md1l
-
-   if(i>1 && j>1 && i<((p->n[0])-1) && j<((p->n[1])-1))            
-   {
-         maxt=0;
-         for(is=-(dim==0); is<=(dim==0); is++)
-                for(js=-(dim==1); js<=(dim==1); js++)
-                {
-                   if(wtemp[fencode_hdv(p,i+is,j+js,tmp6)]>maxt)
-                         maxt=wtemp[fencode_hdv(p,i+is,j+js,tmp6)];
-
-                }
-          wtemp[fencode_hdv(p,i,j,tmp8)]=maxt;
-
-         maxt=0;
-         for(is=-2*(dim==0); is<=2*(dim==0); is++)
-                for(js=-2*(dim==1); js<=2*(dim==1); js++)
-                {
-                   if(wtemp[fencode_hdv(p,i+is,j+js,tmp7)]>maxt)
-                        maxt=wtemp[fencode_hdv(p,i+is,j+js,tmp7)];
-
-                }
-          wtemp[fencode_hdv(p,i,j,tmp9)]=maxt;
-   }
- __syncthreads();
-
    p->maxviscoef=0;
+
+
     //finally update nur and nul
 //tmp4    md3r
 //tmp5    md1r
@@ -206,33 +171,12 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
    if(i<((p->n[0])) && j<((p->n[1])))
    {
      if(wtemp[fencode_hdv(p,i,j,tmp5)]>0)
-	wd[fencode_hdv(p,i,j,hdnur)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp)*wtemp[fencode_hdv(p,i,j,tmp4)]/wtemp[fencode_hdv(p,i,j,tmp5)];
+	wd[fencode_hdv(p,i,j,hdnur+hand)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp)*wtemp[fencode_hdv(p,i,j,tmp4)]/wtemp[fencode_hdv(p,i,j,tmp5)];
      else
-        wd[fencode_hdv(p,i,j,hdnur)]=0;
+        wd[fencode_hdv(p,i,j,hdnur+hand)]=0;
    }
  __syncthreads();
-   if(i<((p->n[0])) && j<((p->n[1])))
-   {
-       if(wd[fencode_hdv(p,i,j,hdnur)]>(p->maxviscoef))
-          p->maxviscoef=wd[fencode_hdv(p,i,j,hdnur)];
-   }
 
-//tmp8    md3l
-//tmp9    md1l
-   if(i<((p->n[0])) && j<((p->n[1])))
-   {
-     if(wtemp[fencode_hdv(p,i,j,tmp9)]>0)
-	wd[fencode_hdv(p,i,j,hdnul)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp)*wtemp[fencode_hdv(p,i,j,tmp8)]/wtemp[fencode_hdv(p,i,j,tmp9)];
-     else
-        wd[fencode_hdv(p,i,j,hdnul)]=0;
-   }
- __syncthreads();
-   if(i<((p->n[0])) && j<((p->n[1])))
-   {
-       if(wd[fencode_hdv(p,i,j,hdnul)]>(p->maxviscoef))
-          p->maxviscoef=wd[fencode_hdv(p,i,j,hdnul)];
-   }
-  __syncthreads();
  
 }
 
@@ -267,7 +211,7 @@ void checkErrors_hdv(char *label)
 
 
 
-int cuhyperdifvisc(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, real **d_wtemp, int field, int dim)
+int cuhyperdifvisc(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, real **d_wtemp, int field, int dim,int hand)
 {
 
 
@@ -283,7 +227,7 @@ int cuhyperdifvisc(struct params **p, real **w, real **wnew, struct params **d_p
 //__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-     hyperdifvisc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order, *d_wtemp, field, dim);
+     hyperdifvisc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order, *d_wtemp, field, dim,hand);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_hdv,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();

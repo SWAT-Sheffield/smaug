@@ -19,6 +19,7 @@ BASICEXOBJS	=\
 	hyperdifbsource.o\
 	hyperdifrhosource.o\
 	hyperdifvisc.o\
+	hyperdifviscmax.o\
 	derivsource.o\
 	centdiff1.o\
 	centdiff2.o\
@@ -88,10 +89,11 @@ iosac:$(BASICEXOBJS)
 #step.o: step.cu
 #	$(NVCC) -o $@ --ptxas-options=-v -c $<
 
-
-
 hyperdifvisc.o: hyperdifvisc.cu
 	sed 's/MODID/hdv/g' < gradops.cu > gradops_hdv.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifviscmax.o: hyperdifviscmax.cu
+	sed 's/MODID/hdvmax/g' < gradops.cu > gradops_hdvmax.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifrhosource.o: hyperdifrhosource.cu
 	sed 's/MODID/hdr/g' < gradops.cu > gradops_hdr.cuh
