@@ -50,7 +50,7 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
                
 
                
-               for( f=rho; f<NVAR; f++)
+               for( f=rho; f<=b2; f++)
                {
 
                   //bc_cont_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
@@ -81,7 +81,7 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
 
   //This second call makes sure corners are set correctly
   if(i<p->n[0] && j<p->n[1])
-             for( f=rho; f<NVAR; f++)
+             for( f=rho; f<=b2; f++)
                   bc_periodic2_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f); 
  __syncthreads();
 

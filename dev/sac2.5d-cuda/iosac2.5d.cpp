@@ -113,7 +113,8 @@ real h0 = 5030;
 //vac ozt
 int ni = 196;
 ni=104;
-real xmax = 6.2831853;  
+//real xmax = 6.2831853;  
+real xmax=1.0;
 real dx = xmax/(ni-4);
 
 
@@ -129,7 +130,8 @@ real dx = xmax/(ni-4);
 //vac ozt
 int nj = 196;
 nj=104;
-real ymax = 6.2831853;  
+//real ymax = 6.2831853; 
+real ymax = 1.0;   
 real dy = ymax/(nj-4);    
 //nj=41;
                     
@@ -162,7 +164,7 @@ dt=0.0013;
 //dt=0.25;
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
-nt=250;
+nt=100;
 //nt=1000;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
@@ -292,12 +294,12 @@ p->g[2]=0.0;
 //p->cmax=1.0;
 p->cmax=0.02;
 
-p->rkon=1.0;
+p->rkon=0.0;
 p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=1.0;
+p->hyperdifmom=0.0;
 p->readini=0;
 p->cfgsavefrequency=1;
 
@@ -464,10 +466,11 @@ if((p->rkon)==0)
 
  for(int dir=0;dir<2; dir++)
  {
+ // int dir=0;
   for(int f=rho; f<=mom2; f++)
       cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
 
-   for(int f=energy; f<NVAR; f++)
+   for(int f=energy; f<=b2; f++)
       cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
   }
 

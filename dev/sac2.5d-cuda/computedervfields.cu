@@ -50,7 +50,7 @@ if(order == 0)
 if(i<((p->n[0])) && j<((p->n[1])))
 	{		
  
-               for(int f=rho; f<NVAR; f++)
+               for(int f=rho; f<=b2; f++)
                   wmod[fencode_cdf(p,i,j,f)+((p->n[0]))*((p->n[1]))*NVAR]=wmod[fencode_cdf(p,i,j,f)]; 
         }
                __syncthreads();
@@ -122,14 +122,14 @@ __syncthreads();
 	}
  __syncthreads();
 
- if(i<(p->n[0]) && j<(p->n[1]))
+ /*if(i<(p->n[0]) && j<(p->n[1]))
 	{ 
               // for(int f=vel1; f<NDERV; f++)
               for(int f=current1; f<=current2; f++)
                   bc_cont_cdf(wd,p,i,j,f);
 
 	}
- __syncthreads();
+ __syncthreads();*/
   
 }
 

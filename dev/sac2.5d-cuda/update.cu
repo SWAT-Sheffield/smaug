@@ -124,7 +124,7 @@ __syncthreads();
  //if(i>0 && j>0 && i<((p->n[0])) && j<((p->n[1])))
 if( i<((p->n[0])) && j<((p->n[1])))
 	{
-             for(int f=rho; f<NVAR; f++)
+             for(int f=rho; f<=b2; f++)
              {               
                   w[fencode_u(p,i,j,f)]=wmod[fencode_u(p,i,j,f)];
                   updatestate (p, s, w ,i, j, f);
