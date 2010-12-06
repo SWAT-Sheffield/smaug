@@ -150,8 +150,8 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
         #endif
         #ifdef USE_SAC
     		wd[fencode_cd1(p,ix,iy,f1+direction)]= transportflux(dw,wd,w,p,ix,iy,field,direction)+fluxmom1(dw,wd,w,p,ix,iy,field,direction);
-               if(direction==0)
-                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
+               //if(direction==0)
+               //   wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
  
         #endif
                if(direction==0)
@@ -161,8 +161,8 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
         #ifdef USE_SAC
                   wd[fencode_cd1(p,ix,iy,pressuret)]=((p->gamma)-1.0)*w[fencode_cd1(p,ix,iy,energy)]+(1.0-0.5*(p->gamma))*(w[fencode_cd1(p,ix,iy,b1)]*w[fencode_cd1(p,ix,iy,b1)]+w[fencode_cd1(p,ix,iy,b2)]*w[fencode_cd1(p,ix,iy,b2)])+0.5*(1.0-(p->gamma))*(w[fencode_cd1(p,ix,iy,mom1)]*w[fencode_cd1(p,ix,iy,mom1)]+w[fencode_cd1(p,ix,iy,mom2)]*w[fencode_cd1(p,ix,iy,mom2)])/(w[fencode_cd1(p,ix,iy,rho)]+w[fencode_cd1(p,ix,iy,rhob)]);
 
-                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
-                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
+                 // wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
+                 // wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
 
 
         #else
@@ -183,8 +183,8 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
         #endif
         #ifdef USE_SAC
     		wd[fencode_cd1(p,ix,iy,f1+direction)]= transportflux(dw,wd,w,p,ix,iy,field,direction)+fluxmom1(dw,wd,w,p,ix,iy,field,direction);
-               if(direction==1)
-                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
+               //if(direction==1)
+               //   wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
  
         #endif
                if(direction==1)
@@ -193,8 +193,8 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
         #ifdef USE_SAC
                   wd[fencode_cd1(p,ix,iy,pressuret)]=((p->gamma)-1.0)*w[fencode_cd1(p,ix,iy,energy)]+(1.0-0.5*(p->gamma))*(w[fencode_cd1(p,ix,iy,b1)]*w[fencode_cd1(p,ix,iy,b1)]+w[fencode_cd1(p,ix,iy,b2)]*w[fencode_cd1(p,ix,iy,b2)])+0.5*(1.0-(p->gamma))*(w[fencode_cd1(p,ix,iy,mom1)]*w[fencode_cd1(p,ix,iy,mom1)]+w[fencode_cd1(p,ix,iy,mom2)]*w[fencode_cd1(p,ix,iy,mom2)])/(w[fencode_cd1(p,ix,iy,rho)]+w[fencode_cd1(p,ix,iy,rhob)]);
 
-                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
-                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
+                 // wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
+                 // wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
 
 
         #else
