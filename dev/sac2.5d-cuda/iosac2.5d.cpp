@@ -106,27 +106,33 @@ real h0 = 5030;
 //Domain definition
 // Define the x domain
 //adiab hydro
-//int ni = 110;
-//real xmax = 1.0;  
-//real dx = 0.55*xmax/(ni-4);
+#ifdef ADIABHYDRO
+int ni = 110;
+real xmax = 1.0;  
+real dx = 0.55*xmax/(ni-4);
+#endif
 
+#ifndef ADIABHYDRO
 //vac ozt
 int ni = 196;
 ni=104;
 //real xmax = 6.2831853;  
 real xmax=1.0;
 real dx = xmax/(ni-4);
-
+#endif
 
 
 
 // Define the y domain
 //adiab hydro
-//int nj = 110;
+#ifdef ADIABHYDRO
+int nj = 110;
 //nj=196;
-//real ymax = 1.0;  
-//real dy = 0.55*ymax/(nj-4);
+real ymax = 1.0;  
+real dy = 0.55*ymax/(nj-4);
+#endif
 
+#ifndef ADIABHYDRO
 //vac ozt
 int nj = 196;
 nj=104;
@@ -134,6 +140,7 @@ nj=104;
 real ymax = 1.0;   
 real dy = ymax/(nj-4);    
 //nj=41;
+#endif
                     
 
 
@@ -157,15 +164,21 @@ char configfile[300];
 
 // Define time-domain
 real dt;
-//dt=0.015985;
+
+#ifdef ADIABHYDRO
+dt=0.0002985;  //ADIABHYDRO
+#endif
 //dt=0.15;
+
+#ifndef ADIABHYDRO
 dt=0.0013;
+#endif
 //dt=0.00009;
 //dt=0.25;
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
+//nt=3000;
 nt=100;
-//nt=1000;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -470,8 +483,10 @@ if((p->rkon)==0)
   for(int f=rho; f<=mom2; f++)
       cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
 
+#ifndef ADIABHYDRO
    for(int f=energy; f<=b2; f++)
       cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
+#endif
   }
 
    //cuderivsource(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
@@ -551,8 +566,11 @@ if((p->rkon)==0)
            for(int f=rho; f<=mom2; f++)
 	       cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f,dir);
 
+#ifndef ADIABHYDRO
            for(int f=energy; f<=b2; f++)
 	       cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
+#endif
+
 }
 	   //cuderivsource(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
 	   if(p->divbon==1)

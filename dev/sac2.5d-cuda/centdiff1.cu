@@ -150,8 +150,8 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
         #endif
         #ifdef USE_SAC
     		wd[fencode_cd1(p,ix,iy,f1+direction)]= transportflux(dw,wd,w,p,ix,iy,field,direction)+fluxmom1(dw,wd,w,p,ix,iy,field,direction);
-               //if(direction==0)
-               //   wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
+               if(direction==0)
+                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
  
         #endif
                if(direction==0)
@@ -183,8 +183,8 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
         #endif
         #ifdef USE_SAC
     		wd[fencode_cd1(p,ix,iy,f1+direction)]= transportflux(dw,wd,w,p,ix,iy,field,direction)+fluxmom1(dw,wd,w,p,ix,iy,field,direction);
-               //if(direction==1)
-               //   wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
+               if(direction==1)
+                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
  
         #endif
                if(direction==1)
@@ -232,7 +232,7 @@ int divflux1(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int fi
       break;
 
 
-  }    */
+  } */   
  // dw[fencode_cd1(p,ix,iy,field)]= gradd0_cd1(wd,p,ix,iy,f1,0)+gradd1_cd1(wd,p,ix,iy,f2,1);    
   return ( status);
 }
@@ -321,15 +321,20 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
 
           if( i<(ni) && j<(nj))
              for(fid=0;fid<2;fid++)
-                  //bc_cont_cd1(dwn1,p,i,j,f1+fid);
+              #ifdef ADIABHYDRO
+                  bc_cont_cd1(dwn1,p,i,j,f1+fid);
+              #else
                   bc_periodic1_cd1(wd,p,i,j,f1+fid);
+              #endif
                 __syncthreads();
 
+#ifndef ADIABHYDRO
           if( i<(ni) && j<(nj))
              for(fid=0;fid<2;fid++)
                   //bc_cont_cd1(dwn1,p,i,j,f1+fid);
                   bc_periodic2_cd1(wd,p,i,j,f1+fid);
                 __syncthreads();
+#endif
 
 			//if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
                         //        divflux1(dwn1+(NVAR*(p->n[0])*(p->n[1])*order),wd,wmod,p,i,j,f);
