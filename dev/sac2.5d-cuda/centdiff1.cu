@@ -159,9 +159,12 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
 
 
         #ifdef USE_SAC
-                  wd[fencode_cd1(p,ix,iy,pressuret)]=((p->gamma)-1.0)*w[fencode_cd1(p,ix,iy,energy)]+(1.0-0.5*(p->gamma))*(w[fencode_cd1(p,ix,iy,b1)]*w[fencode_cd1(p,ix,iy,b1)]+w[fencode_cd1(p,ix,iy,b2)]*w[fencode_cd1(p,ix,iy,b2)])+0.5*(1.0-(p->gamma))*(w[fencode_cd1(p,ix,iy,mom1)]*w[fencode_cd1(p,ix,iy,mom1)]+w[fencode_cd1(p,ix,iy,mom2)]*w[fencode_cd1(p,ix,iy,mom2)])/(w[fencode_cd1(p,ix,iy,rho)]+w[fencode_cd1(p,ix,iy,rhob)]);
+                 // wd[fencode_cd1(p,ix,iy,pressuret)]=((p->gamma)-1.0)*w[fencode_cd1(p,ix,iy,energy)]+(1.0-0.5*(p->gamma))*(w[fencode_cd1(p,ix,iy,b1)]*w[fencode_cd1(p,ix,iy,b1)]+w[fencode_cd1(p,ix,iy,b2)]*w[fencode_cd1(p,ix,iy,b2)])+0.5*(1.0-(p->gamma))*(w[fencode_cd1(p,ix,iy,mom1)]*w[fencode_cd1(p,ix,iy,mom1)]+w[fencode_cd1(p,ix,iy,mom2)]*w[fencode_cd1(p,ix,iy,mom2)])/(w[fencode_cd1(p,ix,iy,rho)]+w[fencode_cd1(p,ix,iy,rhob)]);
 
-                 // wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
+ wd[fencode_cd1(p,ix,iy,pressuret)]=((p->gamma)-1.0)*( w[fencode_cd1(p,ix,iy,energy)]-0.5*(w[fencode_cd1(p,ix,iy,mom1)]*w[fencode_cd1(p,ix,iy,mom1)]+w[fencode_cd1(p,ix,iy,mom2)]*w[fencode_cd1(p,ix,iy,mom2)])/(w[fencode_cd1(p,ix,iy,rho)]+w[fencode_cd1(p,ix,iy,rhob)]));
+wd[fencode_cd1(p,ix,iy,pressuret)]=wd[fencode_cd1(p,ix,iy,pressuret)]-((p->gamma)-2.0)*((w[fencode_cd1(p,ix,iy,b1)]*w[fencode_cd1(p,ix,iy,b1b)]+w[fencode_cd1(p,ix,iy,b2)]*w[fencode_cd1(p,ix,iy,b2b)])+0.5*(w[fencode_cd1(p,ix,iy,b1)]*w[fencode_cd1(p,ix,iy,b1)]+w[fencode_cd1(p,ix,iy,b2)]*w[fencode_cd1(p,ix,iy,b2)]));
+
+                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
                  // wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
 
 
@@ -191,9 +194,13 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
                {
 
         #ifdef USE_SAC
-                  wd[fencode_cd1(p,ix,iy,pressuret)]=((p->gamma)-1.0)*w[fencode_cd1(p,ix,iy,energy)]+(1.0-0.5*(p->gamma))*(w[fencode_cd1(p,ix,iy,b1)]*w[fencode_cd1(p,ix,iy,b1)]+w[fencode_cd1(p,ix,iy,b2)]*w[fencode_cd1(p,ix,iy,b2)])+0.5*(1.0-(p->gamma))*(w[fencode_cd1(p,ix,iy,mom1)]*w[fencode_cd1(p,ix,iy,mom1)]+w[fencode_cd1(p,ix,iy,mom2)]*w[fencode_cd1(p,ix,iy,mom2)])/(w[fencode_cd1(p,ix,iy,rho)]+w[fencode_cd1(p,ix,iy,rhob)]);
+                 // wd[fencode_cd1(p,ix,iy,pressuret)]=((p->gamma)-1.0)*w[fencode_cd1(p,ix,iy,energy)]+(1.0-0.5*(p->gamma))*(w[fencode_cd1(p,ix,iy,b1)]*w[fencode_cd1(p,ix,iy,b1)]+w[fencode_cd1(p,ix,iy,b2)]*w[fencode_cd1(p,ix,iy,b2)])+0.5*(1.0-(p->gamma))*(w[fencode_cd1(p,ix,iy,mom1)]*w[fencode_cd1(p,ix,iy,mom1)]+w[fencode_cd1(p,ix,iy,mom2)]*w[fencode_cd1(p,ix,iy,mom2)])/(w[fencode_cd1(p,ix,iy,rho)]+w[fencode_cd1(p,ix,iy,rhob)]);
 
-                 // wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
+
+ wd[fencode_cd1(p,ix,iy,pressuret)]=((p->gamma)-1.0)*( w[fencode_cd1(p,ix,iy,energy)]-0.5*(w[fencode_cd1(p,ix,iy,mom1)]*w[fencode_cd1(p,ix,iy,mom1)]+w[fencode_cd1(p,ix,iy,mom2)]*w[fencode_cd1(p,ix,iy,mom2)])/(w[fencode_cd1(p,ix,iy,rho)]+w[fencode_cd1(p,ix,iy,rhob)]));
+wd[fencode_cd1(p,ix,iy,pressuret)]=wd[fencode_cd1(p,ix,iy,pressuret)]-((p->gamma)-2.0)*((w[fencode_cd1(p,ix,iy,b1)]*w[fencode_cd1(p,ix,iy,b1b)]+w[fencode_cd1(p,ix,iy,b2)]*w[fencode_cd1(p,ix,iy,b2b)])+0.5*(w[fencode_cd1(p,ix,iy,b1)]*w[fencode_cd1(p,ix,iy,b1)]+w[fencode_cd1(p,ix,iy,b2)]*w[fencode_cd1(p,ix,iy,b2)]));
+
+                  wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
                  // wd[fencode_cd1(p,ix,iy,f1+direction)]+=wd[fencode_cd1(p,ix,iy,ptb)];
 
 

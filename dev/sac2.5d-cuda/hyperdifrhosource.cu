@@ -49,8 +49,8 @@ __global__ void hyperdifrhosource_parallel(struct params *p, real *w, real *wnew
   //init rhol and rhor
   if(i<((p->n[0])) && j<((p->n[1])))
   {
-    for(int f=tmp1; f<=tmprhor; f++)	
-        wtemp[fencode_hdr(p,i,j,f)]=0.0;
+    //for(int f=tmp1; f<=tmprhor; f++)	
+    //    wtemp[fencode_hdr(p,i,j,f)]=0.0;
     dwn1[fencode_hdr(p,i,j,field)]=0.0;
    }
 

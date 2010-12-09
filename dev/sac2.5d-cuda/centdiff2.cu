@@ -82,7 +82,8 @@ real fluxb1(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int fie
         #ifdef USE_SAC
       		//flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+5)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
                flux= -(w[fencode_cd2(p,ix,iy,field+direction)]+w[fencode_cd2(p,ix,iy,field+4+direction)])*w[fencode_cd2(p,ix,iy,mom1)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
-               flux+= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+4)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
+              // flux+= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+4)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
+flux+= (w[fencode_cd2(p,ix,iy,field+4)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
          #endif
         #ifdef USE_VAC
       		//flux= -w[fencode_cd2(p,ix,iy,field)]*w[fencode_cd2(p,ix,iy,mom1+direction)]/w[fencode_cd2(p,ix,iy,rho)];
@@ -96,7 +97,7 @@ real fluxb1(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int fie
       		//flux= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+5)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
 		flux= -(w[fencode_cd2(p,ix,iy,field+direction)]+w[fencode_cd2(p,ix,iy,field+4+direction)])*w[fencode_cd2(p,ix,iy,mom2)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
 
-               flux+= -(w[fencode_cd2(p,ix,iy,field)]+w[fencode_cd2(p,ix,iy,field+4)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
+               flux+= (w[fencode_cd2(p,ix,iy,field+4)])*w[fencode_cd2(p,ix,iy,mom1+direction)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
 
          #endif
         #ifdef USE_VAC
@@ -138,7 +139,9 @@ real fluxe1(real *dw, real *wd, real *w, struct params *p,int ix, int iy, int di
 
 
         #ifdef USE_SAC
-      		flux= -w[fencode_cd2(p,ix,iy,b1+direction)]*wd[fencode_cd2(p,ix,iy,bdotv)]+(w[fencode_cd2(p,ix,iy,mom1+direction)]*wd[fencode_cd2(p,ix,iy,pressuret)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]))+(w[fencode_cd2(p,ix,iy,mom1+direction)]*wd[fencode_cd2(p,ix,iy,energyb)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]));
+wd[fencode_cd2(p,ix,iy,ptb)]=  ((p->gamma)-1)*w[fencode_cd2(p,ix,iy,energyb)]- 0.5*((p->gamma)-2)*(w[fencode_cd2(p,ix,iy,b1b)]*w[fencode_cd2(p,ix,iy,b1b)]+w[fencode_cd2(p,ix,iy,b2b)]*w[fencode_cd2(p,ix,iy,b2b)]) ;
+
+      		flux= -w[fencode_cd2(p,ix,iy,b1+direction)]*wd[fencode_cd2(p,ix,iy,bdotv)]+(w[fencode_cd2(p,ix,iy,mom1+direction)]*(wd[fencode_cd2(p,ix,iy,pressuret)]+wd[fencode_cd2(p,ix,iy,ptb)])/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]))+(w[fencode_cd2(p,ix,iy,mom1+direction)]*wd[fencode_cd2(p,ix,iy,energyb)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]));
 
 flux -= w[fencode_cd2(p,ix,iy,b1b+direction)]*(w[fencode_cd2(p,ix,iy,b1)]*w[fencode_cd2(p,ix,iy,mom1)]+w[fencode_cd2(p,ix,iy,b2)]*w[fencode_cd2(p,ix,iy,mom2)])/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)])
             - w[fencode_cd2(p,ix,iy,b1+direction)]*(w[fencode_cd2(p,ix,iy,b1b)]*w[fencode_cd2(p,ix,iy,mom1)]+w[fencode_cd2(p,ix,iy,b2b)]*w[fencode_cd2(p,ix,iy,mom2)])/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
@@ -176,8 +179,11 @@ real fluxe2(real *dw, real *wd, real *w, struct params *p,int ix, int iy, int di
 
 
         #ifdef USE_SAC
-      		flux= wd[fencode_cd2(p,ix,iy,ptb)];
-                flux      -=w[fencode_cd2(p,ix,iy,b1b)]*(w[fencode_cd2(p,ix,iy,b1b)]+w[fencode_cd2(p,ix,iy,b2b)]) +w[fencode_cd2(p,ix,iy,b2b)]*(w[fencode_cd2(p,ix,iy,b1b)]+w[fencode_cd2(p,ix,iy,b2b)]); 
+ wd[fencode_cd2(p,ix,iy,ptb)]=  ((p->gamma)-1)*w[fencode_cd2(p,ix,iy,energyb)]- 0.5*((p->gamma)-2)*(w[fencode_cd2(p,ix,iy,b1b)]*w[fencode_cd2(p,ix,iy,b1b)]+w[fencode_cd2(p,ix,iy,b2b)]*w[fencode_cd2(p,ix,iy,b2b)]) ;
+
+
+      		flux= -wd[fencode_cd2(p,ix,iy,ptb)];
+                flux      -=(w[fencode_cd2(p,ix,iy,b1b)]*(w[fencode_cd2(p,ix,iy,b1b)]+w[fencode_cd2(p,ix,iy,b2b)]) +w[fencode_cd2(p,ix,iy,b2b)]*(w[fencode_cd2(p,ix,iy,b1b)]+w[fencode_cd2(p,ix,iy,b2b)])); 
                 flux *= ((grad_cd2(wd,p,ix,iy,vel1+dir,dir))); 
          #endif
 
@@ -226,7 +232,7 @@ int computefluxb (real *dw, real *wd, real *w, struct params *p,int ix, int iy, 
      //wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+transportflux_cd2(dw,wd,w,p,ix,iy,field+5,direction);
 wd[fencode_cd2(p,ix,iy,f1+direction)]= 0.0;
       else
-wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction);//+fluxb1(dw,wd,w,p,ix,iy,field,direction);
+wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+fluxb1(dw,wd,w,p,ix,iy,field,direction);
          #endif
          #ifdef USE_VAC
       if(direction==0)
@@ -243,7 +249,7 @@ wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,d
      //wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+transportflux_cd2(dw,wd,w,p,ix,iy,field+5,direction);
 wd[fencode_cd2(p,ix,iy,f1+direction)]= 0.0;
 else
-wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction);//+fluxb1(dw,wd,w,p,ix,iy,field,direction);
+wd[fencode_cd2(p,ix,iy,f1+direction)]= transportflux_cd2(dw,wd,w,p,ix,iy,field,direction)+fluxb1(dw,wd,w,p,ix,iy,field,direction);
          #endif
          #ifdef USE_VAC
       if(direction==1)
@@ -287,8 +293,8 @@ int divflux_cd2(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int
 
 
  #ifdef USE_SAC
- // if(field==energy)     
- //    dw[fencode_cd2(p,ix,iy,field)]+=fluxe2(dw, wd, w, p,ix, iy,dir);
+  if(field==energy)     
+     dw[fencode_cd2(p,ix,iy,field)]+=fluxe2(dw, wd, w, p,ix, iy,dir);
 
 
  #endif
