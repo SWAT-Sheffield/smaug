@@ -178,6 +178,8 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
    {
      if(wtemp[fencode_hdv(p,i,j,tmp5)]>0)
 	wd[fencode_hdv(p,i,j,hdnur+hand)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp)*wtemp[fencode_hdv(p,i,j,tmp4)]/wtemp[fencode_hdv(p,i,j,tmp5)];
+
+//wd[fencode_hdv(p,i,j,hdnur+hand)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*0.001*wtemp[fencode_hdv(p,i,j,tmp4)]/wtemp[fencode_hdv(p,i,j,tmp5)];
      else
         wd[fencode_hdv(p,i,j,hdnur+hand)]=0;
    }

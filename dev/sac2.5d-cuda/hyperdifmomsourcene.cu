@@ -16,8 +16,9 @@
 
 
 __global__ void hyperdifmomsourcene_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd, int order, real *wtemp, int field, int dim, int ii, int ii0)
+    real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim, int ii, int ii0)
 {
+
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
   // the number of threads per block, blockDim,
@@ -28,7 +29,7 @@ __global__ void hyperdifmomsourcene_parallel(struct params *p, real *w, real *wn
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int ii1;
-  real fip,fim1,tmp2,tmpc;
+  real fip,fim1,tmpc;
   int index,k;
   int ni=p->n[0];
   int nj=p->n[1];
@@ -49,7 +50,7 @@ __global__ void hyperdifmomsourcene_parallel(struct params *p, real *w, real *wn
 
   //init rhol and rhor
   if(i<((p->n[0])) && j<((p->n[1])))
-    for(int f=tmprhol; f<=tmprhor; f++)	
+    for(int f=tmp1; f<=tmprhor; f++)	
         wtemp[fencode_hdmne(p,i,j,f)]=0.0;
 
  __syncthreads();
@@ -58,122 +59,55 @@ __global__ void hyperdifmomsourcene_parallel(struct params *p, real *w, real *wn
   {
 
 #ifdef USE_SAC
-       wtemp[fencode_hdmne(p,i,j,tmprhor)]=(wmod[fencode_hdmne(p,i,j,rho)]+wmod[fencode_hdmne(p,i,j,rhob)]+wmod[fencode_hdmne(p,i+(dim==0),j+(dim==1),rho)]+wmod[fencode_hdmne(p,i+(dim==0),j+(dim==1),rhob)])/2;
-       wtemp[fencode_hdmne(p,i,j,tmprhol)]=(wmod[fencode_hdmne(p,i,j,rho)]+wmod[fencode_hdmne(p,i,j,rhob)]+wmod[fencode_hdmne(p,i-(dim==0),j+(dim==1),rho)]+wmod[fencode_hdmne(p,i-(dim==0),j+(dim==1),rhob)])/2;
+
+     wtemp[fencode_hdmne(p,i,j,tmp1)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,mom1+field)]/(wmod[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,rhob)]);
+     wtemp[fencode_hdmne(p,i,j,tmp2)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,rho)]+wmod[fencode_hdmne(p,i,j,rhob)]);
+
 #else
-       wtemp[fencode_hdmne(p,i,j,tmprhor)]=(wmod[fencode_hdmne(p,i,j,rho)]+wmod[fencode_hdmne(p,i+(dim==0),j+(dim==1),rho)])/2;
-       wtemp[fencode_hdmne(p,i,j,tmprhol)]=(wmod[fencode_hdmne(p,i,j,rho)]+wmod[fencode_hdmne(p,i-(dim==0),j+(dim==1),rho)])/2;
+
+     wtemp[fencode_hdmne(p,i,j,tmp1)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,mom1+field)]/wmod[fencode_hdmne(p,i,j,rho)];
+     wtemp[fencode_hdmne(p,i,j,tmp2)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,rho)];
+
+
 #endif
+      wtemp[fencode_hdmne(p,i,j,tmp3)]=(wtemp[fencode_hdmne(p,i,j,tmp2)]*(wd[fencode_hdmne(p,i,j,hdnur)]+wd[fencode_hdmne(p,i,j,hdnul)])*grad_hdmne(wtemp,p,i,j,tmp1,dim))/4.0;
+
+
 
    }
 __syncthreads();
 
-
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
   {
+      wtemp[fencode_hdmne(p,i,j,tmp4)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,mom1+field)]*wtemp[fencode_hdmne(p,i,j,tmp3)];
 
 
-#ifdef USE_SAC
-     wtemp[fencode_hdmne(p,i,j,tmp1)]=wmod[fencode_hdmne(p,i,j,mom1+field)]/(wmod[fencode_hdmne(p,i,j,rho)]+wmod[fencode_hdmne(p,i,j,rhob)]);
-#else
-     wtemp[fencode_hdmne(p,i,j,tmp1)]=wmod[fencode_hdmne(p,i,j,mom1+field)]/wmod[fencode_hdmne(p,i,j,rho)];
-#endif
-
-
-
-  }
-
+}
 __syncthreads();
 
 
 
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{		               
-             //ii1=0
-             //case i=k, ii0=l
-
-    
-
- /* for(ii1=0;ii1<=1;ii1++)
-  {
-        if (ii1 == 0)
-        {
-                           ii=field-mom1;
-                           ii0=dim;
-        }
-         else
-         {
-                           ii=dim;
-                           ii0=field-mom1;
-        }*/
 
 
 
-              if(field==dim)
-    {
-                        //ii0=field;
-                        //ii=dim;
+dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,mom1+ii0)]=(grad_hdmne(wtemp,p,i,j,tmp3,ii));
+dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,energy)]=(grad_hdmne(wtemp,p,i,j,tmp4,ii));
 
-     wtemp[fencode_hdmne(p,i,j,tmp2)]=grad1l_hdmne(wtemp,p,i,j,tmp1,dim);
-     wtemp[fencode_hdmne(p,i,j,tmp3)]=grad1r_hdmne(wtemp,p,i,j,tmp1,dim);
-
-
-wtemp[fencode_hdmne(p,i,j,tmp4)]=wtemp[fencode_hdmne(p,i,j,tmprhor)]*wd[fencode_hdmne(p,i,j,hdnur)]*wtemp[fencode_hdmne(p,i,j,tmp3)];
-wtemp[fencode_hdmne(p,i,j,tmp5)]=wtemp[fencode_hdmne(p,i,j,tmprhol)]*wd[fencode_hdmne(p,i,j,hdnul)]*wtemp[fencode_hdmne(p,i,j,tmp2)];
-
-
-//grad1l_hdmne()
-
-dwn1[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_hdmne(p,i,j,energy)]=(wtemp[fencode_hdmne(p,i,j,tmp4)]-wtemp[fencode_hdmne(p,i,j,tmp5)])/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1))/2;
-
-dwn1[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_hdmne(p,i,j,mom1+ii0)]=(wtemp[fencode_hdmne(p,i,j,tmp4)]-wtemp[fencode_hdmne(p,i,j,tmp5)])/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1))/2;
-
-         }
-    else
-    {
-
-
-
-
-     
-
-
-
-			//ii=field;
-                        //ii0=dim;
-     wtemp[fencode_hdmne(p,i,j,tmp2)]=grad1_hdmne(wtemp,p,i,j,tmp1,dim)*(wd[fencode_hdmne(p,i,j,hdnur)]+wd[fencode_hdmne(p,i,j,hdnul)])/4.0;
-
-#ifdef USE_SAC
-     wtemp[fencode_hdmne(p,i,j,tmp3)]=wtemp[fencode_hdmne(p,i,j,tmp2)]*(wmod[fencode_hdmne(p,i,j,rho)]+wmod[fencode_hdmne(p,i,j,rhob)]);
-#else
-     wtemp[fencode_hdmne(p,i,j,tmp3)]=wtemp[fencode_hdmne(p,i,j,tmp2)]*(wmod[fencode_hdmne(p,i,j,rho)]);
-#endif
- wtemp[fencode_hdmne(p,i,j,tmp4)]=grad1_hdmne(wtemp,p,i,j,tmp3,ii);
-
-dwn1[fencode_hdmne(p,i,j,mom1+ii0)]=wtemp[fencode_hdmne(p,i,j,tmp4)];
-
-wtemp[fencode_hdmne(p,i,j,tmp5)]=wmod[(NVAR*(p->n[0])*(p->n[1])*order)+fencode_hdmne(p,i,j,mom1+ii0)]*(wmod[fencode_hdmne(p,i,j,rho)]+wtemp[fencode_hdmne(p,i,j,tmp3)]);
-wtemp[fencode_hdmne(p,i,j,tmp4)]=grad1_hdmne(wtemp,p,i,j,tmp5,ii);
-
-dwn1[fencode_hdmne(p,i,j,energy)]=wtemp[fencode_hdmne(p,i,j,tmp4)];
-
-
- //}
-               
- 
-
-
-	}
    }
  __syncthreads();
+
+
+
 
 
 			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
                          {
                               //                                                                                  - sign here same as vac maybe a +
-                              wmod[fencode_hdmne(p,i,j,field)+(order*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdmne(p,i,j,field)+(order*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdmne(p,i,j,field)]; 
-//wmod[fencode_hdmne(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]=dwn1[fencode_hdmne(p,i,j,f2)];
-                              //dwn1[fencode_hdmne(p,i,j,f)]=0;
+                              wmod[fencode_hdmne(p,i,j,mom1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdmne(p,i,j,mom1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdmne(p,i,j,mom1+field)]; 
+                             wmod[fencode_hdmne(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdmne(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdmne(p,i,j,energy)]; 
+
                          }
               //  }	
 
@@ -181,13 +115,16 @@ dwn1[fencode_hdmne(p,i,j,energy)]=wtemp[fencode_hdmne(p,i,j,tmp4)];
 
 
   
+
+
+
 }
 
 
 /////////////////////////////////////
 // error checking routine
 /////////////////////////////////////
-void checkErrors_hdmne(char *label)
+void checkErrors_hdmnene(char *label)
 {
   // we need to synchronise first to catch errors due to
   // asynchroneous operations that would otherwise
@@ -214,7 +151,7 @@ void checkErrors_hdmne(char *label)
 
 
 
-int cuhyperdifmomsourcene(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, real **d_wtemp, int field, int dim, int ii, int ii0)
+int cuhyperdifmomsourcene(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real **d_wtemp, int field, int dim, int ii, int ii0)
 {
 
 
@@ -230,7 +167,7 @@ int cuhyperdifmomsourcene(struct params **p, real **w, real **wnew, struct param
 //__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-     hyperdifmomsourcene_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order,*d_wtemp, field, dim,ii,ii0);
+     hyperdifmomsourcene_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();
