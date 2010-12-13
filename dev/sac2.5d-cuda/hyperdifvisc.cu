@@ -68,10 +68,10 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
 
 #else
      if(field !=173)
-        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)+shift]/(bfac2+bfac3*(wmod[fencode_hdv(p,i,j,rho)+shift] +wmod[fencode_hdv(p,i,j,rhob)+shift]));
+        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)+shift]/(bfac2+bfac3*(wmod[fencode_hdv(p,i,j,rho)+shift] ));
 
      else
-        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,energy)+shift]-0.5*(wmod[fencode_hdv(p,i,j,b1)+shift]*wmod[fencode_hdv(p,i,j,b1)+shift]+wmod[fencode_hdv(p,i,j,b2)+shift]*wmod[fencode_hdv(p,i,j,b2)+shift])+(wmod[fencode_hdv(p,i,j,mom1)+shift]*wmod[fencode_hdv(p,i,j,mom1)+shift]+wmod[fencode_hdv(p,i,j,mom2)+shift]*wmod[fencode_hdv(p,i,j,mom2)+shift])/(wmod[fencode_hdv(p,i,j,rho)+shift] +wmod[fencode_hdv(p,i,j,rhob)+shift]);
+        wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,energy)+shift]-0.5*(wmod[fencode_hdv(p,i,j,b1)+shift]*wmod[fencode_hdv(p,i,j,b1)+shift]+wmod[fencode_hdv(p,i,j,b2)+shift]*wmod[fencode_hdv(p,i,j,b2)+shift])+(wmod[fencode_hdv(p,i,j,mom1)+shift]*wmod[fencode_hdv(p,i,j,mom1)+shift]+wmod[fencode_hdv(p,i,j,mom2)+shift]*wmod[fencode_hdv(p,i,j,mom2)+shift])/(wmod[fencode_hdv(p,i,j,rho)+shift] );
         wd[fencode_hdv(p,i,j,hdnur)]=0;
         wd[fencode_hdv(p,i,j,hdnul)]=0;
 #endif
