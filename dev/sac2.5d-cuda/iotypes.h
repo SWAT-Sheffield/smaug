@@ -68,6 +68,7 @@ struct Iome {
 
 struct params {
 	int n[NDIM];
+        int npgp[NDIM];
 
         real xmax[NDIM];
 	int nt;
@@ -81,6 +82,7 @@ struct params {
         int finishsteering;     
 	real dt;
         real dx[NDIM];
+
 
         real gamma;
 /*constant used for adiabatic hydrodynamics*/

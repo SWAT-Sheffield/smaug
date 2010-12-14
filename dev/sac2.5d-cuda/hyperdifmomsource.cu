@@ -40,20 +40,35 @@ __global__ void hyperdifmomsource_parallel(struct params *p, real *w, real *wnew
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
+   int ip,jp,ipg,jpg;
+   jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
 
-  
 
-   j=iindex/ni;
-   //i=iindex-j*(iindex/ni);
-   i=iindex-(j*ni);
+   
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
 
   //init rhol and rhor
   if(i<((p->n[0])) && j<((p->n[1])))
     for(int f=tmprhol; f<=tmprhor; f++)	
         wtemp[fencode_hdm(p,i,j,f)]=0.0;
-
+}
  __syncthreads();
 
+
+
+   
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
   {
 
@@ -74,11 +89,20 @@ __global__ void hyperdifmomsource_parallel(struct params *p, real *w, real *wnew
   /*  wtemp[fencode_hdm(p,i,j,tmp2)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,mom1+field)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i+(dim==0),j+(dim==1),mom1+field)];
     wtemp[fencode_hdm(p,i,j,tmp3)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,mom1+field)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i-(dim==0),j+(dim==1),mom1+field)];*/
    }
+
+}
 __syncthreads();
 
 
 
 
+   
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
 
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{		               
@@ -91,9 +115,18 @@ dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,mom1+ii0)]=(wtemp[fencode_hdm(
 
 
    }
+}
  __syncthreads();
 
 
+
+   
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
 			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
                          {
                               //                                                                                  - sign here same as vac maybe a +
@@ -102,7 +135,7 @@ dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,mom1+ii0)]=(wtemp[fencode_hdm(
 
                          }
               //  }	
-
+}
   __syncthreads();
 
 

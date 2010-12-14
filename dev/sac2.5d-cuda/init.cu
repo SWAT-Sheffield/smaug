@@ -200,11 +200,21 @@ int ni=p->n[0];
 
 
   int i,j;
+   
+   
+   int ip,jp,ipg,jpg;
+   jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
 
    
-   j=iindex/ni;
-   //i=iindex-j*(iindex/ni);
-   i=iindex-(j*ni);
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+
+
   if(i<p->n[0] && j<p->n[1])
 	{
 		//b[i+j*(p->n[0])]=0;
@@ -241,8 +251,18 @@ int ni=p->n[0];
 
 //	 __syncthreads();
 
-			}	
+			}
+
+        }	
 	 __syncthreads();
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+
 
   if(i<p->n[0] && j<p->n[1])
 	{
@@ -258,11 +278,21 @@ int ni=p->n[0];
 
 
 }
-
+}
  __syncthreads();
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+
+
         if(i<p->n[0] && j<p->n[1])
                for(int f=vel1; f<NDERV; f++)
                     wd[fencode_i(p,i,j,f)]=0.0;
+   }
 
  __syncthreads(); 
 }

@@ -301,12 +301,18 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
+   int ip,jp,ipg,jpg;
+   jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
 
-  
+   
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
 
-   j=iindex/ni;
-   //i=iindex-j*(iindex/ni);
-   i=iindex-(j*ni);
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+
 
              //  for(int f=rho; f<=mom3; f++)
              //  {
@@ -316,7 +322,15 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
                   	    for(fid=0;fid<2;fid++)
                                wd[fencode_cd1(p,i,j,f1+fid)]=0.0;
                         }
+   }
                         __syncthreads();
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
 
 			//if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
                         if(i<(ni) && j<(nj))
@@ -325,8 +339,15 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
                         }
               //  }
                         //might need to set boundaries correctly 
+}
                         __syncthreads();
 
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
           if( i<(ni) && j<(nj))
              for(fid=0;fid<2;fid++)
               #ifdef ADIABHYDRO
@@ -334,13 +355,21 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
               #else
                   bc_periodic1_cd1(wd,p,i,j,f1+fid);
               #endif
+}
                 __syncthreads();
 
 #ifndef ADIABHYDRO
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
           if( i<(ni) && j<(nj))
              for(fid=0;fid<2;fid++)
                   //bc_cont_cd1(dwn1,p,i,j,f1+fid);
                   bc_periodic2_cd1(wd,p,i,j,f1+fid);
+}
                 __syncthreads();
 #endif
 
@@ -348,10 +377,17 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
                         //        divflux1(dwn1+(NVAR*(p->n[0])*(p->n[1])*order),wd,wmod,p,i,j,f);
             //  for(int f=rho; f<=mom3; f++)
              //  {
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
 			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
 
                                divflux1(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir);  
-
+}
                // }
      __syncthreads();
 
@@ -363,6 +399,14 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
 
              // for(int f=rho; f<=mom3; f++)
               // {
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+
 			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
                          {
                               //                                                                                  - sign here same as vac maybe a +
@@ -371,7 +415,7 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
                               //dwn1[fencode_cd1(p,i,j,f)]=0;
                          }
               //  }	
-
+}
   __syncthreads();
 
 

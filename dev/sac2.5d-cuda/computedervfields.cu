@@ -43,19 +43,37 @@ __global__ void computedervfields_parallel(struct params *p,  real *w,  real *wm
 
   
 
-   j=iindex/ni;
-   //i=iindex-j*(iindex/ni);
-   i=iindex-(j*ni);
+   int ip,jp,ipg,jpg;
+   jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
+
+
 if(order == 0)
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+
+
+
+
 if(i<((p->n[0])) && j<((p->n[1])))
 	{		
  
                for(int f=rho; f<=b2; f++)
                   wmod[fencode_cdf(p,i,j,f)+((p->n[0]))*((p->n[1]))*NVAR]=wmod[fencode_cdf(p,i,j,f)]; 
         }
+}
                __syncthreads();
 
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
 
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
 if(i<((p->n[0])) && j<((p->n[1])))
 	{		
 
@@ -64,6 +82,7 @@ if(i<((p->n[0])) && j<((p->n[1])))
                for(int f=rho; f<NVAR; f++)
                   dwn1[fencode_cdf(p,i,j,f)]=0; 
         }
+}
                __syncthreads();
 
 //if(i>20 && j >20 && i<90 && j<90)
@@ -72,6 +91,14 @@ if(i<((p->n[0])) && j<((p->n[1])))
 //              computept_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
 //}
 //              __syncthreads();
+
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
 #ifdef USE_VAC
  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
                     computej_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
@@ -81,11 +108,18 @@ if(i<((p->n[0])) && j<((p->n[1])))
  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
                     computej_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
 #endif
-
+}
 __syncthreads();
 
 
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
   if(i<((p->n[0])) && j<((p->n[1])))
 	{		               
              #ifdef ADIABHYDRO
@@ -102,15 +136,31 @@ __syncthreads();
              #endif
 
          }
+}
               __syncthreads();
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
   if(i<((p->n[0])) && j<((p->n[1])))
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{
  //determin cmax
                computec_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
         }
+}
               __syncthreads();
 
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
    if( i<((p->n[0])) && j<((p->n[1])))
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{ 
@@ -120,6 +170,7 @@ __syncthreads();
 
 
 	}
+   }
  __syncthreads();
 
  /*if(i<(p->n[0]) && j<(p->n[1]))

@@ -73,9 +73,10 @@ __global__ void update_parallel(struct params *p, struct state *s, real *w, real
   v=w+(p->n[0])*(p->n[1])*mom2;
 
 
-     j=iindex/ni;
-   //i=iindex-j*(iindex/ni);
-   i=iindex-(j*ni);
+   int ip,jp,ipg,jpg;
+   jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
+
   //if(i>2 && j >2 && i<((p->n[0])-3) && j<((p->n[1])-3))
 
 
@@ -122,6 +123,13 @@ if (threadIdx.x == 0)
 __syncthreads();
  // if(i>1 && j>1 && i<((p->n[0])-2) && j<((p->n[1])-2))
  //if(i>0 && j>0 && i<((p->n[0])) && j<((p->n[1])))
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
 if( i<((p->n[0])) && j<((p->n[1])))
 	{
              for(int f=rho; f<=b2; f++)
@@ -133,6 +141,7 @@ if( i<((p->n[0])) && j<((p->n[1])))
            // v[i+j*ni]=vn[i+j*ni];
 	   // h[i+j*ni]=hn[i+j*ni];
 	}
+}
  __syncthreads();
 
 if (threadIdx.x == 0) 

@@ -165,14 +165,28 @@ __global__ void divb_parallel(struct params *p, real *w, real *wmod,
   int ni=p->n[0];
   int nj=p->n[1];
 
-  j=iindex/ni;
-  i=iindex-(j*ni);
+   int ip,jp,ipg,jpg;
+   jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
 
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
   if(i<(ni) && j<(nj))
      for(int f=rho; f<=b2; f++)
                 dwn1[fencode_db(p,i,j,f)]=0;
+   }
  __syncthreads();
 
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
   if(i>2 && j>2 && i<(ni-2) && j<(nj-2))
 	{
            if(p->divbfix)
@@ -193,8 +207,16 @@ __global__ void divb_parallel(struct params *p, real *w, real *wmod,
             }
 
 	}
+}
  __syncthreads();
 
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
     if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
                          {
                          if(p->divbfix)
@@ -206,7 +228,7 @@ __global__ void divb_parallel(struct params *p, real *w, real *wmod,
 
                          }
               //  }	
-
+}
   __syncthreads();
 
 

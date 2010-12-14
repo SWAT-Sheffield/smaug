@@ -38,12 +38,17 @@ __global__ void advance_parallel(struct params *p, real *w, real *wmod,
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
+   int ip,jp,ipg,jpg;
+   jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
 
-  
 
-   j=iindex/ni;
-   //i=iindex-j*(iindex/ni);
-   i=iindex-(j*ni);
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 if( i<((p->n[0])) && j<((p->n[1])))
 	{		               
@@ -107,6 +112,7 @@ if( i<((p->n[0])) && j<((p->n[1])))
 
 
 	}
+}
  __syncthreads();
 
 

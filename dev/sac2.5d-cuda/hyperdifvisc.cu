@@ -39,16 +39,22 @@ __global__ void hyperdifvisc_parallel(struct params *p, real *w, real *wnew, rea
 
   real maxt=0,max3=0, max1=0;
   
+   int ip,jp,ipg,jpg;
+   jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
 
-   j=iindex/ni;
-   //i=iindex-j*(iindex/ni);
-   i=iindex-(j*ni);
 
 int bfac1=(field==rho || field>mom2)+(field>rho && field<energy);
 int bfac2= (field==rho || field>mom2);
 int bfac3=(field>rho && field<energy);
 int shift=order*NVAR*(p->n[0])*(p->n[1]);
 
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
     //set viscosities
    if(i<((p->n[0])) && j<((p->n[1])))
    {
@@ -77,7 +83,7 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
 #endif
    }
 
-
+}
    __syncthreads();
 
 /*
@@ -121,6 +127,13 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
 //compute d3r and d1r
    //tmp2  d3r
     //tmp3 d1r
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
  
    if(i>1 && j>1 && i<((p->n[0])-1) && j<((p->n[1])-1))            
    { 
@@ -136,6 +149,7 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
            wtemp[fencode_hdv(p,i,j,tmp3)]=fabs((wtemp[fencode_hdv(p,i,j,tmp1)] - wtemp[fencode_hdv(p,i-(dim==0),j-(dim==1),tmp1)] ));
      }
    }
+}
    __syncthreads();
 
 
@@ -143,6 +157,12 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
   //compute md3r and md1r
 //tmp4    md3r
 //tmp5    md1r
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
   if(i>1 && j>1 && i<((p->n[0])-1) && j<((p->n[1])-1))            
    {
          maxt=0;
@@ -165,7 +185,8 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
                 }
           wtemp[fencode_hdv(p,i,j,tmp5)]=maxt;
    }
-
+}
+   __syncthreads();
 
    p->maxviscoef=0;
 
@@ -173,6 +194,13 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
     //finally update nur and nul
 //tmp4    md3r
 //tmp5    md1r
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+
 
    if(i<((p->n[0])) && j<((p->n[1])))
    {
@@ -183,6 +211,7 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
      else
         wd[fencode_hdv(p,i,j,hdnur+hand)]=0;
    }
+}
  __syncthreads();
 
  

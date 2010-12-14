@@ -365,11 +365,18 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
 
   
 
-   j=iindex/(p->n[0]);
-   //i=iindex-j*(iindex/ni);
-   i=iindex-(j*(p->n[0]));
+   int ip,jp,ipg,jpg;
+   jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
 
 
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
                //for(int f=energy; f<NVAR; f++)
                //{
 			if(i<(ni) && j<(nj))
@@ -380,35 +387,63 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                                wd[fencode_cd2(p,i,j,f1+fid)]=0.0;
 
                         }
+}
                              __syncthreads();
 
-                             
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;                             
 	
 			if( i<(ni) && j<(nj))
                   		//computeflux_cd2(dwn1,wd,wmod,p,i,j,f);
                                 computeflux_cd2(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir); 
                //}
                         //might need to set boundaries correctly 
+}
                         __syncthreads();
 
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
        if( i<(ni) && j<(nj))
              for(fid=0;fid<2;fid++)
                   //bc_cont_cd2(dwn1,p,i,j,f1+fid);
                   bc_periodic1_cd2(wd,p,i,j,f1+fid);
+}
                 __syncthreads();
 
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
         if( i<(ni) && j<(nj))
              for(fid=0;fid<2;fid++)
                   //bc_cont_cd2(dwn1,p,i,j,f1+fid);
                   bc_periodic2_cd2(wd,p,i,j,f1+fid);
+}
                 __syncthreads();
 
 
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
              // for(int f=energy; f<NVAR; f++)
               // {
 			if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
                                 divflux_cd2(dwn1,wd,wmod,p,i,j,f,dir); 
                // }
+}
                         __syncthreads();
 
 
@@ -417,11 +452,20 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
 
              // for(int f=energy; f<=NVAR; f++)
                //{
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+
 			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
                               //                                                                                  - sign here same as vac maybe a +
                              // wmod[fencode_cd2(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]=wmod[fencode_cd2(p,i,j,f)]-dt*dwn1[fencode_cd2(p,i,j,f)];
                              wmod[fencode_cd2(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]=wmod[fencode_cd2(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]-dt*dwn1[fencode_cd2(p,i,j,f)];  
                // }
+}
                          __syncthreads(); 
 }
 

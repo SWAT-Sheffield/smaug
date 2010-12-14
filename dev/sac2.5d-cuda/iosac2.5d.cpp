@@ -171,7 +171,8 @@ dt=0.0002985;  //ADIABHYDRO
 //dt=0.15;
 
 #ifndef ADIABHYDRO
-dt=0.0013;
+//dt=0.0013;
+dt=0.000139;
 #endif
 //dt=0.00009;
 //dt=0.25;
@@ -270,6 +271,15 @@ struct state *state=(struct state *)malloc(sizeof(struct state));
 
 p->n[0]=ni;
 p->n[1]=nj;
+
+#ifdef ADIABHYDRO
+p->npgp[0]=1;
+p->npgp[1]=1;
+#else
+p->npgp[0]=1;
+p->npgp[1]=1;
+#endif
+
 p->dt=dt;
 p->dx[0]=dx;
 p->dx[1]=dy;
@@ -307,7 +317,7 @@ p->g[2]=0.0;
 //p->cmax=1.0;
 p->cmax=0.02;
 
-p->rkon=0.0;
+p->rkon=1.0;
 p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
