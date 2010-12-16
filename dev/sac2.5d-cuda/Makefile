@@ -18,6 +18,7 @@ BASICEXOBJS	=\
 	hyperdifmomsourcene.o\
 	hyperdifesource.o\
 	hyperdifbsource.o\
+	hyperdifbsourcene.o\
 	hyperdifrhosource.o\
 	hyperdifvisc.o\
 	hyperdifviscmax.o\
@@ -104,6 +105,9 @@ hyperdifesource.o: hyperdifesource.cu
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifbsource.o: hyperdifbsource.cu
 	sed 's/MODID/hdb/g' < gradops.cu > gradops_hdb.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifbsourcene.o: hyperdifbsourcene.cu
+	sed 's/MODID/hdbne/g' < gradops.cu > gradops_hdbne.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifmomsource.o: hyperdifmomsource.cu
 	sed 's/MODID/hdm/g' < gradops.cu > gradops_hdm.cuh

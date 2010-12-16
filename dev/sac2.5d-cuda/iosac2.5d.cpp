@@ -171,8 +171,8 @@ dt=0.0002985;  //ADIABHYDRO
 //dt=0.15;
 
 #ifndef ADIABHYDRO
-//dt=0.0013;
-dt=0.000139;
+dt=0.0013;
+//dt=0.000139;
 #endif
 //dt=0.00009;
 //dt=0.25;
@@ -317,7 +317,7 @@ p->g[2]=0.0;
 //p->cmax=1.0;
 p->cmax=0.02;
 
-p->rkon=1.0;
+p->rkon=0.0;
 p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
@@ -505,7 +505,7 @@ if((p->rkon)==0)
 	       cudivb(&p,&w,&state,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, &d_state,order,ordero,p->dt);
    if(p->hyperdifmom==1)
    {
-     for(int dim=0; dim<=1; dim++)
+    for(int dim=0; dim<=1; dim++)
      {
        cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim,0);
        cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim,1);
@@ -516,11 +516,13 @@ if((p->rkon)==0)
 
      }
 
-    /* for(int dim=0; dim<=1; dim++)
+     for(int dim=0; dim<=1; dim++)
      {
-       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
-       cuhyperdifesource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
-     }*/
+       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,energy,dim,0);
+       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,energy,dim,1);
+
+       cuhyperdifesource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
+     }
        
              for(int dim=0; dim<=1; dim++)
 	     for(int f=0; f<=1; f++)            
@@ -549,13 +551,39 @@ if((p->rkon)==0)
                 }
               }
 
+            int jj,mm,kk;
+             real sb;
+             for(int dim=0; dim<=1; dim++)
+	     for(int f=0; f<=1; f++)            
+	     {
+               cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,b1+f,dim,0);
+               cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,b1+f,dim,1);
+                for(ii1=0;ii1<=1;ii1++)
+                {
 
-   /*  for(int dim=0; dim<=1; dim++)
-     for(int f=0; f<=1; f++)
-     {
-       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
-       cuhyperdifbsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
-     }*/
+                          if (ii1 == 0)
+                          {
+                           jj=dim;
+                           mm=f;
+                           sb=-1.0;
+                           ii0=dim;
+                          }
+                          else
+                           {
+                           ii0=f;
+                           mm=dim;
+                           sb=1.0;
+                           jj=f;
+                           
+                            }
+
+                  if(mm==dim)
+                     cuhyperdifbsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,b1+f,dim,jj,ii0,mm,sb);
+                   else
+                     cuhyperdifbsourcene(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,b1+f,dim,jj,ii0,mm,sb);
+
+                }
+              }  
 
 
    }
@@ -653,12 +681,41 @@ if((p->rkon)==0)
                 }
               }
 
-	     /*for(int dim=0; dim<=1; dim++)
-	     for(int f=0; f<=1; f++)
+             int jj,mm,kk;
+             real sb;
+             for(int dim=0; dim<=1; dim++)
+	     for(int f=0; f<=1; f++)            
 	     {
-	       cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
-	       cuhyperdifbsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,f,dim);
-	     }*/
+               cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,b1+f,dim,0);
+               cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,b1+f,dim,1);
+                for(ii1=0;ii1<=1;ii1++)
+                {
+
+                          if (ii1 == 0)
+                          {
+                           jj=dim;
+                           mm=f;
+                           sb=-1.0;
+                           ii0=dim;
+                          }
+                          else
+                           {
+                           ii0=f;
+                           mm=dim;
+                           sb=1.0;
+                           jj=f;
+                           
+                            }
+
+                  if(mm==dim)
+                     cuhyperdifbsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,b1+f,dim,jj,ii0,mm,sb);
+                   else
+                     cuhyperdifbsourcene(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,b1+f,dim,jj,ii0,mm,sb);
+
+                }
+              }
+
+
            }
            cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
            cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order);
