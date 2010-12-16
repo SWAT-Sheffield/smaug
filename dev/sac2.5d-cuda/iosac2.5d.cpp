@@ -261,7 +261,7 @@ real *d_wnew;
 
 real *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
 
-real *w,*wnew;
+real *w,*wnew,*wd;
 real *d_wtemp;
 struct params *d_p;
 struct params *p=(struct params *)malloc(sizeof(struct params));
@@ -322,7 +322,7 @@ p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=0.0;
+p->hyperdifmom=1.0;
 p->readini=0;
 p->cfgsavefrequency=1;
 
@@ -384,6 +384,7 @@ printf("calling cuinit\n");
 // Define h
 printf("allocating w and wnew\n");
  w=(real *)calloc(ni*nj*NVAR,sizeof(real ));
+wd=(real *)calloc(ni*nj*NDERV,sizeof(real ));
  wnew=(real *)calloc(ni*nj*NVAR,sizeof(real ));
 char *cfgfile;
 if((p->readini)==0)
@@ -510,9 +511,8 @@ if((p->rkon)==0)
        cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim,0);
        cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim,1);
 
-	//       cuhyperdifviscmax(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,rho,dim);
 
-       cuhyperdifrhosource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim);
+      // cuhyperdifrhosource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim);
 
      }
 
@@ -521,7 +521,7 @@ if((p->rkon)==0)
        cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,energy,dim,0);
        cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,energy,dim,1);
 
-       cuhyperdifesource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
+       //cuhyperdifesource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
      }
        
              for(int dim=0; dim<=1; dim++)
@@ -544,9 +544,9 @@ if((p->rkon)==0)
                             }
 
                   if(f==dim)
-                     cuhyperdifmomsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
+                  ;//   cuhyperdifmomsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
                    else
-                     cuhyperdifmomsourcene(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
+                   ;//  cuhyperdifmomsourcene(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
 
                 }
               }
@@ -578,12 +578,12 @@ if((p->rkon)==0)
                             }
 
                   if(mm==dim)
-                     cuhyperdifbsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,b1+f,dim,jj,ii0,mm,sb);
+                  ;//   cuhyperdifbsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,b1+f,dim,jj,ii0,mm,sb);
                    else
-                     cuhyperdifbsourcene(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,b1+f,dim,jj,ii0,mm,sb);
+                  ;//   cuhyperdifbsourcene(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,b1+f,dim,jj,ii0,mm,sb);
 
                 }
-              }  
+              } 
 
 
    }
@@ -724,7 +724,7 @@ if((p->rkon)==0)
 
    }
 
-   cuupdate(&p,&w,&wnew,&state,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, &d_state);
+   cuupdate(&p,&w,&wd,&state,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, &d_state);
    printf("nummaxthreads %d\n",p->mnthreads);
 
    t2=second()-t1;
@@ -754,8 +754,15 @@ if((p->rkon)==0)
      
     }
     
+    for( j1=0;j1<nj;j1++)
+        for( i1=0;i1<ni;i1++)
+{
 
-    
+w[j1*ni+i1+(ni*nj*b1)]=wd[j1*ni+i1+(ni*nj*hdnur)];
+w[j1*ni+i1+(ni*nj*b2)]=wd[j1*ni+i1+(ni*nj*hdnul)];
+
+}
+           
       //save file containing current data
      // sprintf(configfile,"tmp/%ss%d.out",name,n);-
      // printf("check dims %d %d \n",ni,nj);

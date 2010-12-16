@@ -86,28 +86,30 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
 }
    __syncthreads();
 
-/*
-  //boundaries
-     if(i<((p->n[0])) && j<((p->n[1])))            
-               {                                                      
-                if(dim==0)
-                {
-		        if(i==0 )
-		          wtemp[fencode_hdv(p,i,j,tmp1)]=wtemp[fencode_hdv(p,4,j,tmp1)];
-		        if( (i==((p->n[0])-1)) )
-		          wtemp[fencode_hdv(p,i,j,tmp1)]=wtemp[fencode_hdv(p,((p->n[0])-4),j,tmp1)];
-                }
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
 
-                if(dim==1)
-                {
-		        if(j==0 )
-		          wtemp[fencode_hdv(p,i,j,tmp1)]=wtemp[fencode_hdv(p,i,4,tmp1)];
-		        if( (j==((p->n[1])-1)) )
-		          wtemp[fencode_hdv(p,i,j,tmp1)]=wtemp[fencode_hdv(p,i,((p->n[1])-4),tmp1)];                                  
-                }
-               }
-               
-   __syncthreads();*/
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+          if( i<(ni) && j<(nj))
+
+                  bc_periodic1_hdv(wtemp,p,i,j,tmp1);
+
+}
+                __syncthreads();
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+          if( i<(ni) && j<(nj))
+                  //bc_cont_cd1(dwn1,p,i,j,f1+fid);
+                  bc_periodic2_hdv(wtemp,p,i,j,tmp1);
+}
+                __syncthreads();
 
    //tmp1  tmp_nuI
    //tmp2  d3r
@@ -207,12 +209,14 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
      if(wtemp[fencode_hdv(p,i,j,tmp5)]>0)
 	wd[fencode_hdv(p,i,j,hdnur+hand)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp)*wtemp[fencode_hdv(p,i,j,tmp4)]/wtemp[fencode_hdv(p,i,j,tmp5)];
 
-//wd[fencode_hdv(p,i,j,hdnur+hand)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*0.001*wtemp[fencode_hdv(p,i,j,tmp4)]/wtemp[fencode_hdv(p,i,j,tmp5)];
+
      else
         wd[fencode_hdv(p,i,j,hdnur+hand)]=0;
    }
 }
  __syncthreads();
+
+
 
  
 }
