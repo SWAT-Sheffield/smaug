@@ -66,14 +66,14 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
 
 
 #ifdef USE_SAC
-     if(field !=173)
+     if(field !=energy)
         wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)+shift]/(bfac2+bfac3*(wmod[fencode_hdv(p,i,j,rho)+shift] ));
 
      else
         wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,energy)+shift]-0.5*(wmod[fencode_hdv(p,i,j,b1)+shift]*wmod[fencode_hdv(p,i,j,b1)+shift]+wmod[fencode_hdv(p,i,j,b2)+shift]*wmod[fencode_hdv(p,i,j,b2)+shift])+(wmod[fencode_hdv(p,i,j,mom1)+shift]*wmod[fencode_hdv(p,i,j,mom1)+shift]+wmod[fencode_hdv(p,i,j,mom2)+shift]*wmod[fencode_hdv(p,i,j,mom2)+shift])/(wmod[fencode_hdv(p,i,j,rho)+shift] );
 
 #else
-     if(field !=173)
+     if(field !=energy)
         wtemp[fencode_hdv(p,i,j,tmp1)]=wmod[fencode_hdv(p,i,j,field)+shift]/(bfac2+bfac3*(wmod[fencode_hdv(p,i,j,rho)+shift] ));
 
      else
@@ -137,6 +137,7 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
  
+   //if(i>1 && j>1 && i<((p->n[0])-1) && j<((p->n[1])-1))
    if(i>1 && j>1 && i<((p->n[0])-1) && j<((p->n[1])-1))            
    { 
      if(hand==0)
@@ -153,6 +154,37 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
    }
 }
    __syncthreads();
+
+
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+          if( i<(ni) && j<(nj))
+            {
+                  bc_periodic1_hdv(wtemp,p,i,j,tmp2);
+                  bc_periodic1_hdv(wtemp,p,i,j,tmp3);
+             }
+
+}
+                __syncthreads();
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+          if( i<(ni) && j<(nj))
+            {
+                  bc_periodic2_hdv(wtemp,p,i,j,tmp2);
+                  bc_periodic2_hdv(wtemp,p,i,j,tmp3);
+             }
+}
+                __syncthreads();
 
 
 
@@ -189,6 +221,41 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
    }
 }
    __syncthreads();
+
+
+
+
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+          if( i<(ni) && j<(nj))
+            {
+                  bc_periodic1_hdv(wtemp,p,i,j,tmp4);
+                  bc_periodic1_hdv(wtemp,p,i,j,tmp5);
+             }
+
+}
+                __syncthreads();
+
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+          if( i<(ni) && j<(nj))
+            {
+                  bc_periodic2_hdv(wtemp,p,i,j,tmp4);
+                  bc_periodic2_hdv(wtemp,p,i,j,tmp5);
+             }
+}
+                __syncthreads();
+
+
 
    p->maxviscoef=0;
 

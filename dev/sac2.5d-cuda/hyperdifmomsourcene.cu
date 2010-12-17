@@ -69,22 +69,17 @@ __global__ void hyperdifmomsourcene_parallel(struct params *p, real *w, real *wn
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
-  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  if(i<((p->n[0])) && j<((p->n[1])))
   {
 
 #ifdef USE_SAC
 
      wtemp[fencode_hdmne(p,i,j,tmp1)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,mom1+field)]/(wmod[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,rhob)]);
-     wtemp[fencode_hdmne(p,i,j,tmp2)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,rho)]+wmod[fencode_hdmne(p,i,j,rhob)]);
-
 #else
 
      wtemp[fencode_hdmne(p,i,j,tmp1)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,mom1+field)]/wmod[fencode_hdmne(p,i,j,rho)];
-     wtemp[fencode_hdmne(p,i,j,tmp2)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,rho)];
-
-
 #endif
-      wtemp[fencode_hdmne(p,i,j,tmp3)]=(wtemp[fencode_hdmne(p,i,j,tmp2)]*(wd[fencode_hdmne(p,i,j,hdnur)]+wd[fencode_hdmne(p,i,j,hdnul)])*grad_hdmne(wtemp,p,i,j,tmp1,dim))/4.0;
 
 
 
@@ -93,41 +88,103 @@ __global__ void hyperdifmomsourcene_parallel(struct params *p, real *w, real *wn
 __syncthreads();
 
 
+
+
   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
-  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-  {
-      wtemp[fencode_hdmne(p,i,j,tmp4)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,mom1+field)]*wtemp[fencode_hdmne(p,i,j,tmp3)];
+  //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  if(i<((p->n[0])) && j<((p->n[1])))
+      wtemp[fencode_hdmne(p,i,j,tmp2)]=(grad1_hdmne(wtemp,p,i,j,tmp1,dim));
 
-
-}
 }
 __syncthreads();
 
 
+
   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
-  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  if(i<((p->n[0])) && j<((p->n[1])))
+  {
+
+     wtemp[fencode_hdmne(p,i,j,tmp3)]=wtemp[fencode_hdmne(p,i,j,tmp2)]*((wd[fencode_hdmne(p,i,j,hdnur)]+wd[fencode_hdmne(p,i,j,hdnul)]))/4.0;
+
+#ifdef USE_SAC
+
+     wtemp[fencode_hdmne(p,i,j,tmp4)]=(wmod[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,rhob)])*wtemp[fencode_hdmne(p,i,j,tmp3)]/4.0;
+
+
+#else
+    wtemp[fencode_hdmne(p,i,j,tmp4)]=(wmod[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,rho)])*wtemp[fencode_hdmne(p,i,j,tmp3)]/4.0;
+
+#endif
+
+
+
+   }
+}
+__syncthreads();
+
+
+
+
+  for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+  //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  if(i<((p->n[0])) && j<((p->n[1])))
+      wtemp[fencode_hdmne(p,i,j,tmp5)]=(grad1_hdmne(wtemp,p,i,j,tmp4,ii));
+
+}
+__syncthreads();
+
+
+
+
+  for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+  //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  if(i<((p->n[0])) && j<((p->n[1])))
 	{		               
 
 
 
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,mom1+ii0)]=(grad_hdmne(wtemp,p,i,j,tmp3,ii));
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,energy)]=(grad_hdmne(wtemp,p,i,j,tmp4,ii));
+dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,mom1+ii0)]=wtemp[fencode_hdmne(p,i,j,tmp5)];
+wtemp[fencode_hdmne(p,i,j,tmp6)]=wmod[fencode_hdmne(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]*wtemp[fencode_hdmne(p,i,j,tmp2)];
+//dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,energy)]=(grad_hdmne(wtemp,p,i,j,tmp4,ii));
 
    }
 }
  __syncthreads();
 
+  for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
 
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+ //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  if(i<((p->n[0])) && j<((p->n[1])))
+     dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,energy)]=(grad1_hdmne(wtemp,p,i,j,tmp6,ii));
+
+
+}
+ __syncthreads();
 
   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
@@ -136,10 +193,11 @@ dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne(p,i,j,energy)]=(grad_hdmne(wtemp,p
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
 
-			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+			// if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+  if(i<((p->n[0])) && j<((p->n[1])))
                          {
                               //                                                                                  - sign here same as vac maybe a +
-                              wmod[fencode_hdmne(p,i,j,mom1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdmne(p,i,j,mom1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdmne(p,i,j,mom1+field)]; 
+                              wmod[fencode_hdmne(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdmne(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdmne(p,i,j,mom1+ii0)]; 
                              wmod[fencode_hdmne(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdmne(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdmne(p,i,j,energy)]; 
 
                          }

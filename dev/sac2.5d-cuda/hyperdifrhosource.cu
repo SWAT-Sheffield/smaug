@@ -14,6 +14,7 @@
 #include "gradops_hdr.cuh"
 
 
+
 __global__ void hyperdifrhosource_parallel(struct params *p, real *w, real *wnew, real *wmod, 
     real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim)
 {
@@ -73,13 +74,14 @@ __global__ void hyperdifrhosource_parallel(struct params *p, real *w, real *wnew
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
 
-  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  //if(i>32 && j >32 && i<((p->n[0])-32) && j<((p->n[1])-32))
+  if(i<((p->n[0])) && j<((p->n[1])))
   {
-     //wtemp[fencode_hdr(p,i,j,tmp1)]=grad1l_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim);
-     //wtemp[fencode_hdr(p,i,j,tmp2)]=grad1r_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim);
      
-//dwn1[fencode_hdr(p,i,j,field)]=( wtemp[fencode_hdr(p,i,j,hdnur)] * wtemp[fencode_hdr(p,i,j,tmp2)] - wtemp[fencode_hdr(p,i,j,hdnul)] *wtemp[fencode_hdr(p,i,j,tmp1)]             )/rdx;
-dwn1[fencode_hdr(p,i,j,field)]=( wtemp[fencode_hdr(p,i,j,hdnur)] * grad1r_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim) - wtemp[fencode_hdr(p,i,j,hdnul)] *grad1l_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim)             )/rdx;
+
+//dwn1[fencode_hdr(p,i,j,field)]=( wtemp[fencode_hdr(p,i,j,hdnur)] * grad1r_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim) - wtemp[fencode_hdr(p,i,j,hdnul)] *grad1l_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim)             )/rdx;
+dwn1[fencode_hdr(p,i,j,field)]=( wtemp[fencode_hdr(p,i,j,hdnur)] * grad1r_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim) - wtemp[fencode_hdr(p,i,j,hdnul)] *grad1l_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim)             );
 
 
   }
@@ -97,7 +99,8 @@ __syncthreads();
      j=jp*(p->npgp[1])+jpg;
 
 
-			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+			 //if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+                         if(i<((p->n[0])) && j<((p->n[1])))
                          {
                               //                                                                                  - sign here same as vac maybe a +
                               wmod[fencode_hdr(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdr(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdr(p,i,j,field)]; 
@@ -159,6 +162,7 @@ int cuhyperdifrhosource(struct params **p, real **w, real **wnew, struct params 
 //__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
+
      hyperdifrhosource_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 

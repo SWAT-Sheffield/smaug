@@ -76,7 +76,8 @@ __global__ void hyperdifesource_parallel(struct params *p, real *w, real *wnew, 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
 
-  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+if(i<((p->n[0])) && j<((p->n[1])))
+ // if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
   {
 
 #ifdef USE_SAC
@@ -92,17 +93,32 @@ __global__ void hyperdifesource_parallel(struct params *p, real *w, real *wnew, 
 );
 
 #endif
-     //wtemp[fencode_hde(p,i,j,tmp2)]=grad1r_hde(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim);
-     
-//dwn1[fencode_hde(p,i,j,field)]=( wtemp[fencode_hde(p,i,j,hdnur)] * wtemp[fencode_hde(p,i,j,tmp2)] - wtemp[fencode_hde(p,i,j,hdnul)] *wtemp[fencode_hde(p,i,j,tmp1)]             )/rdx;
-dwn1[fencode_hde(p,i,j,field)]=( wtemp[fencode_hde(p,i,j,hdnur)] * grad1r_hde(wtemp,p,i,j,tmp1,dim) - wtemp[fencode_hde(p,i,j,hdnul)] *grad1l_hde(wtemp,p,i,j,tmp1,dim)             )/rdx;
+ 
 
 
   }
 }
 __syncthreads();
 
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
 
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+
+if(i<((p->n[0])) && j<((p->n[1])))
+ // if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  {
+
+
+ 
+//dwn1[fencode_hde(p,i,j,field)]=( wtemp[fencode_hde(p,i,j,hdnur)] * grad1r_hde(wtemp,p,i,j,tmp1,dim) - wtemp[fencode_hde(p,i,j,hdnul)] *grad1l_hde(wtemp,p,i,j,tmp1,dim)             )/rdx;
+dwn1[fencode_hde(p,i,j,field)]=( wtemp[fencode_hde(p,i,j,hdnur)] * grad1r_hde(wtemp,p,i,j,tmp1,dim) - wtemp[fencode_hde(p,i,j,hdnul)] *grad1l_hde(wtemp,p,i,j,tmp1,dim)             );
+
+  }
+}
+__syncthreads();
 
    
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
@@ -113,7 +129,8 @@ __syncthreads();
      j=jp*(p->npgp[1])+jpg;
 
 
-			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+			 //if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+                         if(i<((p->n[0])) && j<((p->n[1])))
                          {
                               //                                                                                  - sign here same as vac maybe a +
                               wmod[fencode_hde(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hde(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hde(p,i,j,field)]; 

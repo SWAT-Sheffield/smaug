@@ -128,11 +128,11 @@ real evalgrad1_MODID(real fi, real fim1, struct params *p,int dir)
 __device__ __host__
 real grad1l_MODID(real *wmod,struct params *p,int i,int j,int field,int dir)
 {
-  if(dir == 0)
+ if((dir == 0) && i>0 && i<(p->n[0]))
  {
     return(  ( wmod[fencode_MODID(p,i,j,field)]-wmod[fencode_MODID(p,i-1,j,field)]) /((p->dx[0]))    );
  }
- else if(dir == 1)
+ else if((dir == 1)    && j>0 && j<(p->n[1]))
  {
     return(  ( wmod[fencode_MODID(p,i,j,field)]-wmod[fencode_MODID(p,i,j-1,field)])/((p->dx[1]))    );
   }
@@ -143,11 +143,11 @@ real grad1l_MODID(real *wmod,struct params *p,int i,int j,int field,int dir)
 __device__ __host__
 real grad1r_MODID(real *wmod,struct params *p,int i,int j,int field,int dir)
 {
-  if(dir == 0)
+  if((dir == 0) && i>0 && i<(p->n[0]))
  {
     return(  ( wmod[fencode_MODID(p,i+1,j,field)]-wmod[fencode_MODID(p,i,j,field)]) /((p->dx[0]))    );
  }
- else if(dir == 1)
+ else if((dir == 1)    && j>0 && j<(p->n[1]))
  {
     return(  ( wmod[fencode_MODID(p,i,j+1,field)]-wmod[fencode_MODID(p,i,j,field)])/((p->dx[1]))    );
   }
@@ -162,12 +162,12 @@ real grad1_MODID(real *wmod,struct params *p,int i,int j,int field,int dir)
 {
  //real valgrad_MODID;
 
-  if(dir == 0)
+  if((dir == 0) && i>0 && i<(p->n[0]))
  {
-
+  
  return(  (wmod[fencode_MODID(p,i+1,j,field)]-wmod[fencode_MODID(p,i-1,j,field)])/(2.0*(p->dx[0]))    );
  }
- else if(dir == 1)
+ else if((dir == 1)    && j>0 && j<(p->n[1]))
  {
 
  return(  (wmod[fencode_MODID(p,i,j+1,field)]-wmod[fencode_MODID(p,i,j-1,field)])/(2.0*(p->dx[1]))    );
