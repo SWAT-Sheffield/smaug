@@ -78,9 +78,9 @@ if(i<((p->n[0])) && j<((p->n[1])))
 	{		
 
                for(int f=vel1; f<NDERV; f++)
-                  wd[fencode_cdf(p,i,j,f)]=0; 
+                 ;// wd[fencode_cdf(p,i,j,f)]=0; 
                for(int f=rho; f<NVAR; f++)
-                  dwn1[fencode_cdf(p,i,j,f)]=0; 
+                 ;// dwn1[fencode_cdf(p,i,j,f)]=0; 
         }
 }
                __syncthreads();
@@ -106,7 +106,7 @@ if(i<((p->n[0])) && j<((p->n[1])))
 
 #ifdef USE_SAC
  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-                    computej_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               ;//     computej_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
 #endif
 }
 __syncthreads();
@@ -127,11 +127,11 @@ __syncthreads();
                computept_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
              #else
                //computej_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-               computepk_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-               computept_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+              ;// computepk_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+              ;// computept_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
 
-               computebdotv_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-               computedivb_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+              ;// computebdotv_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+             ;//  computedivb_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
 
              #endif
 

@@ -58,6 +58,22 @@ wd[fencode_MODID(p,i,j,divb)]=grad_MODID(wmod,p,i,j,b1,0)+grad_MODID(wmod,p,i,j,
  // return ( status);
 }
 
+__device__ __host__
+void computevel_MODID(real *wmod,real *wd,struct params *p,int i,int j)
+{
+
+
+
+        #ifdef USE_SAC
+		wd[fencode_MODID(p,i,j,vel1)]+=wmod[fencode_MODID(p,i,j,mom1)]/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]);
+                wd[fencode_MODID(p,i,j,vel2)]+=wmod[fencode_MODID(p,i,j,mom2)]/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]);
+         #else
+		wd[fencode_MODID(p,i,j,vel1)]+=wmod[fencode_MODID(p,i,j,mom1)]/(wmod[fencode_MODID(p,i,j,rho)]);
+                wd[fencode_MODID(p,i,j,vel2)]+=wmod[fencode_MODID(p,i,j,mom2)]/(wmod[fencode_MODID(p,i,j,rho)]);
+
+         #endif
+ // return ( status);
+}
 
 __device__ __host__
 void computept_MODID(real *wmod,real *wd,struct params *p,int i,int j)
@@ -118,8 +134,8 @@ wd[fencode_MODID(p,i,j,vel2)]=wmod[fencode_MODID(p,i,j,mom2)]/(wmod[fencode_MODI
 //wd[fencode_MODID(p,i,j,vel3)]=wmod[fencode_MODID(p,i,j,mom3)]/(wmod[fencode_MODID(p,i,j,rho)]);
 #elif defined(USE_SAC)
 
-wd[fencode_MODID(p,i,j,vel1)]=wmod[fencode_MODID(p,i,j,mom1)]/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]);
-wd[fencode_MODID(p,i,j,vel2)]=wmod[fencode_MODID(p,i,j,mom2)]/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]);
+//wd[fencode_MODID(p,i,j,vel1)]=wmod[fencode_MODID(p,i,j,mom1)]/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]);
+//wd[fencode_MODID(p,i,j,vel2)]=wmod[fencode_MODID(p,i,j,mom2)]/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]);
 //wd[fencode_MODID(p,i,j,vel3)]=wmod[fencode_MODID(p,i,j,mom3)]/(wmod[fencode_MODID(p,i,j,rho)]+wmod[fencode_MODID(p,i,j,rhob)]);
 
 // wd[fencode_MODID(p,i,j,pressurek)]=((p->gamma)-1)*(wmod[fencode_MODID(p,i,j,energy)]- 0.5*(wmod[fencode_MODID(p,i,j,mom1)]*wmod[fencode_MODID(p,i,j,mom1)]+wmod[fencode_MODID(p,i,j,mom2)]*wmod[fencode_MODID(p,i,j,mom2)]+wmod[fencode_MODID(p,i,j,mom3)]*wmod[fencode_MODID(p,i,j,mom3)])-0.5*(wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,b3)]) -(wmod[fencode_MODID(p,i,j,b1b)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2b)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3b)]*wmod[fencode_MODID(p,i,j,b3)]) );
@@ -129,8 +145,8 @@ wd[fencode_MODID(p,i,j,vel2)]=wmod[fencode_MODID(p,i,j,mom2)]/(wmod[fencode_MODI
 wd[fencode_MODID(p,i,j,pkb)]=((p->gamma)-1)*(wmod[fencode_MODID(p,i,j,energyb)]- 0.5*(wmod[fencode_MODID(p,i,j,b1b)]*wmod[fencode_MODID(p,i,j,b1b)]+wmod[fencode_MODID(p,i,j,b2b)]*wmod[fencode_MODID(p,i,j,b2b)]) );
 
 #else
-wd[fencode_MODID(p,i,j,vel1)]=wmod[fencode_MODID(p,i,j,mom1)]/(wmod[fencode_MODID(p,i,j,rho)]);
-wd[fencode_MODID(p,i,j,vel2)]=wmod[fencode_MODID(p,i,j,mom2)]/(wmod[fencode_MODID(p,i,j,rho)]);
+//wd[fencode_MODID(p,i,j,vel1)]=wmod[fencode_MODID(p,i,j,mom1)]/(wmod[fencode_MODID(p,i,j,rho)]);
+//wd[fencode_MODID(p,i,j,vel2)]=wmod[fencode_MODID(p,i,j,mom2)]/(wmod[fencode_MODID(p,i,j,rho)]);
 //wd[fencode_MODID(p,i,j,vel3)]=wmod[fencode_MODID(p,i,j,mom3)]/(wmod[fencode_MODID(p,i,j,rho)]);
 
  // wd[fencode_MODID(p,i,j,pressurek)]=((p->gamma)-1)*(wmod[fencode_MODID(p,i,j,energy)]- 0.5*(wmod[fencode_MODID(p,i,j,mom1)]*wmod[fencode_MODID(p,i,j,mom1)]+wmod[fencode_MODID(p,i,j,mom2)]*wmod[fencode_MODID(p,i,j,mom2)]+wmod[fencode_MODID(p,i,j,mom3)]*wmod[fencode_MODID(p,i,j,mom3)])/wmod[fencode_MODID(p,i,j,rho)]-0.5*(wmod[fencode_MODID(p,i,j,b1)]*wmod[fencode_MODID(p,i,j,b1)]+wmod[fencode_MODID(p,i,j,b2)]*wmod[fencode_MODID(p,i,j,b2)]+wmod[fencode_MODID(p,i,j,b3)]*wmod[fencode_MODID(p,i,j,b3)]) );

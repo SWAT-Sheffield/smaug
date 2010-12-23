@@ -26,7 +26,6 @@ BASICEXOBJS	=\
 	centdiff1.o\
 	centdiff2.o\
 	computedervfields.o\
-	corrector.o\
 	boundary.o\
 	init.o\
 	update.o\
@@ -120,18 +119,16 @@ derivsource.o: derivsource.cu
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 centdiff1.o: centdiff1.cu
 	sed 's/MODID/cd1/g' < gradops.cu > gradops_cd1.cuh
+	sed 's/MODID/cd1/g' < dervfields.cu > dervfields_cd1.cuh
 	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 centdiff2.o: centdiff2.cu
 	sed 's/MODID/cd2/g' < gradops.cu > gradops_cd2.cuh
+	sed 's/MODID/cd2/g' < dervfields.cu > dervfields_cd2.cuh
 	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 computedervfields.o: computedervfields.cu
 	sed 's/MODID/cdf/g' < gradops.cu > gradops_cdf.cuh
 	sed 's/MODID/cdf/g' < dervfields.cu > dervfields_cdf.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS)   -c $<
-corrector.o: corrector.cu
-	sed 's/MODID/cor/g' < gradops.cu > gradops_cor.cuh
-	sed 's/MODID/cor/g' < dervfields.cu > dervfields_cor.cuh
-	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 boundary.o: boundary.cu
 	sed 's/MODID/b/g' < gradops.cu > gradops_b.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<

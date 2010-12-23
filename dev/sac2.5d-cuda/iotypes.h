@@ -23,7 +23,7 @@ DEFINE_PRECISION(double)
    //#define NVAR 13
    #define NVAR 10
    //#define NDERV 19
-   #define NDERV 16
+   #define NDERV 15
    #define NTEMP 11
    #define NDIM 2
    #define NVECDIM 2
@@ -32,7 +32,7 @@ DEFINE_PRECISION(double)
    //#define NVAR 8
    #define NVAR 6
    //#define NDERV 17
-   #define NDERV 14
+   #define NDERV 13
    #define NTEMP 11
    #define NDIM 2
    #define NVECDIM 2
@@ -41,7 +41,7 @@ DEFINE_PRECISION(double)
    //#define NVAR 4
    #define NVAR 4
    //#define NDERV 9
-   #define NDERV 6
+   #define NDERV 5
    #define NTEMP 1
    #define NDIM 2
    #define NVECDIM 3
@@ -148,12 +148,13 @@ typedef enum oldvars {mom3, b3,b3b} CEVOLD;
 #endif
 
 #ifdef USE_SAC
-//	typedef enum dvars {vel1,vel2,vel3,f1,f2,f3,soundspeed,pressuret,pressurek,current1,current2,current3,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
 
-	typedef enum dvars {vel1,vel2,f1,f2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
+	typedef enum dvars {vel1,vel2,flux,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
+//typedef enum dvars {vel1,vel2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
 #else
-//	typedef enum dvars {vel1,vel2,vel3,f1,f2,f3,soundspeed,pressuret,pressurek,current1,current2,current3,bdotv,divb,cfast,hdnur,hdnul} DEV;
-	typedef enum dvars {vel1,vel2,f1,f2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul} DEV;
+
+	typedef enum dvars {vel1,vel2,flux,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul} DEV;
+//typedef enum dvars {vel1,vel2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul} DEV;
 #endif
 
 

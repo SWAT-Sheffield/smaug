@@ -116,6 +116,7 @@ real dx = 0.55*xmax/(ni-4);
 //vac ozt
 int ni = 196;
 ni=104;
+//ni=512;
 //real xmax = 6.2831853;  
 real xmax=1.0;
 real dx = xmax/(ni-4);
@@ -136,6 +137,7 @@ real dy = 0.55*ymax/(nj-4);
 //vac ozt
 int nj = 196;
 nj=104;
+//nj=512;
 //real ymax = 6.2831853; 
 real ymax = 1.0;   
 real dy = ymax/(nj-4);    
@@ -171,7 +173,7 @@ dt=0.0002985;  //ADIABHYDRO
 //dt=0.15;
 
 #ifndef ADIABHYDRO
-dt=0.0013;
+dt=0.00065;
 //dt=0.000139;
 #endif
 //dt=0.00009;
@@ -179,7 +181,7 @@ dt=0.0013;
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
 //nt=3000;
-nt=100;
+nt=2000;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -322,9 +324,9 @@ p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=1.0;
+p->hyperdifmom=0.0;
 p->readini=0;
-p->cfgsavefrequency=1;
+p->cfgsavefrequency=10;
 
 
 p->xmax[0]=xmax;
@@ -497,7 +499,7 @@ if((p->rkon)==0)
 
 #ifndef ADIABHYDRO
    for(int f=energy; f<=b2; f++)
-      cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
+     cucentdiff2(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
 #endif
   }
 
@@ -758,8 +760,8 @@ if((p->rkon)==0)
         for( i1=0;i1<ni;i1++)
 {
 
-w[j1*ni+i1+(ni*nj*b1)]=wd[j1*ni+i1+(ni*nj*hdnur)];
-w[j1*ni+i1+(ni*nj*b2)]=wd[j1*ni+i1+(ni*nj*hdnul)];
+;//w[j1*ni+i1+(ni*nj*b1)]=wd[j1*ni+i1+(ni*nj*hdnur)];
+;//w[j1*ni+i1+(ni*nj*b2)]=wd[j1*ni+i1+(ni*nj*hdnul)];
 
 }
            
