@@ -126,7 +126,7 @@ int computefluxrho (real *dw, real *wd, real *w, struct params *p,int ix, int iy
          #ifdef USE_SAC
 	      wd[fencode_cd1(p,ix,iy,flux)]= transportflux(dw,wd,w,p,ix,iy,rho,direction)+(w[fencode_cd1(p,ix,iy,rhob)]*w[fencode_cd1(p,ix,iy,mom1+direction)])/(w[fencode_cd1(p,ix,iy,rhob)]+w[fencode_cd1(p,ix,iy,rho)]);
          #else
-             w[fencode_cd1(p,ix,iy,flux)]= transportflux(dw,wd,w,p,ix,iy,rho,direction);
+             wd[fencode_cd1(p,ix,iy,flux)]= transportflux(dw,wd,w,p,ix,iy,rho,direction);
          #endif
   
   return ( status);
