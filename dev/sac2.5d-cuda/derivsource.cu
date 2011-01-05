@@ -20,9 +20,9 @@ real sourcerho (real *dw, real *wd, real *w, struct params *p,int ix, int iy) {
  // real src=0;
  // int field=rho;
   real src=0;
-               src= -(p->chyp)*(grad2_ds(w,p,ix,iy,rho,0)+grad2_ds(w,p,ix,iy,rho,1));
+               src= -(p->chyp[rho])*(grad2_ds(w,p,ix,iy,rho,0)+grad2_ds(w,p,ix,iy,rho,1));
         #ifdef USE_SAC
-           src= -(p->chyp)*(grad2_ds(w,p,ix,iy,rhob,0)+grad2_ds(w,p,ix,iy,rhob,1));
+           src= -(p->chyp[rho])*(grad2_ds(w,p,ix,iy,rhob,0)+grad2_ds(w,p,ix,iy,rhob,1));
          #endif
  
   return src;
@@ -37,12 +37,12 @@ real sourcemom (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int
   {
 	case 0:
          //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[0]))-grad_ds(wd,p,ix,iy,pressuret,0)-(p->chyp)*(grad2_ds(w,p,ix,iy,mom1,0)+grad2_ds(w,p,ix,iy,mom1,1));
-         src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[0]))-(p->chyp)*(grad2_ds(w,p,ix,iy,mom1,0)+grad2_ds(w,p,ix,iy,mom1,1));
+         src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[0]))-(p->chyp[field])*(grad2_ds(w,p,ix,iy,mom1,0)+grad2_ds(w,p,ix,iy,mom1,1));
         // src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[0]));
 	break;
 	case 1:
          //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[1]))-grad_ds(wd,p,ix,iy,pressuret,1)-(p->chyp)*(grad2_ds(w,p,ix,iy,mom2,1)+grad2_ds(w,p,ix,iy,mom2,0));
-         src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[1]))-(p->chyp)*(grad2_ds(w,p,ix,iy,mom2,1)+grad2_ds(w,p,ix,iy,mom2,0));
+         src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[1]))-(p->chyp[field])*(grad2_ds(w,p,ix,iy,mom2,1)+grad2_ds(w,p,ix,iy,mom2,0));
          //src=(w[fencode_ds(p,ix,iy,rho)]*(p->g[1]));
 	break;
 	/*case 2:

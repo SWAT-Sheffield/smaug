@@ -86,7 +86,7 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
 }
    __syncthreads();
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
@@ -97,9 +97,9 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
                   bc_periodic1_hdv(wtemp,p,i,j,tmp1);
 
 }
-                __syncthreads();
+                __syncthreads();*/
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
@@ -109,7 +109,7 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
                   //bc_cont_cd1(dwn1,p,i,j,f1+fid);
                   bc_periodic2_hdv(wtemp,p,i,j,tmp1);
 }
-                __syncthreads();
+                __syncthreads();*/
 
    //tmp1  tmp_nuI
    //tmp2  d3r
@@ -157,7 +157,7 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
 
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
@@ -184,7 +184,7 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
                   bc_periodic2_hdv(wtemp,p,i,j,tmp3);
              }
 }
-                __syncthreads();
+                __syncthreads();*/
 
 
 
@@ -226,7 +226,7 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
 
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+ /*  for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
@@ -253,7 +253,7 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
                   bc_periodic2_hdv(wtemp,p,i,j,tmp5);
              }
 }
-                __syncthreads();
+                __syncthreads();*/
 
 
 
@@ -274,11 +274,13 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
    if(i<((p->n[0])) && j<((p->n[1])))
    {
      if(wtemp[fencode_hdv(p,i,j,tmp5)]>0)
-	wd[fencode_hdv(p,i,j,hdnur+hand)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp)*wtemp[fencode_hdv(p,i,j,tmp4)]/wtemp[fencode_hdv(p,i,j,tmp5)];
+	wd[fencode_hdv(p,i,j,hdnur+hand)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp[field])*wtemp[fencode_hdv(p,i,j,tmp4)]/wtemp[fencode_hdv(p,i,j,tmp5)];
 
 
      else
         wd[fencode_hdv(p,i,j,hdnur+hand)]=0;
+
+
    }
 }
  __syncthreads();

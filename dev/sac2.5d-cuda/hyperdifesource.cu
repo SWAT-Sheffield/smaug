@@ -114,7 +114,7 @@ if(i<((p->n[0])) && j<((p->n[1])))
 
  
 //dwn1[fencode_hde(p,i,j,field)]=( wtemp[fencode_hde(p,i,j,hdnur)] * grad1r_hde(wtemp,p,i,j,tmp1,dim) - wtemp[fencode_hde(p,i,j,hdnul)] *grad1l_hde(wtemp,p,i,j,tmp1,dim)             )/rdx;
-dwn1[fencode_hde(p,i,j,field)]=( wtemp[fencode_hde(p,i,j,hdnur)] * grad1r_hde(wtemp,p,i,j,tmp1,dim) - wtemp[fencode_hde(p,i,j,hdnul)] *grad1l_hde(wtemp,p,i,j,tmp1,dim)             );
+dwn1[fencode_hde(p,i,j,field)]=( wd[fencode_hde(p,i,j,hdnur)] * grad1r_hde(wtemp,p,i,j,tmp1,dim) - wd[fencode_hde(p,i,j,hdnul)] *grad1l_hde(wtemp,p,i,j,tmp1,dim)             );
 
   }
 }

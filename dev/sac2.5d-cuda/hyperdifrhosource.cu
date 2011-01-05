@@ -64,6 +64,7 @@ __global__ void hyperdifrhosource_parallel(struct params *p, real *w, real *wnew
 }
  __syncthreads();
 
+
   rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1));
 
    
@@ -75,13 +76,14 @@ __global__ void hyperdifrhosource_parallel(struct params *p, real *w, real *wnew
      j=jp*(p->npgp[1])+jpg;
 
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
   //if(i>32 && j >32 && i<((p->n[0])-32) && j<((p->n[1])-32))
-  if(i<((p->n[0])) && j<((p->n[1])))
+  //if(i<((p->n[0])) && j<((p->n[1])))
   {
      
 
-//dwn1[fencode_hdr(p,i,j,field)]=( wtemp[fencode_hdr(p,i,j,hdnur)] * grad1r_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim) - wtemp[fencode_hdr(p,i,j,hdnul)] *grad1l_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim)             )/rdx;
-dwn1[fencode_hdr(p,i,j,field)]=( wtemp[fencode_hdr(p,i,j,hdnur)] * grad1r_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim) - wtemp[fencode_hdr(p,i,j,hdnul)] *grad1l_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim)             );
+dwn1[fencode_hdr(p,i,j,field)]=( wd[fencode_hdr(p,i,j,hdnur)] * grad1r_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim) - wd[fencode_hdr(p,i,j,hdnul)] *grad1l_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim)             )/rdx;
+//dwn1[fencode_hdr(p,i,j,field)]=( wtemp[fencode_hdr(p,i,j,hdnur)] * grad1r_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim) - wtemp[fencode_hdr(p,i,j,hdnul)] *grad1l_hdr(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim)             );
 
 
   }

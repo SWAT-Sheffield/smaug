@@ -95,7 +95,7 @@ if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
 }
 __syncthreads();
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
@@ -126,7 +126,7 @@ __syncthreads();
                   bc_periodic2_hdm(wtemp,p,i,j,tmprhol);
              }
 }
-                __syncthreads();
+                __syncthreads();*/
 
 
    
@@ -144,22 +144,22 @@ __syncthreads();
 
 
 
-/*dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,energy)]=(
+dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,energy)]=(
 
 (  wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,mom1+field)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i+(dim==0),j+(dim==1),mom1+field)])*wd[fencode_hdm(p,i,j,hdnur)]*grad1r_hdm(wtemp,p,i,j,tmp1,dim)
 
 -(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,mom1+field)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i-(dim==0),j+(dim==1),mom1+field)])*wd[fencode_hdm(p,i,j,hdnul)]*grad1l_hdm(wtemp,p,i,j,tmp1,dim))/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1))/2;
 
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,mom1+ii0)]=(wtemp[fencode_hdm(p,i,j,tmprhor)]*wd[fencode_hdm(p,i,j,hdnur)]*grad1r_hdm(wtemp,p,i,j,tmp1,dim)-wtemp[fencode_hdm(p,i,j,tmprhol)]*wd[fencode_hdm(p,i,j,hdnul)]*grad1l_hdm(wtemp,p,i,j,tmp1,dim))/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1))/2;*/
+dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,mom1+ii0)]=(wtemp[fencode_hdm(p,i,j,tmprhor)]*wd[fencode_hdm(p,i,j,hdnur)]*grad1r_hdm(wtemp,p,i,j,tmp1,dim)-wtemp[fencode_hdm(p,i,j,tmprhol)]*wd[fencode_hdm(p,i,j,hdnul)]*grad1l_hdm(wtemp,p,i,j,tmp1,dim))/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1))/2;
 
 
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,energy)]=(
+/*dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,energy)]=(
 
 (  wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,mom1+field)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i+(dim==0),j+(dim==1),mom1+field)])*wd[fencode_hdm(p,i,j,hdnur)]*grad1r_hdm(wtemp,p,i,j,tmp1,dim)
 
 -(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,mom1+field)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i-(dim==0),j+(dim==1),mom1+field)])*wd[fencode_hdm(p,i,j,hdnul)]*grad1l_hdm(wtemp,p,i,j,tmp1,dim))/2;
 
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,mom1+ii0)]=(wtemp[fencode_hdm(p,i,j,tmprhor)]*wd[fencode_hdm(p,i,j,hdnur)]*grad1r_hdm(wtemp,p,i,j,tmp1,dim)-wtemp[fencode_hdm(p,i,j,tmprhol)]*wd[fencode_hdm(p,i,j,hdnul)]*grad1l_hdm(wtemp,p,i,j,tmp1,dim))/2;
+dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm(p,i,j,mom1+ii0)]=(wtemp[fencode_hdm(p,i,j,tmprhor)]*wd[fencode_hdm(p,i,j,hdnur)]*grad1r_hdm(wtemp,p,i,j,tmp1,dim)-wtemp[fencode_hdm(p,i,j,tmprhol)]*wd[fencode_hdm(p,i,j,hdnul)]*grad1l_hdm(wtemp,p,i,j,tmp1,dim))/2;*/
 
 
    }

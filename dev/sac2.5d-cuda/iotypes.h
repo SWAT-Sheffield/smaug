@@ -104,7 +104,7 @@ struct params {
         int readini;
 
         real maxviscoef;
-        real chyp;
+        real chyp[NVAR];
         real chyp3;   
 
         int mnthreads;   
