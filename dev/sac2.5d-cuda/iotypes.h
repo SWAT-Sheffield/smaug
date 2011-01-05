@@ -68,6 +68,7 @@ struct Iome {
 
 struct params {
 	int n[NDIM];
+	int ng[NDIM];
         int npgp[NDIM];
 
         real xmax[NDIM];

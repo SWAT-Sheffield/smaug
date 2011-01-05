@@ -99,6 +99,8 @@ real v0 = 0;
 real b0  = 0;                               
 real h0 = 5030; 
 
+int ngi=2;
+int ngj=2;
 
 
 
@@ -107,15 +109,17 @@ real h0 = 5030;
 // Define the x domain
 //adiab hydro
 #ifdef ADIABHYDRO
-int ni = 110;
+int ni = 106;
+ni=ni+2*ngi;
 real xmax = 1.0;  
 real dx = 0.55*xmax/(ni-4);
 #endif
 
 #ifndef ADIABHYDRO
 //vac ozt
-int ni = 196;
-ni=104;
+int ni;
+ni=100;
+ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
 real xmax=1.0;
@@ -127,8 +131,9 @@ real dx = xmax/(ni-4);
 // Define the y domain
 //adiab hydro
 #ifdef ADIABHYDRO
-int nj = 110;
+int nj = 106;
 //nj=196;
+nj=nj+2*ngj;
 real ymax = 1.0;  
 real dy = 0.55*ymax/(nj-4);
 #endif
@@ -136,7 +141,8 @@ real dy = 0.55*ymax/(nj-4);
 #ifndef ADIABHYDRO
 //vac ozt
 int nj = 196;
-nj=104;
+nj=100;
+nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
 real ymax = 1.0;   
@@ -181,7 +187,7 @@ dt=0.00065;
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
 //nt=3000;
-nt=2000;
+nt=100;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -273,7 +279,8 @@ struct state *state=(struct state *)malloc(sizeof(struct state));
 
 p->n[0]=ni;
 p->n[1]=nj;
-
+p->ng[0]=ngi;
+p->ng[1]=ngj;
 #ifdef ADIABHYDRO
 p->npgp[0]=1;
 p->npgp[1]=1;
@@ -319,14 +326,14 @@ p->g[2]=0.0;
 //p->cmax=1.0;
 p->cmax=0.02;
 
-p->rkon=1.0;
+p->rkon=0.0;
 p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=0.0;
 p->readini=0;
-p->cfgsavefrequency=10;
+p->cfgsavefrequency=1;
 
 
 p->xmax[0]=xmax;
@@ -339,10 +346,18 @@ p->steeringenabled=steeringenabled;
 p->finishsteering=finishsteering;
 
 p->maxviscoef=0;
-p->chyp=0.1;       
+//p->chyp=0.0;       
 //p->chyp=0.00000;
 p->chyp3=0.00000;
 p->mnthreads=1;
+
+for(i=0;i<NVAR;i++)
+  p->chyp[i]=0.0;
+
+p->chyp[rho]=0.04;
+p->chyp[energy]=0.3;
+p->chyp[b1]=0.6;
+p->chyp[b2]=0.6;
 
 printf("calling cuinit\n");
 
@@ -526,7 +541,7 @@ if((p->rkon)==0)
        cuhyperdifesource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
      }
        
-           for(int dim=0; dim<=1; dim++)
+       /*    for(int dim=0; dim<=1; dim++)
 	     for(int f=0; f<=1; f++)            
 	     {
                cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,mom1+f,dim,0);
@@ -551,9 +566,9 @@ if((p->rkon)==0)
                    cuhyperdifmomsourcene(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,ii,ii0);
 
                 }
-              }
+              }*/
 
-           /* int jj,mm,kk;
+            int jj,mm,kk;
              real sb;
              for(int dim=0; dim<=1; dim++)
 	     for(int f=0; f<=1; f++)            
@@ -585,7 +600,7 @@ if((p->rkon)==0)
                   ;//   cuhyperdifbsourcene(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);
 
                 }
-              } */
+              } 
 
 
    }
@@ -656,7 +671,7 @@ if((p->rkon)==0)
        cuhyperdifesource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
      }
              
-         /*    for(int dim=0; dim<=1; dim++)
+        /*     for(int dim=0; dim<=1; dim++)
 	     for(int f=0; f<=1; f++)            
 	     {
                cuhyperdifvisc(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,mom1+f,dim,0);
@@ -678,12 +693,12 @@ if((p->rkon)==0)
                   if(f==dim)
                      cuhyperdifmomsource(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
                    else
-                     cuhyperdifmomsourcene(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
+                    cuhyperdifmomsourcene(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
 
                 }
               }*/
 
-            /* int jj,mm,kk;
+             int jj,mm,kk;
              real sb;
              for(int dim=0; dim<=1; dim++)
 	     for(int f=0; f<=1; f++)            
@@ -715,7 +730,7 @@ if((p->rkon)==0)
                      cuhyperdifbsourcene(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,b1+f,dim,jj,ii0,mm,sb);
 
                 }
-              }*/
+              }
 
 
            }
@@ -756,8 +771,8 @@ if((p->rkon)==0)
      
     }
     
-    for( j1=0;j1<nj;j1++)
-        for( i1=0;i1<ni;i1++)
+    for( j1=ngj;j1<nj-ngj;j1++)
+        for( i1=ngi;i1<ni-ngi;i1++)
 {
 
 ;//w[j1*ni+i1+(ni*nj*b1)]=wd[j1*ni+i1+(ni*nj*hdnur)];
