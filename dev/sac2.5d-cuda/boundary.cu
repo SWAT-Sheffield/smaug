@@ -41,6 +41,9 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
+
+               for( f=rho; f<=b2; f++)
+               {
   if(i<p->n[0] && j<p->n[1])
 	{
 
@@ -54,8 +57,7 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
                
 
                
-               for( f=rho; f<=b2; f++)
-               {
+
 #ifdef ADIABHYDRO
                   bc_cont_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
 #else
@@ -69,7 +71,7 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
                 
 
 
-               }
+
 
                /*for(int f=vel1; f<NDERV; f++)
                {
@@ -82,8 +84,10 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
                }*/
 
 	}
-}
  __syncthreads();
+               }
+}
+
 
 #ifdef ADIABHYDRO
 ;
@@ -92,14 +96,18 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
-
+             for( f=rho; f<=b2; f++)
+{
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
   if(i<p->n[0] && j<p->n[1])
-             for( f=rho; f<=b2; f++)
-                  bc_periodic2_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f); 
-}
+
+                  bc_periodic2_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
+
  __syncthreads();
+   } 
+}
+
 #endif
 
 

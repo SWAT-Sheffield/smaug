@@ -172,7 +172,7 @@ w[fencode_i(p,i,j,energy)]=-sin(1.0*i*(p->dx[0]));
 //*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd
 
 __global__ void init_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd, real *wtemp)
+    real *dwn1, real *wd, real *wtemp, real *wtemp1, real *wtemp2)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -325,7 +325,7 @@ void checkErrors_i(char *label)
 
 
 
-int cuinit(struct params **p, real **w, real **wnew, struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp)
+int cuinit(struct params **p, real **w, real **wnew, struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
 {
 
 
@@ -369,6 +369,13 @@ else
   cudaMalloc((void**)d_wd, NDERV*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
   cudaMalloc((void**)d_wtemp, NTEMP*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
 
+
+  #ifndef ADIABHYDRO
+  cudaMalloc((void**)d_wtemp1, NTEMP1*(((*p)->n[0])+1)* (((*p)->n[1])+1)*sizeof(real));
+  cudaMalloc((void**)d_wtemp2, NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2)*sizeof(real));
+  #endif
+
+
   cudaMalloc((void**)&adw, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
   cudaMalloc((void**)&adwnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
   
@@ -402,7 +409,7 @@ printf("allocating\n");
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
     // init_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
     // init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_b);
-     init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd, *d_wtemp);
+     init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd, *d_wtemp, *d_wtemp1, *d_wtemp2);
      cudaThreadSynchronize();
 	    printf("called initialiser\n");
 	cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);

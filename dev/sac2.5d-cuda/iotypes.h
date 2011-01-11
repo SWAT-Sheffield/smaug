@@ -24,7 +24,9 @@ DEFINE_PRECISION(double)
    #define NVAR 10
    //#define NDERV 19
    #define NDERV 15
-   #define NTEMP 11
+   #define NTEMP 6
+   #define NTEMP1 4
+   #define NTEMP2 1
    #define NDIM 2
    #define NVECDIM 2
 #endif
@@ -33,7 +35,9 @@ DEFINE_PRECISION(double)
    #define NVAR 6
    //#define NDERV 17
    #define NDERV 13
-   #define NTEMP 11
+   #define NTEMP 6
+   #define NTEMP1 4
+   #define NTEMP2 1
    #define NDIM 2
    #define NVECDIM 2
  #endif
@@ -159,7 +163,10 @@ typedef enum oldvars {mom3, b3,b3b} CEVOLD;
 #endif
 
 
-typedef enum tempvars {tmp1, tmp2, tmp3,tmp4,tmp5,tmp6,tmp7,tmp8,tmp9, tmprhol, tmprhor } TEV;
+//typedef enum tempvars {tmp1, tmp2, tmp3,tmp4,tmp5,tmp6, tmprhol, tmprhor } TEV;
+typedef enum tempvars {tmp1, tmp2, tmp3,tmp4,tmp5,tmp6 } TEV;
+typedef enum temp1vars {d1r,d1l,d3r,d3l } TEV1;
+typedef enum temp2vars {tmpnui } TEV2;
 
 
 

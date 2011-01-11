@@ -84,7 +84,7 @@ __global__ void update_parallel(struct params *p, struct state *s, real *w, real
 
 
 
-if (threadIdx.x == 0) 
+/*if (threadIdx.x == 0) 
 {
  ntot=(p->n[0])*(p->n[1]);
  for(int f=rho; f<=NVAR; f++) 
@@ -100,9 +100,9 @@ if (threadIdx.x == 0)
                       case mom2:
                     	s->m2=0;
 		      break;
-                      /*case mom3:
-                    	s->m3=0;
-		      break;*/
+                     // case mom3:
+                    //	s->m3=0;
+		     // break;
                       case energy:
                     	s->e=0;
 		      break;
@@ -112,15 +112,15 @@ if (threadIdx.x == 0)
                       case b2:
                     	s->b2=0;
 		      break;
-                      /*case b3:
-                    	s->b3=0;
-		      break;*/
+                      //case b3:
+                    	//s->b3=0;
+		      //break;
                     };
 
   }              
                  
 }
-__syncthreads();
+__syncthreads();*/
  // if(i>1 && j>1 && i<((p->n[0])-2) && j<((p->n[1])-2))
  //if(i>0 && j>0 && i<((p->n[0])) && j<((p->n[1])))
 
@@ -130,21 +130,26 @@ __syncthreads();
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
+
+             for(int f=rho; f<=b2; f++)
+             {   
 if( i<((p->n[0])) && j<((p->n[1])))
 	{
-             for(int f=rho; f<=b2; f++)
-             {               
+            
                   w[fencode_u(p,i,j,f)]=wmod[fencode_u(p,i,j,f)];
                   updatestate (p, s, w ,i, j, f);
-              }
+              
             // u[i+j*ni]=un[i+j*ni];
            // v[i+j*ni]=vn[i+j*ni];
 	   // h[i+j*ni]=hn[i+j*ni];
 	}
-}
- __syncthreads();
 
-if (threadIdx.x == 0) 
+__syncthreads();
+}
+}
+ 
+
+/*if (threadIdx.x == 0) 
 {
  for(int f=rho; f<NVAR; f++) 
  {
@@ -159,9 +164,9 @@ if (threadIdx.x == 0)
                       case mom2:
                     	s->m2=(s->m2)/ntot;
 		      break;
-                      /*case mom3:
-                    	s->m3=(s->m3)/ntot;
-		      break;*/
+                     // case mom3:
+                    //	s->m3=(s->m3)/ntot;
+		     // break;
                       case energy:
                     	s->e=(s->e)/ntot;
 		      break;
@@ -171,15 +176,15 @@ if (threadIdx.x == 0)
                       case b2:
                     	s->b2=(s->b2)/ntot;
 		      break;
-                      /*case b3:
-                    	s->b3=(s->b3)/ntot;
-		      break;*/
+                    //  case b3:
+                    //	s->b3=(s->b3)/ntot;
+		    //  break;
                     };
 
   }              
                  
 }
-__syncthreads();
+__syncthreads();*/
 
 
 

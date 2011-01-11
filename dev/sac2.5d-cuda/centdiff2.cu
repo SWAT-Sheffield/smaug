@@ -13,6 +13,8 @@
 /////////////////////////////////////
 #include "gradops_cd2.cuh"
 #include "dervfields_cd2.cuh"
+
+
 __device__ __host__
 real transportflux_cd2 (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field, int direction) {
 
@@ -178,36 +180,6 @@ wd[fencode_cd2(p,ix,iy,bdotv)]=(w[fencode_cd2(p,ix,iy,b1)]*w[fencode_cd2(p,ix,iy
   //return ( ddc1-ddc2);
 }
 
-__device__ __host__
-real fluxe2(real *dw, real *wd, real *w, struct params *p,int ix, int iy, int dir) {
-
-  real ddc=0;
-  real fi, fim1;
-  real  fip2=0, fim2=0;
- // real ddc1;
-  real ddcx=0,ddcy=0;
-
-   real flux=0;
-
-
-        #ifdef USE_SAC
-computept_cd2(w,wd,p,ix,iy);
-
-// wd[fencode_cd2(p,ix,iy,ptb)]=  ((p->gamma)-1)*w[fencode_cd2(p,ix,iy,energyb)]- 0.5*((p->gamma)-2)*(w[fencode_cd2(p,ix,iy,b1b)]*w[fencode_cd2(p,ix,iy,b1b)]+w[fencode_cd2(p,ix,iy,b2b)]*w[fencode_cd2(p,ix,iy,b2b)]) ;
-
-
-      		flux= -wd[fencode_cd2(p,ix,iy,ptb)]*grad_cd2(wd,p,ix,iy,vel1+dir,dir);
-                //flux     +=(w[fencode_cd2(p,ix,iy,b1b)]*(w[fencode_cd2(p,ix,iy,b1b)]+w[fencode_cd2(p,ix,iy,b2b)]) +w[fencode_cd2(p,ix,iy,b2b)]*(w[fencode_cd2(p,ix,iy,b1b)]+w[fencode_cd2(p,ix,iy,b2b)])); 
-               // flux *= ((grad_cd2(wd,p,ix,iy,vel1+dir,dir))); 
-               flux += w[fencode_cd2(p,ix,iy,b1b)]*w[fencode_cd2(p,ix,iy,b1b)]*grad_cd2(wd,p,ix,iy,vel1,0)+w[fencode_cd2(p,ix,iy,b2b)]*w[fencode_cd2(p,ix,iy,b1b)]*grad_cd2(wd,p,ix,iy,vel1+1,1);
-         #endif
-
-  return flux;
-
-
-  //return ( ddc1-ddc2);
-}
-
 
 
 
@@ -298,23 +270,6 @@ wd[fencode_cd2(p,ix,iy,f1)]= 0;
   return ( status);
 }
 
-__device__ __host__
-int divflux_cd2(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field,int dir) {
-
-  int direction;
-  int status=0;
-  real divflux=0;
-  dw[fencode_cd2(p,ix,iy,field)]= grad_cd2(wd,p,ix,iy,flux,dir);//+grad_cd2(wd,p,ix,iy,f2,1); 
-
-
- #ifdef USE_SAC
-  if(field==energy)     
-     dw[fencode_cd2(p,ix,iy,field)]+=fluxe2(dw, wd, w, p,ix, iy,dir);
-
-
- #endif
-  return ( status);
-}
 
 
 
@@ -397,8 +352,9 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                             // wmod[fencode_cd2(p,i,j,flux)+order*NVAR*(p->n[0])*(p->n[1])]=0.0;
 
                         }
+ __syncthreads();
 }
-                             __syncthreads();
+                            
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
@@ -415,105 +371,26 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                         switch(dir)
                         {
                          case 0:
-                         if(i<(ni)  && j >1 &&  j<(nj-2))
+                         if(i<(ni)  && j >1 &&  j<(nj-1))
+                          //if(i>1 && i<(ni-1)  && j >2 &&  j<(nj-3))
                             computeflux_cd2(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir); 
                          break;
                          case 1:
-                         if(i>1 &&  i<(ni-2) && j<(nj))
+                         if(i>1 &&  i<(ni-1) && j<(nj))
+                         //if(j>1 && i>2 &&  i<(ni-3) && j<(nj))
                             computeflux_cd2(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir); 
                          break;
                         }
 
                //}
                         //might need to set boundaries correctly 
+   __syncthreads();
 }
-                        __syncthreads();
-
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-       if( i<(ni) && j<(nj))
-             //for(fid=0;fid<2;fid++)
-                  //bc_cont_cd2(dwn1,p,i,j,f1);
-                  bc_periodic1_cd2(wd,p,i,j,flux);
-}
-                __syncthreads();
-
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-        if( i<(ni) && j<(nj))
-             //for(fid=0;fid<2;fid++)
-                  //bc_cont_cd2(dwn1,p,i,j,f1);
-                  bc_periodic2_cd2(wd,p,i,j,flux);
-}
-                __syncthreads();
-
-
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-             // for(int f=energy; f<NVAR; f++)
-              // {
-			//if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
-			if( i<(ni) && j<(nj))
-                                divflux_cd2(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir); 
-               // }
-}
-                        __syncthreads();
+                     
 
 
 
-
-
-             // for(int f=energy; f<=NVAR; f++)
-               //{
-
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-
-			 /*if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
-                              //                                                                                  - sign here same as vac maybe a +
-                             // wmod[fencode_cd2(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]=wmod[fencode_cd2(p,i,j,f)]-dt*dwn1[fencode_cd2(p,i,j,f)];
-                             wmod[fencode_cd2(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]=wmod[fencode_cd2(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]-dt*dwn1[fencode_cd2(p,i,j,f)]; */ 
-               // }
-
-
-
-                        switch(dir)
-                        {
-                         case 0:
-                         //if(i<(ni)  && j >1 &&  j<(nj-2))
-                         //if(i >1 &&  i<(ni-2)  && j >1 &&  j<(nj-2))
-                         if(i>3 && j >3 && i<(ni-4) && j<(nj-4))
-
-                              wmod[fencode_cd2(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_cd2(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]-dt*dwn1[fencode_cd2(p,i,j,f)]; 
-                         break;
-                         case 1:
-                         //if(i>1 &&  i<(ni-2) && j<(nj))
-                         //if(i >1 &&  i<(ni-2)  && j >1 &&  j<(nj-2))
-                         if(i>3 && j >3 && i<(ni-4) && j<(nj-4))
-
-                              wmod[fencode_cd2(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_cd2(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]-dt*dwn1[fencode_cd2(p,i,j,f)];
-                         break;
-                        }
-
-
-}
-                         __syncthreads(); 
+                         
 }
 
 

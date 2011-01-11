@@ -57,7 +57,7 @@ __global__ void hyperdifmomsourcene_parallel(struct params *p, real *w, real *wn
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
   if(i<((p->n[0])) && j<((p->n[1])))
-    for(int f=tmp1; f<=tmprhor; f++)	
+    for(int f=tmp1; f<=tmp6; f++)	
         wtemp[fencode_hdmne(p,i,j,f)]=0.0;
 }
  __syncthreads();

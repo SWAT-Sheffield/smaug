@@ -65,8 +65,9 @@ if(i<((p->n[0])) && j<((p->n[1])))
                for(int f=rho; f<=b2; f++)
                   wmod[fencode_cdf(p,i,j,f)+((p->n[0]))*((p->n[1]))*NVAR]=wmod[fencode_cdf(p,i,j,f)]; 
         }
-}
                __syncthreads();
+}
+
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
@@ -82,8 +83,9 @@ if(i<((p->n[0])) && j<((p->n[1])))
                for(int f=rho; f<NVAR; f++)
                  ;// dwn1[fencode_cdf(p,i,j,f)]=0; 
         }
-}
                __syncthreads();
+}
+
 
 //if(i>20 && j >20 && i<90 && j<90)
 //	{
@@ -108,8 +110,9 @@ if(i<((p->n[0])) && j<((p->n[1])))
  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
                ;//     computej_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
 #endif
-}
 __syncthreads();
+}
+
 
 
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
@@ -136,8 +139,9 @@ __syncthreads();
              #endif
 
          }
-}
               __syncthreads();
+}
+
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
@@ -151,8 +155,9 @@ __syncthreads();
  //determin cmax
                computec_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
         }
+             __syncthreads();
 }
-              __syncthreads();
+ 
 
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
@@ -170,8 +175,9 @@ __syncthreads();
 
 
 	}
+__syncthreads();
    }
- __syncthreads();
+ 
 
  /*if(i<(p->n[0]) && j<(p->n[1]))
 	{ 

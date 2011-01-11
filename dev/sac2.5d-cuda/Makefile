@@ -24,7 +24,9 @@ BASICEXOBJS	=\
 	hyperdifviscmax.o\
 	derivsource.o\
 	centdiff1.o\
+	centdiff1a.o\
 	centdiff2.o\
+	centdiff2a.o\
 	computedervfields.o\
 	boundary.o\
 	init.o\
@@ -124,6 +126,14 @@ centdiff1.o: centdiff1.cu
 centdiff2.o: centdiff2.cu
 	sed 's/MODID/cd2/g' < gradops.cu > gradops_cd2.cuh
 	sed 's/MODID/cd2/g' < dervfields.cu > dervfields_cd2.cuh
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
+centdiff1a.o: centdiff1a.cu
+	sed 's/MODID/cd1a/g' < gradops.cu > gradops_cd1a.cuh
+	sed 's/MODID/cd1a/g' < dervfields.cu > dervfields_cd1a.cuh
+	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
+centdiff2a.o: centdiff2a.cu
+	sed 's/MODID/cd2a/g' < gradops.cu > gradops_cd2a.cuh
+	sed 's/MODID/cd2a/g' < dervfields.cu > dervfields_cd2a.cuh
 	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 computedervfields.o: computedervfields.cu
 	sed 's/MODID/cdf/g' < gradops.cu > gradops_cdf.cuh

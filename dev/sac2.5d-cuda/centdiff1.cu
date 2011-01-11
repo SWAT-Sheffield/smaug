@@ -14,6 +14,69 @@
 #include "gradops_cd1.cuh"
 #include "dervfields_cd1.cuh"
 __device__ __host__
+void bc_periodic1_cd1t1(real *wt, struct params *p,int i, int j, int f) {
+
+                if(i==0 || i==1 )                
+                    wt[fencode_cd1(p,i,j,flux)]=wt[fencode_cd1(p,(p->n[0])-4+i,j,flux)];
+                else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)) )                
+                   ;// wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,4-(p->n[0])+i,j,f)];
+                else if(j==0 || j==1 )                
+                 ;// wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,i,(p->n[1])-4+j,f)];
+                else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)) )                
+                 ;// wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,i,4-(p->n[1])+j,f)];
+
+ 
+
+
+}
+
+
+__device__ __host__
+void bc_periodic2_cd1t1(real *wt, struct params *p,int i, int j, int f) {
+
+
+               if(i<2 && j<2)
+                {
+                  if(i==j)
+                    //wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,(p->n[0])-3+i,j,f)];
+                    wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,i,(p->n[1])-4+j,f)];
+                  else                  
+                    //wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,i,(p->n[1])-3+j,f)];
+                    wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,(p->n[0])-4+i,j,f)];                                    
+                }
+                else if(i<2 && j>((p->n[1])-3))
+                {
+                  if(i==(j-(p->n[1])))                  
+                    //wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,(p->n[0])-3+i,4-(p->n[1])+j,f)];
+                    wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,(p->n[0])-4+i,j,f)];                                     
+                  else                  
+                    wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,i,4-(p->n[1])+j,f)];                                     
+                }
+                else if(i>((p->n[0])-3) && j<2)
+                {
+                  if((i-(p->n[0]))==j)                  
+                    wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,4-(p->n[0])+i,j,f)];                                    
+                  else                  
+                   wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,i,(p->n[1])-4+j,f)];                                    
+                }
+                else if(i>((p->n[0])-3) && j>((p->n[1])-3))
+                {
+                  if(i==j)                  
+                    wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,i,4-(p->n[1])+j,f)];                                    
+                  else                  
+                    wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,4-(p->n[0])+i,j,f)];                                    
+                }                       
+                 
+                
+
+
+
+
+}
+
+
+
+__device__ __host__
 real transportflux (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field, int direction) {
 
   real ddc=0;
@@ -202,29 +265,7 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
   return ( status);
 }
 
-__device__ __host__
-int divflux1(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int field,int dir) {
 
-  int direction;
-  int status=0;
-  real divflux=0;
-  //dw[fencode_cd1(p,ix,iy,field)]= grad_cd1(wd,p,ix,iy,f1,dir);//+grad_cd1(wd,p,ix,iy,f2,1); 
-dw[fencode_cd1(p,ix,iy,field)]= grad_cd1(wd,p,ix,iy,flux,dir);//+grad_cd1(wd,p,ix,iy,f2,1); 
- /*switch(field)
-  {
-     case mom1:
-       dw[fencode_cd1(p,ix,iy,field)]+= grad_cd1(wd,p,ix,iy,pressuret,0);
-      break;
-
-    case mom2:
-      dw[fencode_cd1(p,ix,iy,field)]+= grad_cd1(wd,p,ix,iy,pressuret,1);
-      break;
-
-
-  } */   
- // dw[fencode_cd1(p,ix,iy,field)]= gradd0_cd1(wd,p,ix,iy,f1,0)+gradd1_cd1(wd,p,ix,iy,f2,1);    
-  return ( status);
-}
 
 
 
@@ -305,8 +346,9 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
                                wd[fencode_cd1(p,i,j,flux)]=0.0;
                                //wmod[fencode_cd1(p,i,j,flux)+order*NVAR*(p->n[0])*(p->n[1])]=0.0;
                         }
+ __syncthreads();
    }
-                        __syncthreads();
+                       
 
 
 
@@ -317,23 +359,27 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
 
+//1. 11/1/11 could swap cases below
                         switch(dir)
                         {
                          case 0:
-                         if(i<(ni)  && j >1 &&  j<(nj-2))
+                         if(i<(ni)  && j >1 &&  j<(nj-1))
+                         //if(i>1 && i<(ni-1)  && j >2 &&  j<(nj-3))
                             computeflux(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir); 
                          break;
                          case 1:
-                         if(i>1 &&  i<(ni-2) && j<(nj))
+                         if(i>1 &&  i<(ni-1) && j<(nj))
+                         //if(j>1 && i>2 &&  i<(ni-3) && j<(nj))
                             computeflux(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir); 
                          break;
                         }
               //  }
-                        //might need to set boundaries correctly 
+                        //might need to set boundaries correctly
+ __syncthreads(); 
 }
-                        __syncthreads();
+                       
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+/*  for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
@@ -344,12 +390,13 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
               #ifdef ADIABHYDRO
                   bc_cont_cd1(wd,p,i,j,flux);
               #else
-                  bc_periodic1_cd1(wd,p,i,j,flux);
+                  bc_periodic1_cd1t1(wd,p,i,j,flux);
 
 
               #endif
-}
                 __syncthreads();
+}
+
 
 
 #ifndef ADIABHYDRO
@@ -363,73 +410,11 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
              //for(fid=0;fid<2;fid++)
                   //bc_cont_cd1(dwn1,p,i,j,f1+fid);
              
-                  bc_periodic2_cd1(wd,p,i,j,flux);
-}
+                 bc_periodic2_cd1t1(wd,p,i,j,flux);
                 __syncthreads();
-#endif
-
-			//if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
-                        //        divflux1(dwn1+(NVAR*(p->n[0])*(p->n[1])*order),wd,wmod,p,i,j,f);
-            //  for(int f=rho; f<=mom3; f++)
-             //  {
-
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-			 //if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
-                         if( i<(ni) && j<(nj))
-                               divflux1(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir);  
 }
-               // }
-     __syncthreads();
 
-         // if( i<(ni) && j<(nj))
-          //        bc_cont_cd1(dwn1,p,i,j,f);
-            //    __syncthreads();
-
-
-
-             // for(int f=rho; f<=mom3; f++)
-              // {
-
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-
-
-                        switch(dir)
-                        {
-                         case 0:
-                         //if(i<(ni)  && j >1 &&  j<(nj-2))
-                         if(i >1 &&  i<(ni-2)  && j >1 &&  j<(nj-2))
-                         if(i>3 && j >3 && i<(ni-4) && j<(nj-4))
-                         //if(i<(ni)  && j >3 &&  j<(nj-4))
-                              wmod[fencode_cd1(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_cd1(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]-dt*dwn1[fencode_cd1(p,i,j,f)]; 
-                         break;
-                         case 1:
-                         //if(i>1 &&  i<(ni-2) && j<(nj))
-                         //if(i >1 &&  i<(ni-2)  && j >1 &&  j<(nj-2))
-                         if(i>3 && j >3 && i<(ni-4) && j<(nj-4))
-                         //if(i>3 &&  i<(ni-4) && j<(nj))
-                              wmod[fencode_cd1(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_cd1(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]-dt*dwn1[fencode_cd1(p,i,j,f)];
-                         break;
-                        }
-
-
-              //  }	
-}
-  __syncthreads();
-
-
-         //if( i<(ni) && j<(nj))
-         //         bc_cont_cd1(wmod+ordero*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
-         //       __syncthreads();
+#endif*/
 
 
 }
@@ -483,6 +468,8 @@ int cucentdiff1(struct params **p, real **w, struct params **d_p, real **d_w,  r
 //__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
+//cudaThreadSynchronize();
+
      centdiff1_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
