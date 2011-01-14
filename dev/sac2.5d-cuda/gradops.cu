@@ -152,11 +152,11 @@ real grad1l_MODID(real *wmod,struct params *p,int i,int j,int field,int dir)
 __device__ __host__
 real grad1r_MODID(real *wmod,struct params *p,int i,int j,int field,int dir)
 {
-  if((dir == 0) && i>0 && i<(p->n[0]))
+  if((dir == 0) && i>=0 && i<((p->n[0])-1))
  {
     return(  ( wmod[fencode_MODID(p,i+1,j,field)]-wmod[fencode_MODID(p,i,j,field)]) /((p->dx[0]))    );
  }
- else if((dir == 1)    && j>0 && j<(p->n[1]))
+ else if((dir == 1)    && j>=0 && j<((p->n[1])-1))
  {
     return(  ( wmod[fencode_MODID(p,i,j+1,field)]-wmod[fencode_MODID(p,i,j,field)])/((p->dx[1]))    );
   }

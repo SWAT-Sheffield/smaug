@@ -24,8 +24,8 @@ DEFINE_PRECISION(double)
    #define NVAR 10
    //#define NDERV 19
    #define NDERV 15
-   #define NTEMP 6
-   #define NTEMP1 4
+   #define NTEMP 8
+   #define NTEMP1 2
    #define NTEMP2 1
    #define NDIM 2
    #define NVECDIM 2
@@ -35,8 +35,8 @@ DEFINE_PRECISION(double)
    #define NVAR 6
    //#define NDERV 17
    #define NDERV 13
-   #define NTEMP 6
-   #define NTEMP1 4
+   #define NTEMP 8
+   #define NTEMP1 2
    #define NTEMP2 1
    #define NDIM 2
    #define NVECDIM 2
@@ -154,7 +154,7 @@ typedef enum oldvars {mom3, b3,b3b} CEVOLD;
 
 #ifdef USE_SAC
 
-	typedef enum dvars {vel1,vel2,flux,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
+	typedef enum dvars {vel1,vel2,flux,hdnul,hdnur,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,ptb,pkb} DEV;
 //typedef enum dvars {vel1,vel2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
 #else
 
@@ -164,8 +164,8 @@ typedef enum oldvars {mom3, b3,b3b} CEVOLD;
 
 
 //typedef enum tempvars {tmp1, tmp2, tmp3,tmp4,tmp5,tmp6, tmprhol, tmprhor } TEV;
-typedef enum tempvars {tmp1, tmp2, tmp3,tmp4,tmp5,tmp6 } TEV;
-typedef enum temp1vars {d1r,d1l,d3r,d3l } TEV1;
+typedef enum tempvars {tmp1, tmp2, tmp3,tmp4,tmp5,tmp6,tmp7,tmp8 } TEV;
+typedef enum temp1vars {d1,d3 } TEV1;
 typedef enum temp2vars {tmpnui } TEV2;
 
 

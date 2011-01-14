@@ -14,14 +14,26 @@ BASICEXOBJS	=\
 	iosac2.5d.o\
 	initialisation.o\
 	dxroutines.o\
-	hyperdifmomsource.o\
-	hyperdifmomsourcene.o\
-	hyperdifesource.o\
-	hyperdifbsource.o\
-	hyperdifbsourcene.o\
+	hyperdifmomsource1.o\
+	hyperdifmomsource2.o\
+	hyperdifmomsource3.o\
+	hyperdifmomsourcene1.o\
+	hyperdifmomsourcene2.o\
+	hyperdifmomsourcene3.o\
+	hyperdifmomsourcene4.o\
+	hyperdifesource1.o\
+	hyperdifesource2.o\
+	hyperdifbsource1.o\
+	hyperdifbsource2.o\
+	hyperdifbsource3.o\
+	hyperdifbsourcene1.o\
+	hyperdifbsourcene2.o\
+	hyperdifbsourcene3.o\
 	hyperdifrhosource.o\
-	hyperdifvisc.o\
-	hyperdifviscmax.o\
+	hyperdifvisc1.o\
+	hyperdifvisc2.o\
+	hyperdifvisc3.o\
+	hyperdifvisc4.o\
 	derivsource.o\
 	centdiff1.o\
 	centdiff1a.o\
@@ -91,9 +103,17 @@ iosac:$(BASICEXOBJS)
 #	$(NVCC) -o $@  --device-emulation -c $<
 #step.o: step.cu
 #	$(NVCC) -o $@ --ptxas-options=-v -c $<
-
-hyperdifvisc.o: hyperdifvisc.cu
-	sed 's/MODID/hdv/g' < gradops.cu > gradops_hdv.cuh
+hyperdifvisc1.o: hyperdifvisc1.cu
+	sed 's/MODID/hdv1/g' < gradops.cu > gradops_hdv1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifvisc2.o: hyperdifvisc2.cu
+	sed 's/MODID/hdv2/g' < gradops.cu > gradops_hdv2.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifvisc3.o: hyperdifvisc3.cu
+	sed 's/MODID/hdv3/g' < gradops.cu > gradops_hdv3.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifvisc4.o: hyperdifvisc4.cu
+	sed 's/MODID/hdv4/g' < gradops.cu > gradops_hdv4.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifviscmax.o: hyperdifviscmax.cu
 	sed 's/MODID/hdvmax/g' < gradops.cu > gradops_hdvmax.cuh
@@ -101,20 +121,50 @@ hyperdifviscmax.o: hyperdifviscmax.cu
 hyperdifrhosource.o: hyperdifrhosource.cu
 	sed 's/MODID/hdr/g' < gradops.cu > gradops_hdr.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifesource.o: hyperdifesource.cu
-	sed 's/MODID/hde/g' < gradops.cu > gradops_hde.cuh
+hyperdifesource1.o: hyperdifesource1.cu
+	sed 's/MODID/hde1/g' < gradops.cu > gradops_hde1.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifbsource.o: hyperdifbsource.cu
-	sed 's/MODID/hdb/g' < gradops.cu > gradops_hdb.cuh
+hyperdifesource2.o: hyperdifesource2.cu
+	sed 's/MODID/hde2/g' < gradops.cu > gradops_hde2.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifbsourcene.o: hyperdifbsourcene.cu
-	sed 's/MODID/hdbne/g' < gradops.cu > gradops_hdbne.cuh
+hyperdifbsource1.o: hyperdifbsource1.cu
+	sed 's/MODID/hdb1/g' < gradops.cu > gradops_hdb1.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifmomsource.o: hyperdifmomsource.cu
-	sed 's/MODID/hdm/g' < gradops.cu > gradops_hdm.cuh
+hyperdifbsource2.o: hyperdifbsource2.cu
+	sed 's/MODID/hdb2/g' < gradops.cu > gradops_hdb2.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifmomsourcene.o: hyperdifmomsourcene.cu
-	sed 's/MODID/hdmne/g' < gradops.cu > gradops_hdmne.cuh
+hyperdifbsource3.o: hyperdifbsource3.cu
+	sed 's/MODID/hdb3/g' < gradops.cu > gradops_hdb3.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifbsourcene1.o: hyperdifbsourcene1.cu
+	sed 's/MODID/hdbne1/g' < gradops.cu > gradops_hdbne1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifbsourcene2.o: hyperdifbsourcene2.cu
+	sed 's/MODID/hdbne2/g' < gradops.cu > gradops_hdbne2.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifbsourcene3.o: hyperdifbsourcene3.cu
+	sed 's/MODID/hdbne3/g' < gradops.cu > gradops_hdbne3.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifmomsource1.o: hyperdifmomsource1.cu
+	sed 's/MODID/hdm1/g' < gradops.cu > gradops_hdm1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifmomsource2.o: hyperdifmomsource2.cu
+	sed 's/MODID/hdm2/g' < gradops.cu > gradops_hdm2.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifmomsource3.o: hyperdifmomsource3.cu
+	sed 's/MODID/hdm3/g' < gradops.cu > gradops_hdm3.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifmomsourcene1.o: hyperdifmomsourcene1.cu
+	sed 's/MODID/hdmne1/g' < gradops.cu > gradops_hdmne1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifmomsourcene2.o: hyperdifmomsourcene2.cu
+	sed 's/MODID/hdmne2/g' < gradops.cu > gradops_hdmne2.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifmomsourcene3.o: hyperdifmomsourcene3.cu
+	sed 's/MODID/hdmne3/g' < gradops.cu > gradops_hdmne3.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifmomsourcene4.o: hyperdifmomsourcene4.cu
+	sed 's/MODID/hdmne4/g' < gradops.cu > gradops_hdmne4.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 derivsource.o: derivsource.cu
 	sed 's/MODID/ds/g' < gradops.cu > gradops_ds.cuh
