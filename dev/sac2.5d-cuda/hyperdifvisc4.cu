@@ -112,15 +112,20 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
      j=jp*(p->npgp[1])+jpg;
 
 
-   if(i>0 && i<((p->n[0])-1) && j>0 && j<((p->n[1])-1))
+   if(i>1 && i<((p->n[0])-2) && j>1 && j<((p->n[1])-2))
    {
      //wd[fencode_hdv4(p,i,j,hdnur+hand)]=wtemp2[fencode_hdv4(p,i+1,j+1,tmpnui)];
      if(wtemp[fencode_hdv4(p,i,j,tmp5)]>0)
-	wd[fencode_hdv4(p,i,j,hdnul+hand)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp[field])*wtemp[fencode_hdv4(p,i,j,tmp4)]/wtemp[fencode_hdv4(p,i,j,tmp5)];
-          //wd[fencode_hdv4(p,i,j,hdnur+hand)]=wtemp[fencode_hdv4(p,i,j,tmp4)];
+{
+	wd[fencode_hdv4(p,i,j,hdnur+hand)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp[field])*wtemp[fencode_hdv4(p,i,j,tmp4)]/wtemp[fencode_hdv4(p,i,j,tmp5)];
 
+          //wd[fencode_hdv4(p,i,j,hdnur+hand)]=wtemp[fencode_hdv4(p,i,j,tmp4)];
+	//wd[fencode_hdv4(p,i,j,hdnul+hand)]=0.01;
+}
      else
-        wd[fencode_hdv4(p,i,j,hdnul+hand)]=0;
+        wd[fencode_hdv4(p,i,j,hdnur+hand)]=0;
+
+    
 
      //temporary trap for debugging
      //if(wd[fencode_hdv4(p,i,j,hdnul+hand)]>0.02 ||wd[fencode_hdv4(p,i,j,hdnul+hand)] < -0.02)

@@ -51,18 +51,7 @@ __global__ void hyperdifmomsourcene2_parallel(struct params *p, real *w, real *w
 
 
 
-  for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
-  //if(i<((p->n[0])) && j<((p->n[1])))
-      wtemp[fencode_hdmne2(p,i,j,tmp3)]=(grad1_hdmne2(wtemp,p,i,j,tmp2,dim));
-
-}
-__syncthreads();
 
 
 
@@ -78,17 +67,11 @@ __syncthreads();
   if(i<((p->n[0])) && j<((p->n[1])))
   {
 
-     wtemp[fencode_hdmne2(p,i,j,tmp4)]=wtemp[fencode_hdmne2(p,i,j,tmp3)]*((wd[fencode_hdmne2(p,i,j,hdnur)]+wd[fencode_hdmne2(p,i,j,hdnul)]))/4.0;
+     wtemp[fencode_hdmne2(p,i,j,tmp6)]=wtemp[fencode_hdmne2(p,i,j,tmp5)]*((wd[fencode_hdmne2(p,i,j,hdnur)]+wd[fencode_hdmne2(p,i,j,hdnul)]))/4.0;
 
-#ifdef USE_SAC
-
-     wtemp[fencode_hdmne2(p,i,j,tmp5)]=(wmod[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne2(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne2(p,i,j,rhob)])*wtemp[fencode_hdmne2(p,i,j,tmp3)]/4.0;
+     wtemp[fencode_hdmne2(p,i,j,tmp7)]=wtemp[fencode_hdmne2(p,i,j,tmp1)]*wtemp[fencode_hdmne2(p,i,j,tmp6)];
 
 
-#else
-    wtemp[fencode_hdmne2(p,i,j,tmp5)]=(wmod[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne2(p,i,j,rho)])*wtemp[fencode_hdmne2(p,i,j,tmp3)]/4.0;
-
-#endif
 
 
 
@@ -106,28 +89,17 @@ __syncthreads();
   if(i<((p->n[0])) && j<((p->n[1])))
 	{		               
 
+     wtemp[fencode_hdmne2(p,i,j,tmp8)]=wtemp[fencode_hdmne2(p,i,j,tmp6)]*wmod[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne2(p,i,j,mom1+ii0)];
 
 
 
-wtemp[fencode_hdmne2(p,i,j,tmp7)]=wmod[fencode_hdmne2(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]*wtemp[fencode_hdmne2(p,i,j,tmp3)];
 //dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne2(p,i,j,energy)]=(grad_hdmne2(wtemp,p,i,j,tmp4,ii));
 
    }
 }
  __syncthreads();
 
-  for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
-  //if(i<((p->n[0])) && j<((p->n[1])))
-      wtemp[fencode_hdmne2(p,i,j,tmp6)]=(grad1_hdmne2(wtemp,p,i,j,tmp2,ii));
-
-}
-__syncthreads();
 
 
 

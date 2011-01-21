@@ -154,7 +154,7 @@ typedef enum oldvars {mom3, b3,b3b} CEVOLD;
 
 #ifdef USE_SAC
 
-	typedef enum dvars {vel1,vel2,flux,hdnul,hdnur,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,ptb,pkb} DEV;
+	typedef enum dvars {vel1,vel2,flux,hdnur,hdnul,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,ptb,pkb} DEV;
 //typedef enum dvars {vel1,vel2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
 #else
 

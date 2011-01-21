@@ -59,8 +59,8 @@ __global__ void hyperdifmomsource2_parallel(struct params *p, real *w, real *wne
 if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
   {
 
-     wtemp[fencode_hdm2(p,i,j,tmp7)]=grad1r_hdm2(wtemp,p,i,j,tmp1,dim);
-     wtemp[fencode_hdm2(p,i,j,tmp8)]=grad1l_hdm2(wtemp,p,i,j,tmp1,dim);
+     wtemp[fencode_hdm2(p,i,j,tmp8)]=grad1r_hdm2(wtemp,p,i,j,tmp4,dim);
+     wtemp[fencode_hdm2(p,i,j,tmp7)]=grad1l_hdm2(wtemp,p,i,j,tmp4,dim);
 
    }
 

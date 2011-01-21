@@ -82,14 +82,14 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
    if(i>1 && j>1 && i<((p->n[0])) && j<((p->n[1])))
    //if(i<((p->n[0])-1) && j<((p->n[1])-1))            
    { 
-     if(hand==1)
+     if(hand==0)
      {
            wtemp1[fencode_hdv2(p,i,j,d3)]=fabs(3.0*(wtemp2[fencode_hdv2(p,i+(dim==0),j+(dim==1),tmpnui)] - wtemp2[fencode_hdv2(p,i,j,tmpnui)] ) - (wtemp2[fencode_hdv2(p,i+2*(dim==0),j+2*(dim==1),tmpnui)] - wtemp2[fencode_hdv2(p,i-(dim==0),j-(dim==1),tmpnui)]    ));
      }
      else
      {
           // wtemp1[fencode_hdv2(p,i,j,d3)]=fabs(3.0*(wtemp2[fencode_hdv2(p,i+(dim==0),j+(dim==1),tmpnui)] - wtemp2[fencode_hdv2(p,i,j,tmpnui)]) - (wtemp2[fencode_hdv2(p,i+2*(dim==0),j+2*(dim==1),tmpnui)] - wtemp2[fencode_hdv2(p,i-(dim==0),j-(dim==1),tmpnui)]    ));
-           wtemp1[fencode_hdv2(p,i,j,d3)]=fabs(3.0*(wtemp2[fencode_hdv2(p,i+(dim==0),j+(dim==1),tmpnui)] - wtemp2[fencode_hdv2(p,i-(dim==0),j-(dim==1),tmpnui)]) - (wtemp2[fencode_hdv2(p,i+(dim==0),j+(dim==1),tmpnui)] - wtemp2[fencode_hdv2(p,i-2*(dim==0),j-2*(dim==1),tmpnui)]    ));
+           wtemp1[fencode_hdv2(p,i,j,d3)]=fabs(3.0*(wtemp2[fencode_hdv2(p,i,j,tmpnui)] - wtemp2[fencode_hdv2(p,i-(dim==0),j-(dim==1),tmpnui)]) - (wtemp2[fencode_hdv2(p,i+(dim==0),j+(dim==1),tmpnui)] - wtemp2[fencode_hdv2(p,i-2*(dim==0),j-2*(dim==1),tmpnui)]    ));
      }
    }
 }
@@ -101,9 +101,9 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
 
-   if(i>1 && j>1 && i<((p->n[0])+1) && j<((p->n[1])+1))            
+   if(i>0 && j>0 && i<=((p->n[0])) && j<=((p->n[1])))            
    { 
-     if(hand==1)
+     if(hand==0)
      {
 
            wtemp1[fencode_hdv2(p,i,j,d1)]=fabs((wtemp2[fencode_hdv2(p,i+(dim==0),j+(dim==1),tmpnui)] - wtemp2[fencode_hdv2(p,i,j,tmpnui)] ));

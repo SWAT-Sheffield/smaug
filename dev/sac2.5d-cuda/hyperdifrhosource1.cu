@@ -11,14 +11,13 @@
 /////////////////////////////////////
 // kernel function (CUDA device)
 /////////////////////////////////////
-#include "gradops_hdmne3.cuh"
+#include "gradops_hdr1.cuh"
 
 
 
-__global__ void hyperdifmomsourcene3_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim, int ii, int ii0)
+__global__ void hyperdifrhosource1_parallel(struct params *p, real *w, real *wnew, real *wmod, 
+    real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim)
 {
-
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
   // the number of threads per block, blockDim,
@@ -28,8 +27,8 @@ __global__ void hyperdifmomsourcene3_parallel(struct params *p, real *w, real *w
 
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
-  int ii1;
-  real fip,fim1;
+  int ii,ii1,ii0;
+  real fip,fim1,tmpc;
   int index,k;
   int ni=p->n[0];
   int nj=p->n[1];
@@ -40,58 +39,72 @@ __global__ void hyperdifmomsourcene3_parallel(struct params *p, real *w, real *w
  //  dt=1.0;
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
-
-
-  
+  real rdx;
 
    int ip,jp,ipg,jpg;
    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
 
-  for(ipg=0;ipg<(p->npgp[0]);ipg++)
+
+   
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
-  //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-  if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
-{
- // if(i<((p->n[0])) && j<((p->n[1])))
-     dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne3(p,i,j,mom1+ii0)]=(grad1_hdmne3(wtemp,p,i,j,tmp7,ii));
 
-
-
+  //init rhol and rhor
+  if(i<((p->n[0])) && j<((p->n[1])))
+  {
+    //for(int f=tmp1; f<=tmprhor; f++)	
+    //    wtemp[fencode_hdr1(p,i,j,f)]=0.0;
+    dwn1[fencode_hdr1(p,i,j,field)]=0.0;
+    wtemp[fencode_hdr1(p,i,j,tmp1)]=0.0;
+    wtemp[fencode_hdr1(p,i,j,tmp2)]=0.0;
+    //wtemp[fencode_hdr1(p,i,j,tmp3)]=0.0;
    }
 }
  __syncthreads();
 
-  for(ipg=0;ipg<(p->npgp[0]);ipg++)
+
+  rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1));
+
+ 
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
- if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
- // if(i<((p->n[0])) && j<((p->n[1])))
-     dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne3(p,i,j,energy)]=(grad1_hdmne3(wtemp,p,i,j,tmp8,ii));
 
+  //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
+  //if(i>32 && j >32 && i<((p->n[0])-32) && j<((p->n[1])-32))
+  //if(i<((p->n[0])) && j<((p->n[1])))
+  {
+     
 
+//dwn1[fencode_hdr1(p,i,j,field)]=( wd[fencode_hdr1(p,i,j,hdnur)] * grad1r_hdr1(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim) - wd[fencode_hdr1(p,i,j,hdnul)] *grad1l_hdr1(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim)             )/rdx;
+//dwn1[fencode_hdr1(p,i,j,field)]=( wtemp[fencode_hdr1(p,i,j,hdnur)] * grad1r_hdr1(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim) - wtemp[fencode_hdr1(p,i,j,hdnul)] *grad1l_hdr1(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim)             );
+
+    wtemp[fencode_hdr1(p,i,j,tmp1)]=grad1r_hdr1(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim);
+    wtemp[fencode_hdr1(p,i,j,tmp2)]=grad1l_hdr1(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim);
+  }
 }
- __syncthreads();
-
-
-  
+__syncthreads();
 
 
 
+
+ 
 }
 
 
 /////////////////////////////////////
 // error checking routine
 /////////////////////////////////////
-void checkErrors_hdmne3ne(char *label)
+void checkErrors_hdr1(char *label)
 {
   // we need to synchronise first to catch errors due to
   // asynchroneous operations that would otherwise
@@ -118,7 +131,7 @@ void checkErrors_hdmne3ne(char *label)
 
 
 
-int cuhyperdifmomsourcene3(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real **d_wtemp, int field, int dim, int ii, int ii0)
+int cuhyperdifrhosource1(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero,real **d_wtemp, int field, int dim)
 {
 
 
@@ -134,7 +147,8 @@ int cuhyperdifmomsourcene3(struct params **p, real **w, real **wnew, struct para
 //__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-     hyperdifmomsourcene3_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0);
+
+     hyperdifrhosource1_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();

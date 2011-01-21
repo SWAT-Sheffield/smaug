@@ -16,14 +16,14 @@
 __device__ __host__
 void bc_periodic1_temp2(real *wt, struct params *p,int i, int j, int f) {
 
-                if(i==0 )                
-                    wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,4,j,f)];
-                else if((i==((p->n[0])-1)) )                
-                    wt[fencode_hdv1(p,i+2,j,f)]=wt[fencode_hdv1(p,i-5,j,f)];
-                else if(j==0  )                
-                  wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,i,4,f)];
-                else if((j==((p->n[1])-1)) )                
-                  wt[fencode_hdv1(p,i,j+2,f)]=wt[fencode_hdv1(p,i,j-5,f)];
+                if(i==1 )                
+                    wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,6,j,f)];
+                else if((i==((p->n[0]))) )                
+                    wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,i-4,j,f)];
+                else if(j==1  )                
+                  wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,i,6,f)];
+                else if((j==((p->n[1]))) )                
+                  wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,i,j-4,f)];
 }
 
 __device__ __host__
@@ -34,27 +34,27 @@ void bc_periodic2_temp2(real *wt, struct params *p,int i, int j, int f) {
                 {
                   if(i==j)
                     //wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,(p->n[0])-3+i,j,f)];
-                    wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,i,4,f)];
+                    wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,i,6,f)];
                   else                  
                     //wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,i,(p->n[1])-3+j,f)];
-                    wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,4,j,f)];                                    
+                    wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,6,j,f)];                                    
                 }
                 else if(i<1 && j>((p->n[1])-1))
                 {
-                  if(i==(j-(p->n[1])+1))                  
+                  if(i==(j-(p->n[1])-1))                  
                     //wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,(p->n[0])-3+i,4-(p->n[1])+j,f)];
-                    wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,4,j,f)];                                     
+                    wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,6,j,f)];                                     
                   else                  
-                    wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,i,j-5,f)];                                     
+                    wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,i,j-6,f)];                                     
                 }
-                else if(i>((p->n[0])+1) && j<1)
+                else if(i>((p->n[0])-1) && j<1)
                 {
                   if((i-(p->n[0])+1)==j)                  
                     wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,i-5,j,f)];                                    
                   else                  
                    wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,i,4,f)];                                    
                 }
-                else if(i>((p->n[0])+1) && j>((p->n[1])+1))
+                else if(i>((p->n[0])-1) && j>((p->n[1])-1))
                 {
                   if(i==j)                  
                     wt[fencode_hdv1(p,i,j,f)]=wt[fencode_hdv1(p,i,j-5,f)];                                    
@@ -147,7 +147,7 @@ switch(field)
    {
 
 
-        for(int f=tmp1; f<=tmp6; f++)
+        for(int f=tmp1; f<=tmp8; f++)
                  wtemp[fencode_hdv1(p,i,j,f)]=0;
 
         for(int f=d1; f<=d3; f++)
@@ -203,22 +203,25 @@ switch(field)
 
        //tmp6  tmpnu
 #ifdef USE_SAC
-     if(field !=energy)
-        wtemp[fencode_hdv1(p,i,j,tmp6)]=wmod[fencode_hdv1(p,i,j,field)+shift]/(bfac2+bfac3*((wmod[fencode_hdv1(p,i,j,rho)+shift] +wmod[fencode_hdv1(p,i,j,rhob)+shift])));
-
-     else
+	if((field ==mom1 || field == mom2))
+		wtemp[fencode_hdv1(p,i,j,tmp6)]=wmod[fencode_hdv1(p,i,j,field)+shift]/(((wmod[fencode_hdv1(p,i,j,rho)+shift] +wmod[fencode_hdv1(p,i,j,rhob)+shift])));
+     	else if(field !=energy)
+        	wtemp[fencode_hdv1(p,i,j,tmp6)]=wmod[fencode_hdv1(p,i,j,field)+shift];///(bfac2+bfac3*((wmod[fencode_hdv1(p,i,j,rho)+shift] +wmod[fencode_hdv1(p,i,j,rhob)+shift])));
+     	else
         wtemp[fencode_hdv1(p,i,j,tmp6)]=wmod[fencode_hdv1(p,i,j,energy)+shift]-0.5*(wmod[fencode_hdv1(p,i,j,b1)+shift]*wmod[fencode_hdv1(p,i,j,b1)+shift]+wmod[fencode_hdv1(p,i,j,b2)+shift]*wmod[fencode_hdv1(p,i,j,b2)+shift])+(wmod[fencode_hdv1(p,i,j,mom1)+shift]*wmod[fencode_hdv1(p,i,j,mom1)+shift]+wmod[fencode_hdv1(p,i,j,mom2)+shift]*wmod[fencode_hdv1(p,i,j,mom2)+shift])/(wmod[fencode_hdv1(p,i,j,rho)+shift]+wmod[fencode_hdv1(p,i,j,rhob)+shift] );
 
 #else
-     if(field !=energy)
+	if((field ==mom1 || field == mom2))
+		wtemp[fencode_hdv1(p,i,j,tmp6)]=wmod[fencode_hdv1(p,i,j,field)+shift]/(((wmod[fencode_hdv1(p,i,j,rho)+shift] )));
+     else if(field !=energy)
         wtemp[fencode_hdv1(p,i,j,tmp6)]=wmod[fencode_hdv1(p,i,j,field)+shift]/(bfac2+bfac3*(wmod[fencode_hdv1(p,i,j,rho)+shift] ));
 
      else
         wtemp[fencode_hdv1(p,i,j,tmp6)]=wmod[fencode_hdv1(p,i,j,energy)+shift]-0.5*(wmod[fencode_hdv1(p,i,j,b1)+shift]*wmod[fencode_hdv1(p,i,j,b1)+shift]+wmod[fencode_hdv1(p,i,j,b2)+shift]*wmod[fencode_hdv1(p,i,j,b2)+shift])+(wmod[fencode_hdv1(p,i,j,mom1)+shift]*wmod[fencode_hdv1(p,i,j,mom1)+shift]+wmod[fencode_hdv1(p,i,j,mom2)+shift]*wmod[fencode_hdv1(p,i,j,mom2)+shift])/(wmod[fencode_hdv1(p,i,j,rho)+shift] );
 
 #endif
-        wd[fencode_hdv1(p,i,j,hdnur)]=0;
-        wd[fencode_hdv1(p,i,j,hdnul)]=0;
+       // wd[fencode_hdv1(p,i,j,hdnur)]=0;
+        wd[fencode_hdv1(p,i,j,hdnul+hand)]=0;
    }
 
 }
@@ -252,7 +255,7 @@ switch(field)
                   //i=i+(dim==0);
                   //j=j+(dim==1);
                   bc_periodic1_temp2(wtemp2,p,i,j,tmpnui);
-                  /*if(i==((p->n[0])-1))
+                  if(i==((p->n[0])-1))
                   {
                   bc_periodic1_temp2(wtemp2,p,i+1,j,tmpnui);
                   bc_periodic1_temp2(wtemp2,p,i+2,j,tmpnui);
@@ -279,9 +282,9 @@ switch(field)
           }
 
 }
-                __syncthreads();
+                __syncthreads();*/
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+ /*  for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
@@ -318,9 +321,9 @@ switch(field)
 
            }
 }
-                __syncthreads();
+                __syncthreads();*/
 
-*/
+
 
  
 }

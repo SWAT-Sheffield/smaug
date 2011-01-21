@@ -76,14 +76,14 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
-  if( i<((p->n[0])) && j<((p->n[1])))            
+  if( i>1 && j>1 && i<((p->n[0])-2) && j<((p->n[1])-2))            
    {
          maxt1=0;
          for(is=-(dim==0); is<=(dim==0); is++)
                 for(js=-(dim==1); js<=(dim==1); js++)
                 {
-                   if(wtemp1[fencode_hdv3(p,i+is,j+js,d3)]>maxt1)
-                         maxt1=wtemp1[fencode_hdv3(p,i+is,j+js,d3)];
+                   if(wtemp1[fencode_hdv3(p,i+1+is,j+1+js,d3)]>maxt1)
+                         maxt1=wtemp1[fencode_hdv3(p,i+1+is,j+1+js,d3)];
 
                 }
           wtemp[fencode_hdv3(p,i,j,tmp4)]=maxt1;
@@ -92,8 +92,8 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
          for(is=-2*(dim==0); is<=2*(dim==0); is++)
                 for(js=-2*(dim==1); js<=2*(dim==1); js++)
                 {
-                   if(wtemp1[fencode_hdv3(p,i+is,j+js,d1)]>maxt2)
-                        maxt2=wtemp1[fencode_hdv3(p,i+is,j+js,d1)];
+                   if(wtemp1[fencode_hdv3(p,i+1+is,j+1+js,d1)]>maxt2)
+                        maxt2=wtemp1[fencode_hdv3(p,i+1+is,j+1+js,d1)];
 
                 }
           wtemp[fencode_hdv3(p,i,j,tmp5)]=maxt2;

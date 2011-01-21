@@ -57,8 +57,15 @@ __global__ void hyperdifmomsource1_parallel(struct params *p, real *w, real *wne
 
   //init rhol and rhor
   if(i<((p->n[0])) && j<((p->n[1])))
+  {
     for(int f=tmp1; f<=tmp8; f++)	
         wtemp[fencode_hdm1(p,i,j,f)]=0.0;
+
+dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,energy)]=0.0;
+dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,mom1+ii0)]=0.0;
+   }
+
+
 }
  __syncthreads();
 
@@ -83,12 +90,12 @@ if( i<((p->n[0])) && j<((p->n[1])))
 #ifdef USE_SAC
 
 
-     wtemp[fencode_hdm1(p,i,j,tmp1)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,mom1+field)]/(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rhob)]);
+     wtemp[fencode_hdm1(p,i,j,tmp4)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,mom1+field)]/(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rhob)]);
 
 #else
  
 
-     wtemp[fencode_hdm1(p,i,j,tmp1)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,mom1+field)]/wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rho)];
+     wtemp[fencode_hdm1(p,i,j,tmp4)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,mom1+field)]/wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rho)];
 
 
 #endif
@@ -114,14 +121,14 @@ if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
   {
 
 #ifdef USE_SAC
-       wtemp[fencode_hdm1(p,i,j,tmp2)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rhob)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i+(dim==0),j+(dim==1),rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i+(dim==0),j+(dim==1),rhob)])/2;
-       wtemp[fencode_hdm1(p,i,j,tmp3)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rhob)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i-(dim==0),j-(dim==1),rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i-(dim==0),j-(dim==1),rhob)])/2;
+       wtemp[fencode_hdm1(p,i,j,tmp2)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rhob)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i-(dim==0),j-(dim==1),rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i-(dim==0),j-(dim==1),rhob)])/2;
+       wtemp[fencode_hdm1(p,i,j,tmp3)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rhob)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i+(dim==0),j+(dim==1),rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i+(dim==0),j+(dim==1),rhob)])/2;
 
 
 
 #else
-       wtemp[fencode_hdm1(p,i,j,tmp2)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i+(dim==0),j+(dim==1),rho)])/2;
-       wtemp[fencode_hdm1(p,i,j,tmp3)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i-(dim==0),j-(dim==1),rho)])/2;
+       wtemp[fencode_hdm1(p,i,j,tmp2)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i-(dim==0),j-(dim==1),rho)])/2;
+       wtemp[fencode_hdm1(p,i,j,tmp3)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i+(dim==0),j+(dim==1),rho)])/2;
 
 
 
