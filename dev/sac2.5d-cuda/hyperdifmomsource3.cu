@@ -60,9 +60,9 @@ __global__ void hyperdifmomsource3_parallel(struct params *p, real *w, real *wne
   if(i<((p->n[0])) && j<((p->n[1])))
 	{		               
 
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm3(p,i,j,energy)]=wtemp[fencode_hdm3(p,i,j,tmp6)]*wd[fencode_hdm3(p,i,j,hdnur)]*wtemp[fencode_hdm3(p,i,j,tmp8)]-wtemp[fencode_hdm3(p,i,j,tmp5)]*wd[fencode_hdm3(p,i,j,hdnul)]*wtemp[fencode_hdm3(p,i,j,tmp7)]/(rdx)/2;
+dwn1[fencode_hdm3(p,i,j,energy)]=wtemp[fencode_hdm3(p,i,j,tmp6)]*wd[fencode_hdm3(p,i,j,hdnur)]*wtemp[fencode_hdm3(p,i,j,tmp8)]-wtemp[fencode_hdm3(p,i,j,tmp5)]*wd[fencode_hdm3(p,i,j,hdnul)]*wtemp[fencode_hdm3(p,i,j,tmp7)]/(rdx)/2;
 
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm3(p,i,j,mom1+ii0)]=(wtemp[fencode_hdm3(p,i,j,tmp3)]*wd[fencode_hdm3(p,i,j,hdnur)]*wtemp[fencode_hdm3(p,i,j,tmp8)]-wtemp[fencode_hdm3(p,i,j,tmp2)]*wd[fencode_hdm3(p,i,j,hdnul)]*wtemp[fencode_hdm3(p,i,j,tmp7)])/(rdx)/2;
+dwn1[fencode_hdm3(p,i,j,mom1+ii0)]=(wtemp[fencode_hdm3(p,i,j,tmp3)]*wd[fencode_hdm3(p,i,j,hdnur)]*wtemp[fencode_hdm3(p,i,j,tmp8)]-wtemp[fencode_hdm3(p,i,j,tmp2)]*wd[fencode_hdm3(p,i,j,hdnul)]*wtemp[fencode_hdm3(p,i,j,tmp7)])/(rdx)/2;
 
 /*dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm3(p,i,j,energy)]=(
 
@@ -132,8 +132,8 @@ dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm3(p,i,j,mom1+ii0)]=(wtemp[fencode_hdm
                         if(i<((p->n[0])) && j<((p->n[1])))
                          {
                               //                                                                                  - sign here same as vac maybe a +
-                          ;//    wmod[fencode_hdm3(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdm3(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdm3(p,i,j,mom1+ii0)]; 
-                         ;//    wmod[fencode_hdm3(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdm3(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdm3(p,i,j,energy)]; 
+                              wmod[fencode_hdm3(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdm3(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdm3(p,i,j,mom1+ii0)]; 
+                             wmod[fencode_hdm3(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdm3(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdm3(p,i,j,energy)]; 
 
                          }
               //  }	

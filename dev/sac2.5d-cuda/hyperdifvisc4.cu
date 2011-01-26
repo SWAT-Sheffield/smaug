@@ -104,6 +104,7 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
     //finally update nur and nul
 //tmp4    md3r
 //tmp5    md1r
+   
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
@@ -117,6 +118,7 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
      //wd[fencode_hdv4(p,i,j,hdnur+hand)]=wtemp2[fencode_hdv4(p,i+1,j+1,tmpnui)];
      if(wtemp[fencode_hdv4(p,i,j,tmp5)]>0)
 {
+//p->cmax=1.0;
 	wd[fencode_hdv4(p,i,j,hdnur+hand)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp[field])*wtemp[fencode_hdv4(p,i,j,tmp4)]/wtemp[fencode_hdv4(p,i,j,tmp5)];
 
           //wd[fencode_hdv4(p,i,j,hdnur+hand)]=wtemp[fencode_hdv4(p,i,j,tmp4)];

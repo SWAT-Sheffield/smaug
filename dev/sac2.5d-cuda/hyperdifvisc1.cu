@@ -243,7 +243,7 @@ switch(field)
 
    }
    __syncthreads();
-  /* for(ipg=0;ipg<(p->npgp[0]);ipg++)
+/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 

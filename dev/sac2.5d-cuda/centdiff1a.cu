@@ -112,6 +112,7 @@ __global__ void centdiff1a_parallel(struct params *p, real *w, real *wmod,
                          //if(i<(ni)  && j >1 &&  j<(nj-2))
                          //if( i >1 &&  i<(ni-2)  && j >1 &&  j<(nj-2))
                          if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+                         //if(i>2 && j >2 && i<(ni-3) && j<(nj-3))
                          //if(i<(ni)  && j >3 &&  j<(nj-4))
                          //if(i<(ni)  && j >1 &&  j<(nj-2))
                               wmod[fencode_cd1a(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_cd1a(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]-dt*dwn1[fencode_cd1a(p,i,j,f)]; 

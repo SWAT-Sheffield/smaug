@@ -159,15 +159,18 @@ __syncthreads();
 }
  
 
+if(iindex==0)
+{
+ //  for(ipg=0;ipg<(p->npgp[0]);ipg++)
+ //  for(jpg=0;jpg<(p->npgp[1]);jpg++)
+  // {
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-   if( i<((p->n[0])) && j<((p->n[1])))
+  //   i=ip*(p->npgp[0])+ipg;
+ //    j=jp*(p->npgp[1])+jpg;
+   //if( i<((p->n[0])) && j<((p->n[1])))
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+    for(i>1;i<((p->n[0])-2);i++)
+      for(j>1;j<((p->n[1])-2);j++)
 	{ 
                computecmax_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
 
@@ -175,9 +178,10 @@ __syncthreads();
 
 
 	}
-__syncthreads();
-   }
- 
+
+ //  }
+}
+ __syncthreads();
 
  /*if(i<(p->n[0]) && j<(p->n[1]))
 	{ 

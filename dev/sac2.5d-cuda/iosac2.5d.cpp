@@ -330,7 +330,7 @@ p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=1.0;
+p->hyperdifmom=0.0;
 p->readini=0;
 p->cfgsavefrequency=1;
 
@@ -353,14 +353,14 @@ p->mnthreads=1;
 for(i=0;i<NVAR;i++)
   p->chyp[i]=0.0;
 
-p->chyp[rho]=0.02;
+p->chyp[rho]=0.04;
 p->chyp[energy]=0.0;
 p->chyp[b1]=0.04;
 p->chyp[b2]=0.04;
 p->chyp[mom1]=0.02;
 p->chyp[mom2]=0.02;
 
-p->chyp[rho]=0.02;
+p->chyp[rho]=0.05;
 p->chyp[mom1]=0.4;
 p->chyp[mom2]=0.4;
 printf("calling cuinit\n");
@@ -608,8 +608,8 @@ for(int dim=0; dim<=1; dim++)
                    {
                     cuhyperdifmomsourcene1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
                     cuhyperdifmomsourcene2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
-                   cuhyperdifmomsourcene3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
-                   cuhyperdifmomsourcene4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
+                    cuhyperdifmomsourcene3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
+                    cuhyperdifmomsourcene4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,mom1+f,dim,ii,ii0);
 		    }
                 }
              }
@@ -873,8 +873,8 @@ for(int dim=0; dim<=1; dim++)
         for( i1=ngi;i1<ni-ngi;i1++)
 {
 
-w[j1*ni+i1+(ni*nj*b1)]=wd[j1*ni+i1+(ni*nj*(hdnur))];
-w[j1*ni+i1+(ni*nj*b2)]=wd[j1*ni+i1+(ni*nj*(hdnul))];
+;//w[j1*ni+i1+(ni*nj*b1)]=wd[j1*ni+i1+(ni*nj*(hdnur))];
+;//w[j1*ni+i1+(ni*nj*b2)]=wd[j1*ni+i1+(ni*nj*(hdnul))];
 
 }
            

@@ -61,8 +61,10 @@ __global__ void hyperdifmomsource1_parallel(struct params *p, real *w, real *wne
     for(int f=tmp1; f<=tmp8; f++)	
         wtemp[fencode_hdm1(p,i,j,f)]=0.0;
 
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,energy)]=0.0;
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,mom1+ii0)]=0.0;
+//dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,energy)]=0.0;
+//dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,mom1+ii0)]=0.0;
+dwn1[fencode_hdm1(p,i,j,energy)]=0.0;
+dwn1[fencode_hdm1(p,i,j,mom1+ii0)]=0.0;
    }
 
 
@@ -152,10 +154,8 @@ __syncthreads();
 //if(i<((p->n[0])) && j<((p->n[1])))
 if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
   {
-
      wtemp[fencode_hdm1(p,i,j,tmp5)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,mom1+ii0)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i-(dim==0),j-(dim==1),mom1+ii0)])/2;
      wtemp[fencode_hdm1(p,i,j,tmp6)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i,j,mom1+ii0)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdm1(p,i+(dim==0),j+(dim==1),mom1+ii0)])/2;
-
    }
 
 }

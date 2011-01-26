@@ -112,9 +112,9 @@ __syncthreads();
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{		               
 
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdbne2(p,i,j,energy)]=sb*(grad1_hdbne2(wtemp,p,i,j,tmp2,mm));
+dwn1[fencode_hdbne2(p,i,j,energy)]=sb*(grad1_hdbne2(wtemp,p,i,j,tmp2,mm));
 
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdbne2(p,i,j,b1+ii0)]=sb*(grad1_hdbne2(wtemp,p,i,j,tmp2,mm));
+dwn1[fencode_hdbne2(p,i,j,b1+ii0)]=sb*(grad1_hdbne2(wtemp,p,i,j,tmp2,mm));
 
 
    }

@@ -113,9 +113,9 @@ __syncthreads();
 
 
 /*dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,energy)]=(wtemp[fencode_hdb3(p,i,j,tmp2)]*wd[fencode_hdb3(p,i,j,hdnur)]*grad1r_hdb3(wtemp,p,i,j,tmp1,dim)-wtemp[fencode_hdb3(p,i,j,tmp3)]*wd[fencode_hdb3(p,i,j,hdnul)]*grad1l_hdb3(wtemp,p,i,j,tmp1,dim))/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1))/2;*/
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,energy)]=sb*((wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,mom1+field)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i+(dim==0),j+(dim==1),mom1+field)])*wd[fencode_hdb3(p,i,j,hdnur)]*grad1r_hdb3(wtemp,p,i,j,tmp1,dim)-(wtemp[fencode_hdb3(p,i,j,tmp3)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,mom1+field)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i-(dim==0),j+(dim==1),mom1+field)])*wd[fencode_hdb3(p,i,j,hdnul)]*grad1l_hdb3(wtemp,p,i,j,tmp1,dim))/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1));
+dwn1[fencode_hdb3(p,i,j,energy)]=sb*((wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,mom1+field)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i+(dim==0),j+(dim==1),mom1+field)])*wd[fencode_hdb3(p,i,j,hdnur)]*grad1r_hdb3(wtemp,p,i,j,tmp1,dim)-(wtemp[fencode_hdb3(p,i,j,tmp3)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,mom1+field)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i-(dim==0),j+(dim==1),mom1+field)])*wd[fencode_hdb3(p,i,j,hdnul)]*grad1l_hdb3(wtemp,p,i,j,tmp1,dim))/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1));
 
-dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,b1+ii0)]=sb*(wtemp[fencode_hdb3(p,i,j,tmp3)]*wd[fencode_hdb3(p,i,j,hdnur)]*grad1r_hdb3(wtemp,p,i,j,tmp1,dim)-wtemp[fencode_hdb3(p,i,j,tmp2)]*wd[fencode_hdb3(p,i,j,hdnul)]*grad1l_hdb3(wtemp,p,i,j,tmp1,dim))/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1));
+dwn1[fencode_hdb3(p,i,j,b1+ii0)]=sb*(wtemp[fencode_hdb3(p,i,j,tmp3)]*wd[fencode_hdb3(p,i,j,hdnur)]*grad1r_hdb3(wtemp,p,i,j,tmp1,dim)-wtemp[fencode_hdb3(p,i,j,tmp2)]*wd[fencode_hdb3(p,i,j,hdnul)]*grad1l_hdb3(wtemp,p,i,j,tmp1,dim))/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1));
 
 
    }

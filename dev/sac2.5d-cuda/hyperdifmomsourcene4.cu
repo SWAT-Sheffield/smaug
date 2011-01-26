@@ -57,11 +57,12 @@ __global__ void hyperdifmomsourcene4_parallel(struct params *p, real *w, real *w
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
 
-			// if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
-  if(i<((p->n[0])) && j<((p->n[1])))
+			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+  //if(i<((p->n[0])) && j<((p->n[1])))
                          {
-                              //                                                                                  - sign here same as vac maybe a +
-                              wmod[fencode_hdmne4(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdmne4(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdmne4(p,i,j,mom1+ii0)]; 
+                              //                                                                              - sign here same as vac maybe a +
+                             ;//wmod[fencode_hdmne4(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdmne4(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdmne4(p,i,j,mom1+ii0)]; 
+wmod[fencode_hdmne4(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdmne4(p,i,j,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdmne4(p,i,j,mom1+ii0)];
                              wmod[fencode_hdmne4(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdmne4(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdmne4(p,i,j,energy)]; 
 
                          }
