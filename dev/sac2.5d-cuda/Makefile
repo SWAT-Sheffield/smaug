@@ -23,12 +23,14 @@ BASICEXOBJS	=\
 	hyperdifmomsourcene4.o\
 	hyperdifesource1.o\
 	hyperdifesource2.o\
+	hyperdifesource3.o\
 	hyperdifbsource1.o\
 	hyperdifbsource2.o\
 	hyperdifbsource3.o\
 	hyperdifbsourcene1.o\
 	hyperdifbsourcene2.o\
 	hyperdifbsourcene3.o\
+	hyperdifbsourcene4.o\
 	hyperdifrhosource1.o\
 	hyperdifrhosource2.o\
 	hyperdifvisc1.o\
@@ -131,6 +133,9 @@ hyperdifesource1.o: hyperdifesource1.cu
 hyperdifesource2.o: hyperdifesource2.cu
 	sed 's/MODID/hde2/g' < gradops.cu > gradops_hde2.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifesource3.o: hyperdifesource3.cu
+	sed 's/MODID/hde3/g' < gradops.cu > gradops_hde3.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifbsource1.o: hyperdifbsource1.cu
 	sed 's/MODID/hdb1/g' < gradops.cu > gradops_hdb1.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
@@ -149,6 +154,9 @@ hyperdifbsourcene2.o: hyperdifbsourcene2.cu
 hyperdifbsourcene3.o: hyperdifbsourcene3.cu
 	sed 's/MODID/hdbne3/g' < gradops.cu > gradops_hdbne3.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifbsourcene4.o: hyperdifbsourcene4.cu
+	sed 's/MODID/hdbne4/g' < gradops.cu > gradops_hdbne4.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifmomsource1.o: hyperdifmomsource1.cu
 	sed 's/MODID/hdm1/g' < gradops.cu > gradops_hdm1.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
@@ -158,6 +166,7 @@ hyperdifmomsource2.o: hyperdifmomsource2.cu
 hyperdifmomsource3.o: hyperdifmomsource3.cu
 	sed 's/MODID/hdm3/g' < gradops.cu > gradops_hdm3.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+
 hyperdifmomsourcene1.o: hyperdifmomsourcene1.cu
 	sed 's/MODID/hdmne1/g' < gradops.cu > gradops_hdmne1.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<

@@ -27,7 +27,7 @@
 
 
 __global__ void hyperdifbsource3_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd, int order,int ordero, real *wtemp, int field, int dim, int jj, int ii0,int mm,real sb)
+    real *dwn1, real *wd, int order,int ordero, real *wtemp, int field, int dim, int jj, int ii0,int mm,real sb,real dt)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -44,7 +44,7 @@ __global__ void hyperdifbsource3_parallel(struct params *p, real *w, real *wnew,
   int ni=p->n[0];
   int nj=p->n[1];
 
-  real dt=p->dt;
+  //real dt=p->dt;
   real dy=p->dx[1];
   real dx=p->dx[0];
   //real g=p->g;
@@ -59,19 +59,6 @@ __global__ void hyperdifbsource3_parallel(struct params *p, real *w, real *wnew,
 
 
    
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-
-  //init rhol and rhor
-  if(i<((p->n[0])) && j<((p->n[1])))
-    for(int f=tmp1; f<=tmp6; f++)	
-        wtemp[fencode_hdb3(p,i,j,f)]=0.0;
-}
- __syncthreads();
 
 
 
@@ -82,56 +69,8 @@ __global__ void hyperdifbsource3_parallel(struct params *p, real *w, real *wnew,
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
-  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-  {
-
-
-       wtemp[fencode_hdb3(p,i,j,tmp2)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,b1+jj)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i-(dim==0),j-(dim==1),b1+jj)])/2;
-
-       wtemp[fencode_hdb3(p,i,j,tmp3)]=(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,b1+jj)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i+(dim==0),j+(dim==1),b1+jj)])/2;
-
-wtemp[fencode_hdb3(p,i,j,tmp1)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,b1+field)];
-
-   }
-
-}
-__syncthreads();
-
-
-
-
-   
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-
-  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-	{		               
-
-
-/*dwn1[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,energy)]=(wtemp[fencode_hdb3(p,i,j,tmp2)]*wd[fencode_hdb3(p,i,j,hdnur)]*grad1r_hdb3(wtemp,p,i,j,tmp1,dim)-wtemp[fencode_hdb3(p,i,j,tmp3)]*wd[fencode_hdb3(p,i,j,hdnul)]*grad1l_hdb3(wtemp,p,i,j,tmp1,dim))/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1))/2;*/
-dwn1[fencode_hdb3(p,i,j,energy)]=sb*((wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,mom1+field)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i+(dim==0),j+(dim==1),mom1+field)])*wd[fencode_hdb3(p,i,j,hdnur)]*grad1r_hdb3(wtemp,p,i,j,tmp1,dim)-(wtemp[fencode_hdb3(p,i,j,tmp3)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i,j,mom1+field)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdb3(p,i-(dim==0),j+(dim==1),mom1+field)])*wd[fencode_hdb3(p,i,j,hdnul)]*grad1l_hdb3(wtemp,p,i,j,tmp1,dim))/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1));
-
-dwn1[fencode_hdb3(p,i,j,b1+ii0)]=sb*(wtemp[fencode_hdb3(p,i,j,tmp3)]*wd[fencode_hdb3(p,i,j,hdnur)]*grad1r_hdb3(wtemp,p,i,j,tmp1,dim)-wtemp[fencode_hdb3(p,i,j,tmp2)]*wd[fencode_hdb3(p,i,j,hdnul)]*grad1l_hdb3(wtemp,p,i,j,tmp1,dim))/(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1));
-
-
-   }
-}
- __syncthreads();
-
-
-
-   
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+			 //if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+                         if(i<(ni) && j<(nj))
                          {
                               //                                                                                  - sign here same as vac maybe a +
                               wmod[fencode_hdb3(p,i,j,b1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdb3(p,i,j,b1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdb3(p,i,j,b1+field)]; 
@@ -174,7 +113,7 @@ void checkErrors_hdb3(char *label)
 
 
 
-int cuhyperdifbsource3(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real **d_wtemp, int field, int dim, int jj, int ii0,int mm,real sb)
+int cuhyperdifbsource3(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real **d_wtemp, int field, int dim, int jj, int ii0,int mm,real sb,real dt)
 {
 
 
@@ -190,7 +129,7 @@ int cuhyperdifbsource3(struct params **p, real **w, real **wnew, struct params *
 //__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-     hyperdifbsource3_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,jj,ii0,mm,sb);
+     hyperdifbsource3_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,jj,ii0,mm,sb,dt);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();

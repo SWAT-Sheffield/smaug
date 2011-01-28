@@ -16,7 +16,7 @@
 
 
 __global__ void hyperdifmomsourcene3_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim, int ii, int ii0)
+    real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim, int ii, int ii0, real dt)
 {
 
   // compute the global index in the vector from
@@ -33,7 +33,7 @@ __global__ void hyperdifmomsourcene3_parallel(struct params *p, real *w, real *w
   int index,k;
   int ni=p->n[0];
   int nj=p->n[1];
-  real dt=p->dt;
+  //real dt=p->dt;
   real dy=p->dx[1];
   real dx=p->dx[0];
   //real g=p->g;
@@ -121,7 +121,7 @@ void checkErrors_hdmne3ne(char *label)
 
 
 
-int cuhyperdifmomsourcene3(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real **d_wtemp, int field, int dim, int ii, int ii0)
+int cuhyperdifmomsourcene3(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real **d_wtemp, int field, int dim, int ii, int ii0, real dt)
 {
 
 
@@ -137,7 +137,7 @@ int cuhyperdifmomsourcene3(struct params **p, real **w, real **wnew, struct para
 //__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-     hyperdifmomsourcene3_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0);
+     hyperdifmomsourcene3_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();
