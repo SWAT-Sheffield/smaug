@@ -59,7 +59,7 @@ __global__ void hyperdifesource1_parallel(struct params *p, real *w, real *wnew,
   //init rhol and rhor
   if(i<((p->n[0])) && j<((p->n[1])))
   {
-    for(int f=tmp1; f<=tmp3; f++)	
+    for(int f=tmp1; f<=tmp8; f++)	
         wtemp[fencode_hde1(p,i,j,f)]=0.0;
     dwn1[fencode_hde1(p,i,j,field)]=0.0;
    }
@@ -81,10 +81,12 @@ if(i<((p->n[0])) && j<((p->n[1])))
   {
 
 #ifdef USE_SAC
-     wtemp[fencode_hde1(p,i,j,tmp1)]=wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,energy)]-0.5*((wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b1)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b1)]+wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b2)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b2)])
+     wtemp[fencode_hde1(p,i,j,tmp1)]=wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,energy)]-0.5*(
 
-+((wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom1)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom1)]+wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom2)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom2)])/(wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,rho)]+wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,rhob)]))
-);
+
+(wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b1)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b1)]+wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b2)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b2)])
+
++((wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom1)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom1)]+wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom2)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom2)])/(wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,rho)]+wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,rhob)])));
 #else
 
      wtemp[fencode_hde1(p,i,j,tmp1)]=wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,energy)]-0.5*((wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b1)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b1)]+wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b2)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b2)])

@@ -72,7 +72,7 @@ __global__ void hyperdifbsourcene1_parallel(struct params *p, real *w, real *wne
 
   //init rhol and rhor
   if(i<((p->n[0])) && j<((p->n[1])))
-    for(int f=tmp1; f<=tmp6; f++)	
+    for(int f=tmp1; f<=tmp8; f++)	
         wtemp[fencode_hdbne1(p,i,j,f)]=0.0;
 }
  __syncthreads();
@@ -86,12 +86,12 @@ __global__ void hyperdifbsourcene1_parallel(struct params *p, real *w, real *wne
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
-  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+  if( i<((p->n[0])) && j<((p->n[1])))
   {
 
 wtemp[fencode_hdbne1(p,i,j,tmp1)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdbne1(p,i,j,b1+field)];
 
-       wtemp[fencode_hdbne1(p,i,j,tmp2)]=grad1_hdbne1(wtemp,p,i,j,tmp1,dim)*(wd[fencode_hdbne1(p,i,j,hdnul)]+wd[fencode_hdbne1(p,i,j,hdnur)])/2;
+
 
    }
 
@@ -100,46 +100,27 @@ __syncthreads();
 
 
 
-
-   
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
+  if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
+  {
 
-  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-	{		               
 
-dwn1[fencode_hdbne1(p,i,j,energy)]=sb*(grad1_hdbne1(wtemp,p,i,j,tmp2,mm));
+       wtemp[fencode_hdbne1(p,i,j,tmp2)]=grad1_hdbne1(wtemp,p,i,j,tmp1,dim);
 
-dwn1[fencode_hdbne1(p,i,j,b1+ii0)]=sb*(grad1_hdbne1(wtemp,p,i,j,tmp2,mm));
 
 
    }
+
 }
- __syncthreads();
+__syncthreads();
 
 
 
-   
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
-                         {
-                              //                                                                                  - sign here same as vac maybe a +
-                              wmod[fencode_hdbne1(p,i,j,b1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdbne1(p,i,j,b1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdbne1(p,i,j,b1+field)]; 
-                             wmod[fencode_hdbne1(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdbne1(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdbne1(p,i,j,energy)]; 
-
-                         }
-              //  }	
-}
-  __syncthreads();  
   
 }
 

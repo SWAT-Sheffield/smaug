@@ -48,6 +48,8 @@ __global__ void hyperdifmomsourcene3_parallel(struct params *p, real *w, real *w
    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
 
+
+
   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
@@ -55,33 +57,20 @@ __global__ void hyperdifmomsourcene3_parallel(struct params *p, real *w, real *w
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-  if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
-//if( i<((p->n[0])) && j<((p->n[1])))
-{
- // if(i<((p->n[0])) && j<((p->n[1])))
-    dwn1[fencode_hdmne3(p,i,j,mom1+ii0)]=(grad1_hdmne3(wtemp,p,i,j,tmp7,ii));
-// dwn1[fencode_hdmne3(p,i,j,mom1+ii0)]=0.0;
+  if(i<((p->n[0])) && j<((p->n[1])))
+  {
+
+     wtemp[fencode_hdmne3(p,i,j,tmp6)]=wtemp[fencode_hdmne3(p,i,j,tmp5)]*((wd[fencode_hdmne3(p,i,j,hdnur)]+wd[fencode_hdmne3(p,i,j,hdnul)]))/4.0;
 
 
 
-  }
+
+
+   }
 }
- __syncthreads();
-
-  for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
- if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
- // if(i<((p->n[0])) && j<((p->n[1])))
-     dwn1[fencode_hdmne3(p,i,j,energy)]=(grad1_hdmne3(wtemp,p,i,j,tmp8,ii));
+__syncthreads();
 
 
-
-}
- __syncthreads();
 
 
   

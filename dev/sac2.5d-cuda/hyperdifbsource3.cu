@@ -57,10 +57,7 @@ __global__ void hyperdifbsource3_parallel(struct params *p, real *w, real *wnew,
    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
 
-
-   
-
-
+   real rdx=((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1);
 
    
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
@@ -69,17 +66,23 @@ __global__ void hyperdifbsource3_parallel(struct params *p, real *w, real *wnew,
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
-			 //if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
-                         if(i<(ni) && j<(nj))
-                         {
-                              //                                                                                  - sign here same as vac maybe a +
-                              wmod[fencode_hdb3(p,i,j,b1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdb3(p,i,j,b1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdb3(p,i,j,b1+field)]; 
-                             wmod[fencode_hdb3(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdb3(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdb3(p,i,j,energy)]; 
 
-                         }
-              //  }	
+  if( i<((p->n[0])) && j<((p->n[1])))
+	{		               
+
+
+
+dwn1[fencode_hdb3(p,i,j,b1+ii0)]=sb*(wtemp[fencode_hdb3(p,i,j,tmp5)]*wd[fencode_hdb3(p,i,j,hdnur)]-wtemp[fencode_hdb3(p,i,j,tmp4)]*wd[fencode_hdb3(p,i,j,hdnul)])/rdx;
+
+dwn1[fencode_hdb3(p,i,j,energy)]=sb*(wtemp[fencode_hdb3(p,i,j,tmp3)]*wtemp[fencode_hdb3(p,i,j,tmp5)]*wd[fencode_hdb3(p,i,j,hdnur)]-wtemp[fencode_hdb3(p,i,j,tmp2)]*wtemp[fencode_hdb3(p,i,j,tmp4)]*wd[fencode_hdb3(p,i,j,hdnul)])/rdx;
+
+
+   }
 }
-  __syncthreads();  
+ __syncthreads();
+
+
+ 
 }
 
 

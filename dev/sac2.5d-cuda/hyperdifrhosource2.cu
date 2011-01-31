@@ -68,32 +68,13 @@ __global__ void hyperdifrhosource2_parallel(struct params *p, real *w, real *wne
 //dwn1[fencode_hdr2(p,i,j,field)]=( wtemp[fencode_hdr2(p,i,j,hdnur)] * grad1r_hdr2(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim) - wtemp[fencode_hdr2(p,i,j,hdnul)] *grad1l_hdr2(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim)             );
 
 dwn1[fencode_hdr2(p,i,j,field)]=( wd[fencode_hdr2(p,i,j,hdnur)] * wtemp[fencode_hdr2(p,i,j,tmp1)] - wd[fencode_hdr2(p,i,j,hdnul)] *wtemp[fencode_hdr2(p,i,j,tmp2)]            )/rdx;
+
+                              wmod[fencode_hdr2(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdr2(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdr2(p,i,j,field)]; 
   }
 }
 __syncthreads();
 
 
-
-   
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-
-
-			 //if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
-                         if(i<((p->n[0])) && j<((p->n[1])))
-                         {
-                              //                                                                                  - sign here same as vac maybe a +
-                              wmod[fencode_hdr2(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdr2(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdr2(p,i,j,field)]; 
-//wmod[fencode_hdr2(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]=dwn1[fencode_hdr2(p,i,j,f2)];
-                              //dwn1[fencode_hdr2(p,i,j,f)]=0;
-                         }
-              //  }	
-}
-  __syncthreads();
 
 
  

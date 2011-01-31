@@ -52,46 +52,23 @@ __global__ void hyperdifbsourcene2_parallel(struct params *p, real *w, real *wne
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
-
-
-
-
-
    int ip,jp,ipg,jpg;
    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
 
 
-   
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
-
-  //init rhol and rhor
   if(i<((p->n[0])) && j<((p->n[1])))
-    for(int f=tmp1; f<=tmp6; f++)	
-        wtemp[fencode_hdbne2(p,i,j,f)]=0.0;
-}
- __syncthreads();
-
-
-
-   
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
   {
 
-wtemp[fencode_hdbne2(p,i,j,tmp1)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdbne2(p,i,j,b1+field)];
 
-       wtemp[fencode_hdbne2(p,i,j,tmp2)]=grad1_hdbne2(wtemp,p,i,j,tmp1,dim)*(wd[fencode_hdbne2(p,i,j,hdnul)]+wd[fencode_hdbne2(p,i,j,hdnur)])/2;
+
+      wtemp[fencode_hdbne2(p,i,j,tmp3)]=wtemp[fencode_hdbne2(p,i,j,tmp2)]*(wd[fencode_hdbne2(p,i,j,hdnul)]+wd[fencode_hdbne2(p,i,j,hdnur)])/2;
 
    }
 
@@ -100,46 +77,6 @@ __syncthreads();
 
 
 
-
-   
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-
-  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-	{		               
-
-dwn1[fencode_hdbne2(p,i,j,energy)]=sb*(grad1_hdbne2(wtemp,p,i,j,tmp2,mm));
-
-dwn1[fencode_hdbne2(p,i,j,b1+ii0)]=sb*(grad1_hdbne2(wtemp,p,i,j,tmp2,mm));
-
-
-   }
-}
- __syncthreads();
-
-
-
-   
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
-                         {
-                              //                                                                                  - sign here same as vac maybe a +
-                              wmod[fencode_hdbne2(p,i,j,b1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdbne2(p,i,j,b1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdbne2(p,i,j,b1+field)]; 
-                             wmod[fencode_hdbne2(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdbne2(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdbne2(p,i,j,energy)]; 
-
-                         }
-              //  }	
-}
-  __syncthreads();  
   
 }
 
