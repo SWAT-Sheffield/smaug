@@ -194,7 +194,7 @@ int computefluxe(real *dw, real *wd, real *w, struct params *p,int ix, int iy,in
   int status=0;
   //for(direction=0;direction<2;direction++)
          #ifdef USE_SAC
-	     wd[fencode_cd2(p,ix,iy,flux)]= transportflux_cd2(dw,wd,w,p,ix,iy,energy,direction);//+fluxe1(dw,wd,w,p,ix,iy,direction);
+	     wd[fencode_cd2(p,ix,iy,flux)]= transportflux_cd2(dw,wd,w,p,ix,iy,energy,direction)+fluxe1(dw,wd,w,p,ix,iy,direction);
          #endif
          #ifdef USE_VAC
              wd[fencode_cd2(p,ix,iy,flux)]= transportflux_cd2(dw,wd,w,p,ix,iy,energy,direction)+fluxe1(dw,wd,w,p,ix,iy,direction);

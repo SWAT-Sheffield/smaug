@@ -61,7 +61,7 @@ __global__ void hyperdifmomsourcene4_parallel(struct params *p, real *w, real *w
 	{		               
      wtemp[fencode_hdmne4(p,i,j,tmp7)]=wtemp[fencode_hdmne4(p,i,j,tmp1)]*wtemp[fencode_hdmne4(p,i,j,tmp6)];
 
-     wtemp[fencode_hdmne4(p,i,j,tmp8)]=wtemp[fencode_hdmne4(p,i,j,tmp6)]*wmod[(NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne4(p,i,j,mom1+ii0)];
+     wtemp[fencode_hdmne4(p,i,j,tmp8)]=wtemp[fencode_hdmne4(p,i,j,tmp6)]*wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne4(p,i,j,mom1+ii0)];
 
 
 

@@ -456,6 +456,25 @@ void bc_periodic2_test_MODID(real *wt, struct params *p,int i, int j, int f) {
 
 }
 
+//bc's are not applied to ghost cells?
+__device__ __host__
+void bc_periodic1a_MODID(real *wt, struct params *p,int i, int j, int f) {
+
+                if(i==2 || i==3 )                
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-4+i,j,f)];
+                //else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)) || (i==((p->n[0])-3)))
+                else if((i==((p->n[0])-3)) || (i==((p->n[0])-4)))                
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,4-(p->n[0])+i,j,f)];
+                else if(j==2 || j==3 )                
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-4+j,f)];
+                //else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)) || (j==((p->n[1])-3)))
+                else if((j==((p->n[1])-3)) || (j==((p->n[1])-4)) )                 
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,4-(p->n[1])+j,f)];
+
+
+
+}
+
 //periodic bc's labelled ori below
 //are the original ones I used
 __device__ __host__
@@ -477,8 +496,73 @@ void bc_periodic1_MODID(real *wt, struct params *p,int i, int j, int f) {
 
 }
 
+
 __device__ __host__
 void bc_periodic2_MODID(real *wt, struct params *p,int i, int j, int f) {
+
+
+               if(i<2 && j<2)
+                {
+                  if(i==j)
+                    //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-3+i,j,f)];
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-4+j,f)];
+                  else                  
+                    //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-3+j,f)];
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-4+i,j,f)];                                    
+                }
+                else if(i<2 && j>((p->n[1])-3))
+                {
+                  if(i==(j-(p->n[1])))                  
+                    //wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-3+i,4-(p->n[1])+j,f)];
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-4+i,j,f)];                                     
+                  else                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,4-(p->n[1])+j,f)];                                     
+                }
+                else if(i>((p->n[0])-3) && j<2)
+                {
+                  if((i-(p->n[0]))==j)                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,4-(p->n[0])+i,j,f)];                                    
+                  else                  
+                   wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-4+j,f)];                                    
+                }
+                else if(i>((p->n[0])-3) && j>((p->n[1])-3))
+                {
+                  if(i==j)                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,4-(p->n[1])+j,f)];                                    
+                  else                  
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,4-(p->n[0])+i,j,f)];                                    
+                }                       
+                 
+                
+
+
+
+
+}
+
+//periodic bc's labelled ori below
+//are the original ones I used
+__device__ __host__
+void bc_periodic1_original_MODID(real *wt, struct params *p,int i, int j, int f) {
+
+                if(i==0 || i==1 )                
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-4+i,j,f)];
+                //else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)) || (i==((p->n[0])-3)))
+                else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))                
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,4-(p->n[0])+i,j,f)];
+                else if(j==0 || j==1 )                
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-4+j,f)];
+                //else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)) || (j==((p->n[1])-3)))
+                else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)) )                 
+                  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,4-(p->n[1])+j,f)];
+
+ 
+
+
+}
+
+__device__ __host__
+void bc_periodic2_original_MODID(real *wt, struct params *p,int i, int j, int f) {
 
 
                if(i<2 && j<2)

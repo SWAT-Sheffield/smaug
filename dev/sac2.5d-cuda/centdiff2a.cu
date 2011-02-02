@@ -34,10 +34,10 @@ computept_cd2a(w,wd,p,ix,iy);
 // wd[fencode_cd2a(p,ix,iy,ptb)]=  ((p->gamma)-1)*w[fencode_cd2a(p,ix,iy,energyb)]- 0.5*((p->gamma)-2)*(w[fencode_cd2a(p,ix,iy,b1b)]*w[fencode_cd2a(p,ix,iy,b1b)]+w[fencode_cd2a(p,ix,iy,b2b)]*w[fencode_cd2a(p,ix,iy,b2b)]) ;
 
 
-      		flux= -wd[fencode_cd2a(p,ix,iy,ptb)]*grad_cd2a(wd,p,ix,iy,vel1+dir,dir);
+      		flux= wd[fencode_cd2a(p,ix,iy,ptb)]*grad_cd2a(wd,p,ix,iy,vel1+dir,dir);
                 //flux     +=(w[fencode_cd2a(p,ix,iy,b1b)]*(w[fencode_cd2a(p,ix,iy,b1b)]+w[fencode_cd2a(p,ix,iy,b2b)]) +w[fencode_cd2a(p,ix,iy,b2b)]*(w[fencode_cd2a(p,ix,iy,b1b)]+w[fencode_cd2a(p,ix,iy,b2b)])); 
                // flux *= ((grad_cd2a(wd,p,ix,iy,vel1+dir,dir))); 
-               flux += w[fencode_cd2a(p,ix,iy,b1b)]*w[fencode_cd2a(p,ix,iy,b1b)]*grad_cd2a(wd,p,ix,iy,vel1,0)+w[fencode_cd2a(p,ix,iy,b2b)]*w[fencode_cd2a(p,ix,iy,b1b)]*grad_cd2a(wd,p,ix,iy,vel1+1,1);
+               flux += -w[fencode_cd2a(p,ix,iy,b1b)]*w[fencode_cd2a(p,ix,iy,b1b+dir)]*grad_cd2a(wd,p,ix,iy,vel1,0)-w[fencode_cd2a(p,ix,iy,b2b)]*w[fencode_cd2a(p,ix,iy,b1b+dir)]*grad_cd2a(wd,p,ix,iy,vel1+1,1);
          #endif
 
   return flux;

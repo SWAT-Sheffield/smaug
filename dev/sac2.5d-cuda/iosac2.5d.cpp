@@ -326,12 +326,12 @@ p->g[2]=0.0;
 //p->cmax=1.0;
 p->cmax=0.02;
 
-p->rkon=1.0;
+p->rkon=0.0;
 p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=1.0;
+p->hyperdifmom=0.0;
 p->readini=0;
 p->cfgsavefrequency=1;
 
@@ -354,14 +354,14 @@ p->mnthreads=1;
 for(i=0;i<NVAR;i++)
   p->chyp[i]=0.0;
 
-p->chyp[rho]=0.04;
+p->chyp[rho]=0.02;
 p->chyp[energy]=0.02;
 p->chyp[b1]=0.02;
 p->chyp[b2]=0.02;
 p->chyp[mom1]=0.4;
 p->chyp[mom2]=0.4;
 
-p->chyp[rho]=0.04;
+p->chyp[rho]=0.02;
 p->chyp[mom1]=0.4;
 p->chyp[mom2]=0.4;
 printf("calling cuinit\n");
@@ -677,7 +677,7 @@ for(int dim=0; dim<=1; dim++)
 
    }
    //cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order);
-   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
+  // cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
 }
 
    if((p->rkon)==1)
@@ -875,7 +875,7 @@ for(int dim=0; dim<=1; dim++)
               } 
 
            }
-           cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
+           //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
            cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order);
            cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,orderb);
 	   

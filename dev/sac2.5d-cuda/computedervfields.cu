@@ -130,11 +130,11 @@ __syncthreads();
                computept_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
              #else
                //computej_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-              ;// computepk_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-              ;// computept_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               computepk_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               computept_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
 
-              ;// computebdotv_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-             ;//  computedivb_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               computebdotv_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               computedivb_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
 
              #endif
 
@@ -169,6 +169,7 @@ if(iindex==0)
  //    j=jp*(p->npgp[1])+jpg;
    //if( i<((p->n[0])) && j<((p->n[1])))
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+    p->cmax=0.0;
     for(i>1;i<((p->n[0])-2);i++)
       for(j>1;j<((p->n[1])-2);j++)
 	{ 

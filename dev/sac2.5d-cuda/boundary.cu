@@ -35,6 +35,31 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
 
+
+/*#ifdef ADIABHYDRO
+;
+#else
+  //This second call makes sure corners are set correctly
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+             for( f=rho; f<=b2; f++)
+{
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+  if(i<p->n[0] && j<p->n[1])
+
+                  bc_periodic1a_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
+
+ __syncthreads();
+   } 
+}
+
+#endif*/
+
+
+
+
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
