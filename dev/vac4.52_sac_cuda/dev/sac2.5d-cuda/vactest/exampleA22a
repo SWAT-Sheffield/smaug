@@ -1,0 +1,41 @@
+ &testlist 
+	teststr='readparameters'
+ /
+
+ &filelist
+	filenameini='data/exampleA23.ini',
+	typefileini='ascii'
+	filename=   'data/example23.log',
+		    'data/example23.out'
+	typefileout='binary'
+ /
+
+ &savelist
+	ditsave=1,1
+ /
+
+ &stoplist
+	itmax=100
+ /
+
+ &methodlist
+	wnames=		'h  	 m1  	 m2     m3'
+
+        typeadvance='fourstep'
+        typefull=4*'cd4'
+	dimsplit=	T
+	sourcesplit=	T
+ /
+
+ &boundlist
+	typeB=	'cont','cont','cont','cont'
+		'cont','cont','cont','cont'
+		'cont','cont','cont','cont'
+		'cont','cont','cont','cont'
+ /
+
+ &paramlist
+	courantpar=0.8
+        dtpar=0.0003625
+        dtcantgrow=T
+ /

@@ -1,0 +1,42 @@
+ &testlist &end
+
+ &filelist
+	filenameini='data/newalfven2dtest.ini',
+	filename=   'data/alfven2dtest.log',
+		    'data/alfven2dtest.out'
+ &end
+
+ &savelist
+         itsave(1,2)=0
+         ditsave=1,10
+ &end
+
+ &stoplist
+         tmax=1.0
+        tmaxexact=T
+ &end
+
+ &methodlist
+	wnames=		'rho m1 m2 m3 e bx by bz'
+        typeadvance=    8*'fourstep'
+	typefull=	8*'cd'
+        divbfix=       T
+        divbwave=      F
+        
+        useprimitive=   T
+ &end
+
+ &boundlist
+	typeB='cont','cont','cont','cont','cont','cont','cont','cont',
+              'cont','cont','cont','cont','cont','cont','cont','cont',
+              'cont','cont','cont','cont','cont','cont','cont','cont',
+              'cont','cont','cont','cont','cont','cont','cont','cont'
+ &end
+
+ &paramlist
+	courantpar=0.8
+        dtpar=0.001
+
+ 
+ 
+ &end

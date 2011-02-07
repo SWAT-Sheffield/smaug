@@ -1,0 +1,21 @@
+data/7wave.ini
+7wave_mhd13
+x rho m1 m2 m3 e bx by bz   gamma eta
+domain
+1000                                    -ixmax
+0.                                      -min coordinates
+1000.                                   -max coordinates
+shocktube
+1                                        -shock direction
+3                                        -number of segments
+0.5 0.0 1.0 0.1 1.0 1.0 2.5 0.0
+0.5 0.0 1.0 0.1 1.0 1.0 2.5 0.0
+350                                       -position of segment-end 1
+0.1 0.0 0.0 0.0 0.1 1.0 2.0 0.0
+351
+0.1 0.0 0.0 0.0 0.1 1.0 2.0 0.0
+1.66666667  0.0                                    -gamma eta
+conserv
+typefileout
+binary
+save

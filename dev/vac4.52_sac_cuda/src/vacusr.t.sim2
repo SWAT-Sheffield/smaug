@@ -1,0 +1,463 @@
+!##############################################################################
+! module vacusr - sim1 ! setvac -d=22 -g=204,204 -p=hdadiab -u=sim1
+
+
+INCLUDE:vacusr.gravity.t
+!INCLUDE:vacnul.specialini.t
+!INCLUDE:vacnul.specialbound.t
+! INCLUDE:vacnul.specialsource.t
+!INCLUDE:vacnul.specialio.t
+INCLUDE:vacusr.viscosity.t
+!INCLUDE:vacusr.diffusion.t
+
+!=============================================================================
+subroutine specialini(ix^L,w)
+
+include 'vacdef.f'
+
+integer:: ix^L,ix_1,ix_2,ix_3
+double precision:: w(ixG^T,nw)
+double precision:: inirho,iniene,inix,comi
+character*79 atmfilename
+
+double precision:: p_1,p_2
+double precision:: bz,xc2,xc3,rfc,rfc0
+
+
+double precision:: radius, xcent^D, sigma^D, rfc^D
+
+double precision:: sdep
+
+!-----------------------------------------------------------------------------
+
+go to 111
+
+{^IFMPI if (ipe .ne. 0) read(unitpar,'(a)') atmfilename}
+
+{^IFMPI if (ipe .eq. 0) then}
+write(*,*)'param load'
+read(unitpar,'(a)') atmfilename
+write(*,*) 'from file ',atmfilename
+open(33,file=atmfilename,status='old',form='unformatted')
+read(33)iniene
+print*,'iniene=',iniene
+{^IFMPI endif}
+
+{^IFMPI call MPI_BARRIER(MPI_COMM_WORLD,ierrmpi)}
+{^IFMPI call MPI_BCAST(iniene,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+
+do ix_1=ixGlo1,ixGhi1
+{^IFMPI if (ipe .eq. 0)} read(33) inix,inirho
+{^IFMPI if (ipe .eq. 0)} print*,'inix,inirho=',ix_1,inix,inirho
+{^IFMPI call MPI_BARRIER(MPI_COMM_WORLD,ierrmpi)}
+{^IFMPI call MPI_BCAST(inix,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+{^IFMPI call MPI_BCAST(inirho,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+
+ do ix_2=ixGlo2,ixGhi2
+  do ix_3=ixGlo3,ixGhi3
+   x(ix_1,ix_2,ix_3,1)=inix
+   w(ix_1,ix_2,ix_3,rho_)=inirho
+   w(ix_1,ix_2,ix_3,e_)=iniene!12484.0
+   w(ix_1,ix_2,ix_3,m1_)=0.0
+   w(ix_1,ix_2,ix_3,m2_)=0.0
+  enddo
+ enddo
+
+{^IFMPI if (ipe .eq. 0) then}
+ read(33) inix,inirho   !skip 7 points
+ read(33) inix,inirho
+ read(33) inix,inirho
+ read(33) inix,inirho
+ read(33) inix,inirho
+ read(33) inix,inirho
+ read(33) inix,inirho
+{^IFMPI endif}
+enddo
+{^IFMPI if (ipe .eq. 0)} close(33)
+
+{^IFMPI if (ipe .eq. 0) } print*,'grav=',eqpar(grav0_),eqpar(grav1_),eqpar(grav2_),eqpar(grav3_)
+
+call primitive(ix^L,w)
+
+do ix_3=ixGlo3,ixGhi3
+do ix_2=ixGlo2,ixGhi2
+ do ix_1=ixGhi1-2,ixGlo1,-1 
+
+comi=-abs(x(ix_1+1,ix_2,ix_3,1)-x(ix_1,ix_2,ix_3,1))
+
+w(ix_1,ix_2,ix_3,p_)=w(ix_1+1,ix_2,ix_3,p_)+w(ix_1,ix_2,ix_3,rho_)*comi*1.d0*eqpar(grav1_)
+!w(ix_1,ix_2,ix_3,p_)=w(ix_1+2,ix_2,ix_3,p_)+w(ix_1+1,ix_2,ix_3,rho_)*comi*2.d0*eqpar(grav1_)
+
+{^IFMPI if (ipe .eq. 0) then} 
+if ((ix_2 .eq. ixGlo2) .and. (ix_3 .eq. ixGlo3)) print*,'EEEE=',w(ix_1,ix_2,ix_3,rho_),w(ix_1,ix_2,ix_3,p_)
+{^IFMPI endif}
+
+
+enddo
+enddo
+enddo
+
+!go to 678
+
+do ix_3=ixGlo3,ixGhi3
+do ix_2=ixGlo2,ixGhi2
+ do ix_1=ixGlo1+2,ixGhi1-2
+       
+       comi=-(1.D0/eqpar(grav1_))*(1.D0/(12.D0*(x(ix_1+1,ix_2,ix_3,1)-x(ix_1,ix_2,ix_3,1))))
+
+       w(ix_1,ix_2,ix_3,rho_)=comi*(w(ix_1+2,ix_2,ix_3,p_)-8.D0*w(ix_1+1,ix_2,ix_3,p_)+8.D0*w(ix_1-1,ix_2,ix_3,p_)-w(ix_1-2,ix_2,ix_3,p_))
+               
+{^IFMPI if (ipe .eq. 0) then} 
+if ((ix_2 .eq. ixGlo2) .and. (ix_3 .eq. ixGlo3)) print*,'eeee=',w(ix_1,ix_2,ix_3,rho_),w(ix_1,ix_2,ix_3,p_)
+{^IFMPI endif}
+
+     enddo
+   enddo
+enddo
+
+
+
+!lower boundary
+do ix_1=ixmin1+4,ixmin1+2,-1
+  do ix_2=ixmin2,ixmax2
+    do ix_3=ixmin3,ixmax3
+        p_1=w(ix_1+2,ix_2,ix_3,p_)-8.d0*w(ix_1+1,ix_2,ix_3,p_)+8.d0*w(ix_1-1,ix_2,ix_3,p_)
+        p_2=w(ix_1,ix_2,ix_3,rho_)*eqpar(grav1_)
+        w(ix_1-2,ix_2,ix_3,p_) = 12.d0*(x(ix_1,ix_2,ix_3,1)-x(ix_1-1,ix_2,ix_3,1))*p_2+p_1
+!         p_1=w(ix_1+2,ix_2,p_)-8.d0*w(ix_1+1,ix_2,p_)+8.d0*w(ix_1-1,ix_2,p_)
+!         p_2=w(ix_1,ix_2,rho_)*eqpar(grav1_)
+!         w(ix_1-2,ix_2,p_) = 12.d0*(x(ix_1,ix_2,1)-x(ix_1-1,ix_2,1))*p_2+p_1
+       enddo
+    enddo
+ enddo
+
+
+!upper boundary
+do ix_1=ixmax1-4,ixmax1-2
+   do ix_2=ixmin2,ixmax2
+      do ix_3=ixmin3,ixmax3
+         
+          p_1=w(ix_1-2,ix_2,ix_3,p_)-8.d0*w(ix_1-1,ix_2,ix_3,p_)+8.d0*w(ix_1+1,ix_2,ix_3,p_)
+          p_2=w(ix_1,ix_2,ix_3,rho_)*eqpar(grav1_)
+          w(ix_1+2,ix_2,ix_3,p_) = -12.d0*(x(ix_1,ix_2,ix_3,1)-x(ix_1-1,ix_2,ix_3,1))*p_2+p_1
+!           p_1=w(ix_1-2,ix_2,p_)-8.d0*w(ix_1-1,ix_2,p_)+8.d0*w(ix_1+1,ix_2,p_)
+!           p_2=w(ix_1,ix_2,rho_)*eqpar(grav1_)
+!           w(ix_1+2,ix_2,p_) = -12.d0*(x(ix_1,ix_2,1)-x(ix_1-1,ix_2,1))*p_2+p_1
+      enddo
+   enddo
+enddo
+
+
+bz=0.d0
+xc2=75.0e8
+xc3=75.0e8
+rfc0=20.0e8
+
+do ix_1=ixmin1,ixmax1
+   do ix_2=ixmin2,ixmax2
+      do ix_3=ixmin3,ixmax3
+
+rfc=sqrt((x(ix_1,ix_2,ix_3,2)-xc2)**2+(x(ix_1,ix_2,ix_3,3)-xc3)**2)
+
+    if (rfc .le. rfc0) w(ix_1,ix_2,ix_3,b1_)=bz
+
+
+enddo
+enddo
+enddo
+
+w(ix^S,p_)=w(ix^S,p_)-half*(^C&w(ix^S,b^C_)**2+)
+
+
+678 continue
+
+call conserve(ix^L,w)
+
+
+
+
+
+!**********************************BUL'KA
+111 continue
+
+write(*,*) 'add BULKA'
+
+w(ix^S,e_)=0.1d0/(eqpar(gamma_)-1.d0)
+w(ix^S,rho_)=0.125d0
+
+radius=0.2d0
+xcent1=0.5d0
+xcent2=0.5d0
+xcent3=0.5d0
+sigma1=(1.d0/radius)**2.d0
+sigma2=(1.d0/radius)**2.d0
+sigma3=(1.d0/radius)**2.d0
+
+!where(radius**2.d0 .gt. ^D&(x(ix^S,^D)-xcent^D)**2.d0+ )
+!   print*,'qwrqwgqwqwf',ix_1,ix_2,ix_3
+!   w(ix^S,rho_)=1.d0
+!   w(ix^S,e_)=1.0d0/(eqpar(gamma_)-1.d0)
+!endwhere
+
+
+do ix_1=ixGlo1,ixGhi1
+do ix_2=ixGlo2,ixGhi2
+do ix_3=ixGlo3,ixGhi3
+rfc1=(x(ix_1,ix_2,ix_3,1)-xcent1)
+rfc2=(x(ix_1,ix_2,ix_3,2)-xcent2)
+rfc3=(x(ix_1,ix_2,ix_3,3)-xcent3)
+sdep=exp(-sigma1*rfc1**2.d0-sigma2*rfc2**2.d0-sigma3*rfc3**2.d0)
+w(ix_1,ix_2,ix_3,rho_)=w(ix_1,ix_2,ix_3,rho_)+sdep
+enddo
+enddo
+enddo
+
+
+
+
+
+
+
+!**********************************
+
+
+
+
+
+
+
+!w(ix^S,eb_)=w(ix^S,e_)
+!w(ix^S,e_)=0.d0
+!w(ix^S,rhob_)=w(ix^S,rho_)
+!w(ix^S,rho_)=0.d0
+
+
+return
+end
+
+
+!=============================================================================
+subroutine specialsource(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
+
+include 'vacdef.f'
+
+integer:: ixI^L,ixO^L,iws(niw_)
+double precision:: qdt,qtC,qt,wCT(ixG^T,nw),w(ixG^T,nw)
+
+double precision:: tdep,sdep
+double precision:: rad1,rad2,rad3,xc1,xc2,xc3,sigma1,sigma2,sigma3,rfc1,rfc2,rfc3
+
+integer:: ix_1,ix_2,ix_3
+
+integer:: cns
+!-----------------------------------------------------------------------------
+
+
+!call addsource_diff(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
+
+eqpar(nu_)=1.0d0
+
+if(abs(eqpar(nu_))>smalldouble)&
+   call addsource_visc(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
+
+call addsource_grav(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
+
+{^IFMPI if (ipe .eq. 0)} write(*,*) '***time=',qt
+
+
+
+rad1=1.0d8
+rad2=5.0d8
+rad3=5.0d8
+xc1=45.0d8
+xc2=75.0d8
+xc3=75.0d8
+sigma1=(1.d0/rad1)**2.d0
+sigma2=(1.d0/rad2)**2.d0
+sigma3=(1.d0/rad3)**2.d0
+do ix_1=ixGlo1,ixGhi1
+do ix_2=ixGlo2,ixGhi2
+do ix_3=ixGlo3,ixGhi3
+rfc1=(x(ix_1,ix_2,ix_3,1)-xc1)
+rfc2=(x(ix_1,ix_2,ix_3,2)-xc2)
+rfc3=(x(ix_1,ix_2,ix_3,3)-xc3)
+tdep=sin(qt*2.d0*3.14159265d0/30.0d0)
+sdep=exp(-sigma1*rfc1**2.d0-sigma2*rfc2**2.d0-sigma3*rfc3**2.d0)
+!w(ix_1,ix_2,ix_3,e_)=w(ix_1,ix_2,ix_3,e_)+0.001d0*w(ix_1,ix_2,ix_3,eb_)*qdt*tdep*sdep
+enddo
+enddo
+enddo
+
+
+
+
+
+
+
+
+
+
+
+
+
+go to 352
+
+
+!ns, sper[ns],samp[ns],sttt0[ns],sxx0[ns],syy0[ns],s_len,s_period,s_rad,timetolive
+
+!if (s_initialized .eq. 0) then 
+! s_initialized=1
+!{^IFMPI if (ipe .eq. 0) then}
+! do cns=1,ns
+!  call RANDOM_NUMBER(a1)
+!  sper(cns)=100.0d0*a1
+!  call RANDOM_NUMBER(a1)
+!  samp(cns)=1.0d0*a1
+!  call RANDOM_NUMBER(a1)
+!  sxx0(cns)=150.0d8*a1
+!  call RANDOM_NUMBER(a1)
+!  syy0(cns)=150.0d8*a1
+!  call RANDOM_NUMBER(a1)
+!  sttt0(cns)=timetolive*a1+qt
+! enddo
+!{^IFMPI endif}
+
+!{^IFMPI if (ipe .eq. 0)} print*,'sources intialized'
+
+!{^IFMPI call MPI_BCAST(sper,ns,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+!{^IFMPI call MPI_BCAST(samp,ns,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+!{^IFMPI call MPI_BCAST(sxx0,ns,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+!{^IFMPI call MPI_BCAST(syy0,ns,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+!{^IFMPI call MPI_BCAST(sttt0,ns,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+
+!endif
+
+!{^IFMPI if (ipe .eq. 0)} print*,'and broadcasted'
+
+!z0=49.0e8 !Mm
+
+!do ix_1=ixImax1-30,ixImax1
+! do ix_2=ixImin2,ixImax2
+!  do ix_3=ixImin3,ixImax3
+!   do cns=1,ns
+!    r=sqrt((x(ix_1,ix_2,ix_3,1)-z0)**2.d0+(x(ix_1,ix_2,ix_3,2)-sxx0(cns))**2.d0+(x(ix_1,ix_2,ix_3,3)-syy0(cns))**2.d0)    
+!    if (r .lt. 3.d0*s_rad) then 
+!     tdep=sin((qt-sttt0(cns))*2.d0*pi/s_period)*exp(-(qt-sttt0(cns))**2.d0/s_len**2.d0)
+!     sdep=exp(-r**2.d0/s_rad**2.d0)
+!     w(ix_1,ix_2,ix_3,e_)=w(ix_1,ix_2,ix_3,e_)+(1.d0+samp(cns))*tdep*sdep*qdt
+!    endif
+!   enddo
+!  enddo
+! enddo
+!enddo
+
+!do cns=1,ns
+!if ((qt-sttt0(cns)) .gt. timetolive) then
+!{^IFMPI if (ipe .eq. 0) then}
+!  call RANDOM_NUMBER(a1)
+!  sper(cns)=100.0d0*a1
+!  call RANDOM_NUMBER(a1)
+!  samp(cns)=1.0d0*a1
+!  call RANDOM_NUMBER(a1)
+!  sxx0(cns)=150.0e8*a1
+!  call RANDOM_NUMBER(a1)
+!  syy0(cns)=150.0e8*a1
+!  call RANDOM_NUMBER(a1)
+!  sttt0(cns)=timetolive*a1+qt
+!{^IFMPI endif}
+!{^IFMPI call MPI_BCAST(sper(cns),1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+!{^IFMPI call MPI_BCAST(samp(cns),1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+!{^IFMPI call MPI_BCAST(sxx0(cns),1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+!{^IFMPI call MPI_BCAST(syy0(cns),1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+!{^IFMPI call MPI_BCAST(sttt0(cns),1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierrmpi)}
+!endif
+
+!enddo
+
+!{^IFMPI if (ipe .eq. 0)} print*,'sources added'
+
+352 continue
+
+return
+end
+
+
+
+!=============================================================================
+subroutine specialbound(qt,ix^L,iw,iB,w)
+include 'vacdef.f'
+integer:: ix^L,iw,iB,ixLO^L,ix_1,ix_2,ix_3
+double precision:: w(ixG^T,nw),qt,p_1,p_2
+integer:: jdir
+
+
+select case(iB)
+case(1)
+ select case(iw)
+   case (e_)
+
+
+   case (rho_)
+
+   case (m1_)
+
+   case (m2_)
+ 
+   case default
+   stop 'error iw ib=1!'
+ end select
+
+case(2)
+
+ select case(iw)
+   case (e_)
+
+   case (rho_)
+
+   case (m1_)
+
+   case (m2_)
+
+ case default
+  stop 'error iw ib=2!'
+ end select
+ 
+case default
+stop 'error iB!'
+end select
+
+return
+end
+
+!=============================================================================
+subroutine getdt_special(w,ix^L)
+
+include 'vacdef.f'
+double precision:: w(ixG^T,nw)
+integer:: ix^L
+!-----------------------------------------------------------------------------
+
+!call getdt_diff(w,ix^L)
+
+
+if(abs(eqpar(nu_))>smalldouble)&
+   call getdt_visc(w,ix^L)
+
+
+call getdt_grav(w,ix^L)
+
+return
+end
+
+
+subroutine specialeta(w,ix^L,idirmin)
+ 
+include 'vacdef.f'
+ 
+double precision:: w(ixG^T,nw)
+integer:: ix^L,idirmin
+!-----------------------------------------------------------------------------
+ 
+stop 'specialeta is not defined'
+end
+

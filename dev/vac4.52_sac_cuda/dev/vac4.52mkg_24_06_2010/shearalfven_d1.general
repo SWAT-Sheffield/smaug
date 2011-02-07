@@ -1,0 +1,10 @@
+file = data/shearalfven_d1_asc.out
+points = 1000
+format = ascii
+interleaving = field
+header = lines 5
+series = 81, 1, 1, separator = lines 5
+field = locations, rho, mom, energy, b
+structure = 1-vector, scalar, 2-vector, scalar, 2-vector
+type = float, float, float, float, float
+end

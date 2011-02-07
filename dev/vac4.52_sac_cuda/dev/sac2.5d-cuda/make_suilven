@@ -1,0 +1,31 @@
+#make include file for building StarSimulation IoSimTestSimple on Felix
+# Standard defines:
+CC  	=	g++
+NVCC  	=	nvcc
+FF  	=	gfortran
+LD  	=	g++
+HOMEV	=	
+VPATH	=	$(HOMEV)/include
+oDir	=	.
+Bin	=	.
+BASE = /usr/local/dx
+incDirs = -I$(BASE)/include  -I$(IOME_HOME)/include  -I/usr/local/include -I/usr/local/cuda/include
+
+
+LD_FLAGS =	-g
+LIBS	=	-L/usr/local/cuda/lib -L../lib -L/usr/local/lib -L$(IOME_HOME)/lib -L$(XERCESCROOT)/lib -L$(XALANCROOT)/lib -lxerces-c -lxalan-c -lxalanMsg  -lm -liogenericsimulation
+
+#C_FLAGS
+NVC_FLAGS	= -g -Dlinux -DBASE=\"$(BASE)\" -DIO_XERCESCVERSION=xercesc_2_8 -DIO_FORTRAN	=	-g
+C_FLAGS	= -g -Dlinux -DBASE=\"$(BASE)\" -DIO_XERCESCVERSION=xercesc_2_8 -DIO_FORTRAN
+MYLIBS = $(IOME_HOME)/lib/libiogenericsimulation.a 
+#MYLIBS = ../../../lib/libIoUtils.a  ../../../lib/libIoSimulation.a
+
+SRCS	=\
+	IoSimTestSimple.cpp
+
+#INCLUDES = ../IoUtils/vec.h ../IoUtils/IoPropertyManager.h
+INCLUDES = -I$(XERCESCROOT)/include -I$(XALANCROOT)/include
+
+
+

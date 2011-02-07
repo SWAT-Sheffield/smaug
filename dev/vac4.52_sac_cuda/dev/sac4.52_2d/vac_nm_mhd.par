@@ -1,0 +1,45 @@
+&testlist /
+
+&filelist
+	filenameini='/data/ap1vf/zero2BB_test.ini',
+	typefileini='binary'
+	filename=   '/data/ap1vf/zero2BB.log',
+		    '/data/ap1vf/30drivertest1.out'
+	typefileout='binary'
+        fullgridout= T
+        fullgridini= T
+ /
+
+&savelist
+ditsave(1)=20
+ditsave(2)=20
+
+ /
+
+ &stoplist
+	itmax=50000000
+ /
+
+ &methodlist
+
+	wnames=		'h 	m1  	 m2  	e	b1	b2	eb	rhob	bg1	bg2'
+	typefull=	6*'cd4',4*'nul'
+        typeadvance=    'onestep'
+	typefilter=	10*'nul'
+	dimsplit=	F
+	sourcesplit=	F
+	divBfix=	F
+ /
+
+ &boundlist
+	typeB='fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+		
+ /
+
+ &paramlist
+	courantpar=0.2
+
+ /

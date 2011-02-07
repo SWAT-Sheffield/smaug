@@ -1,0 +1,25 @@
+data/oscsheet.ini
+oscsheet_mhd12
+x rho m1 m2 e b1 b2   gamma eta
+domain
+1000      			-ixmax
+0.				-min coordinates
+1.				-max coordinates
+shocktube
+1				-shock direction
+5                               -number of segments
+0.001 0.0 0.0 0.0001 0. 1.1	-state of left boundary  
+0.001 0.0 0.0 0.0001 0. 1.1	-state of segment-end1
+449				-position of segment-end1
+1.0   0.0 0.0 0.3201 0. 0.6	-state of segment-end2
+450				-position of segment-end2
+1.0   0.0 0.0 0.3201 0. 0.6	-state of segment-end3 
+550				-position of segment-end3
+0.001 0.0 0.0 0.0001 0. 1.0	-state of segment-end4
+551				-position of segment-end4
+0.001 0.0 0.0 0.0001 0. 1.0	-state of segment-end5
+1.4 0.0				-gamma eta
+conserv
+typefileout
+binary
+save

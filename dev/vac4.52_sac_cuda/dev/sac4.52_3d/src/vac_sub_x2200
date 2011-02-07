@@ -1,0 +1,5 @@
+#!/bin/sh
+make vac -f Makefile_ompi
+make vacini -f Makefile_ompi 
+cd ..
+qsub vac_submit_x2200 
