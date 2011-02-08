@@ -118,12 +118,13 @@ real dx = 0.55*xmax/(ni-4);
 #ifndef ADIABHYDRO
 //vac ozt
 int ni;
-ni=100;
+ni=96;
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
 real xmax=1.0;
-real dx = xmax/(ni-4);
+//real dx = xmax/(ni-4);
+real dx = xmax/(ni);
 #endif
 
 
@@ -141,12 +142,13 @@ real dy = 0.55*ymax/(nj-4);
 #ifndef ADIABHYDRO
 //vac ozt
 int nj = 196;
-nj=100;
+nj=96;
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
 real ymax = 1.0;   
-real dy = ymax/(nj-4);    
+//real dy = ymax/(nj-4);
+real dy = ymax/(nj);    
 //nj=41;
 #endif
                     
@@ -331,7 +333,7 @@ p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=0.0;
+p->hyperdifmom=1.0;
 p->readini=0;
 p->cfgsavefrequency=1;
 
@@ -677,7 +679,7 @@ for(int dim=0; dim<=1; dim++)
 
    }
    //cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order);
-  // cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
+   //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
 }
 
    if((p->rkon)==1)

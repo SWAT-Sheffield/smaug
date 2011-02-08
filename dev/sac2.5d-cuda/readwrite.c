@@ -206,27 +206,27 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
 	      fprintf(fdt,"ASCII\n");
 	      fprintf(fdt," \n");
 	      fprintf(fdt,"DATASET RECTILINEAR_GRID\n");
-	      fprintf(fdt,"DIMENSIONS %d %d 1\n",ni-2*(p.ng[0]),nj-2*(p.ng[1]));
+	      fprintf(fdt,"DIMENSIONS %d %d 1\n",ni,nj);
 
 
-	      fprintf(fdt,"X_COORDINATES %d double\n",ni-2*(p.ng[0]));
-              for(i1=0;i1<ni-(2*(p.ng[0]));i1++)
+	      fprintf(fdt,"X_COORDINATES %d double\n",ni);
+              for(i1=0;i1<ni;i1++)
 	        fprintf(fdt,"%f\n",i1*p.dx[0]);
 
-	      fprintf(fdt,"Y_COORDINATES %d double\n",nj-2*(p.ng[1]));
-              for(i1=0;i1<nj-(2*(p.ng[1]));i1++)
+	      fprintf(fdt,"Y_COORDINATES %d double\n",nj);
+              for(i1=0;i1<nj;i1++)
 	        fprintf(fdt,"%f\n",i1*p.dx[1]);
 
 	      fprintf(fdt,"Z_COORDINATES 1 double\n");
 	      fprintf(fdt,"0\n");
 
-	      fprintf(fdt,"POINT_DATA  %d\n",(ni-2*(p.ng[0]))*(nj-2*(p.ng[1])));
+	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj));
 	      fprintf(fdt,"SCALARS %s double 1\n",labels[i/4]);
 
              fprintf(fdt,"LOOKUP_TABLE TableName \n");
 
-	     for( j1=(p.ng[1]);j1<(nj-(p.ng[1]));j1++)
-		for( i1=(p.ng[0]);i1<(ni-(p.ng[0]));i1++)
+	     for( j1=0;j1<(nj);j1++)
+		for( i1=0;i1<(ni);i1++)
 			fprintf(fdt,"%f\n",w[(j1*ni+i1)+(ni*nj*is)]);
 
 	      fclose(fdt);
@@ -262,25 +262,25 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
 	      fprintf(fdt,"ASCII\n");
 	      fprintf(fdt," \n");
 	      fprintf(fdt,"DATASET RECTILINEAR_GRID\n");
-	      fprintf(fdt,"DIMENSIONS %d %d 1\n",ni-2*(p.ng[0]),nj-2*(p.ng[1]));
+	      fprintf(fdt,"DIMENSIONS %d %d 1\n",ni,nj);
 
 
-	      fprintf(fdt,"X_COORDINATES %d double\n",ni-2*(p.ng[0]));
-              for(i1=0;i1<ni-(2*(p.ng[0]));i1++)
+	      fprintf(fdt,"X_COORDINATES %d double\n",ni);
+              for(i1=0;i1<ni;i1++)
 	        fprintf(fdt,"%f\n",i1*p.dx[0]);
 
-	      fprintf(fdt,"Y_COORDINATES %d double\n",nj-2*(p.ng[1]));
-              for(i1=0;i1<nj-(2*(p.ng[1]));i1++)
+	      fprintf(fdt,"Y_COORDINATES %d double\n",nj);
+              for(i1=0;i1<nj;i1++)
 	        fprintf(fdt,"%f\n",i1*p.dx[1]);
 
 	      fprintf(fdt,"Z_COORDINATES 1 double\n");
 	      fprintf(fdt,"0\n");
 
-	      fprintf(fdt,"POINT_DATA  %d\n",(ni-2*(p.ng[0]))*(nj-2*(p.ng[1])));
+	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj));
 	      fprintf(fdt,"VECTORS %s double \n",labels[i]);
 
-		for( j1=(p.ng[1]);j1<(nj-(p.ng[1]));j1++)
-	      		for( i1=(p.ng[0]);i1<(nj-(p.ng[0]));i1++)
+		for( j1=0;j1<(nj);j1++)
+	      		for( i1=0;i1<(nj);i1++)
 			 //fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))],w[(j1*ni+i1)+(ni*nj*(iv+2))]);    
                          fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))]);
 
