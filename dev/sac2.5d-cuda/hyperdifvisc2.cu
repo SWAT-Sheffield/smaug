@@ -46,22 +46,10 @@ __global__ void hyperdifvisc2_parallel(struct params *p, real *w, real *wnew, re
    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
 
-int bfac1,bfac2,bfac3;
-//int bfac1=(field==rho || field>mom2)+(field>rho && field<energy);
-//int bfac2= (field==rho || field>mom2);
-//int bfac3=(field>rho && field<energy);
+
 int shift=order*NVAR*(p->n[0])*(p->n[1]);
 
 
-   //tmp1  tmp_nuI
-   //tmp2  d3r
-    //tmp3 d1r
-//tmp4    md3r
-//tmp5    md1r
-//tmp6    d3l
-//tmp7    d1l
-//tmp8    md3l
-//tmp9    md1l
 
 
 

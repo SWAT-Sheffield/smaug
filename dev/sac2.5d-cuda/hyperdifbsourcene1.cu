@@ -55,7 +55,7 @@ __global__ void hyperdifbsourcene1_parallel(struct params *p, real *w, real *wne
 
 
 
-
+int shift=order*NVAR*(p->n[0])*(p->n[1]);
 
    int ip,jp,ipg,jpg;
    jp=iindex/(ni/(p->npgp[0]));
@@ -89,7 +89,7 @@ __global__ void hyperdifbsourcene1_parallel(struct params *p, real *w, real *wne
   if( i<((p->n[0])) && j<((p->n[1])))
   {
 
-wtemp[fencode_hdbne1(p,i,j,tmp1)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdbne1(p,i,j,b1+field)];
+wtemp[fencode_hdbne1(p,i,j,tmp1)]=wmod[(shift)+fencode_hdbne1(p,i,j,b1+field)];
 
 
 

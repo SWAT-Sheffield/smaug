@@ -137,17 +137,17 @@ if( i<((p->n[0])) && j<((p->n[1])))
 	{
             
                   w[fencode_u(p,i,j,f)]=wmod[fencode_u(p,i,j,f)];
-                  updatestate (p, s, w ,i, j, f);
+                 // updatestate (p, s, w ,i, j, f);
               
             // u[i+j*ni]=un[i+j*ni];
            // v[i+j*ni]=vn[i+j*ni];
 	   // h[i+j*ni]=hn[i+j*ni];
 	}
 
-__syncthreads();
+
 }
 }
- 
+__syncthreads(); 
 
 /*if (threadIdx.x == 0) 
 {
@@ -222,7 +222,7 @@ void checkErrors_u(char *label)
 }
 
 
-int cuupdate(struct params **p, real **w, real **wnew, struct state **state,struct params **d_p, real **d_w, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state)
+int cuupdate(struct params **p, real **w, real **wnew, struct state **state,struct params **d_p, real **d_w, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, int step)
 {
 
 
@@ -248,11 +248,15 @@ int cuupdate(struct params **p, real **w, real **wnew, struct state **state,stru
      update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_state,*d_w,*d_wmod);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
+
+    if((step%((*p)->cfgsavefrequency))==0)
+    {
     cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
 
-    //cudaMemcpy(*w, *d_wd, 6*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+    cudaMemcpy(*wnew, *d_wd, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
 
    cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
+    }
 
 //cudaMemcpy(*wnew, *d_wnew, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
 //cudaMemcpy(*b, *d_u, (((*p)->n[0])* ((*p)->n[1]))*sizeof(real), cudaMemcpyDeviceToHost);

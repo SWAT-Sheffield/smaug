@@ -45,6 +45,7 @@ __global__ void hyperdifmomsourcene2_parallel(struct params *p, real *w, real *w
   
 
    int ip,jp,ipg,jpg;
+
    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
 

@@ -51,7 +51,7 @@ __global__ void hyperdifbsourcene2_parallel(struct params *p, real *w, real *wne
  //  dt=1.0;
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
-
+int shift=order*NVAR*(p->n[0])*(p->n[1]);
    int ip,jp,ipg,jpg;
    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));

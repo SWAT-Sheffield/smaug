@@ -42,7 +42,7 @@ __global__ void hyperdifesource1_parallel(struct params *p, real *w, real *wnew,
  //  dt=1.0;
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
-
+int shift=order*NVAR*(p->n[0])*(p->n[1]);
    int ip,jp,ipg,jpg;
    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
@@ -81,17 +81,17 @@ if(i<((p->n[0])) && j<((p->n[1])))
   {
 
 #ifdef USE_SAC
-     wtemp[fencode_hde1(p,i,j,tmp1)]=wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,energy)]-0.5*(
+     wtemp[fencode_hde1(p,i,j,tmp1)]=wmod[shift+fencode_hde1(p,i,j,energy)]-0.5*(
 
 
-(wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b1)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b1)]+wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b2)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b2)])
+(wmod[shift+fencode_hde1(p,i,j,b1)]*wmod[shift+fencode_hde1(p,i,j,b1)]+wmod[shift+fencode_hde1(p,i,j,b2)]*wmod[shift+fencode_hde1(p,i,j,b2)])
 
-+((wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom1)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom1)]+wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom2)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom2)])/(wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,rho)]+wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,rhob)])));
++((wmod[shift+fencode_hde1(p,i,j,mom1)]*wmod[shift+fencode_hde1(p,i,j,mom1)]+wmod[shift+fencode_hde1(p,i,j,mom2)]*wmod[shift+fencode_hde1(p,i,j,mom2)])/(wmod[shift+fencode_hde1(p,i,j,rho)]+wmod[shift+fencode_hde1(p,i,j,rhob)])));
 #else
 
-     wtemp[fencode_hde1(p,i,j,tmp1)]=wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,energy)]-0.5*((wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b1)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b1)]+wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b2)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,b2)])
+     wtemp[fencode_hde1(p,i,j,tmp1)]=wmod[shift+fencode_hde1(p,i,j,energy)]-0.5*((wmod[shift+fencode_hde1(p,i,j,b1)]*wmod[shift+fencode_hde1(p,i,j,b1)]+wmod[shift+fencode_hde1(p,i,j,b2)]*wmod[shift+fencode_hde1(p,i,j,b2)])
 
-+((wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom1)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom1)]+wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom2)]*wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,mom2)])/(wmod[order*NVAR*(p->n[0])*(p->n[1])+fencode_hde1(p,i,j,rho)]))
++((wmod[shift+fencode_hde1(p,i,j,mom1)]*wmod[shift+fencode_hde1(p,i,j,mom1)]+wmod[shift+fencode_hde1(p,i,j,mom2)]*wmod[shift+fencode_hde1(p,i,j,mom2)])/(wmod[shift+fencode_hde1(p,i,j,rho)]))
 );
 
 #endif

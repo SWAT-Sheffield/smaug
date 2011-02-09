@@ -197,7 +197,7 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
               else
                  sprintf(configfile,"vtk/%s%ss%d.vtk",labels[i/4],name,n);
 
-	      printf("check dims %s %s %d %d \n",configfile,labels[i/4],ni,nj);
+	      //printf("check dims %s %s %d %d \n",configfile,labels[i/4],ni,nj);
 	      FILE *fdt=fopen(configfile,"w");
 
 
@@ -253,7 +253,7 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
               else
                  sprintf(configfile,"vtk/%s%ss%d.vtk",labels[i],name,n);
 
-	      printf("check dims %s %s %d %d \n",configfile,labels[i],ni,nj);
+	      //printf("check dims %s %s %d %d \n",configfile,labels[i],ni,nj);
 	      FILE *fdt=fopen(configfile,"w");
 
 

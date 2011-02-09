@@ -43,7 +43,7 @@ __global__ void hyperdifmomsourcene1_parallel(struct params *p, real *w, real *w
 
 
   
-
+int shift=order*NVAR*(p->n[0])*(p->n[1]);
    int ip,jp,ipg,jpg;
    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
@@ -80,12 +80,12 @@ __global__ void hyperdifmomsourcene1_parallel(struct params *p, real *w, real *w
   {
 
 #ifdef USE_SAC
-     wtemp[fencode_hdmne1(p,i,j,tmp1)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne1(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne1(p,i,j,rhob)];
+     wtemp[fencode_hdmne1(p,i,j,tmp1)]=wmod[(shift)+fencode_hdmne1(p,i,j,rho)]+wmod[(shift)+fencode_hdmne1(p,i,j,rhob)];
 
-     wtemp[fencode_hdmne1(p,i,j,tmp4)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne1(p,i,j,mom1+field)]/(wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne1(p,i,j,rho)]+wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne1(p,i,j,rhob)]);
+     wtemp[fencode_hdmne1(p,i,j,tmp4)]=wmod[(shift)+fencode_hdmne1(p,i,j,mom1+field)]/(wmod[(shift)+fencode_hdmne1(p,i,j,rho)]+wmod[(shift)+fencode_hdmne1(p,i,j,rhob)]);
 #else
-     wtemp[fencode_hdmne1(p,i,j,tmp1)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne1(p,i,j,rho)];
-     wtemp[fencode_hdmne1(p,i,j,tmp4)]=wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne1(p,i,j,mom1+field)]/wmod[fencode_hdmne1(p,i,j,rho)];
+     wtemp[fencode_hdmne1(p,i,j,tmp1)]=wmod[(shift)+fencode_hdmne1(p,i,j,rho)];
+     wtemp[fencode_hdmne1(p,i,j,tmp4)]=wmod[(shift)+fencode_hdmne1(p,i,j,mom1+field)]/wmod[fencode_hdmne1(p,i,j,rho)];
 #endif
 
 

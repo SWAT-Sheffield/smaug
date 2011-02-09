@@ -53,7 +53,7 @@ __global__ void hyperdifbsourcene5_parallel(struct params *p, real *w, real *wne
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
 
-
+//int shift=order*NVAR*(p->n[0])*(p->n[1]);
 
 
 

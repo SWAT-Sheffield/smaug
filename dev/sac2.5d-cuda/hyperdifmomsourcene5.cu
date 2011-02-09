@@ -42,7 +42,7 @@ __global__ void hyperdifmomsourcene5_parallel(struct params *p, real *w, real *w
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
 
-  
+ 
 
    int ip,jp,ipg,jpg;
    jp=iindex/(ni/(p->npgp[0]));

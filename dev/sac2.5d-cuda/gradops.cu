@@ -50,15 +50,16 @@ real evalgrad_MODID(real fi, real fim1, real fip2, real fim2,struct params *p,in
 
  if(dir == 0)
  {
-     //valgrad=(2.0/(3.0*(p->dx[0])))*(fi-fim1)-(1.0/(12.0*(p->dx[0])))*(fip2-fim2);
-   //return((1.0/(2.0*(p->dx[0])))*(fi-fim1));
-   return(p->sodifon?((1.0/(2.0*(p->dx[0])))*(fi-fim1)):((1.0/(12.0*(p->dx[0])))*((8*fi-8*fim1+fim2-fip2))));
+
+ //  return(p->sodifon?((1.0/(2.0*(p->dx[0])))*(fi-fim1)):((1.0/(12.0*(p->dx[0])))*((8*fi-8*fim1+fim2-fip2))));
+   return((((1.0/(12.0*(p->dx[0])))*((8*fi-8*fim1+fim2-fip2)))));
+
  }
  else if(dir == 1)
  {
     // valgrad=(2.0/(3.0*(p->dx[1])))*(fi-fim1)-(1.0/(12.0*(p->dx[1])))*(fip2-fim2);
      // return((2.0/(1.0*(p->dx[1])))*(fi-fim1));
-   return(p->sodifon?((1.0/(2.0*(p->dx[1])))*(fi-fim1)):((1.0/(12.0*(p->dx[1])))*((8*fi-8*fim1+fim2-fip2))));
+   return(((1.0/(12.0*(p->dx[1])))*((8*fi-8*fim1+fim2-fip2))));
  }
 
  return -1;

@@ -352,9 +352,9 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                             // wmod[fencode_cd2(p,i,j,flux)+order*NVAR*(p->n[0])*(p->n[1])]=0.0;
 
                         }
- __syncthreads();
+
 }
-                            
+  __syncthreads();                           
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
@@ -384,9 +384,9 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
 
                //}
                         //might need to set boundaries correctly 
-   __syncthreads();
+
 }
-                     
+   __syncthreads();                     
 
 
 

@@ -421,12 +421,7 @@ else
   u=w+(ni)*(nj)*mom1;
   v=w+(ni)*(nj)*mom2;
 
-printf("about to call cuinit\n");
-
 cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
-
-
-printf("here in runsim\n");
 
 
 
@@ -444,23 +439,10 @@ getmetadata_(elist.id,"name",&name,elist.port,elist.server);
 //printf("here in runsim3\n");
 sprintf(outfile,"%s/%s.out",sdir,name);
 
-//FILE *fd=fopen(outfile,"w");
-//if steeringenabled==1
- printf("\n %s %s here in runsim4 %s\n",sdir,name,outfile); 
-  //mkdir('tmp');
-  gendxgen(sdir,name,nt,ni,nj);
-printf("here in runsim5\n");
 
-//sprintf(formfile,"%s/form%s.out",sdir,name);
-//FILE *fdform=fopen(formfile,"w");
-//  fprintf(fdform, "%d %d %d\n",nt-1, ni, nj);
-//fclose(fdform);
 
 //createlog(meta.log_file);
 
-
-// Employ Lax
-//disp(length[t));
 
 
 //while(finishsteering == 0)
@@ -489,11 +471,9 @@ for( n=0;n<nt;n++)
     }
    order=0;
    t1=second();
-   //cupredictor(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
-   //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd);
 
-   printf("cmax is %f old dt %f new dt %f\n",p->cmax,p->dt,0.68*((p->dx[0])+(p->dx[1]))/(2.0*(p->cmax)));
-   if(p->moddton==1)
+   //printf("cmax is %f old dt %f new dt %f\n",p->cmax,p->dt,0.68*((p->dx[0])+(p->dx[1]))/(2.0*(p->cmax)));
+   /*if(p->moddton==1)
    {
       //if((p->cmax)>10)
       //         p->dt=0.68*(((p->dx)+(p->dy))/(2.0*(p->cmax))); 
@@ -502,7 +482,7 @@ for( n=0;n<nt;n++)
        else if(2.0*(p->dt)<(((p->dx[0])+(p->dx[1]))/(2.0*(p->cmax))))
                p->dt=2.0*p->dt; 
    }
-   printf("new dt %f\n",p->dt);
+   printf("new dt %f\n",p->dt);*/
 
 if((p->rkon)==0)
 {
@@ -510,12 +490,10 @@ if((p->rkon)==0)
  
  cucomputedervfields(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero);
  order=1; 
-   //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
-   //for(int f=rho; f<=mom3; f++)
 
  for(int dir=0;dir<2; dir++)
  {
- // int dir=0;
+
   for(int f=rho; f<=mom2; f++)
   {
       cucentdiff1(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
@@ -533,7 +511,6 @@ if((p->rkon)==0)
 #endif
   }
 
-   //cuderivsource(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
    if(p->divbon==1)
 	       cudivb(&p,&w,&state,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, &d_state,order,ordero,p->dt);
    if(p->hyperdifmom==1)
@@ -679,7 +656,7 @@ for(int dim=0; dim<=1; dim++)
 
    }
    //cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order);
-   //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
+   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
 }
 
    if((p->rkon)==1)
@@ -687,11 +664,6 @@ for(int dim=0; dim<=1; dim++)
    {	   
            ordero=order+1;
            dt=(p->dt)/2.0;
-           //if(order==1)
-           //{
-           //   dt=(p->dt);
-           //   //ordero=0;
-           //}
            orderb=order+2;
 
            if(order==2)
@@ -710,8 +682,6 @@ for(int dim=0; dim<=1; dim++)
 
 
            cucomputedervfields(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero);
-	   //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order);
-           //for(int f=rho; f<=mom3; f++)
  for(int dir=0;dir<2; dir++)
  {
            for(int f=rho; f<=mom2; f++)
@@ -884,8 +854,8 @@ for(int dim=0; dim<=1; dim++)
 
    }
 
-   cuupdate(&p,&w,&wd,&state,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, &d_state);
-   printf("nummaxthreads %d\n",p->mnthreads);
+   cuupdate(&p,&w,&wd,&state,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, &d_state,n);
+   //printf("nummaxthreads %d\n",p->mnthreads);
 
    t2=second()-t1;
    ttot+=t2;
@@ -896,11 +866,11 @@ for(int dim=0; dim<=1; dim++)
    time=state->t;
    state->dt=p->dt;
 
-   appendlog(meta.log_file,*p, *state);
+   //appendlog(meta.log_file,*p, *state);
 
  
     
-    getintparam_(&elist.id,"steeringenabled",&steeringenabled,&elist.port,elist.server);
+    /*getintparam_(&elist.id,"steeringenabled",&steeringenabled,&elist.port,elist.server);
     if(steeringenabled==1)
     {
       //disp('getting updatea params');
@@ -912,16 +882,16 @@ for(int dim=0; dim<=1; dim++)
 
       g=dg;
      
-    }
+    }*/
     
-    for( j1=ngj;j1<nj-ngj;j1++)
+   /* for( j1=ngj;j1<nj-ngj;j1++)
         for( i1=ngi;i1<ni-ngi;i1++)
 {
 
 ;//w[j1*ni+i1+(ni*nj*b1)]=wd[j1*ni+i1+(ni*nj*(hdnur))];
 ;//w[j1*ni+i1+(ni*nj*b2)]=wd[j1*ni+i1+(ni*nj*(hdnul))];
 
-}
+}*/
            
       //save file containing current data
      // sprintf(configfile,"tmp/%ss%d.out",name,n);-

@@ -45,7 +45,7 @@ __global__ void hyperdifrhosource1_parallel(struct params *p, real *w, real *wne
    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
 
-
+   int shift=order*NVAR*(p->n[0])*(p->n[1]);
    
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
@@ -85,11 +85,11 @@ __global__ void hyperdifrhosource1_parallel(struct params *p, real *w, real *wne
   {
      
 
-//dwn1[fencode_hdr1(p,i,j,field)]=( wd[fencode_hdr1(p,i,j,hdnur)] * grad1r_hdr1(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim) - wd[fencode_hdr1(p,i,j,hdnul)] *grad1l_hdr1(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim)             )/rdx;
-//dwn1[fencode_hdr1(p,i,j,field)]=( wtemp[fencode_hdr1(p,i,j,hdnur)] * grad1r_hdr1(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim) - wtemp[fencode_hdr1(p,i,j,hdnul)] *grad1l_hdr1(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim)             );
+//dwn1[fencode_hdr1(p,i,j,field)]=( wd[fencode_hdr1(p,i,j,hdnur)] * grad1r_hdr1(wmod+shift,p,i,j,rho,dim) - wd[fencode_hdr1(p,i,j,hdnul)] *grad1l_hdr1(wmod+shift,p,i,j,rho,dim)             )/rdx;
+//dwn1[fencode_hdr1(p,i,j,field)]=( wtemp[fencode_hdr1(p,i,j,hdnur)] * grad1r_hdr1(wmod+shift,p,i,j,rho,dim) - wtemp[fencode_hdr1(p,i,j,hdnul)] *grad1l_hdr1(wmod+shift,p,i,j,rho,dim)             );
 
-    wtemp[fencode_hdr1(p,i,j,tmp1)]=grad1r_hdr1(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim);
-    wtemp[fencode_hdr1(p,i,j,tmp2)]=grad1l_hdr1(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,dim);
+    wtemp[fencode_hdr1(p,i,j,tmp1)]=grad1r_hdr1(wmod+shift,p,i,j,rho,dim);
+    wtemp[fencode_hdr1(p,i,j,tmp2)]=grad1l_hdr1(wmod+shift,p,i,j,rho,dim);
   }
 }
 __syncthreads();

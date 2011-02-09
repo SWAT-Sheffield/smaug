@@ -17,7 +17,7 @@ __device__ __host__
 void bc_periodic1_cd1t1(real *wt, struct params *p,int i, int j, int f) {
 
                 if(i==0 || i==1 )                
-                    wt[fencode_cd1(p,i,j,flux)]=wt[fencode_cd1(p,(p->n[0])-4+i,j,flux)];
+                    wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,(p->n[0])-4+i,j,f)];
                 else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)) )                
                    ;// wt[fencode_cd1(p,i,j,f)]=wt[fencode_cd1(p,4-(p->n[0])+i,j,f)];
                 else if(j==0 || j==1 )                
@@ -346,9 +346,9 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
                                wd[fencode_cd1(p,i,j,flux)]=0.0;
                                //wmod[fencode_cd1(p,i,j,flux)+order*NVAR*(p->n[0])*(p->n[1])]=0.0;
                         }
- __syncthreads();
+
    }
-                       
+ __syncthreads();                       
 
 
 
@@ -375,9 +375,9 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
                         }
               //  }
                         //might need to set boundaries correctly
- __syncthreads(); 
+ 
 }
-                       
+__syncthreads();                        
 
 /*  for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)

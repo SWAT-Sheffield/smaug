@@ -109,10 +109,10 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
                }*/
 
 	}
- __syncthreads();
+
                }
 }
-
+ __syncthreads();
 
 #ifdef ADIABHYDRO
 ;
@@ -129,10 +129,10 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
 
                   bc_periodic2_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
 
- __syncthreads();
+
    } 
 }
-
+ __syncthreads();
 #endif
 
 

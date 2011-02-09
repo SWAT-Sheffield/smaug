@@ -42,7 +42,7 @@ __global__ void hyperdifmomsourcene4_parallel(struct params *p, real *w, real *w
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
 
-  
+  int shift=order*NVAR*(p->n[0])*(p->n[1]);
 
    int ip,jp,ipg,jpg;
    jp=iindex/(ni/(p->npgp[0]));
@@ -61,7 +61,7 @@ __global__ void hyperdifmomsourcene4_parallel(struct params *p, real *w, real *w
 	{		               
      wtemp[fencode_hdmne4(p,i,j,tmp7)]=wtemp[fencode_hdmne4(p,i,j,tmp1)]*wtemp[fencode_hdmne4(p,i,j,tmp6)];
 
-     wtemp[fencode_hdmne4(p,i,j,tmp8)]=wtemp[fencode_hdmne4(p,i,j,tmp6)]*wmod[(order*NVAR*(p->n[0])*(p->n[1]))+fencode_hdmne4(p,i,j,mom1+ii0)];
+     wtemp[fencode_hdmne4(p,i,j,tmp8)]=wtemp[fencode_hdmne4(p,i,j,tmp6)]*wmod[(shift)+fencode_hdmne4(p,i,j,mom1+ii0)];
 
 
 

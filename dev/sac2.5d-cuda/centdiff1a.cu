@@ -84,8 +84,9 @@ __global__ void centdiff1a_parallel(struct params *p, real *w, real *wmod,
 			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
                          //if( i<(ni) && j<(nj))
                                divflux1(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir);  
- __syncthreads();
+
 }
+ __syncthreads();
                // }
     
 
@@ -129,9 +130,9 @@ __global__ void centdiff1a_parallel(struct params *p, real *w, real *wmod,
 
 
               //  }
- __syncthreads();	
+	
 }
- 
+  __syncthreads();
 
 
 }
