@@ -146,7 +146,7 @@ struct hydrovars{
 typedef enum oldvars {mom3, b3,b3b} CEVOLD;
 #ifdef USE_SAC
    //typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3,rhob,energyb,b1b,b2b,b3b} CEV;
-   typedef enum vars {rho, mom1, mom2, energy, b1, b2,rhob,energyb,b1b,b2b} CEV;
+   typedef enum vars {rho, mom1, mom2, energy, b1, b2,energyb,rhob,b1b,b2b} CEV;
 #else
    //typedef enum vars {rho, mom1, mom2, mom3, energy, b1, b2, b3} CEV;
    typedef enum vars {rho, mom1, mom2, energy, b1, b2} CEV;

@@ -1,5 +1,37 @@
 #include "readwrite.h"
 
+void freadl(FILE *stream, char **string)
+{    
+    unsigned long counter = 0;
+    char *line = NULL;
+    int next = fgetc(stream);
+
+    do {
+        next = fgetc(stream);
+        if (next == EOF) {
+            free(line);
+            break;
+        }
+        ++counter;
+        line = (char*)realloc(line, counter + 1);
+        if (line == NULL) {
+            puts("line == NULL");
+            exit(EXIT_FAILURE);
+        }
+        line[counter - 1] = (char)next;
+    } while (next != '\n');
+    line[counter - 1] = '\0';
+    *string = (char *)malloc(strlen(line) + 1);
+    if (*string == NULL) {
+        puts("*string == NULL");
+    } else {
+        strcpy(*string, line);
+    }
+    free(line);
+
+}
+
+
 
 int createlog(char *logfile)
 {
@@ -306,3 +338,107 @@ int readconfig(char *cfgfile, params p, meta md, real *w)
 
   return status;
 }
+
+
+int readasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines)
+{
+  int status=0;
+  int i;
+  int i1,j1;
+  int ni,nj;
+  int shift;
+  real x,y,val;
+
+   ni=p.n[0];
+   nj=p.n[1];
+
+   FILE *fdt=fopen(cfgfile,"r+");
+   //char **hlines;
+   char *line;
+   //hlines=(char **)calloc(5, sizeof(char*));
+
+   //read 5 header lines
+   for(i=0;i<5;i++)
+   {
+     freadl(fdt, &hlines[i]);
+     printf("%s\n", hlines[i]);
+   }
+  //fscanf(fdt,"%f",&val);
+ //printf("%f",val);
+   for( j1=0;j1<(nj);j1++)
+	     for( i1=0;i1<(nj);i1++)
+             {
+                         shift=(j1*ni+i1);
+                         fscanf(fdt,"%lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG\n",&x,&y,&w[shift],&w[shift+(ni*nj)],&w[shift+(ni*nj*2)],&w[shift+(ni*nj*3)],&w[shift+(ni*nj*4)],&w[shift+(ni*nj*5)],&w[shift+(ni*nj*6)],&w[shift+(ni*nj*7)],&w[shift+(ni*nj*8)],&w[shift+(ni*nj*9)]);
+                         //freadl(fdt, &line);
+                         /*for(i=0; i<NVAR;i++)
+                         {
+                            //fscanf(fdt,"%g",&);
+                             //w[shift+(ni*nj*i)]=val;
+                              printf("%lG ",w[shift+(ni*nj*i)]);
+                         }*/
+                         //fscanf(fdt,"\n");
+                         //printf("\n");
+              }
+
+
+	      fclose(fdt);
+
+  //free(hlines);
+  return status;
+}
+
+int writeasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines, state st)
+{
+  int status=0;
+  int i;
+  int i1,j1;
+  int ni,nj;                         
+  int shift;
+  real x,y,val;
+
+   ni=p.n[0];
+   nj=p.n[1];
+
+   FILE *fdt=fopen(cfgfile,"a+");
+   //char **hlines;
+   char *line;
+   //hlines=(char **)calloc(5, sizeof(char*));
+
+   //printf("here %s\n",hlines[0]);
+   fprintf(fdt,"%s\n", hlines[0]);
+   //read 5 header lines
+
+      //*line2:
+      //*   it          - timestep (integer)
+      //*   t           - time     (real)
+      //*   ndim        - dimensionality, negative sign for gen. coord (integer)
+      //*   neqpar      - number of equation parameters (integer)
+      //*   nw          - number of flow variables (integer)
+      fprintf(fdt,"%d %d %d 6 %d\n", st.it,st.t,NDIM,NVAR);
+   for(i=1;i<=4;i++)
+   {
+     fprintf(fdt,"%s\n", hlines[i]);
+     printf("%s\n",hlines[i]);
+    }
+
+   for( j1=0;j1<(nj);j1++)
+	     for( i1=0;i1<(nj);i1++)
+             {
+                         x=(1+i1)*(p.dx[0]);
+                         y=(1+j1)*(p.dx[1]);
+                         shift=(j1*ni+i1);
+                         fprintf(fdt,"%lE %lE %lE %lE %lE %lE %lE %lE %lE %lE %lE %lE\n",x,y,w[shift],w[shift+(ni*nj)],w[shift+(ni*nj*2)],w[shift+(ni*nj*3)],w[shift+(ni*nj*4)],w[shift+(ni*nj*5)],w[shift+(ni*nj*6)],w[shift+(ni*nj*7)],w[shift+(ni*nj*8)],w[shift+(ni*nj*9)]);
+
+              }
+
+
+	      fclose(fdt);
+
+  //free(hlines);
+  return status;
+}
+
+
+
+

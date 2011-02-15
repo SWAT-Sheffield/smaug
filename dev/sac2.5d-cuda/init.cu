@@ -227,14 +227,18 @@ int ni=p->n[0];
 	//apply this special condition
 	//initiate alfven wave propagtion 
 	//if no initial config read
-	if(p->readini==0)
-	{
+
 	    for(int f=0; f<NVAR; f++)
             { 
-		          w[fencode_i(p,i,j,f)]=0;
+		         
                           for(ord=0;ord<(2+3*(p->rkon==1));ord++)
                               wmod[fencode_i(p,i,j,f)+ord*NVAR*(p->n[0])*(p->n[1])]=0;
 	    }
+
+	if(p->readini==0)
+	{
+        for(int f=0; f<NVAR; f++)
+            w[fencode_i(p,i,j,f)]=0;
             w[fencode_i(p,i,j,rho)]=1.0;
             #ifdef ADIABHYDRO
 		    if(i> (((p->n[0])/2)-2) && i<(((p->n[0])/2)+2) && j>(((p->n[1])/2)-2) && j<(((p->n[1])/2)+2) ) 

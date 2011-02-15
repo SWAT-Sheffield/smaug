@@ -83,7 +83,7 @@ int it=0; //test integer to be returned
 //int elist.port=8080;
 
 int i1,i2,i3,j1;
-int i,j;
+int i,j,iv;
 
 
 char *portfile=(char *)calloc(500,sizeof(char));
@@ -91,6 +91,7 @@ char *sdir=(char *)calloc(500,sizeof(char));
 char *name=(char *)calloc(500,sizeof(char));
 char *outfile=(char *)calloc(500,sizeof(char));
 char *formfile=(char *)calloc(500,sizeof(char));
+
 
 
 real g  = 9.81;
@@ -170,8 +171,11 @@ real tmax = 0.2;
 int steeringenabled=1;
 int finishsteering=0;
 char configfile[300];
+char *cfgfile="zero1.ini";
+char *cfgout="zeroOT.out";
 
-
+char **hlines; //header lines for vac config files 
+hlines=(char **)calloc(5, sizeof(char*));
 // Define time-domain
 real dt;
 
@@ -190,7 +194,8 @@ dt=0.00065;
 int nt=(int)((tmax)/dt);
 //nt=3000;
 nt=400;
-nt=400;
+nt=100;
+nt=100;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -334,7 +339,7 @@ p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=1.0;
-p->readini=0;
+p->readini=1.0;
 p->cfgsavefrequency=1;
 
 
@@ -410,11 +415,14 @@ printf("allocating w and wnew\n");
  w=(real *)calloc(ni*nj*NVAR,sizeof(real ));
 wd=(real *)calloc(ni*nj*NDERV,sizeof(real ));
  wnew=(real *)calloc(ni*nj*NVAR,sizeof(real ));
-char *cfgfile;
+
 if((p->readini)==0)
  initconfig(p, &meta, w);
 else
- readconfig(cfgfile,*p,meta,w);
+ readasciivacconfig(cfgfile,*p,meta,w,hlines);
+
+
+
   real *u,  *v,  *h;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
   h=w+(ni)*(nj)*rho;
@@ -423,7 +431,16 @@ else
 
 cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 
+/*for( j1=0;j1<nj;j1++)
+      {
+        for( i1=0;i1<ni;i1++)
+	{
+              for(iv=0;iv<NVAR;iv++)               
+                      printf("%f ", w[j1*ni+i1+(ni*nj*iv)]);
+               printf("\n");
 
+           }
+         }*/
 
 
 //For a steerable simulation generate and save a dxformfile that saves a single data step
@@ -468,6 +485,7 @@ for( n=0;n<nt;n++)
     {
       //writeconfig(name,n,*p, meta , w);
       writevtkconfig(name,n,*p, meta , w);
+      //writeasciivacconfig(cfgout,*p, meta , w,hlines,*state);
     }
    order=0;
    t1=second();
@@ -542,7 +560,7 @@ if((p->rkon)==0)
        cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
 
       cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
-       cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
+      cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
        cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
        cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
 
@@ -950,6 +968,7 @@ for(int dim=0; dim<=1; dim++)
 //}//disp('while finsish steering');
 //}//end //while finishsteering loop
 cufinish(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd);
+free(hlines);
 free(p);
 free(sdir);
 free(name);
