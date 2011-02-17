@@ -23,19 +23,19 @@ int divflux1(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int fi
   int status=0;
   real divflux=0;
   //dw[fencode_cd1a(p,ix,iy,field)]= grad_cd1a(wd,p,ix,iy,f1,dir);//+grad_cd1a(wd,p,ix,iy,f2,1); 
-dw[fencode_cd1a(p,ix,iy,field)]= grad_cd1a(wd,p,ix,iy,flux,dir);//+grad_cd1a(wd,p,ix,iy,f2,1); 
- /*switch(field)
+dw[fencode_cd1a(p,ix,iy,field)]= grad_cd1a(wd,p,ix,iy,flux,dir); 
+ switch(field)
   {
      case mom1:
-       dw[fencode_cd1a(p,ix,iy,field)]+= grad_cd1a(wd,p,ix,iy,pressuret,0);
+       dw[fencode_cd1a(p,ix,iy,field)]+= (p->g[dir])*w[fencode_cd1a(p,ix,iy,rho)];
       break;
 
     case mom2:
-      dw[fencode_cd1a(p,ix,iy,field)]+= grad_cd1a(wd,p,ix,iy,pressuret,1);
+      dw[fencode_cd1a(p,ix,iy,field)]+= (p->g[dir])*w[fencode_cd1a(p,ix,iy,rho)];
       break;
 
 
-  } */   
+  }    
  // dw[fencode_cd1a(p,ix,iy,field)]= gradd0_cd1a(wd,p,ix,iy,f1,0)+gradd1_cd1a(wd,p,ix,iy,f2,1);    
   return ( status);
 }

@@ -289,6 +289,36 @@ void bc_cont_MODID(real *wt, struct params *p,int i, int j, int f) {
 
 }
 
+
+
+__device__ __host__
+void bc_cont_cd4_MODID(real *wt, struct params *p,int i, int j, int f) {
+
+                
+                if(i==0)              
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,4,j,f)];
+                else if(i==1)                
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,3,j,f)];
+                else if( i==((p->n[0])-1))               
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-5,j,f)];
+                else if (i==((p->n[0])-2))                
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-4,j,f)];
+               
+
+
+                if(j==0)               
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,4,f)];
+                else if(j==1)                
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,3,f)];
+                else if (j== ((p->n[1])-1))               
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-5,f)];
+               else if (j== ((p->n[1])-2))                
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-4,f)];
+
+}
+
+
+
 __device__ __host__
 void bc_fixed_MODID(real *wt, struct params *p,int i, int j, int f, real val) {
 
@@ -486,7 +516,9 @@ void bc_periodic1_MODID(real *wt, struct params *p,int i, int j, int f) {
                 //else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)) || (i==((p->n[0])-3)))
                 else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))                
                     wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,4-(p->n[0])+i,j,f)];
-                else if(j==0 || j==1 )                
+
+
+                if(j==0 || j==1 )                
                   wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,i,(p->n[1])-4+j,f)];
                 //else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)) || (j==((p->n[1])-3)))
                 else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)) )                 

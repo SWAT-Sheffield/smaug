@@ -58,8 +58,10 @@ int divflux_cd2a(real *dw, real *wd, real *w, struct params *p,int ix, int iy,in
 
 
  #ifdef USE_SAC
-  if(field==energy)     
-     dw[fencode_cd2a(p,ix,iy,field)]+=fluxe2(dw, wd, w, p,ix, iy,dir);
+  if(field==energy)
+  {    
+     dw[fencode_cd2a(p,ix,iy,field)]+=fluxe2(dw, wd, w, p,ix, iy,dir)+w[fencode_cd2a(p,ix,iy,rho)]*((p->g[dir])*w[fencode_cd2a(p,ix,iy,mom1+dir)]    )/(w[fencode_cd2a(p,ix,iy,rho)]+w[fencode_cd2a(p,ix,iy,rhob)]);
+   }
 
 
  #endif
