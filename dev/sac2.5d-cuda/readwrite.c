@@ -132,46 +132,65 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
   int ni,nj;
   char configfile[300];
   char buffer[800];
-  double dbuffer[10];
+  double dbuffer[12];
+  int ibuffer[5];
 
   ni=p.n[0];
   nj=p.n[1];
 
       //save file containing current data
-      sprintf(configfile,"out/v%s.out",name);
+      //sprintf(configfile,"out/v%s.out",name);
+      sprintf(configfile,"%s",name);
       printf("check dims %d %d \n",ni,nj);
       FILE *fdt=fopen(configfile,"a+");
 
-      fwrite(md.name,sizeof(char)*strlen(md.name),1,fdt);
+      fwrite(md.name,sizeof(char)*79,1,fdt);
       //*line2:
       //*   it          - timestep (integer)
       //*   t           - time     (real)
       //*   ndim        - dimensionality, negative sign for gen. coord (integer)
       //*   neqpar      - number of equation parameters (integer)
       //*   nw          - number of flow variables (integer)
-      sprintf(buffer,"%d %f 3 4 8\n",st.it,st.t);
-      fwrite(buffer,sizeof(char)*strlen(buffer),1,fdt);
+      //sprintf(buffer,"%ld %lg %ld %ld %ld\n",st.it,st.t,3,4,8);
+      //it,time,ndim,neqpar,nw
+      printf("st.it=%f\n",st.it);
+      ibuffer[0]=st.it;
+      dbuffer[0]=st.t;
+      fwrite(ibuffer,sizeof(int),1,fdt);
+      fwrite(dbuffer,sizeof(double),1,fdt);
+      ibuffer[0]=2;
+      ibuffer[1]=6;
+      ibuffer[2]=10;
+      fwrite(ibuffer,sizeof(int)*3,1,fdt);
 
       //line3:
       //*   nx()        - the grid dimensions      (ndim integers)
-      sprintf(buffer,"%d %d\n",ni,nj);
-      fwrite(buffer,sizeof(char)*strlen(buffer),1,fdt);
+      //sprintf(buffer,"%ld %ld\n",ni,nj);
+      ibuffer[0]=ni;
+      ibuffer[1]=nj;
+      fwrite(ibuffer,sizeof(int)*2,1,fdt);
 
       //*line4:
       //*   eqpar()     - equation parameters from filenameini (neqpar reals)
-      sprintf(buffer,"%f %f %f %f\n",p.eta,p.g[0],p.g[1],p.g[2]);
-      fwrite(buffer,sizeof(char)*strlen(buffer),1,fdt);
+      //sprintf(buffer,"%lg %lg %lg %lg %lg %lg\n",p.gamma,p.eta,p.g[0],p.g[1],0,0);
+      dbuffer[0]=p.gamma;
+      dbuffer[1]=p.eta;
+      dbuffer[2]=p.g[0];
+      dbuffer[3]=p.g[1];
+      dbuffer[4]=0;
+      dbuffer[5]=0;
+      fwrite(dbuffer,sizeof(double)*6,1,fdt);
 
       //*line5:
       //*   varnames    - names of the coordinates, variables, equation parameters
       //*                 eg. 'x y rho mx my e bx by  gamma eta' (character*79)
       sprintf(buffer,"x y rho mx my mz e bx by bz gamma eta g1 g2 g3\n");
-      fwrite(buffer,sizeof(char)*strlen(buffer),1,fdt);
-
-       for( i1=(p.ng[0]);i1<(nj-(p.ng[0]));i1++)
+      fwrite(buffer,sizeof(char)*79,1,fdt);
+         for( i1=0;i1<ni;i1++)   
 	{
-         
-     for( j1=(p.ng[1]);j1<(nj-(p.ng[1]));j1++)
+//energyb,rhob,b1b,b2b         
+     
+for( j1=0;j1<nj;j1++)  
       {
 
                 dbuffer[0]=i1*p.dx[0];
@@ -179,13 +198,16 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
                 dbuffer[2]=w[(j1*ni+i1)+(ni*nj*rho)];
                 dbuffer[3]=w[(j1*ni+i1)+(ni*nj*mom1)];
                 dbuffer[4]=w[(j1*ni+i1)+(ni*nj*mom2)];
-                dbuffer[5]=w[(j1*ni+i1)+(ni*nj*mom3)];
-                dbuffer[6]=w[(j1*ni+i1)+(ni*nj*energy)];
-                dbuffer[7]=w[(j1*ni+i1)+(ni*nj*b1)];
-                dbuffer[8]=w[(j1*ni+i1)+(ni*nj*b2)];
-                dbuffer[9]=w[(j1*ni+i1)+(ni*nj*b3)];
+                dbuffer[5]=w[(j1*ni+i1)+(ni*nj*energy)];
+                dbuffer[6]=w[(j1*ni+i1)+(ni*nj*b1)];
+                dbuffer[7]=w[(j1*ni+i1)+(ni*nj*b2)];
+                dbuffer[8]=w[(j1*ni+i1)+(ni*nj*energyb)];
+                dbuffer[9]=w[(j1*ni+i1)+(ni*nj*rhob)];
+                dbuffer[10]=w[(j1*ni+i1)+(ni*nj*b1b)];
+                dbuffer[11]=w[(j1*ni+i1)+(ni*nj*b2b)];
 
-                fwrite(dbuffer,10*sizeof(double),1,fdt);		
+
+                fwrite(dbuffer,12*sizeof(double),1,fdt);		
 
         }     
       }

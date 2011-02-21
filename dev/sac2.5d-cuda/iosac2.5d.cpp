@@ -119,7 +119,8 @@ real dx = 0.55*xmax/(ni-4);
 #ifndef ADIABHYDRO
 //vac ozt
 int ni;
-ni=96;
+//ni=496;
+ni=796; //BW tests
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
@@ -143,7 +144,8 @@ real dy = 0.55*ymax/(nj-4);
 #ifndef ADIABHYDRO
 //vac ozt
 int nj = 196;
-nj=96;
+//nj=496;
+nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
@@ -171,7 +173,8 @@ real tmax = 0.2;
 int steeringenabled=1;
 int finishsteering=0;
 char configfile[300];
-char *cfgfile="zero1.ini";
+//char *cfgfile="zero1.ini";
+char *cfgfile="zero1_BW.ini";
 char *cfgout="zeroOT.out";
 
 char **hlines; //header lines for vac config files 
@@ -186,6 +189,7 @@ dt=0.0002985;  //ADIABHYDRO
 
 #ifndef ADIABHYDRO
 dt=0.00065;
+dt=6.5/10000000.0; //BW test
 //dt=0.000139;
 #endif
 //dt=0.00009;
@@ -315,8 +319,8 @@ p->adiab=1.0;
 #else
 
 //ozt test
-p->gamma=5.0/3.0;
-
+//p->gamma=5.0/3.0;
+p->gamma=2.0;  //BW test
 //alfven test
 //p->gamma=1.4;
 
@@ -338,7 +342,7 @@ p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=1.0;
+p->hyperdifmom=0.0;
 p->readini=1.0;
 p->cfgsavefrequency=1;
 
@@ -368,7 +372,7 @@ p->chyp[b2]=0.02;
 p->chyp[mom1]=0.4;
 p->chyp[mom2]=0.4;
 
-p->chyp[rho]=0.02;
+p->chyp[rho]=0.045;
 p->chyp[mom1]=0.4;
 p->chyp[mom2]=0.4;
 printf("calling cuinit\n");
@@ -477,6 +481,9 @@ int orderb=0;
 int ii,ii0,ii1;
 ttot=0;
 real time=0.0;
+   state->it=0;
+   state->t=0;
+   state->dt=p->dt;
 for( n=0;n<nt;n++)
 //for( n=0;n<1;n++)
 {
@@ -484,8 +491,10 @@ for( n=0;n<nt;n++)
     if((n%(p->cfgsavefrequency))==0)
     {
       //writeconfig(name,n,*p, meta , w);
-      writevtkconfig(name,n,*p, meta , w);
+      //writevtkconfig(name,n,*p, meta , w);
       //writeasciivacconfig(cfgout,*p, meta , w,hlines,*state);
+
+      writevacconfig(cfgout,n,*p, meta , w,*state);
     }
    order=0;
    t1=second();
