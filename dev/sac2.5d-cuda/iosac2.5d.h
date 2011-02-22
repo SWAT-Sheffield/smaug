@@ -38,18 +38,24 @@ Author contact information:
 mikeg@photon0.freeserve.co.uk
 --------------------------------------------------------------------------------
 */
-#ifndef HYPERDIF_H_
-#define HYPERDIF_H_
 
-
-
+#ifdef USE_IOME
 	#include <iome/simulation/IoInitialiser.h>
 	//#include <iome/simulation/soapH.h>
 	#include <iome/genericsimulationlib/IoGenericSimulationLib.h>
+
 	#include <iome/simulation/IoSteerWS.nsmap>
+#endif
+#ifndef HYPERDIF_H_
+#define HYPERDIF_H_
+//	#include <iome/simulation/stdsoap2.h>
     	#include <unistd.h>
 	#include <sys/stat.h>
 	#include <sys/types.h>
+	#include <sys/wait.h>
+        #include <sys/time.h>
+
+
 
 
 
@@ -66,7 +72,7 @@ mikeg@photon0.freeserve.co.uk
 #include "readwrite.h"
 #include "dxroutines.h"
 #include "initialisation.h"
-#include <iome/genericsimulationlib/IoGenericSimulationLib.h>
+
 
 
 

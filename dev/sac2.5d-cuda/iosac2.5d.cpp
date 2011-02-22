@@ -1,46 +1,7 @@
-// IoSimulationTest.cpp : Defines the entry point for the console application.
+// iosac2.5d.cpp : Defines the entry point for the console application.
 //
 
-/*
-IOME LICENSE
-IOME Version 1.1.1
 
-IOME Development  Tools
-Copyright (C) 2001-2004, Michael Kenneth Griffiths, All Rights Reserved.
-
---------------------------------------------------------------------------------
-IOME public license.
-
-The contents of this file are subject to the IOME Public License Version 1.3
-(the "License"); you may not use this file except in compliance with the
-License. You may obtain a copy of the License at
-http://81.174.178.112/iome/licensing/iomelicense.html
-Software distributed under the License is distributed on an "AS IS" basis,
-WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-for the specific language governing rights and limitations under the License.
-
-The Initial Developer of the Original Code is Michael Kenneth Griffiths.
-Copyright (C) 2000-2004 Michael Kenneth Griffiths. All Rights Reserved.
---------------------------------------------------------------------------------
-GPL license.
-
-This program is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with
-this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-Place, Suite 330, Boston, MA 02111-1307 USA
-
-Author contact information:
-mikeg@photon0.freeserve.co.uk
---------------------------------------------------------------------------------
-*/
 #include "iosac2.5d.h"
 #include "step.h"
 /*----------------------*/ 
@@ -399,6 +360,8 @@ printf("calling cuinit\n");
 	//fscanf(fd,"%d",&elist.portelist.id);
 	//fclose(fd);
 	//elist.elist.port=elist.portelist.id;
+
+    #ifdef USE_IOME
         if(argc>2)
         {
           //simfile already read by 
@@ -411,6 +374,7 @@ printf("calling cuinit\n");
 
 	sprintf(simfile,"%s.xml",meta.name);
         sprintf(newsimfile,"%s_update.xml",meta.name);
+     #endif
 	//NewSimulation(metadata.name,'test1.xsl',elist);
 
 // Build empty u, v, b matrices
@@ -450,6 +414,8 @@ cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&
 //For a steerable simulation generate and save a dxformfile that saves a single data step
 //used for the steering dx module
 //printf("here in runsim2a\n");
+
+#ifdef USE_IOME
 getmetadata_(elist.id,"directory",&sdir,elist.port,elist.server);
 //sdir=metadata.directory
 
@@ -459,6 +425,7 @@ getmetadata_(elist.id,"name",&name,elist.port,elist.server);
 //disp(sdir,name)
 //printf("here in runsim3\n");
 sprintf(outfile,"%s/%s.out",sdir,name);
+#endif
 
 
 
@@ -997,7 +964,9 @@ free(formfile);
 	//chdir(metadata.directory);
         //readsimulation_(elist.elist.id,simfile,elist.elist.port,elist.elist.server);
 	//runsim(consts,dom,src,meta,simfile,elist);
+#ifdef USE_IOME
 	writesimulation_(elist.id,newsimfile,elist.port,elist.server);
+#endif
 
 
 	return 0;

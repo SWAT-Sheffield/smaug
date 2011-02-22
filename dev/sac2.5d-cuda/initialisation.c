@@ -1,4 +1,6 @@
 #include "iotypes.h"
+
+#ifdef USE_IOME
 #include <iome/genericsimulationlib/IoGenericSimulationLib.h>
 
 void createsim(params k,  meta metadata,char *simname, iome el)
@@ -125,6 +127,8 @@ k->finishsteering=finishsteering;
   printf("read metadata\n");
 
 }
+
+#endif
 
 void initconfig(params *k, meta *md, real *w)
 {
