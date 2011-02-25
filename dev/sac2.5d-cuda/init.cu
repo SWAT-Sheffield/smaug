@@ -169,6 +169,73 @@ w[fencode_i(p,i,j,energy)]=-sin(1.0*i*(p->dx[0]));
 }
 
 
+__device__ __host__
+void init_bwtest (real *w, struct params *p,int i, int j) {
+                    
+             real ptot=5.0/3.0;
+             real rrho=25.0/(36.0*PI);
+             real rgamm1;
+             real e1,e2;
+             int ni=p->n[0];
+             int nj=p->n[1];
+
+	#ifdef USE_SAC
+		    
+
+                    rgamm1=1.0/((p->gamma)-1);
+		    
+                    if(i<(ni/2))
+                    {
+
+                    w[fencode_i(p,i,j,rhob)]=0.0;
+                    w[fencode_i(p,i,j,rho)]=1.0;
+
+		    w[fencode_i(p,i,j,b1)]=0.75;
+		    w[fencode_i(p,i,j,b2)]=1.0;
+		    w[fencode_i(p,i,j,mom2)]=0.0;
+                    w[fencode_i(p,i,j,mom1)]=0.0;
+                    ptot=1.0;
+                    e1=ptot*rgamm1+(0.5*(w[fencode_i(p,i,j,mom1)]*w[fencode_i(p,i,j,mom1)]+w[fencode_i(p,i,j,mom2)]*w[fencode_i(p,i,j,mom2)])/rrho);
+                    e2=0.5*(w[fencode_i(p,i,j,b1)]*w[fencode_i(p,i,j,b1)]+w[fencode_i(p,i,j,b2)]*w[fencode_i(p,i,j,b2)]);
+                    w[fencode_i(p,i,j,energyb)]=(e1+e2);
+                    w[fencode_i(p,i,j,energy)]=w[fencode_i(p,i,j,energyb)];
+                    w[fencode_i(p,i,j,energyb)]=0.0;
+
+
+                    }
+                    else
+                    {
+
+                    w[fencode_i(p,i,j,rhob)]=0.0;
+                    w[fencode_i(p,i,j,rho)]=0.125;
+ 
+		    w[fencode_i(p,i,j,b1)]=0.75;
+		    w[fencode_i(p,i,j,b2)]=-1.0;
+		    w[fencode_i(p,i,j,mom2)]=0.0;
+                    w[fencode_i(p,i,j,mom1)]=0.0;
+                    ptot=0.1;
+                    e1=ptot*rgamm1+(0.5*(w[fencode_i(p,i,j,mom1)]*w[fencode_i(p,i,j,mom1)]+w[fencode_i(p,i,j,mom2)]*w[fencode_i(p,i,j,mom2)])/rrho);
+                    e2=0.5*(w[fencode_i(p,i,j,b1)]*w[fencode_i(p,i,j,b1)]+w[fencode_i(p,i,j,b2)]*w[fencode_i(p,i,j,b2)]);
+                    w[fencode_i(p,i,j,energyb)]=(e1+e2);
+                    w[fencode_i(p,i,j,energy)]=w[fencode_i(p,i,j,energyb)];
+                    w[fencode_i(p,i,j,energyb)]=0.0;
+
+ 
+
+                    }
+
+
+
+
+
+       #endif
+
+
+
+
+
+}
+
 //*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd
 
 __global__ void init_parallel(struct params *p, real *w, real *wnew, real *wmod, 
@@ -248,6 +315,7 @@ int ni=p->n[0];
                    // init_alftest(w,p,i,j);
                    // init_ozttest (real *w, struct params *p,int i, int j)
                     init_ozttest(w,p,i,j);
+                    init_bwtest(w,p,i,j);
            #endif
 
 	}

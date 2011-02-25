@@ -22,8 +22,9 @@ int divflux1(real *dw, real *wd, real *w, struct params *p,int ix, int iy,int fi
   int direction;
   int status=0;
   real divflux=0;
-  //dw[fencode_cd1a(p,ix,iy,field)]= grad_cd1a(wd,p,ix,iy,f1,dir);//+grad_cd1a(wd,p,ix,iy,f2,1); 
+
 dw[fencode_cd1a(p,ix,iy,field)]= grad_cd1a(wd,p,ix,iy,flux,dir); 
+//dw[fencode_cd1a(p,ix,iy,field)]=0.0;
  switch(field)
   {
      case mom1:
@@ -33,7 +34,9 @@ dw[fencode_cd1a(p,ix,iy,field)]= grad_cd1a(wd,p,ix,iy,flux,dir);
     case mom2:
       dw[fencode_cd1a(p,ix,iy,field)]+= (p->g[dir])*w[fencode_cd1a(p,ix,iy,rho)];
       break;
-
+    case rho:
+     ;// dw[fencode_cd1a(p,ix,iy,field)]+= ix/800;
+      break;
 
   }    
  // dw[fencode_cd1a(p,ix,iy,field)]= gradd0_cd1a(wd,p,ix,iy,f1,0)+gradd1_cd1a(wd,p,ix,iy,f2,1);    

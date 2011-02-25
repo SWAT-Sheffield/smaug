@@ -128,7 +128,7 @@ fprintf(fdt,"%d %d %f %f %f %f %f %f %f %f\n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[
 int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
 {
   int status=0;
-  int i1,j1;
+  int i1,j1,ifield;
   int ni,nj;
   char configfile[300];
   char buffer[800];
@@ -139,10 +139,10 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
   nj=p.n[1];
 
       //save file containing current data
-      //sprintf(configfile,"out/v%s.out",name);
-      sprintf(configfile,"%s",name);
-      printf("check dims %d %d \n",ni,nj);
-      FILE *fdt=fopen(configfile,"a+");
+      sprintf(configfile,"out/%s_%d.out","zeroOT",st.it);
+     // sprintf(configfile,"%s",name);
+      printf("write vac check dims %d %d %d %lf\n",ni,nj,st.it,st.t);
+      FILE *fdt=fopen(configfile,"a");
 
       fwrite(md.name,sizeof(char)*79,1,fdt);
       //*line2:
@@ -153,9 +153,11 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
       //*   nw          - number of flow variables (integer)
       //sprintf(buffer,"%ld %lg %ld %ld %ld\n",st.it,st.t,3,4,8);
       //it,time,ndim,neqpar,nw
-      printf("st.it=%f\n",st.it);
+      printf("st.it=%d\n",st.it);
       ibuffer[0]=st.it;
       dbuffer[0]=st.t;
+      //ibuffer[0]=1;
+      //dbuffer[0]=10.98; st.it
       fwrite(ibuffer,sizeof(int),1,fdt);
       fwrite(dbuffer,sizeof(double),1,fdt);
       ibuffer[0]=2;
@@ -184,16 +186,25 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
       //*line5:
       //*   varnames    - names of the coordinates, variables, equation parameters
       //*                 eg. 'x y rho mx my e bx by  gamma eta' (character*79)
-      sprintf(buffer,"x y rho mx my mz e bx by bz gamma eta g1 g2 g3\n");
+      sprintf(buffer,"x y rho mx my mz e bx by bz gamma eta g1 g2 g3");
       fwrite(buffer,sizeof(char)*79,1,fdt);
-         for( i1=0;i1<ni;i1++)   
+ 
+for(ifield=0;ifield<12;ifield++)   
+
+for( j1=0;j1<nj;j1++)
+  
 	{
 //energyb,rhob,b1b,b2b         
-     
-for( j1=0;j1<nj;j1++)  
+       for( i1=0;i1<ni;i1++)     
       {
-
-                dbuffer[0]=i1*p.dx[0];
+   
+               if(ifield==0)
+               dbuffer[0]=i1*p.dx[0];
+               else if(ifield==1)
+               dbuffer[0]=j1*p.dx[1];
+               else
+                dbuffer[0]=w[(j1*ni+i1)+(ni*nj*(ifield-2))];
+                /*dbuffer[0]=i1*p.dx[0];
                 dbuffer[1]=j1*p.dx[1];
                 dbuffer[2]=w[(j1*ni+i1)+(ni*nj*rho)];
                 dbuffer[3]=w[(j1*ni+i1)+(ni*nj*mom1)];
@@ -204,19 +215,125 @@ for( j1=0;j1<nj;j1++)
                 dbuffer[8]=w[(j1*ni+i1)+(ni*nj*energyb)];
                 dbuffer[9]=w[(j1*ni+i1)+(ni*nj*rhob)];
                 dbuffer[10]=w[(j1*ni+i1)+(ni*nj*b1b)];
-                dbuffer[11]=w[(j1*ni+i1)+(ni*nj*b2b)];
+                dbuffer[11]=w[(j1*ni+i1)+(ni*nj*b2b)];*/
 
 
-                fwrite(dbuffer,12*sizeof(double),1,fdt);		
+                //fwrite(dbuffer,12*sizeof(double),1,fdt);
+                fwrite(dbuffer,sizeof(double),1,fdt);		
 
         }     
       }
+      buffer[0]='\n';
+      fwrite(buffer,sizeof(char),1,fdt);
       fclose(fdt);
 
   return status;
 }
 
+/*Big problems with reading fortran unformatted "binary files" need to include 
+  record field*/
 
+int readbinvacconfig(char *name,params p, meta md, real *w, state st)
+{
+  int status=0;
+  int i1,j1;
+  int ni,nj;
+  char configfile[300];
+  char buffer[85];
+  double dbuffer[12];
+  int ibuffer[5];
+  long lsize;
+  size_t result;
+
+  char *bigbuf;
+
+  ni=p.n[0];
+  nj=p.n[1];
+
+      //save file containing current data
+      //sprintf(configfile,"out/v%s.out",name);
+      sprintf(configfile,"%s",name);
+      printf("check dims %d %d \n",ni,nj);
+      FILE *fdt=fopen(configfile,"r");
+
+
+      fread(buffer,sizeof(char),80,fdt);
+      for(i1=0;i1<81;i1++)
+         putchar(buffer[i1]);
+      printf("starting %s\n ",buffer);
+      //*line2:
+      //*   it          - timestep (integer)
+      //*   t           - time     (real)
+      //*   ndim        - dimensionality, negative sign for gen. coord (integer)
+      //*   neqpar      - number of equation parameters (integer)
+      //*   nw          - number of flow variables (integer)
+      //sprintf(buffer,"%ld %lg %ld %ld %ld\n",st.it,st.t,3,4,8);
+      //it,time,ndim,neqpar,nw
+
+      fread(ibuffer,sizeof(int),1,fdt);
+      fread(dbuffer,sizeof(double),1,fdt);
+      st.it=ibuffer[0]=st.it;
+      st.t=dbuffer[0]=st.t;
+      printf("st.it=%f st.t=%d\n",st.it,st.t);
+
+
+      //fread(ibuffer,sizeof(int)*3,1,fdt);
+
+      //line3:
+      //*   nx()        - the grid dimensions      (ndim integers)
+      //sprintf(buffer,"%ld %ld\n",ni,nj);
+      //fread(ibuffer,sizeof(int)*2,1,fdt);
+      //ni=ibuffer[0];
+      //nj=ibuffer[1];
+
+      //*line4:
+      //*   eqpar()     - equation parameters from filenameini (neqpar reals)
+      //sprintf(buffer,"%lg %lg %lg %lg %lg %lg\n",p.gamma,p.eta,p.g[0],p.g[1],0,0);
+      //fread(dbuffer,sizeof(double)*6,1,fdt);
+      p.gamma=dbuffer[0];
+      p.eta=dbuffer[1];
+      p.g[0]=dbuffer[2];
+      p.g[1]=dbuffer[3];
+      printf("%f %f %f %f\n",dbuffer[0],dbuffer[1],dbuffer[2],dbuffer[3]);
+
+      //*line5:
+      //*   varnames    - names of the coordinates, variables, equation parameters
+      //*                 eg. 'x y rho mx my e bx by  gamma eta' (character*79)
+      sprintf(buffer,"x y rho mx my mz e bx by bz gamma eta g1 g2 g3\n");
+      //fread(buffer,sizeof(char)*79,1,fdt);
+         for( i1=0;i1<ni;i1++)   
+	{
+//energyb,rhob,b1b,b2b         
+     
+for( j1=0;j1<nj;j1++)  
+      {
+
+
+               // fread(dbuffer,12*sizeof(double),1,fdt);		
+                //i1*p.dx[0]=dbuffer[0];
+                //j1*p.dx[1]=dbuffer[1];
+               //if(j1==2 || j1==3)
+                //  printf("%d %d %d %d %lg\n", ni,nj,i1,j1,dbuffer[2]);
+                w[(j1*ni+i1)+(ni*nj*rho)]=dbuffer[2];
+                w[(j1*ni+i1)+(ni*nj*mom1)]=dbuffer[3];
+                w[(j1*ni+i1)+(ni*nj*mom2)]=dbuffer[4];
+                w[(j1*ni+i1)+(ni*nj*energy)]=dbuffer[5];
+                w[(j1*ni+i1)+(ni*nj*b1)]=dbuffer[6];
+                w[(j1*ni+i1)+(ni*nj*b2)]=dbuffer[7];
+                w[(j1*ni+i1)+(ni*nj*energyb)]=dbuffer[8];
+                w[(j1*ni+i1)+(ni*nj*rhob)]=dbuffer[9];
+                w[(j1*ni+i1)+(ni*nj*b1b)]=dbuffer[10];
+                w[(j1*ni+i1)+(ni*nj*b2b)]=dbuffer[11];
+
+
+        }     
+      }
+      fclose(fdt);
+      free(bigbuf);
+  return status;
+
+
+}
 
 
 int writevtkconfig(char *name,int n,params p, meta md, real *w)
@@ -387,8 +504,10 @@ int readasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines)
    }
   //fscanf(fdt,"%f",&val);
  //printf("%f",val);
-   for( j1=0;j1<(nj);j1++)
-	     for( i1=0;i1<(nj);i1++)
+for( j1=0;j1<(nj);j1++)
+for( i1=0;i1<(ni);i1++)
+   
+	     
              {
                          shift=(j1*ni+i1);
                          fscanf(fdt,"%lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG\n",&x,&y,&w[shift],&w[shift+(ni*nj)],&w[shift+(ni*nj*2)],&w[shift+(ni*nj*3)],&w[shift+(ni*nj*4)],&w[shift+(ni*nj*5)],&w[shift+(ni*nj*6)],&w[shift+(ni*nj*7)],&w[shift+(ni*nj*8)],&w[shift+(ni*nj*9)]);

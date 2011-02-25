@@ -136,6 +136,7 @@ int finishsteering=0;
 char configfile[300];
 //char *cfgfile="zero1.ini";
 char *cfgfile="zero1_BW.ini";
+//char *cfgfile="zero1_BW_bin.ini";
 char *cfgout="zeroOT.out";
 
 char **hlines; //header lines for vac config files 
@@ -160,7 +161,7 @@ int nt=(int)((tmax)/dt);
 //nt=3000;
 nt=400;
 nt=100;
-nt=100;
+nt=1000000;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -303,9 +304,9 @@ p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=0.0;
-p->readini=1.0;
-p->cfgsavefrequency=1;
+p->hyperdifmom=1.0;
+p->readini=0.0;
+p->cfgsavefrequency=1000;
 
 
 p->xmax[0]=xmax;
@@ -391,6 +392,20 @@ else
 
 
 
+
+//writeasciivacconfig(cfgout,*p, meta , w,hlines,*state);
+//writevacconfig(cfgout,0,*p, meta , w,*state);
+  /*   for( j1=2;j1<5;j1++)
+      {
+        for( i1=0;i1<ni;i1++)
+	{
+        //j1=2;
+	printf("%d %d %f %f %f\n",i1,j1,w[j1*ni+i1+(ni*nj*rho)],w[j1*ni+i1+(ni*nj*mom1)],w[j1*ni+i1+(ni*nj*mom2)]);
+        }     
+       //
+
+      }
+ printf("\n");*/  
   real *u,  *v,  *h;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
   h=w+(ni)*(nj)*rho;
@@ -451,17 +466,17 @@ real time=0.0;
    state->it=0;
    state->t=0;
    state->dt=p->dt;
-for( n=0;n<nt;n++)
+for( n=1;n<=nt;n++)
 //for( n=0;n<1;n++)
 {
 
     if((n%(p->cfgsavefrequency))==0)
     {
       //writeconfig(name,n,*p, meta , w);
-      //writevtkconfig(name,n,*p, meta , w);
+      writevtkconfig(name,n,*p, meta , w);
       //writeasciivacconfig(cfgout,*p, meta , w,hlines,*state);
 
-      writevacconfig(cfgout,n,*p, meta , w,*state);
+       writevacconfig(cfgout,n,*p, meta , w,*state);
     }
    order=0;
    t1=second();
