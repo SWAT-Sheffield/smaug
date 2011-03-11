@@ -139,10 +139,10 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
   nj=p.n[1];
 
       //save file containing current data
-      sprintf(configfile,"out/%s_%d.out","zeroOT",st.it);
+      sprintf(configfile,"out/%s_%d.out",name,st.it);
      // sprintf(configfile,"%s",name);
       printf("write vac check dims %d %d %d %lf\n",ni,nj,st.it,st.t);
-      FILE *fdt=fopen(configfile,"a");
+      FILE *fdt=fopen(configfile,"w");
 
       fwrite(md.name,sizeof(char)*79,1,fdt);
       //*line2:

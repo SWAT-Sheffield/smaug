@@ -86,7 +86,8 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
 #ifdef ADIABHYDRO
                   bc_cont_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
 #else
-                 bc_periodic1_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
+              ;  // bc_periodic1_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);  //for OZT
+              //    bc_cont_cd4_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);  //for BW
 #endif                
 
                 //  bc_fixed_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,0.0);
@@ -114,7 +115,7 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
 }
  __syncthreads();
 
-#ifdef ADIABHYDRO
+/*#ifdef ADIABHYDRO
 ;
 #else
   //This second call makes sure corners are set correctly
@@ -133,7 +134,7 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
    } 
 }
  __syncthreads();
-#endif
+#endif*/
 
 
 

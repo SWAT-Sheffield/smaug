@@ -34,10 +34,10 @@ computept_cd2a(w,wd,p,ix,iy);
 // wd[fencode_cd2a(p,ix,iy,ptb)]=  ((p->gamma)-1)*w[fencode_cd2a(p,ix,iy,energyb)]- 0.5*((p->gamma)-2)*(w[fencode_cd2a(p,ix,iy,b1b)]*w[fencode_cd2a(p,ix,iy,b1b)]+w[fencode_cd2a(p,ix,iy,b2b)]*w[fencode_cd2a(p,ix,iy,b2b)]) ;
 
 
-      		flux= wd[fencode_cd2a(p,ix,iy,ptb)]*grad_cd2a(wd,p,ix,iy,vel1+dir,dir);
+      		flux= -wd[fencode_cd2a(p,ix,iy,ptb)]*grad_cd2a(wd,p,ix,iy,vel1+dir,dir);
                 //flux     +=(w[fencode_cd2a(p,ix,iy,b1b)]*(w[fencode_cd2a(p,ix,iy,b1b)]+w[fencode_cd2a(p,ix,iy,b2b)]) +w[fencode_cd2a(p,ix,iy,b2b)]*(w[fencode_cd2a(p,ix,iy,b1b)]+w[fencode_cd2a(p,ix,iy,b2b)])); 
                // flux *= ((grad_cd2a(wd,p,ix,iy,vel1+dir,dir))); 
-               flux += -w[fencode_cd2a(p,ix,iy,b1b)]*w[fencode_cd2a(p,ix,iy,b1b+dir)]*grad_cd2a(wd,p,ix,iy,vel1,0)-w[fencode_cd2a(p,ix,iy,b2b)]*w[fencode_cd2a(p,ix,iy,b1b+dir)]*grad_cd2a(wd,p,ix,iy,vel1+1,1);
+               flux += +w[fencode_cd2a(p,ix,iy,b1b)]*w[fencode_cd2a(p,ix,iy,b1b+dir)]*grad_cd2a(wd,p,ix,iy,vel1,0)+w[fencode_cd2a(p,ix,iy,b2b)]*w[fencode_cd2a(p,ix,iy,b1b+dir)]*grad_cd2a(wd,p,ix,iy,vel1+1,1);
          #endif
 
   return flux;
@@ -121,8 +121,9 @@ __global__ void centdiff2a_parallel(struct params *p, real *w, real *wmod,
 			//if( i<(ni) && j<(nj))
                                 divflux_cd2a(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir); 
                // }
-__syncthreads();
+
 }
+__syncthreads();
                         
 
 
@@ -154,14 +155,16 @@ __syncthreads();
                          //if(i >1 &&  i<(ni-2)  && j >1 &&  j<(nj-2))
                          //if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
                          //if(i>2 && j >2 && i<(ni-3) && j<(nj-3))
-                         if(i<(ni)  && j >1 &&  j<(nj-2))
+                         //if(i<(ni)  && j >1 &&  j<(nj-2))
+                         if(i>1 &&  i<(ni-2) && j<(nj))
                               wmod[fencode_cd2a(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_cd2a(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]-dt*dwn1[fencode_cd2a(p,i,j,f)]; 
                          break;
                          case 1:
                          //if(i>1 &&  i<(ni-2) && j<(nj))
                          //if(i >1 &&  i<(ni-2)  && j >1 &&  j<(nj-2))
                          //if(i>3 && j >3 && i<(ni-4) && j<(nj-4))
-                         if(i>1 &&  i<(ni-2) && j<(nj))
+                         //if(i>1 &&  i<(ni-2) && j<(nj))
+                         if(i<(ni)  && j >1 &&  j<(nj-2))
                               wmod[fencode_cd2a(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_cd2a(p,i,j,f)+(ordero*NVAR*(p->n[0])*(p->n[1]))]-dt*dwn1[fencode_cd2a(p,i,j,f)];
                          break;
                         }

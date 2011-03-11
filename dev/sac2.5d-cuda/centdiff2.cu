@@ -371,12 +371,14 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                         switch(dir)
                         {
                          case 0:
-                         if(i<(ni)  && j >1 &&  j<(nj-1))
+                         //if(i<(ni)  && j >1 &&  j<(nj-1))
+                         if(i>1 &&  i<(ni-1) && j<(nj))
                           //if(i>1 && i<(ni-1)  && j >2 &&  j<(nj-3))
                             computeflux_cd2(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir); 
                          break;
                          case 1:
-                         if(i>1 &&  i<(ni-1) && j<(nj))
+                         if(i<(ni)  && j >1 &&  j<(nj-1))
+                         //if(i>1 &&  i<(ni-1) && j<(nj))
                          //if(j>1 && i>2 &&  i<(ni-3) && j<(nj))
                             computeflux_cd2(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir); 
                          break;

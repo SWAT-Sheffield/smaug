@@ -143,7 +143,7 @@ real fluxmom1 (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int 
   {
      case 0:
         #ifdef USE_SAC
-     		flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b1)]-w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b1b)]-w[fencode_cd1(p,ix,iy,field+7)]*w[fencode_cd1(p,ix,iy,b1)];
+     		flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b1b)]-w[fencode_cd1(p,ix,iy,field+7)]*w[fencode_cd1(p,ix,iy,b1)]-w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b1)];
         #endif
         #ifdef USE_VAC
                 flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b1)];
@@ -152,10 +152,10 @@ real fluxmom1 (real *dw, real *wd, real *w, struct params *p,int ix, int iy,int 
      break;
      case 1:
         #ifdef USE_SAC
-                flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b2)]-w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b2b)]-w[fencode_cd1(p,ix,iy,field+7)]*w[fencode_cd1(p,ix,iy,b2)];
+                flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b2b)]-w[fencode_cd1(p,ix,iy,field+7)]*w[fencode_cd1(p,ix,iy,b2)]-w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b2)];
          #endif
         #ifdef USE_VAC
-              flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b2)];
+              flux= -w[fencode_cd1(p,ix,iy,field+3)]*w[fencode_cd1(p,ix,iy,b1)];
          #endif
      break;
 
@@ -363,12 +363,14 @@ __global__ void centdiff1_parallel(struct params *p, real *w, real *wmod,
                         switch(dir)
                         {
                          case 0:
-                         if(i<(ni)  && j >1 &&  j<(nj-1))
+                         //if(i<(ni)  && j >1 &&  j<(nj-1))
                          //if(i>1 && i<(ni-1)  && j >2 &&  j<(nj-3))
+                         if(i>1 &&  i<(ni-1) && j<(nj))
                             computeflux(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir); 
                          break;
                          case 1:
-                         if(i>1 &&  i<(ni-1) && j<(nj))
+                         //if(i>1 &&  i<(ni-1) && j<(nj))
+                         if(i<(ni)  && j >1 &&  j<(nj-1))
                          //if(j>1 && i>2 &&  i<(ni-3) && j<(nj))
                             computeflux(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir); 
                          break;
