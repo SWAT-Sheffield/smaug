@@ -72,6 +72,7 @@ int ngj=2;
 //adiab hydro
 #ifdef ADIABHYDRO
 int ni = 106;
+
 ni=ni+2*ngi;
 real xmax = 1.0;  
 real dx = 0.55*xmax/(ni-4);
@@ -80,8 +81,8 @@ real dx = 0.55*xmax/(ni-4);
 #ifndef ADIABHYDRO
 //vac ozt
 int ni;
-//ni=496;
-ni=796; //BW tests
+ni=96;
+//ni=796; //BW tests
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
@@ -96,7 +97,7 @@ real dx = xmax/(ni);
 //adiab hydro
 #ifdef ADIABHYDRO
 int nj = 106;
-//nj=196;
+nj=196;
 nj=nj+2*ngj;
 real ymax = 1.0;  
 real dy = 0.55*ymax/(nj-4);
@@ -104,9 +105,9 @@ real dy = 0.55*ymax/(nj-4);
 
 #ifndef ADIABHYDRO
 //vac ozt
-int nj = 196;
+int nj = 96;
 //nj=496;
-nj=2;  //BW test
+//int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
@@ -137,7 +138,7 @@ char configfile[300];
 //char *cfgfile="zero1.ini";
 char *cfgfile="zero1_BW.ini";
 //char *cfgfile="zero1_BW_bin.ini";
-char *cfgout="zeroOT.out";
+char *cfgout="zeroOT";
 
 char **hlines; //header lines for vac config files 
 hlines=(char **)calloc(5, sizeof(char*));
@@ -151,17 +152,20 @@ dt=0.0002985;  //ADIABHYDRO
 
 #ifndef ADIABHYDRO
 dt=0.00065;
-dt=6.5/10000000.0; //BW test
+//dt=6.5/10000000.0; //BW test
+//dt=0.00000065;  //BW tests
+//dt=0.005;
 //dt=0.000139;
+//dt=3.0/10000000.0; //BW test
 #endif
 //dt=0.00009;
 //dt=0.25;
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
 //nt=3000;
-nt=400;
 nt=100;
-nt=1000000;
+//nt=1000;
+//nt=200000;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -281,8 +285,8 @@ p->adiab=1.0;
 #else
 
 //ozt test
-//p->gamma=5.0/3.0;
-p->gamma=2.0;  //BW test
+p->gamma=5.0/3.0;  //OZ test
+//p->gamma=2.0;  //BW test
 //alfven test
 //p->gamma=1.4;
 
@@ -304,9 +308,9 @@ p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=1.0;
+p->hyperdifmom=0.0;
 p->readini=0.0;
-p->cfgsavefrequency=1000;
+p->cfgsavefrequency=1;
 
 
 p->xmax[0]=xmax;
@@ -334,9 +338,22 @@ p->chyp[b2]=0.02;
 p->chyp[mom1]=0.4;
 p->chyp[mom2]=0.4;
 
-p->chyp[rho]=0.045;
-p->chyp[mom1]=0.4;
-p->chyp[mom2]=0.4;
+p->chyp[rho]=0.02;
+p->chyp[mom1]=0;
+p->chyp[mom2]=0;
+
+
+
+
+
+/*p->chyp[rho]=2.0;
+p->chyp[energy]=2.0;
+p->chyp[b1]=2.0;
+p->chyp[b2]=2.0;
+p->chyp[mom1]=2.0;
+p->chyp[mom2]=2.0;*/
+
+
 printf("calling cuinit\n");
 
 
@@ -525,7 +542,7 @@ if((p->rkon)==0)
    if(p->hyperdifmom==1)
    {
     dt=(p->dt);
-    for(int dim=0; dim<=1; dim++)
+   /* for(int dim=0; dim<=1; dim++)
      {
        cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
        cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
@@ -541,9 +558,9 @@ if((p->rkon)==0)
        cuhyperdifrhosource1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim);
        cuhyperdifrhosource2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim,dt);
 
-     }
+     }*/
 
-     for(int dim=0; dim<=1; dim++)
+    /* for(int dim=0; dim<=1; dim++)
      {
        cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
@@ -559,9 +576,9 @@ if((p->rkon)==0)
        cuhyperdifesource2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
        cuhyperdifesource3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim,dt);
 
-     }
+     }*/
 
-for(int dim=0; dim<=1; dim++)
+/*for(int dim=0; dim<=1; dim++)
        for(int f=0; f<=1; f++)
            	                 
 	     {
@@ -606,10 +623,10 @@ for(int dim=0; dim<=1; dim++)
  
 		    }
                 }
-             }
+             }*/
             int jj,mm,kk;
              real sb;
-             for(int dim=0; dim<=1; dim++)
+             /*for(int dim=0; dim<=1; dim++)
 	     for(int f=0; f<=1; f++)            
 	     {
                cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
@@ -660,7 +677,7 @@ for(int dim=0; dim<=1; dim++)
                     }
 
                 }
-              } 
+              } */
 
 
    }
