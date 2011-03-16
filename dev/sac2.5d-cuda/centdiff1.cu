@@ -221,12 +221,13 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
                if(direction==0)
                {
 
-                 computept_cd1(w,wd,p,ix,iy);
+                // computept_cd1(w,wd,p,ix,iy);
+                 //commented out to compare with vac 
                  wd[fencode_cd1(p,ix,iy,flux)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
 
         #ifdef USE_SAC
 
-                 // wd[fencode_cd1(p,ix,iy,flux)]+=wd[fencode_cd1(p,ix,iy,ptb)];
+                  wd[fencode_cd1(p,ix,iy,flux)]+=wd[fencode_cd1(p,ix,iy,ptb)];
        #endif
                }
  
@@ -247,12 +248,13 @@ int computefluxmom (real *dw, real *wd, real *w, struct params *p,int ix, int iy
         #endif
                if(direction==1)
                {
-                computept_cd1(w,wd,p,ix,iy);
+                //computept_cd1(w,wd,p,ix,iy);
+                //commented out to compare with vac
                  wd[fencode_cd1(p,ix,iy,flux)]+=wd[fencode_cd1(p,ix,iy,pressuret)];
 
         #ifdef USE_SAC
 
-                 // wd[fencode_cd1(p,ix,iy,f1)]+=wd[fencode_cd1(p,ix,iy,ptb)];
+                  wd[fencode_cd1(p,ix,iy,flux)]+=wd[fencode_cd1(p,ix,iy,ptb)];
         #endif
 
                }
@@ -279,6 +281,8 @@ void computeflux (real *dw, real *wd, real *w, struct params *p,int ix, int iy, 
   switch(field)
   {
      case rho:
+      computevel_cd1(w,wd,p,ix,iy);
+      computept_cd1(w,wd,p,ix,iy);
       computefluxrho(dw,wd,w,p,ix,iy,dir);
      break;
      case mom1:

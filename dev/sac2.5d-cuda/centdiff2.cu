@@ -148,14 +148,14 @@ computept_cd2(w,wd,p,ix,iy);
 
         #ifdef USE_SAC
                 
-//wd[fencode_cd2(p,ix,iy,ptb)]=  ((p->gamma)-1)*w[fencode_cd2(p,ix,iy,energyb)]- 0.5*((p->gamma)-2)*(w[fencode_cd2(p,ix,iy,b1b)]*w[fencode_cd2(p,ix,iy,b1b)]+w[fencode_cd2(p,ix,iy,b2b)]*w[fencode_cd2(p,ix,iy,b2b)]) ;
-
- //wd[fencode_cd2(p,ix,iy,pressuret)]=((p->gamma)-1.0)*( w[fencode_cd2(p,ix,iy,energy)]-0.5*(w[fencode_cd2(p,ix,iy,mom1)]*w[fencode_cd2(p,ix,iy,mom1)]+w[fencode_cd2(p,ix,iy,mom2)]*w[fencode_cd2(p,ix,iy,mom2)])/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]));
-//wd[fencode_cd2(p,ix,iy,pressuret)]=wd[fencode_cd2(p,ix,iy,pressuret)]-((p->gamma)-2.0)*((w[fencode_cd2(p,ix,iy,b1)]*w[fencode_cd2(p,ix,iy,b1b)]+w[fencode_cd2(p,ix,iy,b2)]*w[fencode_cd2(p,ix,iy,b2b)])+0.5*(w[fencode_cd2(p,ix,iy,b1)]*w[fencode_cd2(p,ix,iy,b1)]+w[fencode_cd2(p,ix,iy,b2)]*w[fencode_cd2(p,ix,iy,b2)]));
 
 
+      		//flux= -w[fencode_cd2(p,ix,iy,b1+direction)]*wd[fencode_cd2(p,ix,iy,bdotv)]+(w[fencode_cd2(p,ix,iy,mom1+direction)]*(wd[fencode_cd2(p,ix,iy,pressuret)]+wd[fencode_cd2(p,ix,iy,ptb)])/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]))+(w[fencode_cd2(p,ix,iy,mom1+direction)]*wd[fencode_cd2(p,ix,iy,energyb)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]));
 
-      		flux= -w[fencode_cd2(p,ix,iy,b1+direction)]*wd[fencode_cd2(p,ix,iy,bdotv)]+(w[fencode_cd2(p,ix,iy,mom1+direction)]*(wd[fencode_cd2(p,ix,iy,pressuret)]+wd[fencode_cd2(p,ix,iy,ptb)])/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]))+(w[fencode_cd2(p,ix,iy,mom1+direction)]*wd[fencode_cd2(p,ix,iy,energyb)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]));
+flux= -w[fencode_cd2(p,ix,iy,b1+direction)]*wd[fencode_cd2(p,ix,iy,bdotv)]+(w[fencode_cd2(p,ix,iy,mom1+direction)]*wd[fencode_cd2(p,ix,iy,energyb)]/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]));
+
+//commented out total pressure contribution for comparing with vac ozt test
+//flux += w[fencode_cd2(p,ix,iy,mom1+direction)]*(wd[fencode_cd2(p,ix,iy,pressuret)]+wd[fencode_cd2(p,ix,iy,ptb)])/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
 
 flux -= w[fencode_cd2(p,ix,iy,b1b+direction)]*(w[fencode_cd2(p,ix,iy,b1)]*w[fencode_cd2(p,ix,iy,mom1)]+w[fencode_cd2(p,ix,iy,b2)]*w[fencode_cd2(p,ix,iy,mom2)])/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)])
             - w[fencode_cd2(p,ix,iy,b1+direction)]*(w[fencode_cd2(p,ix,iy,b1b)]*w[fencode_cd2(p,ix,iy,mom1)]+w[fencode_cd2(p,ix,iy,b2b)]*w[fencode_cd2(p,ix,iy,mom2)])/(w[fencode_cd2(p,ix,iy,rho)]+w[fencode_cd2(p,ix,iy,rhob)]);
@@ -284,7 +284,7 @@ void computeflux_cd2 (real *dw, real *wd, real *w, struct params *p,int ix, int 
   {
      case energy:
       computefluxe(dw,wd,w,p,ix,iy,dir);
-      computevel_cd2(w,wd,p,ix,iy);
+      
       // add the following terms for SAC
       // del((b bb+ bb b).v)+ptb del v - bb bb del v
      break;

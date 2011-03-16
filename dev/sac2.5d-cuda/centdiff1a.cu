@@ -85,6 +85,7 @@ __global__ void centdiff1a_parallel(struct params *p, real *w, real *wmod,
      i=ip*(p->npgp[0])+ipg;
      j=jp*(p->npgp[1])+jpg;
 			 if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+			 //if(i>2 && j >2 && i<(ni-3) && j<(nj-3))
                          //if( i<(ni) && j<(nj))
                                divflux1(dwn1,wd,wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,dir);  
 
