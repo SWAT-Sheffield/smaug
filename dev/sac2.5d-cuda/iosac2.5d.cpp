@@ -81,7 +81,7 @@ real dx = 0.55*xmax/(ni-4);
 #ifndef ADIABHYDRO
 //vac ozt
 int ni;
-ni=96;
+ni=96;    //OZT tests
 //ni=796; //BW tests
 ni=ni+2*ngi;
 //ni=512;
@@ -105,7 +105,7 @@ real dy = 0.55*ymax/(nj-4);
 
 #ifndef ADIABHYDRO
 //vac ozt
-int nj = 96;
+int nj = 96;  //OZT tests
 //nj=496;
 //int nj=2;  //BW test
 nj=nj+2*ngj;
@@ -151,9 +151,10 @@ dt=0.0002985;  //ADIABHYDRO
 //dt=0.15;
 
 #ifndef ADIABHYDRO
-dt=0.00065;
+dt=0.00065;  //OZT test
 //dt=6.5/10000000.0; //BW test
 //dt=0.00000065;  //BW tests
+//dt=0.000000493;  //BW tests
 //dt=0.005;
 //dt=0.000139;
 //dt=3.0/10000000.0; //BW test
@@ -164,7 +165,7 @@ dt=0.00065;
 int nt=(int)((tmax)/dt);
 //nt=3000;
 nt=100;
-//nt=1000;
+//nt=100000;
 //nt=200000;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
@@ -285,8 +286,8 @@ p->adiab=1.0;
 #else
 
 //ozt test
-p->gamma=5.0/3.0;  //OZ test
-//p->gamma=2.0;  //BW test
+//p->gamma=5.0/3.0;  //OZ test
+p->gamma=2.0;  //BW test
 //alfven test
 //p->gamma=1.4;
 
@@ -308,7 +309,7 @@ p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=0.0;
+p->hyperdifmom=1.0;
 p->readini=0.0;
 p->cfgsavefrequency=1;
 
@@ -346,12 +347,12 @@ p->chyp[mom2]=0;
 
 
 
-/*p->chyp[rho]=2.0;
-p->chyp[energy]=2.0;
-p->chyp[b1]=2.0;
-p->chyp[b2]=2.0;
-p->chyp[mom1]=2.0;
-p->chyp[mom2]=2.0;*/
+p->chyp[rho]=0.02;
+p->chyp[energy]=0.02;
+p->chyp[b1]=0.02;
+p->chyp[b2]=0.02;
+p->chyp[mom1]=0.4;
+p->chyp[mom2]=0.4;
 
 
 printf("calling cuinit\n");
@@ -430,7 +431,7 @@ else
   v=w+(ni)*(nj)*mom2;
 
 cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
-
+printf("after cuinit\n");
 /*for( j1=0;j1<nj;j1++)
       {
         for( i1=0;i1<ni;i1++)
@@ -493,7 +494,7 @@ for( n=1;n<=nt;n++)
       writevtkconfig(name,n,*p, meta , w);
       //writeasciivacconfig(cfgout,*p, meta , w,hlines,*state);
 
-       writevacconfig(cfgout,n,*p, meta , w,*state);
+      // writevacconfig(cfgout,n,*p, meta , w,*state);
     }
    order=0;
    t1=second();
@@ -542,7 +543,7 @@ if((p->rkon)==0)
    if(p->hyperdifmom==1)
    {
     dt=(p->dt);
-   /* for(int dim=0; dim<=1; dim++)
+    for(int dim=0; dim<=1; dim++)
      {
        cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
        cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
@@ -558,9 +559,9 @@ if((p->rkon)==0)
        cuhyperdifrhosource1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim);
        cuhyperdifrhosource2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim,dt);
 
-     }*/
+     }
 
-    /* for(int dim=0; dim<=1; dim++)
+     for(int dim=0; dim<=1; dim++)
      {
        cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
@@ -576,9 +577,9 @@ if((p->rkon)==0)
        cuhyperdifesource2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
        cuhyperdifesource3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim,dt);
 
-     }*/
+     }
 
-/*for(int dim=0; dim<=1; dim++)
+for(int dim=0; dim<=1; dim++)
        for(int f=0; f<=1; f++)
            	                 
 	     {
@@ -623,10 +624,10 @@ if((p->rkon)==0)
  
 		    }
                 }
-             }*/
+             }
             int jj,mm,kk;
              real sb;
-             /*for(int dim=0; dim<=1; dim++)
+             for(int dim=0; dim<=1; dim++)
 	     for(int f=0; f<=1; f++)            
 	     {
                cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
@@ -677,7 +678,7 @@ if((p->rkon)==0)
                     }
 
                 }
-              } */
+              } 
 
 
    }

@@ -320,10 +320,12 @@ for( j1=0;j1<nj;j1++)
                 w[(j1*ni+i1)+(ni*nj*energy)]=dbuffer[5];
                 w[(j1*ni+i1)+(ni*nj*b1)]=dbuffer[6];
                 w[(j1*ni+i1)+(ni*nj*b2)]=dbuffer[7];
+#ifndef ADIABHYDRO
                 w[(j1*ni+i1)+(ni*nj*energyb)]=dbuffer[8];
                 w[(j1*ni+i1)+(ni*nj*rhob)]=dbuffer[9];
                 w[(j1*ni+i1)+(ni*nj*b1b)]=dbuffer[10];
                 w[(j1*ni+i1)+(ni*nj*b2b)]=dbuffer[11];
+#endif
 
 
         }     
@@ -354,7 +356,7 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
       //scalar fields
 //n+=10;
         #ifdef ADIABHYDRO
-      for(int i=0; i<=3; i+=4)
+      for(int i=0,is=0; i<=3; i+=4)
       //for(int i=0; i<=4; i+=3)
        #else
       for(int i=0,is=0; i<=4; i+=4,is+=3)

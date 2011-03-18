@@ -323,7 +323,7 @@ int ni=p->n[0];
                    // init_alftest(w,p,i,j);
                    // init_ozttest (real *w, struct params *p,int i, int j)
                     init_ozttest(w,p,i,j);
-                   // init_bwtest(w,p,i,j);
+                  //  init_bwtest(w,p,i,j);
            #endif
 
 	}
