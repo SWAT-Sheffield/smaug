@@ -72,8 +72,14 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
 
   //init rhol and rhor
   if(i<((p->n[0])) && j<((p->n[1])))
+  {
     for(int f=tmp1; f<=tmp8; f++)	
         wtemp[fencode_hdbne1(p,i,j,f)]=0.0;
+
+   dwn1[fencode_hdbne1(p,i,j,energy)]=0.0;
+   dwn1[fencode_hdbne1(p,i,j,b1+ii0)]=0.0;
+
+  }
 }
  __syncthreads();
 
@@ -100,7 +106,7 @@ __syncthreads();
 
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
@@ -117,7 +123,7 @@ __syncthreads();
    }
 
 }
-__syncthreads();
+__syncthreads();*/
 
 
 

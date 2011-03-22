@@ -68,8 +68,14 @@ __global__ void hyperdifbsource1_parallel(struct params *p, real *w, real *wnew,
 
   //init rhol and rhor
   if(i<((p->n[0])) && j<((p->n[1])))
+  {
     for(int f=tmp1; f<=tmp8; f++)	
         wtemp[fencode_hdb1(p,i,j,f)]=0.0;
+
+   dwn1[fencode_hdb1(p,i,j,energy)]=0.0;
+   dwn1[fencode_hdb1(p,i,j,b1+ii0)]=0.0;
+  }
+
 }
  __syncthreads();
 

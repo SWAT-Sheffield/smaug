@@ -79,7 +79,7 @@ __syncthreads();
 
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
@@ -102,12 +102,12 @@ dwn1[fencode_hde2(p,i,j,field)]=( wtemp[fencode_hde2(p,i,j,hdnur)] *wtemp[fencod
 
   }
 }
-__syncthreads();
+__syncthreads();*/
 
 
 
    
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+ /*  for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
@@ -125,7 +125,7 @@ __syncthreads();
                          }
               //  }	
 }
-  __syncthreads();
+  __syncthreads();*/
 
 
 

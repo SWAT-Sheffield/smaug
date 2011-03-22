@@ -81,8 +81,8 @@ real dx = 0.55*xmax/(ni-4);
 #ifndef ADIABHYDRO
 //vac ozt
 int ni;
-ni=96;    //OZT tests
-//ni=796; //BW tests
+//ni=96;    //OZT tests
+ni=796; //BW tests
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
@@ -105,9 +105,9 @@ real dy = 0.55*ymax/(nj-4);
 
 #ifndef ADIABHYDRO
 //vac ozt
-int nj = 96;  //OZT tests
+//int nj = 96;  //OZT tests
 //nj=496;
-//int nj=2;  //BW test
+int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
@@ -151,10 +151,10 @@ dt=0.0002985;  //ADIABHYDRO
 //dt=0.15;
 
 #ifndef ADIABHYDRO
-dt=0.00065;  //OZT test
+//dt=0.00065;  //OZT test
 //dt=6.5/10000000.0; //BW test
 //dt=0.00000065;  //BW tests
-//dt=0.000000493;  //BW tests
+dt=0.000000493;  //BW tests
 //dt=0.005;
 //dt=0.000139;
 //dt=3.0/10000000.0; //BW test
@@ -164,8 +164,8 @@ dt=0.00065;  //OZT test
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
 //nt=3000;
-nt=100;
-//nt=100000;
+//nt=100;
+nt=100000;
 //nt=200000;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
@@ -311,7 +311,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=1.0;
 p->readini=0.0;
-p->cfgsavefrequency=1;
+p->cfgsavefrequency=1000;
 
 
 p->xmax[0]=xmax;
@@ -494,7 +494,7 @@ for( n=1;n<=nt;n++)
       writevtkconfig(name,n,*p, meta , w);
       //writeasciivacconfig(cfgout,*p, meta , w,hlines,*state);
 
-      // writevacconfig(cfgout,n,*p, meta , w,*state);
+      writevacconfig(cfgout,n,*p, meta , w,*state);
     }
    order=0;
    t1=second();
@@ -575,6 +575,7 @@ if((p->rkon)==0)
 
        cuhyperdifesource1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
        cuhyperdifesource2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
+       cuhyperdifesource2a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
        cuhyperdifesource3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim,dt);
 
      }
@@ -670,6 +671,7 @@ for(int dim=0; dim<=1; dim++)
                    else
                    {
                      cuhyperdifbsourcene1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);
+                     cuhyperdifbsourcene1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);
                      cuhyperdifbsourcene2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);
                      cuhyperdifbsourcene3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);
                     cuhyperdifbsourcene4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
@@ -766,6 +768,7 @@ for(int dim=0; dim<=1; dim++)
 
        cuhyperdifesource1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
        cuhyperdifesource2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
+       cuhyperdifesource2a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
        cuhyperdifesource3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim,dt);
 
      }
@@ -863,6 +866,7 @@ for(int dim=0; dim<=1; dim++)
                    else
                    {
                      cuhyperdifbsourcene1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);
+                     cuhyperdifbsourcene1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);
                      cuhyperdifbsourcene2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);
                      cuhyperdifbsourcene3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);
                     cuhyperdifbsourcene4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);

@@ -73,7 +73,7 @@ __global__ void hyperdifbsource4_parallel(struct params *p, real *w, real *wnew,
                          if(i<(ni) && j<(nj))
                          {
                               //                                                                                  - sign here same as vac maybe a +
-                              wmod[fencode_hdb4(p,i,j,b1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdb4(p,i,j,b1+field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdb4(p,i,j,b1+field)]; 
+                              wmod[fencode_hdb4(p,i,j,b1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdb4(p,i,j,b1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdb4(p,i,j,b1+field)]; 
                              wmod[fencode_hdb4(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdb4(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdb4(p,i,j,energy)]; 
 
                          }

@@ -11,14 +11,14 @@
 /////////////////////////////////////
 // kernel function (CUDA device)
 /////////////////////////////////////
-#include "gradops_hde3.cuh"
+#include "gradops_hde2a.cuh"
 
 
 
 
 
-__global__ void hyperdifesource3_parallel(struct params *p, real *w, real *wnew, real *wmod, 
-    real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim, real dt)
+__global__ void hyperdifesource2a_parallel(struct params *p, real *w, real *wnew, real *wmod, 
+    real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -34,7 +34,7 @@ __global__ void hyperdifesource3_parallel(struct params *p, real *w, real *wnew,
   int index,k;
   int ni=p->n[0];
   int nj=p->n[1];
-  //real dt=p->dt;
+  real dt=p->dt;
   real rdx;
   real dy=p->dx[1];
   real dx=p->dx[0];
@@ -52,8 +52,7 @@ __global__ void hyperdifesource3_parallel(struct params *p, real *w, real *wnew,
 
   rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1));
 
-   
-
+ 
 
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
@@ -69,14 +68,13 @@ if(i<((p->n[0])) && j<((p->n[1])))
 
 
  
-//dwn1[fencode_hde3(p,i,j,field)]=( wtemp[fencode_hde3(p,i,j,hdnur)] * grad1r_hde3(wtemp,p,i,j,tmp1,dim) - wtemp[fencode_hde3(p,i,j,hdnul)] *grad1l_hde3(wtemp,p,i,j,tmp1,dim)             )/rdx;
-//dwn1[fencode_hde3(p,i,j,field)]=( wd[fencode_hde3(p,i,j,hdnur)] * grad1r_hde3(wtemp,p,i,j,tmp1,dim) - wd[fencode_hde3(p,i,j,hdnul)] *grad1l_hde3(wtemp,p,i,j,tmp1,dim)             );
+//dwn1[fencode_hde2a(p,i,j,field)]=( wtemp[fencode_hde2a(p,i,j,hdnur)] * grad1r_hde2a(wtemp,p,i,j,tmp1,dim) - wtemp[fencode_hde2a(p,i,j,hdnul)] *grad1l_hde2a(wtemp,p,i,j,tmp1,dim)             )/rdx;
+//dwn1[fencode_hde2a(p,i,j,field)]=( wd[fencode_hde2a(p,i,j,hdnur)] * grad1r_hde2a(wtemp,p,i,j,tmp1,dim) - wd[fencode_hde2a(p,i,j,hdnul)] *grad1l_hde2a(wtemp,p,i,j,tmp1,dim)             );
 
-//wtemp[fencode_hde3(p,i,j,tmp2)]= grad1r_hde3(wtemp,p,i,j,tmp1,dim) ;
-//wtemp[fencode_hde3(p,i,j,tmp3)]= grad1l_hde3(wtemp,p,i,j,tmp1,dim) ;
-dwn1[fencode_hde3(p,i,j,field)]=( wtemp[fencode_hde3(p,i,j,hdnur)] *wtemp[fencode_hde3(p,i,j,tmp3)] - wtemp[fencode_hde3(p,i,j,hdnul)] *wtemp[fencode_hde3(p,i,j,tmp2)])/rdx;
+//wtemp[fencode_hde2a(p,i,j,tmp2)]= grad1r_hde2a(wtemp,p,i,j,tmp1,dim) ;
+//wtemp[fencode_hde2a(p,i,j,tmp3)]= grad1l_hde2a(wtemp,p,i,j,tmp1,dim) ;
+dwn1[fencode_hde2a(p,i,j,field)]=( wtemp[fencode_hde2a(p,i,j,hdnur)] *wtemp[fencode_hde2a(p,i,j,tmp3)] - wtemp[fencode_hde2a(p,i,j,hdnul)] *wtemp[fencode_hde2a(p,i,j,tmp2)])/rdx;
 
-    wmod[fencode_hde3(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hde3(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hde3(p,i,j,field)]; 
 
   }
 }
@@ -85,7 +83,7 @@ __syncthreads();
 
 
    
-/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
@@ -97,13 +95,13 @@ __syncthreads();
                          if(i<((p->n[0])) && j<((p->n[1])))
                          {
                               //                                                                                  - sign here same as vac maybe a +
-                              wmod[fencode_hde3(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hde3(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hde3(p,i,j,field)]; 
-//wmod[fencode_hde3(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]=dwn1[fencode_hde3(p,i,j,f2)];
-                              //dwn1[fencode_hde3(p,i,j,f)]=0;
+                              wmod[fencode_hde2a(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hde2a(p,i,j,field)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hde2a(p,i,j,field)]; 
+//wmod[fencode_hde2a(p,i,j,f)+ordero*NVAR*(p->n[0])*(p->n[1])]=dwn1[fencode_hde2a(p,i,j,f2)];
+                              //dwn1[fencode_hde2a(p,i,j,f)]=0;
                          }
               //  }	
 }
-  __syncthreads();*/
+  __syncthreads();
 
 
 
@@ -114,7 +112,7 @@ __syncthreads();
 /////////////////////////////////////
 // error checking routine
 /////////////////////////////////////
-void checkErrors_hde3(char *label)
+void checkErrors_hde2a(char *label)
 {
   // we need to synchronise first to catch errors due to
   // asynchroneous operations that would otherwise
@@ -141,7 +139,7 @@ void checkErrors_hde3(char *label)
 
 
 
-int cuhyperdifesource3(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real **d_wtemp, int field, int dim, real dt)
+int cuhyperdifesource2a(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real **d_wtemp, int field, int dim)
 {
 
 
@@ -157,7 +155,7 @@ int cuhyperdifesource3(struct params **p, real **w, real **wnew, struct params *
 //__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
      //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-     hyperdifesource3_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,dt);
+     hyperdifesource2a_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();
