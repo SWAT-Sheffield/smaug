@@ -222,38 +222,25 @@ void checkErrors_u(char *label)
 }
 
 
-int cuupdate(struct params **p, real **w, real **wnew, struct state **state,struct params **d_p, real **d_w, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, int step)
+int cuupdate(struct params **p, real **w, real **wnew, struct state **state,struct params **d_p, real **d_w, real **d_wmod, struct state **d_state, int step)
 {
 
-
-//printf("calling propagate solution\n");
-
-    //dim3 dimBlock(blocksize, blocksize);
-    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
- dim3 dimBlock(dimblock, 1);
-    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+    dim3 dimBlock(dimblock, 1);
+ 
     dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
 
-//__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
-  //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
-     //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-    // prop_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_u,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
-     //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_u,*d_u,*d_v,*d_h);
-	    //printf("called prop\n"); 
-     //cudaThreadSynchronize();
-     //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_u,*d_w,*d_wnew);
-	    //printf("called boundary\n");  
-     //cudaThreadSynchronize();
+
      update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_state,*d_w,*d_wmod);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
 
     if((step%((*p)->cfgsavefrequency))==0)
     {
+  
     cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
 
-    cudaMemcpy(*wnew, *d_wd, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+    //cudaMemcpy(*wnew, *d_wd, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
 
    cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
     }
@@ -270,7 +257,7 @@ int cuupdate(struct params **p, real **w, real **wnew, struct state **state,stru
 }
 
 
-int cufinish(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd)
+int cufinish(struct params **p, real **w, real **wnew, struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
 {
   
 
@@ -291,6 +278,9 @@ int cufinish(struct params **p, real **w, real **wnew, struct params **d_p, real
   cudaFree(*d_wmod);
   cudaFree(*d_dwn1);
   cudaFree(*d_wd);
+  cudaFree(*d_wtemp);
+  cudaFree(*d_wtemp1);
+  cudaFree(*d_wtemp2);
 
 
 

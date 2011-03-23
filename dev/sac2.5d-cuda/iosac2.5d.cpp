@@ -81,8 +81,8 @@ real dx = 0.55*xmax/(ni-4);
 #ifndef ADIABHYDRO
 //vac ozt
 int ni;
-//ni=96;    //OZT tests
-ni=796; //BW tests
+ni=96;    //OZT tests
+//ni=796; //BW tests
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
@@ -105,9 +105,9 @@ real dy = 0.55*ymax/(nj-4);
 
 #ifndef ADIABHYDRO
 //vac ozt
-//int nj = 96;  //OZT tests
+int nj = 96;  //OZT tests
 //nj=496;
-int nj=2;  //BW test
+//int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
@@ -145,16 +145,31 @@ hlines=(char **)calloc(5, sizeof(char*));
 // Define time-domain
 real dt;
 
+
+real *d_w;
+real *d_wnew;
+
+real *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
+
+real *w,*wnew,*wd;
+real *d_wtemp,*d_wtemp1,*d_wtemp2;
+struct params *d_p;
+struct params *p=(struct params *)malloc(sizeof(struct params));
+
+struct state *d_state;
+struct state *state=(struct state *)malloc(sizeof(struct state));
+
+
 #ifdef ADIABHYDRO
 dt=0.0002985;  //ADIABHYDRO
 #endif
 //dt=0.15;
 
 #ifndef ADIABHYDRO
-//dt=0.00065;  //OZT test
+dt=0.00065;  //OZT test
 //dt=6.5/10000000.0; //BW test
 //dt=0.00000065;  //BW tests
-dt=0.000000493;  //BW tests
+//dt=0.000000493;  //BW tests
 //dt=0.005;
 //dt=0.000139;
 //dt=3.0/10000000.0; //BW test
@@ -164,8 +179,8 @@ dt=0.000000493;  //BW tests
 //dt=0.00015125;
 int nt=(int)((tmax)/dt);
 //nt=3000;
-//nt=100;
-nt=100000;
+nt=100;
+//nt=200000;
 //nt=200000;
 //nt=2;
 real *t=(real *)calloc(nt,sizeof(real));
@@ -175,6 +190,105 @@ for(i=0;i<nt;i++)
 		t[i]=i*dt;
 
 //real courant = wavespeed*dt/dx;
+
+p->n[0]=ni;
+p->n[1]=nj;
+p->ng[0]=ngi;
+p->ng[1]=ngj;
+#ifdef ADIABHYDRO
+p->npgp[0]=1;
+p->npgp[1]=1;
+#else
+p->npgp[0]=1;
+p->npgp[1]=1;
+#endif
+
+p->dt=dt;
+p->dx[0]=dx;
+p->dx[1]=dy;
+//p->g=g;
+
+
+
+/*constants used for adiabatic hydrodynamics*/
+/*
+p->gamma=2.0;
+p->adiab=0.5;
+*/
+#ifdef ADIABHYDRO
+p->gamma=2.0;
+p->adiab=1.0;
+#else
+
+//ozt test
+p->gamma=5.0/3.0;  //OZ test
+//p->gamma=2.0;  //BW test
+//alfven test
+//p->gamma=1.4;
+
+#endif
+
+
+
+
+p->mu=1.0;
+p->eta=0.0;
+p->g[0]=0.0;
+p->g[1]=0.0;
+p->g[2]=0.0;
+//p->cmax=1.0;
+p->cmax=0.02;
+
+p->rkon=0.0;
+p->sodifon=1.0;
+p->moddton=0.0;
+p->divbon=0.0;
+p->divbfix=0.0;
+p->hyperdifmom=1.0;
+p->readini=0.0;
+p->cfgsavefrequency=1;
+
+
+p->xmax[0]=xmax;
+
+p->xmax[1]=ymax;
+p->nt=nt;
+p->tmax=tmax;
+
+p->steeringenabled=steeringenabled;
+p->finishsteering=finishsteering;
+
+p->maxviscoef=0;
+//p->chyp=0.0;       
+//p->chyp=0.00000;
+p->chyp3=0.00000;
+p->mnthreads=1;
+
+for(i=0;i<NVAR;i++)
+  p->chyp[i]=0.0;
+
+p->chyp[rho]=0.02;
+p->chyp[energy]=0.02;
+p->chyp[b1]=0.02;
+p->chyp[b2]=0.02;
+p->chyp[mom1]=0.4;
+p->chyp[mom2]=0.4;
+
+p->chyp[rho]=0.02;
+p->chyp[mom1]=0;
+p->chyp[mom2]=0;
+
+
+
+
+
+p->chyp[rho]=0.02;
+p->chyp[energy]=0.02;
+p->chyp[b1]=0.02;
+p->chyp[b2]=0.02;
+p->chyp[mom1]=0.4;
+p->chyp[mom2]=0.4;
+
 
 
 
@@ -242,117 +356,6 @@ if(argc>1)
 
 
 printf("rho %d mom1 %d mom2 %d\n",rho,mom1,mom2);
-
-real *d_w;
-real *d_wnew;
-
-real *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
-
-real *w,*wnew,*wd;
-real *d_wtemp,*d_wtemp1,*d_wtemp2;
-struct params *d_p;
-struct params *p=(struct params *)malloc(sizeof(struct params));
-
-struct state *d_state;
-struct state *state=(struct state *)malloc(sizeof(struct state));
-
-p->n[0]=ni;
-p->n[1]=nj;
-p->ng[0]=ngi;
-p->ng[1]=ngj;
-#ifdef ADIABHYDRO
-p->npgp[0]=1;
-p->npgp[1]=1;
-#else
-p->npgp[0]=1;
-p->npgp[1]=1;
-#endif
-
-p->dt=dt;
-p->dx[0]=dx;
-p->dx[1]=dy;
-//p->g=g;
-
-
-
-/*constants used for adiabatic hydrodynamics*/
-/*
-p->gamma=2.0;
-p->adiab=0.5;
-*/
-#ifdef ADIABHYDRO
-p->gamma=2.0;
-p->adiab=1.0;
-#else
-
-//ozt test
-//p->gamma=5.0/3.0;  //OZ test
-p->gamma=2.0;  //BW test
-//alfven test
-//p->gamma=1.4;
-
-#endif
-
-
-
-
-p->mu=1.0;
-p->eta=0.0;
-p->g[0]=0.0;
-p->g[1]=0.0;
-p->g[2]=0.0;
-//p->cmax=1.0;
-p->cmax=0.02;
-
-p->rkon=0.0;
-p->sodifon=1.0;
-p->moddton=0.0;
-p->divbon=0.0;
-p->divbfix=0.0;
-p->hyperdifmom=1.0;
-p->readini=0.0;
-p->cfgsavefrequency=1000;
-
-
-p->xmax[0]=xmax;
-
-p->xmax[1]=ymax;
-p->nt=nt;
-p->tmax=tmax;
-
-p->steeringenabled=steeringenabled;
-p->finishsteering=finishsteering;
-
-p->maxviscoef=0;
-//p->chyp=0.0;       
-//p->chyp=0.00000;
-p->chyp3=0.00000;
-p->mnthreads=1;
-
-for(i=0;i<NVAR;i++)
-  p->chyp[i]=0.0;
-
-p->chyp[rho]=0.02;
-p->chyp[energy]=0.02;
-p->chyp[b1]=0.02;
-p->chyp[b2]=0.02;
-p->chyp[mom1]=0.4;
-p->chyp[mom2]=0.4;
-
-p->chyp[rho]=0.02;
-p->chyp[mom1]=0;
-p->chyp[mom2]=0;
-
-
-
-
-
-p->chyp[rho]=0.02;
-p->chyp[energy]=0.02;
-p->chyp[b1]=0.02;
-p->chyp[b2]=0.02;
-p->chyp[mom1]=0.4;
-p->chyp[mom2]=0.4;
 
 
 printf("calling cuinit\n");
@@ -546,11 +549,13 @@ if((p->rkon)==0)
     for(int dim=0; dim<=1; dim++)
      {
        cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
+       cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
        cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
        cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
        cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
 
        cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,1);
+       cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,1);
        cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,1);
        cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,1);
        cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,1);
@@ -564,11 +569,13 @@ if((p->rkon)==0)
      for(int dim=0; dim<=1; dim++)
      {
        cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
+       cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
 
       cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
+       cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
       cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
        cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
        cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
@@ -585,11 +592,13 @@ for(int dim=0; dim<=1; dim++)
            	                 
 	     {
                cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
+       cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
                cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
                cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
                cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
 
                cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,1);
+       cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
                cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,1);
                cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,1);
                cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,1);
@@ -632,12 +641,14 @@ for(int dim=0; dim<=1; dim++)
 	     for(int f=0; f<=1; f++)            
 	     {
                cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
+               cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
                cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
                cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
                cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
 
 
                cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,1);
+               cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,1);
                cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,1);
                cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,1);
                cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,1);
@@ -684,8 +695,8 @@ for(int dim=0; dim<=1; dim++)
 
 
    }
-   //cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order);
-   cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
+   //cuadvance(&p,&d_p,&d_wmod,&d_w, order);
+   cuboundary(&p,&d_p,&d_wmod, ordero);
 }
 
    if((p->rkon)==1)
@@ -738,11 +749,13 @@ for(int dim=0; dim<=1; dim++)
 	     for(int dim=0; dim<=1; dim++)
 	     {
 	       cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
+      cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
 	       cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
 	       cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
 	       cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
 
 	       cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,1);
+      cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
 	       cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,1);
 	       cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,1);
 	       cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,1);
@@ -757,11 +770,13 @@ for(int dim=0; dim<=1; dim++)
      for(int dim=0; dim<=1; dim++)
      {
        cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
+       cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
 
       cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
+      cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
        cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
        cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
        cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
@@ -778,11 +793,13 @@ for(int dim=0; dim<=1; dim++)
            	                 
 	     {
                cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
+ cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
                cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
                cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
                cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
 
                cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,1);
+               cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,1);
                cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,1);
                cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,1);
                cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,1);
@@ -827,12 +844,14 @@ for(int dim=0; dim<=1; dim++)
 	     for(int f=0; f<=1; f++)            
 	     {
                cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
+              cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
                cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
                cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
                cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
 
 
                cuhyperdifvisc1(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,1);
+               cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,1);
                cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,1);
                cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,1);
                cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,1);
@@ -879,13 +898,13 @@ for(int dim=0; dim<=1; dim++)
 
            }
            //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
-           cuadvance(&p,&w,&wnew,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order);
-           cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,orderb);
+           cuadvance(&p,&d_p,&d_wmod,&d_w,order);
+           cuboundary(&p,&d_p,&d_wmod, orderb);
 	   
 
    }
 
-   cuupdate(&p,&w,&wd,&state,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, &d_state,n);
+   cuupdate(&p,&w,&wd,&state,&d_p,&d_w,&d_wmod,  &d_state,n);
    //printf("nummaxthreads %d\n",p->mnthreads);
 
    t2=second()-t1;
@@ -980,7 +999,8 @@ for(int dim=0; dim<=1; dim++)
 //}
 //}//disp('while finsish steering');
 //}//end //while finishsteering loop
-cufinish(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd);
+//cufinish(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd);
+cufinish(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 free(hlines);
 free(p);
 free(sdir);

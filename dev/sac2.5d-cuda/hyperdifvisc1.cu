@@ -82,7 +82,11 @@ __global__ void hyperdifvisc1_parallel(struct params *p, real *w, real *wnew, re
   //int j = blockIdx.y * blockDim.y + threadIdx.y;
 
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
-  int i,j;
+  const int blockdim=blockDim.x;
+  const int SZWT=blockdim;
+  const int SZWM=blockdim*NVAR;
+  int tid=threadIdx.x;
+  int i,j,iv;
   int is,js;
   int index,k;
   int ni=p->n[0];
@@ -94,7 +98,7 @@ __global__ void hyperdifvisc1_parallel(struct params *p, real *w, real *wnew, re
  //  dt=1.0;
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
-
+//int numBlocks = (ni*nj+numThreadsPerBlock-1) / numThreadsPerBlock;
   real maxt=0,max3=0, max1=0;
   
    int ip,jp,ipg,jpg;
@@ -106,32 +110,11 @@ int bfac1,bfac2,bfac3;
 //int bfac2= (field==rho || field>mom2);
 //int bfac3=(field>rho && field<energy);
 int shift=order*NVAR*(p->n[0])*(p->n[1]);
+  __shared__ real wts[512];
+  __shared__ real wms[512];
 
-switch(field)
-{
-    case rho:
-      bfac1=1.0;
-      bfac2=1.0;
-      bfac3=0.0;
-    break;
-    case mom1:
-    case mom2:
-      bfac1=1.0;
-      bfac2=0.0;
-      bfac3=1.0;
-    break;
-    case energy:
-      bfac1=1.0;
-      bfac2=1.0;
-      bfac3=0.0;
-    break;
-    case b1:
-    case b2:
-      bfac1=1.0;
-      bfac2=1.0;
-      bfac3=0.0;
-    break;
-}
+
+
 
 //init temp1 and temp2 to zero 
 //the compute element initialising n[0] or n[1] element must do +1 and +2
@@ -181,10 +164,11 @@ switch(field)
 
    }
 
+
+
   }
+
    __syncthreads();
-
-
 
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
@@ -197,18 +181,22 @@ switch(field)
    if(i<((p->n[0])) && j<((p->n[1])))
    {
 
-
-
+        //for(iv=0;iv<NVAR;iv++)
+        //               wms[tid+iv*blockdim]=wmod[fencode_hdv1(p,i,j,iv)+shift];
+        //wts[tid]=wtemp[fencode_hdv1(p,i,j,tmp6)];
         //temp value for viscosity
 
        //tmp6  tmpnu
 #ifdef USE_SAC
 	if((field ==mom1 || field == mom2))
 		wtemp[fencode_hdv1(p,i,j,tmp6)]=wmod[fencode_hdv1(p,i,j,field)+shift]/(((wmod[fencode_hdv1(p,i,j,rho)+shift] +wmod[fencode_hdv1(p,i,j,rhob)+shift])));
+               //wts[tid]=wms[tid+field*blockdim]/(((wms[tid+rho*blockdim] +wms[tid+rhob*blockdim])));
      	else if(field !=energy)
         	wtemp[fencode_hdv1(p,i,j,tmp6)]=wmod[fencode_hdv1(p,i,j,field)+shift];///(bfac2+bfac3*((wmod[fencode_hdv1(p,i,j,rho)+shift] +wmod[fencode_hdv1(p,i,j,rhob)+shift])));
+               //wts[tid]=wms[tid+field*blockdim];///(bfac2+bfac3*((wmod[fencode_hdv1(p,i,j,rho)+shift] +wmod[fencode_hdv1(p,i,j,rhob)+shift])));
      	else
         wtemp[fencode_hdv1(p,i,j,tmp6)]=wmod[fencode_hdv1(p,i,j,energy)+shift]-0.5*(wmod[fencode_hdv1(p,i,j,b1)+shift]*wmod[fencode_hdv1(p,i,j,b1)+shift]+wmod[fencode_hdv1(p,i,j,b2)+shift]*wmod[fencode_hdv1(p,i,j,b2)+shift])+(wmod[fencode_hdv1(p,i,j,mom1)+shift]*wmod[fencode_hdv1(p,i,j,mom1)+shift]+wmod[fencode_hdv1(p,i,j,mom2)+shift]*wmod[fencode_hdv1(p,i,j,mom2)+shift])/(wmod[fencode_hdv1(p,i,j,rho)+shift]+wmod[fencode_hdv1(p,i,j,rhob)+shift] );
+//wts[tid]=wms[tid+energy*blockdim]-0.5*(wms[tid+b1*blockdim]*wms[tid+b1*blockdim]+wms[tid+b2*blockdim]*wms[tid+b2*blockdim])+(wms[tid+mom1*blockdim]*wms[tid+mom1*blockdim]+wms[tid+mom2*blockdim]*wms[tid+mom2*blockdim])/(wms[tid+rho*blockdim]+wms[tid+rhob*blockdim] );
 
 #else
 	if((field ==mom1 || field == mom2))
@@ -220,6 +208,11 @@ switch(field)
         wtemp[fencode_hdv1(p,i,j,tmp6)]=wmod[fencode_hdv1(p,i,j,energy)+shift]-0.5*(wmod[fencode_hdv1(p,i,j,b1)+shift]*wmod[fencode_hdv1(p,i,j,b1)+shift]+wmod[fencode_hdv1(p,i,j,b2)+shift]*wmod[fencode_hdv1(p,i,j,b2)+shift])+(wmod[fencode_hdv1(p,i,j,mom1)+shift]*wmod[fencode_hdv1(p,i,j,mom1)+shift]+wmod[fencode_hdv1(p,i,j,mom2)+shift]*wmod[fencode_hdv1(p,i,j,mom2)+shift])/(wmod[fencode_hdv1(p,i,j,rho)+shift] );
 
 #endif
+
+        //for(iv=0;iv<NVAR;iv++)
+        //               wmod[fencode_hdv1(p,i,j,iv)+shift]=wms[tid+iv*blockdim];
+        //          wtemp[fencode_hdv1(p,i,j,tmp6)]=wts[tid];
+
        // wd[fencode_hdv1(p,i,j,hdnur)]=0;
         wd[fencode_hdv1(p,i,j,hdnul+hand)]=0;
    }
@@ -227,7 +220,7 @@ switch(field)
 }
    __syncthreads();
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    {
 
@@ -243,85 +236,11 @@ switch(field)
 
    }
    __syncthreads();
-/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-          if( i<(ni) && j<(nj))
-          {
-
-                  //i=i+(dim==0);
-                  //j=j+(dim==1);
-                  bc_periodic1_temp2(wtemp2,p,i,j,tmpnui);
-                  if(i==((p->n[0])-1))
-                  {
-                  bc_periodic1_temp2(wtemp2,p,i+1,j,tmpnui);
-                  bc_periodic1_temp2(wtemp2,p,i+2,j,tmpnui);
+*/
 
 
-                  }
-
-                  if(j==((p->n[1])-1))
-                  {
-                  bc_periodic1_temp2(wtemp2,p,i,j+1,tmpnui);
-                  bc_periodic1_temp2(wtemp2,p,i,j+2,tmpnui);
-                   }
-
-		      if(j==((p->n[1])-1)  && i==j)
-		      {
-
-			  for(int di=0; di<2; di++)
-			     for(int dj=0; dj<2; dj++)
-				bc_periodic1_temp2(wtemp2,p,i+1+di,j+1+dj,tmpnui);
-
-		      }
-
-      
-          }
-
-}
-                __syncthreads();*/
-
- /*  for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-          if( i<(ni) && j<(nj))
-          {
-                  //bc_cont_cd1(dwn1,p,i,j,f1+fid);
-                  bc_periodic2_temp2(wtemp2,p,i,j,tmpnui);
-                  if(i==((p->n[0])-1))
-                  {
-                  bc_periodic2_temp2(wtemp2,p,i+1,j,tmpnui);
-                  bc_periodic2_temp2(wtemp2,p,i+2,j,tmpnui);
 
 
-                  }
-
-                  if(j==((p->n[1])-1))
-                  {
-                  bc_periodic2_temp2(wtemp2,p,i,j+1,tmpnui);
-                  bc_periodic2_temp2(wtemp2,p,i,j+2,tmpnui);
-                   }
-
-
-		      if(j==((p->n[1])-1)  && i==j)
-		      {
-
-			  for(int di=0; di<2; di++)
-			     for(int dj=0; dj<2; dj++)
-				bc_periodic2_temp2(wtemp2,p,i+1+di,j+1+dj,tmpnui);
-
-		      }
-
-
-           }
-}
-                __syncthreads();*/
 
 
 

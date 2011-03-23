@@ -13,7 +13,7 @@
 /////////////////////////////////////
 #include "gradops_b.cuh"
 
-__global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *wd, real *wmod, int order)
+__global__ void boundary_parallel(struct params *p,  real *wmod, int order)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -87,7 +87,7 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
                   bc_cont_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
 #else
                bc_periodic1_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);  //for OZT
-                 // bc_cont_cd4_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);  //for BW
+                // bc_cont_cd4_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);  //for BW
 #endif                
 
                 //  bc_fixed_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,0.0);
@@ -141,7 +141,7 @@ __global__ void boundary_parallel(struct params *p, real *w, real *wnew, real *w
   
 }
 
-int cuboundary(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, int order)
+int cuboundary(struct params **p, struct params **d_p,  real **d_wmod,  int order)
 {
 
 
@@ -158,7 +158,7 @@ int numBlocks = ((dimproduct_b(*p)+numThreadsPerBlock-1)) / numThreadsPerBlock;
   //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
  	    //printf("called prop\n"); 
     // cudaThreadSynchronize();
-    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wnew, *d_wd, *d_wmod, order);
+    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, order);
 	    //printf("called boundary\n");  
      //cudaThreadSynchronize();
 	    //printf("called update\n"); 

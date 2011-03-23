@@ -6,17 +6,18 @@
 
 
 int cuinit(struct params **p, real **w, real **wnew,   struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
+int cufinish(struct params **p, real **w, real **wnew,   struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
 //int cuprop(struct params **p, real **w, real **wnew, real **b,struct params **d_p, real **d_w, real **d_wnew, real **d_b);
-int cufinish(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd);
-int cuprop(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd);
-int cuboundary(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order);
-int cuupdate(struct params **p, real **w, real **wd,  struct state **state,struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state,int step);
+//int cufinish(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd);
+//int cuprop(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd);
+int cuboundary(struct params **p, struct params **d_p,   real **d_wmod,  int order);
+int cuupdate(struct params **p, real **w, real **wd,  struct state **state,struct params **d_p, real **d_w,  real **d_wmod,  struct state **d_state,int step);
 int cucentdiff1(struct params **p, real **w, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt, int field, int dir);
 int cucentdiff2(struct params **p, real **w, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real dt, int field,int dir);
 int cucentdiff1a(struct params **p, real **w, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt, int field, int dir);
 int cucentdiff2a(struct params **p, real **w, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real dt, int field,int dir);
 int cuderivsource(struct params **p, real **w,  struct params **d_p, real **d_w,   real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt);
-int cuadvance(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w,   real **d_wmod, real **d_dwn1, real **d_wd,int order);
+int cuadvance(struct params **p, struct params **d_p,    real **d_wmod, real **d_w,int order);
 int cucomputedervfields(struct params **p, real **w, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero);
 int cucorrector(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order);
 int cudivb(struct params **p, real **w,  struct state **state,struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, int order,int ordero, real dt);
@@ -53,6 +54,7 @@ int cuhyperdifbsourcene6(struct params **p, real **w, real **wnew, struct params
 int cuhyperdifrhosource1(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real **d_wtemp, int field, int dim);
 int cuhyperdifrhosource2(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real **d_wtemp, int field, int dim, real dt);
 
+int cuhyperdifvisc1a(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, real **d_wtemp, real **d_wtemp1, real **d_wtemp2, int field, int dim,int hand);
 int cuhyperdifvisc1(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, real **d_wtemp, real **d_wtemp1, real **d_wtemp2, int field, int dim,int hand);
 int cuhyperdifvisc2(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, real **d_wtemp, real **d_wtemp1, real **d_wtemp2, int field, int dim,int hand);
 int cuhyperdifvisc3(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order, real **d_wtemp, real **d_wtemp1, real **d_wtemp2, int field, int dim,int hand);

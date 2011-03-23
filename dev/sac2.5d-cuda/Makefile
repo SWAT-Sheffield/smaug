@@ -41,6 +41,7 @@ BASICEXOBJS	=\
 	hyperdifrhosource1.o\
 	hyperdifrhosource2.o\
 	hyperdifvisc1.o\
+	hyperdifvisc1a.o\
 	hyperdifvisc2.o\
 	hyperdifvisc3.o\
 	hyperdifvisc4.o\
@@ -117,6 +118,9 @@ iosac:$(BASICEXOBJS)
 #	$(NVCC) -o $@ --ptxas-options=-v -c $<
 hyperdifvisc1.o: hyperdifvisc1.cu
 	sed 's/MODID/hdv1/g' < gradops.cu > gradops_hdv1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifvisc1a.o: hyperdifvisc1a.cu
+	sed 's/MODID/hdv1a/g' < gradops.cu > gradops_hdv1a.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifvisc2.o: hyperdifvisc2.cu
 	sed 's/MODID/hdv2/g' < gradops.cu > gradops_hdv2.cuh
@@ -237,6 +241,7 @@ boundary.o: boundary.cu
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 init.o: init.cu
 	sed 's/MODID/i/g' < gradops.cu > gradops_i.cuh
+	sed 's/MODID/i/g' < init_user.cu > init_user_i.cuh
 	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 update.o: update.cu
 	sed 's/MODID/u/g' < gradops.cu > gradops_u.cuh
