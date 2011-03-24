@@ -65,7 +65,7 @@ if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
    }
 
 }
-__syncthreads();
+__syncthreads();  //can remove?
 
 
 

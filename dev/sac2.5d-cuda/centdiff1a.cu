@@ -166,14 +166,9 @@ void checkErrors_cd1a(char *label)
 
 
 
-int cucentdiff1a(struct params **p, real **w, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt, int field, int dir)
+int cucentdiff1a(struct params **p, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt, int field, int dir)
 {
 
-
-//printf("calling propagate solution\n");
-
-    //dim3 dimBlock(blocksize, blocksize);
-    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
  dim3 dimBlock(dimblock, 1);
     //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
     dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
@@ -182,29 +177,11 @@ int cucentdiff1a(struct params **p, real **w, struct params **d_p, real **d_w,  
  // if(order==0)
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
 
-//__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
-  //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
-     //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-//cudaThreadSynchronize();
-
+//
      centdiff1a_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
-     //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
-	    //printf("called prop\n"); 
+
      cudaThreadSynchronize();
-     //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
-	    //printf("called boundary\n");  
-     //cudaThreadSynchronize();
-     //update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
-	    //printf("called update\n"); 
-   // cudaThreadSynchronize();
-// cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*wnew, *d_wnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*b, *d_b, (((*p)->n[0])* ((*p)->n[1]))*sizeof(real), cudaMemcpyDeviceToHost);
 
-  //checkErrors("copy data from device");
-
-
- 
 
 
 }

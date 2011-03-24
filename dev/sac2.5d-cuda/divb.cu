@@ -263,29 +263,15 @@ void checkErrors_db(char *label)
   }
 }
 
-int cudivb(struct params **p, real **w,  struct state **state,struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, int order,int ordero, real dt)
+int cudivb(struct params **p, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd,  int order,int ordero, real dt)
 {
-int status=0;
-
-//printf("calling propagate solution\n");
-
-    //dim3 dimBlock(blocksize, blocksize);
-    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
- dim3 dimBlock(dimblock, 1);
-    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+    int status=0;
+    dim3 dimBlock(dimblock, 1);
+    
     dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
 
-//__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
-  //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
-     //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-    // prop_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew, *d_wmod, *d_dwn1,  *d_wd);
-     //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
-	    //printf("called prop\n"); 
-     //cudaThreadSynchronize();
-     //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
-	    //printf("called boundary\n");  
-     //cudaThreadSynchronize();
+
     divb_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();

@@ -17,8 +17,7 @@
 /////////////////////////////////////
 
 
-__global__ void computedervfields_parallel(struct params *p,  real *w,  real *wmod, 
-    real *dwn1, real *wd, int order,int ordero)
+__global__ void computedervfields_parallel(struct params *p,   real *wmod, real *wd, int order)
 {
   // compute the global index in the vector from
   // the number of the current block, blockIdx,
@@ -154,6 +153,7 @@ __syncthreads(); */
 	{
  //determin cmax
                computec_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               p->cmax=0.0;
         }
 
 }
@@ -182,15 +182,45 @@ if(iindex==0)
 
  //  }
 }
+ __syncthreads(); 
+
+
+
+
+  /* for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+     i=2*i;
+     j=2*j;
+
+  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+               computecmax_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+
+	
+
+   }
+
  __syncthreads();
 
- /*if(i<(p->n[0]) && j<(p->n[1]))
-	{ 
-              // for(int f=vel1; f<NDERV; f++)
-              for(int f=current1; f<=current2; f++)
-                  bc_cont_cdf(wd,p,i,j,f);
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
 
-	}
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+     i=2*i+1;
+     j=2*j+1;
+
+  if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+               computecmax_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+
+	
+
+   }
+
  __syncthreads();*/
   
 }
@@ -224,40 +254,23 @@ void checkErrors_cdf(char *label)
 
 
 
-int cucomputedervfields(struct params **p, real **w,  struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero)
+int cucomputedervfields(struct params **p,  struct params **d_p, real **d_wmod,  real **d_wd, int order)
 {
 
 
-//printf("calling propagate solution\n");
-
-    //dim3 dimBlock(blocksize, blocksize);
-    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
  dim3 dimBlock(dimblock, 1);
     //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
     dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
 
-//__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
-  //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
-     //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-     computedervfields_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero);
-     //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
-	    //printf("called prop\n"); 
+
+     computedervfields_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order);
+
      cudaThreadSynchronize();
-     //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
-	    //printf("called boundary\n");  
-     //cudaThreadSynchronize();
-     //update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_b,*d_w,*d_wnew);
-	    //printf("called update\n"); 
-   // cudaThreadSynchronize();
  
 
     cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
 
-     //following used for testing to check current soundspeeds etc
-     //cudaMemcpy(*w, *d_wd, 7*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*wnew, *d_wnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*b, *d_b, (((*p)->n[0])* ((*p)->n[1]))*sizeof(real), cudaMemcpyDeviceToHost);
 
   //checkErrors("copy data from device");
 

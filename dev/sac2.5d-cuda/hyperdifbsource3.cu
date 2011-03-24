@@ -22,6 +22,61 @@
 
 
 
+__global__ void hyperdifbsource4_parallel(struct params *p,  real *wmod, 
+    real *dwn1, real *wd, int order,int ordero, real *wtemp, int field, int dim, int jj, int ii0,int mm,real sb,real dt)
+{
+  // compute the global index in the vector from
+  // the number of the current block, blockIdx,
+  // the number of threads per block, blockDim,
+  // and the number of the current thread within the block, threadIdx
+  //int i = blockIdx.x * blockDim.x + threadIdx.x;
+  //int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int m,ii1;
+  real fip,fim1,tmpc;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+
+  //real dt=p->dt;
+  real dy=p->dx[1];
+  real dx=p->dx[0];
+  //real g=p->g;
+ //  dt=1.0;
+//dt=0.05;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+
+
+   int ip,jp,ipg,jpg;
+   jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
+
+
+   
+
+
+
+   
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   {
+
+     i=ip*(p->npgp[0])+ipg;
+     j=jp*(p->npgp[1])+jpg;
+			 //if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
+                         if(i<(ni) && j<(nj))
+                         {
+                              //                                                                                  - sign here same as vac maybe a +
+                              wmod[fencode_hdb4(p,i,j,b1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdb4(p,i,j,b1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdb4(p,i,j,b1+field)]; 
+                             wmod[fencode_hdb4(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdb4(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdb4(p,i,j,energy)]; 
+
+                         }
+              //  }	
+}
+  __syncthreads();  
+}
 
 
 

@@ -15,41 +15,15 @@ BASICEXOBJS	=\
 	initialisation.o\
 	dxroutines.o\
 	hyperdifmomsource1.o\
-	hyperdifmomsource2.o\
-	hyperdifmomsource3.o\
 	hyperdifmomsourcene1.o\
-	hyperdifmomsourcene2.o\
-	hyperdifmomsourcene3.o\
-	hyperdifmomsourcene4.o\
-	hyperdifmomsourcene5.o\
-	hyperdifmomsourcene6.o\
 	hyperdifesource1.o\
-	hyperdifesource2.o\
-	hyperdifesource2a.o\
-	hyperdifesource3.o\
 	hyperdifbsource1.o\
-	hyperdifbsource2.o\
-	hyperdifbsource3.o\
-	hyperdifbsource4.o\
 	hyperdifbsourcene1.o\
-	hyperdifbsourcene1a.o\
-	hyperdifbsourcene2.o\
-	hyperdifbsourcene3.o\
-	hyperdifbsourcene4.o\
-	hyperdifbsourcene5.o\
-	hyperdifbsourcene6.o\
 	hyperdifrhosource1.o\
-	hyperdifrhosource2.o\
 	hyperdifvisc1.o\
-	hyperdifvisc1a.o\
-	hyperdifvisc2.o\
-	hyperdifvisc3.o\
-	hyperdifvisc4.o\
 	derivsource.o\
 	centdiff1.o\
-	centdiff1a.o\
 	centdiff2.o\
-	centdiff2a.o\
 	computedervfields.o\
 	boundary.o\
 	init.o\
@@ -119,99 +93,28 @@ iosac:$(BASICEXOBJS)
 hyperdifvisc1.o: hyperdifvisc1.cu
 	sed 's/MODID/hdv1/g' < gradops.cu > gradops_hdv1.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifvisc1a.o: hyperdifvisc1a.cu
-	sed 's/MODID/hdv1a/g' < gradops.cu > gradops_hdv1a.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifvisc2.o: hyperdifvisc2.cu
-	sed 's/MODID/hdv2/g' < gradops.cu > gradops_hdv2.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifvisc3.o: hyperdifvisc3.cu
-	sed 's/MODID/hdv3/g' < gradops.cu > gradops_hdv3.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifvisc4.o: hyperdifvisc4.cu
-	sed 's/MODID/hdv4/g' < gradops.cu > gradops_hdv4.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifviscmax.o: hyperdifviscmax.cu
 	sed 's/MODID/hdvmax/g' < gradops.cu > gradops_hdvmax.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifrhosource1.o: hyperdifrhosource1.cu
 	sed 's/MODID/hdr1/g' < gradops.cu > gradops_hdr1.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifrhosource2.o: hyperdifrhosource2.cu
-	sed 's/MODID/hdr2/g' < gradops.cu > gradops_hdr2.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifesource1.o: hyperdifesource1.cu
 	sed 's/MODID/hde1/g' < gradops.cu > gradops_hde1.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifesource2.o: hyperdifesource2.cu
-	sed 's/MODID/hde2/g' < gradops.cu > gradops_hde2.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifesource2a.o: hyperdifesource2a.cu
-	sed 's/MODID/hde2a/g' < gradops.cu > gradops_hde2a.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifesource3.o: hyperdifesource3.cu
-	sed 's/MODID/hde3/g' < gradops.cu > gradops_hde3.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifbsource1.o: hyperdifbsource1.cu
 	sed 's/MODID/hdb1/g' < gradops.cu > gradops_hdb1.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifbsource2.o: hyperdifbsource2.cu
-	sed 's/MODID/hdb2/g' < gradops.cu > gradops_hdb2.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifbsource3.o: hyperdifbsource3.cu
-	sed 's/MODID/hdb3/g' < gradops.cu > gradops_hdb3.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifbsource4.o: hyperdifbsource4.cu
-	sed 's/MODID/hdb4/g' < gradops.cu > gradops_hdb4.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifbsourcene1.o: hyperdifbsourcene1.cu
 	sed 's/MODID/hdbne1/g' < gradops.cu > gradops_hdbne1.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifbsourcene1a.o: hyperdifbsourcene1a.cu
-	sed 's/MODID/hdbne1a/g' < gradops.cu > gradops_hdbne1a.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifbsourcene2.o: hyperdifbsourcene2.cu
-	sed 's/MODID/hdbne2/g' < gradops.cu > gradops_hdbne2.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifbsourcene3.o: hyperdifbsourcene3.cu
-	sed 's/MODID/hdbne3/g' < gradops.cu > gradops_hdbne3.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifbsourcene4.o: hyperdifbsourcene4.cu
-	sed 's/MODID/hdbne4/g' < gradops.cu > gradops_hdbne4.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifbsourcene5.o: hyperdifbsourcene5.cu
-	sed 's/MODID/hdbne5/g' < gradops.cu > gradops_hdbne5.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifbsourcene6.o: hyperdifbsourcene6.cu
-	sed 's/MODID/hdbne6/g' < gradops.cu > gradops_hdbne6.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifmomsource1.o: hyperdifmomsource1.cu
 	sed 's/MODID/hdm1/g' < gradops.cu > gradops_hdm1.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifmomsource2.o: hyperdifmomsource2.cu
-	sed 's/MODID/hdm2/g' < gradops.cu > gradops_hdm2.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifmomsource3.o: hyperdifmomsource3.cu
-	sed 's/MODID/hdm3/g' < gradops.cu > gradops_hdm3.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+
 
 hyperdifmomsourcene1.o: hyperdifmomsourcene1.cu
 	sed 's/MODID/hdmne1/g' < gradops.cu > gradops_hdmne1.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifmomsourcene2.o: hyperdifmomsourcene2.cu
-	sed 's/MODID/hdmne2/g' < gradops.cu > gradops_hdmne2.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifmomsourcene3.o: hyperdifmomsourcene3.cu
-	sed 's/MODID/hdmne3/g' < gradops.cu > gradops_hdmne3.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifmomsourcene4.o: hyperdifmomsourcene4.cu
-	sed 's/MODID/hdmne4/g' < gradops.cu > gradops_hdmne4.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifmomsourcene5.o: hyperdifmomsourcene5.cu
-	sed 's/MODID/hdmne5/g' < gradops.cu > gradops_hdmne5.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-hyperdifmomsourcene6.o: hyperdifmomsourcene6.cu
-	sed 's/MODID/hdmne6/g' < gradops.cu > gradops_hdmne6.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 derivsource.o: derivsource.cu
 	sed 's/MODID/ds/g' < gradops.cu > gradops_ds.cuh
@@ -223,14 +126,6 @@ centdiff1.o: centdiff1.cu
 centdiff2.o: centdiff2.cu
 	sed 's/MODID/cd2/g' < gradops.cu > gradops_cd2.cuh
 	sed 's/MODID/cd2/g' < dervfields.cu > dervfields_cd2.cuh
-	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
-centdiff1a.o: centdiff1a.cu
-	sed 's/MODID/cd1a/g' < gradops.cu > gradops_cd1a.cuh
-	sed 's/MODID/cd1a/g' < dervfields.cu > dervfields_cd1a.cuh
-	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
-centdiff2a.o: centdiff2a.cu
-	sed 's/MODID/cd2a/g' < gradops.cu > gradops_cd2a.cuh
-	sed 's/MODID/cd2a/g' < dervfields.cu > dervfields_cd2a.cuh
 	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 computedervfields.o: computedervfields.cu
 	sed 's/MODID/cdf/g' < gradops.cu > gradops_cdf.cuh
