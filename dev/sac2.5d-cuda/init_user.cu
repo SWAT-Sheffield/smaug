@@ -56,7 +56,7 @@ void init_user_MODID (real *w, struct params *p,int i, int j) {
 }*/
 
 //ozttest
-/*__device__ __host__
+__device__ __host__
 void init_user_MODID (real *w, struct params *p,int i, int j) {
                     
                     //real b0=1.0/sqrt(4.0*PI);
@@ -150,10 +150,10 @@ w[fencode_i(p,i,j,energy)]=-sin(1.0*i*(p->dx[0]));
 
 
 
-}*/
+}
 
 //bwtests
-__device__ __host__
+/*__device__ __host__
 void init_user_MODID (real *w, struct params *p,int i, int j) {
                     
              real p1=1.0;
@@ -226,5 +226,5 @@ void init_user_MODID (real *w, struct params *p,int i, int j) {
 
 
 
-}
+}*/
 

@@ -19,12 +19,7 @@
 
 __global__ void computedervfields_parallel(struct params *p,   real *wmod, real *wd, int order)
 {
-  // compute the global index in the vector from
-  // the number of the current block, blockIdx,
-  // the number of threads per block, blockDim,
-  // and the number of the current thread within the block, threadIdx
-  //int i = blockIdx.x * blockDim.x + threadIdx.x;
-  //int j = blockIdx.y * blockDim.y + threadIdx.y;
+
 
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
@@ -39,101 +34,96 @@ __global__ void computedervfields_parallel(struct params *p,   real *wmod, real 
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
-
-  
-
+  int ii[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
    int ip,jp,ipg,jpg;
-   jp=iindex/(ni/(p->npgp[0]));
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #ifdef USE_SAC
+    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
+
+
+
 
 
 if(order == 0)
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
+     ii[0]=ip*(p->npgp[0])+ipg;
+     ii[1]=jp*(p->npgp[1])+jpg;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp*(p->npgp[2])+kpg;
+     #endif
 
-
-
-
-if(i<((p->n[0])) && j<((p->n[1])))
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
 	{		
  
-               for(int f=rho; f<=b2; f++)
-                  wmod[fencode_cdf(p,i,j,f)+((p->n[0]))*((p->n[1]))*NVAR]=wmod[fencode_cdf(p,i,j,f)]; 
+		#ifdef USE_SAC_3D
+		  for(int f=rho; f<=b3; f++)
+                  	wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]=wmod[fencode3_cdf(p,ii,f)]; 
+		#else
+		  for(int f=rho; f<=b2; f++)
+                  	wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]=wmod[fencode3_cdf(p,ii,f)]; 
+		#endif               
+
         }
 
 }
                __syncthreads();
 
-/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-if(i<((p->n[0])) && j<((p->n[1])))
-	{		
-
-               for(int f=vel1; f<NDERV; f++)
-                 ;// wd[fencode_cdf(p,i,j,f)]=0; 
-               for(int f=rho; f<NVAR; f++)
-                 ;// dwn1[fencode_cdf(p,i,j,f)]=0; 
-        }
-
-}
-               __syncthreads();*/
-
-//if(i>20 && j >20 && i<90 && j<90)
-//	{
-//               computepk_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-//              computept_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-//}
-//              __syncthreads();
-
-
-/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-#ifdef USE_VAC
- if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-                    computej_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-#endif
-
-#ifdef USE_SAC
- if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-                    computej_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-#endif
-
-}
-__syncthreads(); */
 
 
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if(i<((p->n[0])) && j<((p->n[1])))
+     ii[0]=ip*(p->npgp[0])+ipg;
+     ii[1]=jp*(p->npgp[1])+jpg;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp*(p->npgp[2])+kpg;
+     #endif
+
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
 	{		               
              #ifdef ADIABHYDRO
-               computepk_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-               computept_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               computepk3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
+               computept3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
              #else
-               //computej_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-               computepk_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-               computept_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               //computej3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
+               computepk3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
+               computept3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
 
-               computebdotv_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
-               //computedivb_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               computebdotv3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
+               //computedivb3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
 
              #endif
 
@@ -144,15 +134,26 @@ __syncthreads(); */
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if(i<((p->n[0])) && j<((p->n[1])))
+     ii[0]=ip*(p->npgp[0])+ipg;
+     ii[1]=jp*(p->npgp[1])+jpg;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp*(p->npgp[2])+kpg;
+     #endif
+
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{
  //determin cmax
-               computec_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               computec3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
                p->cmax=0.0;
         }
 
@@ -170,10 +171,13 @@ if(iindex==0)
    //if( i<((p->n[0])) && j<((p->n[1])))
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
     p->cmax=0.0;
-    for(i>1;i<((p->n[0])-2);i++)
-      for(j>1;j<((p->n[1])-2);j++)
+    for(ii[0]>1;ii[0]<((p->n[0])-2);ii[0]++)
+      for(ii[1]>1;ii[1]<((p->n[1])-2);ii[1]++)
+     #ifdef USE_SAC_3D
+        for(ii[2]>1;ii[2]<((p->n[2])-2);ii[2]++)
+     #endif
 	{ 
-               computecmax_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               computecmax3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
 
 
 
@@ -197,7 +201,7 @@ if(iindex==0)
      j=2*j;
 
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-               computecmax_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               computecmax_cdf(wmod+(order*dimp*NVAR),wd,p,i,j);
 
 	
 
@@ -215,7 +219,7 @@ if(iindex==0)
      j=2*j+1;
 
   if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-               computecmax_cdf(wmod+(order*((p->n[0]))*((p->n[1]))*NVAR),wd,p,i,j);
+               computecmax_cdf(wmod+(order*dimp*NVAR),wd,p,i,j);
 
 	
 

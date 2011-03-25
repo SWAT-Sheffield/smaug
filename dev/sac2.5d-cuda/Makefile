@@ -21,7 +21,6 @@ BASICEXOBJS	=\
 	hyperdifbsourcene1.o\
 	hyperdifrhosource1.o\
 	hyperdifvisc1.o\
-	derivsource.o\
 	centdiff1.o\
 	centdiff2.o\
 	computedervfields.o\
@@ -47,7 +46,7 @@ ALLBIN	=	$(Bin)/iosac
 #use -DUSE_IOME to enable IOME
 #CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DADIABHYDRO -DUSE_VAC -DD1D -DUSE_IOME
 #compiling with  -arch sm_13 enables double precision to be used
-CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DUSE_SAC -DD1D
+CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DUSE_SAC  -DD1D
 CCFLAGS = -DUSE_SAC -DD1D
 
 #MYLIBS	=	libAgentSimulation2.a
@@ -111,13 +110,8 @@ hyperdifbsourcene1.o: hyperdifbsourcene1.cu
 hyperdifmomsource1.o: hyperdifmomsource1.cu
 	sed 's/MODID/hdm1/g' < gradops.cu > gradops_hdm1.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-
-
 hyperdifmomsourcene1.o: hyperdifmomsourcene1.cu
 	sed 's/MODID/hdmne1/g' < gradops.cu > gradops_hdmne1.cuh
-	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
-derivsource.o: derivsource.cu
-	sed 's/MODID/ds/g' < gradops.cu > gradops_ds.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 centdiff1.o: centdiff1.cu
 	sed 's/MODID/cd1/g' < gradops.cu > gradops_cd1.cuh

@@ -261,6 +261,10 @@ __global__ void init_parallel(struct params *p, real *w, real *wnew, real *wmod,
  // int index,k;
 int ni=p->n[0];
   int nj=p->n[1];
+#ifdef USE_SAC_3D
+  int nk=p->n[2];
+#endif
+
 
 // Block index
     int bx = blockIdx.x;
@@ -276,22 +280,44 @@ int ni=p->n[0];
 
 
   int i,j;
+  int ii[NDIM];
    
-   
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+#endif  
    int ip,jp,ipg,jpg;
-   jp=iindex/(ni/(p->npgp[0]));
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #ifdef USE_SAC
+    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
+
+   
 
    
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
+     ii[0]=ip*(p->npgp[0])+ipg;
+     ii[1]=jp*(p->npgp[1])+jpg;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp*(p->npgp[2])+kpg;
+     #endif
 
-
-  if(i<p->n[0] && j<p->n[1])
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
 	{
 		//b[i+j*(p->n[0])]=0;
 
@@ -308,24 +334,24 @@ int ni=p->n[0];
             { 
 		         
                           for(ord=0;ord<(2+3*(p->rkon==1));ord++)
-                              wmod[fencode_i(p,i,j,f)+ord*NVAR*(p->n[0])*(p->n[1])]=0;
+                              wmod[fencode3_i(p,ii,f)+ord*NVAR*(p->n[0])*(p->n[1])]=0;
 	    }
 
 	if(p->readini==0)
 	{
         for(int f=0; f<NVAR; f++)
-            w[fencode_i(p,i,j,f)]=0;
-            w[fencode_i(p,i,j,rho)]=1.0;
+            w[fencode3_i(p,ii,f)]=0;
+            w[fencode3_i(p,ii,rho)]=1.0;
             #ifdef ADIABHYDRO
 		    if(i> (((p->n[0])/2)-2) && i<(((p->n[0])/2)+2) && j>(((p->n[1])/2)-2) && j<(((p->n[1])/2)+2) ) 
-				w[fencode_i(p,i,j,rho)]=1.3;
+				w[fencode3_i(p,ii,rho)]=1.3;
             #else
                    // init_alftest (real *w, struct params *p,int i, int j)
                    // init_alftest(w,p,i,j);
                    // init_ozttest (real *w, struct params *p,int i, int j)
                    // init_ozttest(w,p,i,j);
                    // init_bwtest(w,p,i,j);
-                   init_user_i(w,p,i,j);
+                   init_user_i(w,p,ii[0],ii[1]);
            #endif
 
 	}
@@ -340,23 +366,32 @@ int ni=p->n[0];
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
+     ii[0]=ip*(p->npgp[0])+ipg;
+     ii[1]=jp*(p->npgp[1])+jpg;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp*(p->npgp[2])+kpg;
+     #endif
 
-
-  if(i<p->n[0] && j<p->n[1])
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
 	{
         for(int f=rho; f<NVAR; f++)
         {               
-                  wmod[fencode_i(p,i,j,f)]=w[fencode_i(p,i,j,f)];              
-                  dwn1[fencode_i(p,i,j,f)]=0;
+                  wmod[fencode3_i(p,ii,f)]=w[fencode3_i(p,ii,f)];              
+                  dwn1[fencode3_i(p,ii,f)]=0;
                             
         }
 
         for(int f=tmp1; f<NTEMP; f++)
-                 wtemp[fencode_i(p,i,j,f)]=0;
+                 wtemp[fencode3_i(p,ii,f)]=0;
 
 
 }
@@ -365,16 +400,26 @@ int ni=p->n[0];
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
+     ii[0]=ip*(p->npgp[0])+ipg;
+     ii[1]=jp*(p->npgp[1])+jpg;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp*(p->npgp[2])+kpg;
+     #endif
 
-
-        if(i<p->n[0] && j<p->n[1])
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
+     
                for(int f=vel1; f<NDERV; f++)
-                    wd[fencode_i(p,i,j,f)]=0.0;
-   }
+                    wd[fencode3_i(p,ii,f)]=0.0;
+     }
 
  __syncthreads(); 
 }
