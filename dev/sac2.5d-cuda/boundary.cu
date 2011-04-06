@@ -15,10 +15,7 @@
 
 __global__ void boundary_parallel(struct params *p,  real *wmod, int order)
 {
-  // compute the global index in the vector from
-  // the number of the current block, blockIdx,
-  // the number of threads per block, blockDim,
-  // and the number of the current thread within the block, threadIdx
+
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int index,k;
@@ -32,82 +29,64 @@ __global__ void boundary_parallel(struct params *p,  real *wmod, int order)
                 real val=0;
   
    int ip,jp,ipg,jpg;
-   jp=iindex/(ni/(p->npgp[0]));
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
 
 
-/*#ifdef ADIABHYDRO
-;
-#else
-  //This second call makes sure corners are set correctly
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-             for( f=rho; f<=b2; f++)
-{
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if(i<p->n[0] && j<p->n[1])
-
-                  bc_periodic1a_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
-
- __syncthreads();
-   } 
-}
-
-#endif*/
-
-
-
+int shift=order*NVAR*dimp;
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-
-               for( f=rho; f<=b2; f++)
-               {
-  if(i<p->n[0] && j<p->n[1])
+     iia[0]=ip*(p->npgp[0])+ipg;
+     iia[1]=jp*(p->npgp[1])+jpg;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp*(p->npgp[2])+kpg;
+           k=iia[2];
+           for( f=rho; f<=b3; f++)
+     #else
+           for( f=rho; f<=b2; f++)
+     #endif
+             {  
+         #ifdef USE_SAC_3D
+      if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
+     #else
+       if(i<((p->n[0])) && j<((p->n[1])))
+     #endif           
 	{
 
-               //default continuous BC for all
-               //gradient kept zero by copying variable values from edge of mesh to ghost cells
-                //  bc_cont_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho);
-               
-                 // bc_fixed_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho,1.0);
-               //   bc_fixed(wnew,p,i,j,rho,1.0);
-               //   bc_periodic_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,rho);
-               
-
-               
-
+ 
 #ifdef ADIABHYDRO
-                  bc_cont_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
+                  bc3_cont_b(wmod+order*NVAR*dimp,p,iia,f);
 #else
-               bc_periodic1_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);  //for OZT
-               //  bc_cont_cd4_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);  //for BW
+               bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
+               //  bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
 #endif                
 
-                //  bc_fixed_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f,0.0);
-                 // bc_fixed(wnew,p,i,j,f,val);
-
-                 // bc_periodic1_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
-                
-
-
-
-
-               /*for(int f=vel1; f<NDERV; f++)
-               {
-                  bc_cont_b(wd,p,i,j,f);
-
-                 //bc_fixed_b(wd,p,i,j,f,0.0);
-                 //   bc_periodic(wd,p,i,j,f);
-
-                  
-               }*/
+                //  bc3_fixed_b(wmod+order*NVAR*dimp,p,iia,f,0.0);
 
 	}
 
@@ -121,14 +100,31 @@ __global__ void boundary_parallel(struct params *p,  real *wmod, int order)
   //This second call makes sure corners are set correctly
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
-             for( f=rho; f<=b2; f++)
-{
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if(i<p->n[0] && j<p->n[1])
 
-                  bc_periodic2_b(wmod+order*NVAR*(p->n[0])*(p->n[1]),p,i,j,f);
+     iia[0]=ip*(p->npgp[0])+ipg;
+     iia[1]=jp*(p->npgp[1])+jpg;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp*(p->npgp[2])+kpg;
+           k=iia[2];
+           for( f=rho; f<=b3; f++)
+     #else
+           for( f=rho; f<=b2; f++)
+     #endif
+             {  
+         #ifdef USE_SAC_3D
+      if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
+     #else
+       if(i<((p->n[0])) && j<((p->n[1])))
+     #endif    
+
+                  bc3_periodic2_b(wmod+order*NVAR*dimp,p,iia,f);
 
 
    } 
@@ -145,33 +141,12 @@ int cuboundary(struct params **p, struct params **d_p,  real **d_wmod,  int orde
 {
 
 
-//printf("calling propagate solution\n");
-
-    //dim3 dimBlock(blocksize, blocksize);
-    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
  dim3 dimBlock(dimblock, 1);
-    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-   // dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-   //int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
+
 int numBlocks = ((dimproduct_b(*p)+numThreadsPerBlock-1)) / numThreadsPerBlock;
-//__global__ void prop_parallel(struct params *p, real *b, real *w, real *wnew, real *wmod, 
-  //  real *dwn1, real *dwn2, real *dwn3, real *dwn4, real *wd)
- 	    //printf("called prop\n"); 
-    // cudaThreadSynchronize();
+
     boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, order);
-	    //printf("called boundary\n");  
-     //cudaThreadSynchronize();
-	    //printf("called update\n"); 
+
     cudaThreadSynchronize();
-// cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*wnew, *d_wnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
-//cudaMemcpy(*b, *d_b, (((*p)->n[0])* ((*p)->n[1]))*sizeof(real), cudaMemcpyDeviceToHost);
-
-  //checkErrors("copy data from device");
-
-
- 
-
 
 }
-

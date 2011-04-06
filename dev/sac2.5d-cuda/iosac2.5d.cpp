@@ -4,6 +4,7 @@
 
 #include "iosac2.5d.h"
 #include "step.h"
+
 /*----------------------*/ 
 real second()
 {
@@ -32,6 +33,9 @@ real second()
 
 }
 
+
+
+
 int main(int argc, char* argv[])
 {
 
@@ -44,7 +48,7 @@ int it=0; //test integer to be returned
 //int elist.port=8080;
 
 int i1,i2,i3,j1;
-int i,j,iv;
+int i,j,k,iv;
 
 
 char *portfile=(char *)calloc(500,sizeof(char));
@@ -63,7 +67,7 @@ real h0 = 5030;
 
 int ngi=2;
 int ngj=2;
-
+int ngk=2;
 
 
 
@@ -78,7 +82,7 @@ real xmax = 1.0;
 real dx = 0.55*xmax/(ni-4);
 #endif
 
-#ifndef ADIABHYDRO
+#ifdef USE_SAC
 //vac ozt
 int ni;
 ni=96;    //OZT tests
@@ -90,7 +94,19 @@ real xmax=1.0;
 //real dx = xmax/(ni-4);
 real dx = xmax/(ni);
 #endif
+#ifdef USE_SAC_3D
+//vac ozt
+int ni;
+ni=28;    //BACH3D tests
 
+ni=ni+2*ngi;
+//ni=512;
+//real xmax = 6.2831853;  
+real xmax=14.19e18;
+real xmin=-14.19e18;
+//real dx = xmax/(ni-4);
+real dx = (xmax-xmin)/(ni);
+#endif
 
 
 // Define the y domain
@@ -103,7 +119,7 @@ real ymax = 1.0;
 real dy = 0.55*ymax/(nj-4);
 #endif
 
-#ifndef ADIABHYDRO
+#ifdef USE_SAC
 //vac ozt
 int nj = 96;  //OZT tests
 //int nj=2;  //BW test
@@ -115,9 +131,34 @@ real ymax = 1.0;
 real dy = ymax/(nj);    
 //nj=41;
 #endif
-                    
 
+#ifdef USE_SAC_3D
+//vac bach3d
+int nj;
+nj=28;    //BACH3D tests
 
+nj=nj+2*ngj;
+//ni=512;
+//real xmax = 6.2831853;  
+real ymax=14.19e18;
+real ymin=-14.19e18;
+//real dx = xmax/(ni-4);
+real dy = (ymax-ymin)/(nj);
+#endif                   
+
+#ifdef USE_SAC_3D
+//vac bach3d
+int nk;
+nk=28;    //BACH3D tests
+
+nk=nk+2*ngk;
+//ni=512;
+//real xmax = 6.2831853;  
+real zmax=14.19e18;
+real zmin=-14.19e18;
+//real dx = xmax/(ni-4);
+real dz = (zmax-zmin)/(nk);
+#endif     
 real *x=(real *)calloc(ni,sizeof(real));
 for(i=0;i<ni;i++)
 		x[i]=i*dx;
@@ -164,7 +205,7 @@ dt=0.0002985;  //ADIABHYDRO
 #endif
 //dt=0.15;
 
-#ifndef ADIABHYDRO
+#ifdef USE_SAC
 dt=0.00065;  //OZT test
 //dt=6.5/10000000.0; //BW test
 //dt=0.00000065;  //BW tests
@@ -173,9 +214,10 @@ dt=0.00065;  //OZT test
 //dt=0.000139;
 //dt=3.0/10000000.0; //BW test
 #endif
-//dt=0.00009;
-//dt=0.25;
-//dt=0.00015125;
+
+#ifdef USE_SAC_3D
+dt=3.5e24;;  //BACH3D
+#endif
 int nt=(int)((tmax)/dt);
 //nt=3000;
 //nt=5000;
@@ -205,6 +247,10 @@ p->npgp[1]=1;
 p->dt=dt;
 p->dx[0]=dx;
 p->dx[1]=dy;
+
+#ifdef USE_SAC_3D
+p->dx[2]=dz;
+#endif
 //p->g=g;
 
 
@@ -222,6 +268,7 @@ p->adiab=1.0;
 //ozt test
 p->gamma=5.0/3.0;  //OZ test
 //p->gamma=2.0;  //BW test
+//p->gamma=5.0/3.0;  //BACH3D
 //alfven test
 //p->gamma=1.4;
 
@@ -235,6 +282,9 @@ p->eta=0.0;
 p->g[0]=0.0;
 p->g[1]=0.0;
 p->g[2]=0.0;
+#ifdef USE_SAC_3D
+
+#endif
 //p->cmax=1.0;
 p->cmax=0.02;
 

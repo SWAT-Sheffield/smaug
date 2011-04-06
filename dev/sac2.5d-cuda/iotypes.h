@@ -89,6 +89,7 @@ struct params {
         int npgp[NDIM];
 
         real xmax[NDIM];
+        real xmin[NDIM];
 	int nt;
         real tmax;
 

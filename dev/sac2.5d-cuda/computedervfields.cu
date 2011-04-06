@@ -48,7 +48,7 @@ __global__ void computedervfields_parallel(struct params *p,   real *wmod, real 
    jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
    ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
 #endif
- #ifdef USE_SAC
+ #if defined USE_SAC || defined ADIABHYDRO
     jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
 #endif  

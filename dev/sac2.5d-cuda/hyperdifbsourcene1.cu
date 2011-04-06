@@ -18,13 +18,6 @@
 __global__ void hyperdifbsourcene6_parallel(struct params *p,  real *wmod, 
     real *dwn1, real *wd, int order,int ordero, real *wtemp, int field, int dim, int jj, int ii0,int mm,real sb, real dt)
 {
-  // compute the global index in the vector from
-  // the number of the current block, blockIdx,
-  // the number of threads per block, blockDim,
-  // and the number of the current thread within the block, threadIdx
-  //int i = blockIdx.x * blockDim.x + threadIdx.x;
-  //int j = blockIdx.y * blockDim.y + threadIdx.y;
-
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int m,ii1;
@@ -36,55 +29,90 @@ __global__ void hyperdifbsourcene6_parallel(struct params *p,  real *wmod,
   //real dt=p->dt;
   real dy=p->dx[1];
   real dx=p->dx[0];
-  //real g=p->g;
- //  dt=1.0;
-//dt=0.05;
-//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+ 
+  int ip,jp,ipg,jpg;
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
 
-
-
-
-
-
-   int ip,jp,ipg,jpg;
-   jp=iindex/(ni/(p->npgp[0]));
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
 
 
+int shift=order*NVAR*dimp;
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
+     iia[0]=ip*(p->npgp[0])+ipg;
+     iia[1]=jp*(p->npgp[1])+jpg;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp*(p->npgp[2])+kpg;
+           k=iia[2];
+     #endif
 
-  if(i<((p->n[0])) && j<((p->n[1])))
+     #ifdef USE_SAC_3D
+     if(i<((p->n[0])) && j<((p->n[1])) && k<((p->n[2])))
+     #else
+    if(i<((p->n[0])) && j<((p->n[1])))
+     #endif
+
+  //if(i<((p->n[0])) && j<((p->n[1])))
 	{		               
 
-dwn1[fencode_hdbne1(p,i,j,energy)]=sb*wtemp[fencode_hdbne1(p,i,j,tmp6)];
+dwn1[fencode3_hdbne1(p,iia,energy)]=sb*wtemp[fencode3_hdbne1(p,iia,tmp6)];
 
-dwn1[fencode_hdbne1(p,i,j,b1+ii0)]=sb*wtemp[fencode_hdbne1(p,i,j,tmp4)];
+dwn1[fencode3_hdbne1(p,iia,b1+ii0)]=sb*wtemp[fencode3_hdbne1(p,iia,tmp4)];
 
 
    }
 }
  __syncthreads();
 
-
-
-   
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-			 //if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
-                         if(i<(ni) && j<(nj))
+     iia[0]=ip*(p->npgp[0])+ipg;
+     iia[1]=jp*(p->npgp[1])+jpg;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp*(p->npgp[2])+kpg;
+           k=iia[2];
+     #endif
+
+     #ifdef USE_SAC_3D
+     if(i<((p->n[0])) && j<((p->n[1])) && k<((p->n[2])))
+     #else
+    if(i<((p->n[0])) && j<((p->n[1])))
+     #endif
+                         //if(i<(ni) && j<(nj))
                          {
                               //                                                                                  - sign here same as vac maybe a +
-                              wmod[fencode_hdbne1(p,i,j,b1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdbne1(p,i,j,b1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdbne1(p,i,j,b1+ii0)]; 
-                             wmod[fencode_hdbne1(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode_hdbne1(p,i,j,energy)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode_hdbne1(p,i,j,energy)]; 
+                              wmod[fencode3_hdbne1(p,iia,b1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdbne1(p,iia,b1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdbne1(p,iia,b1+ii0)]; 
+                             wmod[fencode3_hdbne1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdbne1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdbne1(p,iia,energy)]; 
 
                          }
               //  }	
@@ -97,13 +125,6 @@ dwn1[fencode_hdbne1(p,i,j,b1+ii0)]=sb*wtemp[fencode_hdbne1(p,i,j,tmp4)];
 __global__ void hyperdifbsourcene5_parallel(struct params *p,  real *wmod, 
     real *dwn1, real *wd, int order,int ordero, real *wtemp, int field, int dim, int jj, int ii0,int mm,real sb, real dt)
 {
-  // compute the global index in the vector from
-  // the number of the current block, blockIdx,
-  // the number of threads per block, blockDim,
-  // and the number of the current thread within the block, threadIdx
-  //int i = blockIdx.x * blockDim.x + threadIdx.x;
-  //int j = blockIdx.y * blockDim.y + threadIdx.y;
-
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int m,ii1;
@@ -112,39 +133,61 @@ __global__ void hyperdifbsourcene5_parallel(struct params *p,  real *wmod,
   int ni=p->n[0];
   int nj=p->n[1];
 
-  //real dt=p->dt;
   real dy=p->dx[1];
   real dx=p->dx[0];
-  //real g=p->g;
- //  dt=1.0;
-//dt=0.05;
-//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
+  int ip,jp,ipg,jpg;
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
 
-//int shift=order*NVAR*(p->n[0])*(p->n[1]);
-
-
-
-   int ip,jp,ipg,jpg;
-   jp=iindex/(ni/(p->npgp[0]));
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
 
 
+int shift=order*NVAR*dimp;
 
-
-   
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
+     iia[0]=ip*(p->npgp[0])+ipg;
+     iia[1]=jp*(p->npgp[1])+jpg;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp*(p->npgp[2])+kpg;
+           k=iia[2];
+     #endif
+
+     #ifdef USE_SAC_3D
+     if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1)  && k<((p->n[2])-1))
+     #else
+    if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
+     #endif
+ 
+  //if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
   {
 
 
 
-       wtemp[fencode_hdbne1(p,i,j,tmp6)]=grad1_hdbne1(wtemp,p,i,j,tmp5,mm);
+       wtemp[fencode3_hdbne1(p,iia,tmp6)]=grad13_hdbne1(wtemp,p,iia,tmp5,mm);
 
    }
 
@@ -161,13 +204,6 @@ __syncthreads();
 __global__ void hyperdifbsourcene4_parallel(struct params *p,  real *wmod, 
     real *dwn1, real *wd, int order,int ordero, real *wtemp, int field, int dim, int jj, int ii0,int mm,real sb, real dt)
 {
-  // compute the global index in the vector from
-  // the number of the current block, blockIdx,
-  // the number of threads per block, blockDim,
-  // and the number of the current thread within the block, threadIdx
-  //int i = blockIdx.x * blockDim.x + threadIdx.x;
-  //int j = blockIdx.y * blockDim.y + threadIdx.y;
-
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int m,ii1;
@@ -179,35 +215,56 @@ __global__ void hyperdifbsourcene4_parallel(struct params *p,  real *wmod,
   //real dt=p->dt;
   real dy=p->dx[1];
   real dx=p->dx[0];
-  //real g=p->g;
- //  dt=1.0;
-//dt=0.05;
-//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
-int shift=order*NVAR*(p->n[0])*(p->n[1]);
+  int ip,jp,ipg,jpg;
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
 
-
-
-
-   int ip,jp,ipg,jpg;
-   jp=iindex/(ni/(p->npgp[0]));
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
+
+
+int shift=order*NVAR*dimp;
 
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-  if( i<((p->n[0])) && j<((p->n[1])))
+     iia[0]=ip*(p->npgp[0])+ipg;
+     iia[1]=jp*(p->npgp[1])+jpg;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp*(p->npgp[2])+kpg;
+           k=iia[2];
+     #endif
+
+     #ifdef USE_SAC_3D
+     if( i<((p->n[0])) && j<((p->n[1])) && k<((p->n[2])))
+     #else
+    if( i<((p->n[0])) && j<((p->n[1])))
+     #endif
+  //if( i<((p->n[0])) && j<((p->n[1])))
   {
-
-
-
-wtemp[fencode_hdbne1(p,i,j,tmp5)]=wtemp[fencode_hdbne1(p,i,j,tmp3)]*wmod[(shift)+fencode_hdbne1(p,i,j,b1+jj)];
-
+wtemp[fencode3_hdbne1(p,iia,tmp5)]=wtemp[fencode3_hdbne1(p,iia,tmp3)]*wmod[(shift)+fencode3_hdbne1(p,iia,b1+jj)];
    }
 
 }
@@ -223,12 +280,6 @@ __syncthreads();
 __global__ void hyperdifbsourcene3_parallel(struct params *p,  real *wmod, 
     real *dwn1, real *wd, int order,int ordero, real *wtemp, int field, int dim, int jj, int ii0,int mm,real sb)
 {
-  // compute the global index in the vector from
-  // the number of the current block, blockIdx,
-  // the number of threads per block, blockDim,
-  // and the number of the current thread within the block, threadIdx
-  //int i = blockIdx.x * blockDim.x + threadIdx.x;
-  //int j = blockIdx.y * blockDim.y + threadIdx.y;
 
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
@@ -241,33 +292,56 @@ __global__ void hyperdifbsourcene3_parallel(struct params *p,  real *wmod,
   real dt=p->dt;
   real dy=p->dx[1];
   real dx=p->dx[0];
-  //real g=p->g;
- //  dt=1.0;
-//dt=0.05;
-//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
-
-
-
-
-
 
    int ip,jp,ipg,jpg;
-   jp=iindex/(ni/(p->npgp[0]));
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
+
+
+int shift=order*NVAR*dimp;
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
+     iia[0]=ip*(p->npgp[0])+ipg;
+     iia[1]=jp*(p->npgp[1])+jpg;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp*(p->npgp[2])+kpg;
+           k=iia[2];
+     #endif
+
+     #ifdef USE_SAC_3D
+     if(i>0 && j >0 && && k>0 i<((p->n[0])-1) && j<((p->n[1])-1) && k<((p->n[2])-1))
+     #else
+     if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
+     #endif
+  //if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
   {
 
-
-
- wtemp[fencode_hdbne1(p,i,j,tmp4)]=grad1_hdbne1(wtemp,p,i,j,tmp3,mm);
-
+ wtemp[fencode3_hdbne1(p,iia,tmp4)]=grad13_hdbne1(wtemp,p,iia,tmp3,mm);
 
    }
 
@@ -291,13 +365,6 @@ __syncthreads();
 __global__ void hyperdifbsourcene2_parallel(struct params *p,  real *wmod, 
     real *dwn1, real *wd, int order,int ordero, real *wtemp, int field, int dim, int jj, int ii0,int mm,real sb)
 {
-  // compute the global index in the vector from
-  // the number of the current block, blockIdx,
-  // the number of threads per block, blockDim,
-  // and the number of the current thread within the block, threadIdx
-  //int i = blockIdx.x * blockDim.x + threadIdx.x;
-  //int j = blockIdx.y * blockDim.y + threadIdx.y;
-
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int m,ii1;
@@ -309,30 +376,59 @@ __global__ void hyperdifbsourcene2_parallel(struct params *p,  real *wmod,
   real dt=p->dt;
   real dy=p->dx[1];
   real dx=p->dx[0];
-  //real g=p->g;
- //  dt=1.0;
-//dt=0.05;
-//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
-int shift=order*NVAR*(p->n[0])*(p->n[1]);
-   int ip,jp,ipg,jpg;
-   jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
 
+   int ip,jp,ipg,jpg;
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
+
+
+int shift=order*NVAR*dimp;
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if(i<((p->n[0])) && j<((p->n[1])))
-  {
+     iia[0]=ip*(p->npgp[0])+ipg;
+     iia[1]=jp*(p->npgp[1])+jpg;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp*(p->npgp[2])+kpg;
+           k=iia[2];
+     #endif
+
+     #ifdef USE_SAC_3D
+     if(i<((p->n[0])) && j<((p->n[1]))&& k<((p->n[2])))
+     #else
+     if(i<((p->n[0])) && j<((p->n[1])))
+     #endif
+     {
 
 
 
-      wtemp[fencode_hdbne1(p,i,j,tmp3)]=wtemp[fencode_hdbne1(p,i,j,tmp2)]*(wd[fencode_hdbne1(p,i,j,hdnul)]+wd[fencode_hdbne1(p,i,j,hdnur)])/2;
+      wtemp[fencode3_hdbne1(p,iia,tmp3)]=wtemp[fencode3_hdbne1(p,iia,tmp2)]*(wd[fencode3_hdbne1(p,iia,hdnul)]+wd[fencode3_hdbne1(p,iia,hdnur)])/2;
 
-   }
+     }
 
 }
 __syncthreads();
@@ -347,13 +443,6 @@ __syncthreads();
 __global__ void hyperdifbsourcene1a_parallel(struct params *p,  real *wmod, 
     real *dwn1, real *wd, int order,int ordero, real *wtemp, int field, int dim, int jj, int ii0,int mm,real sb)
 {
-  // compute the global index in the vector from
-  // the number of the current block, blockIdx,
-  // the number of threads per block, blockDim,
-  // and the number of the current thread within the block, threadIdx
-  //int i = blockIdx.x * blockDim.x + threadIdx.x;
-  //int j = blockIdx.y * blockDim.y + threadIdx.y;
-
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int m,ii1;
@@ -365,37 +454,58 @@ __global__ void hyperdifbsourcene1a_parallel(struct params *p,  real *wmod,
   real dt=p->dt;
   real dy=p->dx[1];
   real dx=p->dx[0];
-  //real g=p->g;
- //  dt=1.0;
-//dt=0.05;
-//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
-
-
-
-int shift=order*NVAR*(p->n[0])*(p->n[1]);
 
    int ip,jp,ipg,jpg;
-   jp=iindex/(ni/(p->npgp[0]));
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
 
 
-   
-
-
-
+int shift=order*NVAR*dimp;
 
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
+     iia[0]=ip*(p->npgp[0])+ipg;
+     iia[1]=jp*(p->npgp[1])+jpg;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp*(p->npgp[2])+kpg;
+           k=iia[2];
+     #endif
+
+     #ifdef USE_SAC_3D
+      if(i>0 && j >0 && k>0 && i<((p->n[0])-1) && j<((p->n[1])-1) && k<((p->n[2])-1))
+     #else
+     if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
+     #endif
+ // if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
   {
 
 
-       wtemp[fencode_hdbne1(p,i,j,tmp2)]=grad1_hdbne1(wtemp,p,i,j,tmp1,dim);
+       wtemp[fencode3_hdbne1(p,iia,tmp2)]=grad13_hdbne1(wtemp,p,iia,tmp1,dim);
 
 
 
@@ -413,12 +523,6 @@ __syncthreads();
 __global__ void hyperdifbsourcene1_parallel(struct params *p,  real *wmod, 
     real *dwn1, real *wd, int order,int ordero, real *wtemp, int field, int dim, int jj, int ii0,int mm,real sb)
 {
-  // compute the global index in the vector from
-  // the number of the current block, blockIdx,
-  // the number of threads per block, blockDim,
-  // and the number of the current thread within the block, threadIdx
-  //int i = blockIdx.x * blockDim.x + threadIdx.x;
-  //int j = blockIdx.y * blockDim.y + threadIdx.y;
 
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
@@ -431,37 +535,61 @@ __global__ void hyperdifbsourcene1_parallel(struct params *p,  real *wmod,
   real dt=p->dt;
   real dy=p->dx[1];
   real dx=p->dx[0];
-  //real g=p->g;
- //  dt=1.0;
-//dt=0.05;
-//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
-
-
-
-
-int shift=order*NVAR*(p->n[0])*(p->n[1]);
-
    int ip,jp,ipg,jpg;
-   jp=iindex/(ni/(p->npgp[0]));
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
+
+
+int shift=order*NVAR*dimp;
 
 
    
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
+     iia[0]=ip*(p->npgp[0])+ipg;
+     iia[1]=jp*(p->npgp[1])+jpg;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp*(p->npgp[2])+kpg;
+           k=iia[2];
+     #endif
 
+     #ifdef USE_SAC_3D
+      if(i<((p->n[0])) && j<((p->n[1])) && k<((p->n[2])))
+     #else
+      if(i<((p->n[0])) && j<((p->n[1])))
+     #endif
   //init rhol and rhor
-  if(i<((p->n[0])) && j<((p->n[1])))
+  //if(i<((p->n[0])) && j<((p->n[1])))
   {
     for(int f=tmp1; f<=tmp8; f++)	
-        wtemp[fencode_hdbne1(p,i,j,f)]=0.0;
+        wtemp[fencode3_hdbne1(p,iia,f)]=0.0;
 
-   dwn1[fencode_hdbne1(p,i,j,energy)]=0.0;
-   dwn1[fencode_hdbne1(p,i,j,b1+ii0)]=0.0;
+   dwn1[fencode3_hdbne1(p,iia,energy)]=0.0;
+   dwn1[fencode3_hdbne1(p,iia,b1+ii0)]=0.0;
 
   }
 }
@@ -472,14 +600,30 @@ int shift=order*NVAR*(p->n[0])*(p->n[1]);
    
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
    {
 
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if( i<((p->n[0])) && j<((p->n[1])))
+     iia[0]=ip*(p->npgp[0])+ipg;
+     iia[1]=jp*(p->npgp[1])+jpg;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp*(p->npgp[2])+kpg;
+           k=iia[2];
+     #endif
+
+     #ifdef USE_SAC_3D
+      if(i<((p->n[0])) && j<((p->n[1])) && k<((p->n[2])))
+     #else
+      if(i<((p->n[0])) && j<((p->n[1])))
+     #endif
+  //if( i<((p->n[0])) && j<((p->n[1])))
   {
 
-wtemp[fencode_hdbne1(p,i,j,tmp1)]=wmod[(shift)+fencode_hdbne1(p,i,j,b1+field)];
+wtemp[fencode3_hdbne1(p,iia,tmp1)]=wmod[(shift)+fencode3_hdbne1(p,iia,b1+field)];
 
 
 
@@ -490,28 +634,6 @@ __syncthreads();
 
 
 
-/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   {
-
-     i=ip*(p->npgp[0])+ipg;
-     j=jp*(p->npgp[1])+jpg;
-  if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
-  {
-
-
-       wtemp[fencode_hdbne1(p,i,j,tmp2)]=grad1_hdbne1(wtemp,p,i,j,tmp1,dim);
-
-
-
-   }
-
-}
-__syncthreads();*/
-
-
-
-  
 }
 
 
