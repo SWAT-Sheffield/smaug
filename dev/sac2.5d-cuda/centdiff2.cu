@@ -324,7 +324,7 @@ void computeflux_cd2 (real *dw, real *wd, real *w, struct params *p,int *ii, int
      break;
 #ifdef USE_SAC_3D
      case b3:
-      computefluxb(dw,wd,w,p,ii,field);
+      computefluxb(dw,wd,w,p,ii,field,dir);
      break;
 #endif
   }
@@ -635,7 +635,7 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                         {
                          case 0:
                           #ifdef USE_SAC_3D
-       				if(ii[0]<p->n[0] && ii[1]>p->1 && ii[1]<(p->n[1]-1) && ii[2]>p->1 && ii[2]<(p->n[2]-1))
+       				if(ii[0]<p->n[0] && ii[1]>1 && ii[1]<(p->n[1]-1) && ii[2]>1 && ii[2]<(p->n[2]-1))
      			  #else
        				if(ii[0]<p->n[0] && ii[1]>1 && ii[1]<(p->n[1]-1))
      			  #endif
@@ -644,7 +644,7 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                          break;
                          case 1:
                           #ifdef USE_SAC_3D
-       				if(ii[1]<p->n[1] && ii[0]>p->1 && ii[0]<(p->n[0]-1) && ii[2]>p->1 && ii[2]<(p->n[2]-1))
+       				if(ii[1]<p->n[1] && ii[0]>1 && ii[0]<(p->n[0]-1) && ii[2]>1 && ii[2]<(p->n[2]-1))
      			  #else
        				if(ii[1]<p->n[1] && ii[0]>1 && ii[0]<(p->n[0]-1))
      			  #endif
@@ -654,7 +654,7 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                           #ifdef USE_SAC_3D
                          case 2:
 
-       				if(ii[2]<p->n[2] && ii[0]>p->1 && ii[0]<(p->n[0]-1) && ii[1]>p->1 && ii[1]<(p->n[1]-1))
+       				if(ii[2]<p->n[2] && ii[0]>1 && ii[0]<(p->n[0]-1) && ii[1]>1 && ii[1]<(p->n[1]-1))
 
                          //if(i>1 &&  i<(ni-1) && j<(nj))
                             computeflux_cd2(dwn1,wd,wmod+order*NVAR*dimp,p,ii,f,dir); 

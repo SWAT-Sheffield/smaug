@@ -83,7 +83,11 @@ int writeconfig(char *name,int n,params p, meta md, real *w)
                // printf("%d %d ", i1,j1);
  #ifdef ADIABHYDRO
 		fprintf(fdt,"%d %d %f %f %f %f \n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[(j1*ni+i1)+(ni*nj*mom1)],w[(j1*ni+i1)+(ni*nj*mom2)],w[j1*ni+i1+(ni*nj*mom3)]);
-#else
+#endif
+ #ifdef USE_SAC
+		fprintf(fdt,"%d %d %f %f %f %f %f %f\n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[(j1*ni+i1)+(ni*nj*mom1)],w[(j1*ni+i1)+(ni*nj*mom2)],w[j1*ni+i1+(ni*nj*energy)],w[j1*ni+i1+(ni*nj*b1)],w[j1*ni+i1+(ni*nj*b2)]);
+#endif
+ #ifdef USE_SAC_3D
 		fprintf(fdt,"%d %d %f %f %f %f %f %f %f %f\n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[(j1*ni+i1)+(ni*nj*mom1)],w[(j1*ni+i1)+(ni*nj*mom2)],w[j1*ni+i1+(ni*nj*mom3)],w[j1*ni+i1+(ni*nj*energy)],w[j1*ni+i1+(ni*nj*b1)],w[j1*ni+i1+(ni*nj*b2)],w[j1*ni+i1+(ni*nj*b3)]);
 #endif
            //fprintf(fdt,"%d %f %f %f ",j1+i1*nj, u[j1+i1*nj],v[j1+i1*nj],h[j1+i1*nj]);
@@ -107,7 +111,11 @@ int writeconfig(char *name,int n,params p, meta md, real *w)
                // printf("%d %d ", i1,j1);
  #ifdef ADIABHYDRO
  fprintf(fdt,"%d %d %f %f %f %f \n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[(j1*ni+i1)+(ni*nj*mom1)],w[(j1*ni+i1)+(ni*nj*mom2)],w[j1*ni+i1+(ni*nj*mom3)]);
-#else
+#endif
+#ifdef USE_SAC
+fprintf(fdt,"%d %d %f %f %f %f %f %f\n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[(j1*ni+i1)+(ni*nj*mom1)],w[(j1*ni+i1)+(ni*nj*mom2)],w[j1*ni+i1+(ni*nj*energy)],w[j1*ni+i1+(ni*nj*b1)],w[j1*ni+i1+(ni*nj*b2)]);
+        #endif
+#ifdef USE_SAC_3D
 fprintf(fdt,"%d %d %f %f %f %f %f %f %f %f\n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[(j1*ni+i1)+(ni*nj*mom1)],w[(j1*ni+i1)+(ni*nj*mom2)],w[j1*ni+i1+(ni*nj*mom3)],w[j1*ni+i1+(ni*nj*energy)],w[j1*ni+i1+(ni*nj*b1)],w[j1*ni+i1+(ni*nj*b2)],w[j1*ni+i1+(ni*nj*b3)]);
         #endif
 		
@@ -128,8 +136,8 @@ fprintf(fdt,"%d %d %f %f %f %f %f %f %f %f\n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[
 int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
 {
   int status=0;
-  int i1,j1,ifield;
-  int ni,nj;
+  int i1,j1,k1,ifield;
+  int ni,nj,nk;
   char configfile[300];
   char buffer[800];
   double dbuffer[12];
@@ -137,6 +145,9 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
 
   ni=p.n[0];
   nj=p.n[1];
+    #ifdef USE_SAC_3D
+  nk=p.n[2];
+    #endif
 
       //save file containing current data
       sprintf(configfile,"out/%s_%d.out",name,st.it);
@@ -160,9 +171,17 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
       //dbuffer[0]=10.98; st.it
       fwrite(ibuffer,sizeof(int),1,fdt);
       fwrite(dbuffer,sizeof(double),1,fdt);
+
+    #ifdef USE_SAC_3D
       ibuffer[0]=2;
       ibuffer[1]=6;
       ibuffer[2]=10;
+    #else
+      ibuffer[0]=3;
+      ibuffer[1]=7;
+      ibuffer[2]=13;
+
+    #endif
       fwrite(ibuffer,sizeof(int)*3,1,fdt);
 
       //line3:
@@ -179,18 +198,40 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
       dbuffer[1]=p.eta;
       dbuffer[2]=p.g[0];
       dbuffer[3]=p.g[1];
+
+    #ifdef USE_SAC_3D
       dbuffer[4]=0;
       dbuffer[5]=0;
+
+    #else
+      dbuffer[4]=p.g[2];
+      dbuffer[5]=0;
+      dbuffer[6]=0;
+
+    #endif
       fwrite(dbuffer,sizeof(double)*6,1,fdt);
 
       //*line5:
       //*   varnames    - names of the coordinates, variables, equation parameters
       //*                 eg. 'x y rho mx my e bx by  gamma eta' (character*79)
-      sprintf(buffer,"x y rho mx my mz e bx by bz gamma eta g1 g2 g3");
-      fwrite(buffer,sizeof(char)*79,1,fdt);
- 
-for(ifield=0;ifield<12;ifield++)   
 
+    #ifdef USE_SAC_3D
+      sprintf(buffer,"x y z rho mx my mz e bx by bz gamma eta g1 g2 g3");
+    #else
+      sprintf(buffer,"x y rho mx my mz e bx by bz gamma eta g1 g2 g3");
+    #endif
+
+      fwrite(buffer,sizeof(char)*79,1,fdt);
+
+    #ifdef USE_SAC_3D
+      for(ifield=0;ifield<13;ifield++)   
+   #else
+       for(ifield=0;ifield<12;ifield++)   
+   #endif 
+
+    #ifdef USE_SAC_3D
+   for( k1=0;k1<nk;k1++)
+    #endif
 for( j1=0;j1<nj;j1++)
   
 	{
@@ -202,23 +243,17 @@ for( j1=0;j1<nj;j1++)
                dbuffer[0]=i1*p.dx[0];
                else if(ifield==1)
                dbuffer[0]=j1*p.dx[1];
+    #ifdef USE_SAC_3D
+               else if(ifield==2)
+               dbuffer[0]=k1*p.dx[2];
+    #endif
                else
+    #ifdef USE_SAC_3D
+                dbuffer[0]=w[(k1*ni*nj+j1*ni+i1)+(ni*nj*nk*(ifield-2))];
+    #else
                 dbuffer[0]=w[(j1*ni+i1)+(ni*nj*(ifield-2))];
-                /*dbuffer[0]=i1*p.dx[0];
-                dbuffer[1]=j1*p.dx[1];
-                dbuffer[2]=w[(j1*ni+i1)+(ni*nj*rho)];
-                dbuffer[3]=w[(j1*ni+i1)+(ni*nj*mom1)];
-                dbuffer[4]=w[(j1*ni+i1)+(ni*nj*mom2)];
-                dbuffer[5]=w[(j1*ni+i1)+(ni*nj*energy)];
-                dbuffer[6]=w[(j1*ni+i1)+(ni*nj*b1)];
-                dbuffer[7]=w[(j1*ni+i1)+(ni*nj*b2)];
-                dbuffer[8]=w[(j1*ni+i1)+(ni*nj*energyb)];
-                dbuffer[9]=w[(j1*ni+i1)+(ni*nj*rhob)];
-                dbuffer[10]=w[(j1*ni+i1)+(ni*nj*b1b)];
-                dbuffer[11]=w[(j1*ni+i1)+(ni*nj*b2b)];*/
+    #endif
 
-
-                //fwrite(dbuffer,12*sizeof(double),1,fdt);
                 fwrite(dbuffer,sizeof(double),1,fdt);		
 
         }     
@@ -341,14 +376,18 @@ for( j1=0;j1<nj;j1++)
 int writevtkconfig(char *name,int n,params p, meta md, real *w)
 {
   int status=0;
-  int i1,j1;
-  int ni,nj;
+  int i1,j1,k1;
+  int ni,nj,nk;
   char configfile[300];
   char labels[4][4]={"rho","e","mom","b"};
   int is;
   ni=p.n[0];
   nj=p.n[1];
 
+#ifdef USE_SAC_3D
+
+nk=p.n[2];
+#endif
 
 
       //save file containing current data
@@ -390,17 +429,32 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
               for(i1=0;i1<nj;i1++)
 	        fprintf(fdt,"%f\n",i1*p.dx[1]);
 
+
+   #ifdef USE_SAC_3D
+	      fprintf(fdt,"Z_COORDINATES %d double\n",nk);
+              for(k1=0;k1<nk;k1++)
+	        fprintf(fdt,"%f\n",k1*p.dx[2]);
+
+    #else
 	      fprintf(fdt,"Z_COORDINATES 1 double\n");
 	      fprintf(fdt,"0\n");
+   #endif
 
 	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj));
 	      fprintf(fdt,"SCALARS %s double 1\n",labels[i/4]);
 
              fprintf(fdt,"LOOKUP_TABLE TableName \n");
 
+   #ifdef USE_SAC_3D
+	     for( k1=0;k1<(nk);k1++)
+   #endif
 	     for( j1=0;j1<(nj);j1++)
 		for( i1=0;i1<(ni);i1++)
+                    #ifdef USE_SAC_3D
+			fprintf(fdt,"%f\n",w[(k1*ni*nj)+(j1*ni+i1)+(ni*nj*nk*is)]);
+                    #else
 			fprintf(fdt,"%f\n",w[(j1*ni+i1)+(ni*nj*is)]);
+                    #endif
 
 	      fclose(fdt);
       }
@@ -446,16 +500,35 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
               for(i1=0;i1<nj;i1++)
 	        fprintf(fdt,"%f\n",i1*p.dx[1]);
 
+
+               #ifndef USE_SAC_3D
+	      fprintf(fdt,"Z_COORDINATES %d double\n",nk);
+              for(i1=0;i1<nk;i1++)
+	        fprintf(fdt,"%f\n",i1*p.dx[2]);
+               #else
 	      fprintf(fdt,"Z_COORDINATES 1 double\n");
 	      fprintf(fdt,"0\n");
+               #endif
 
+
+             #ifndef USE_SAC_3D
+	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj)*nk);
+             #else
 	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj));
+             #endif
 	      fprintf(fdt,"VECTORS %s double \n",labels[i]);
 
+            #ifndef USE_SAC_3D
+		for( k1=0;k1<(nk);k1++)
+             #endif
 		for( j1=0;j1<(nj);j1++)
 	      		for( i1=0;i1<(nj);i1++)
-			 //fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))],w[(j1*ni+i1)+(ni*nj*(iv+2))]);    
+   
+            #ifndef USE_SAC_3D
+                         fprintf(fdt,"%f %f %f\n",w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*iv)],w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*(iv+1))]);
+            #else
                          fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))]);
+             #endif
 
                        //printing mag fields including backround for SAC
                        //if(iv==4)

@@ -349,7 +349,7 @@ __syncthreads();
 
      #ifdef USE_SAC_3D
        wtemp[fencode3_hdm1(p,iia,tmp2)]=(wmod[(shift)+fencode3_hdm1(p,iia,rho)]+wmod[(shift)+fencode3_hdm1(p,iia,rhob)]+wmod[(shift)+encode3_hdm1(p,i-(dim==0),j-(dim==1),k-(dim==2),rho)]+wmod[(shift)+encode3_hdm1(p,i-(dim==0),j-(dim==1),k-(dim==2),rhob)])/2;
-       wtemp[fencode3_hdm1(p,iia,tmp3)]=(wmod[(shift)+fencode3_hdm1(p,iia,rho)]+wmod[(shift)+fencode3_hdm1(p,iia,rhob)]+wmod[(shift)+fencode_hdm1(p,i+(dim==0),j+(dim==1),k+(dim==2),rho)]+wmod[(shift)+fencode_hdm1(p,i+(dim==0),j+(dim==1),k+(dim==2),rhob)])/2;
+       wtemp[fencode3_hdm1(p,iia,tmp3)]=(wmod[(shift)+fencode3_hdm1(p,iia,rho)]+wmod[(shift)+fencode3_hdm1(p,iia,rhob)]+wmod[(shift)+encode3_hdm1(p,i+(dim==0),j+(dim==1),k+(dim==2),rho)]+wmod[(shift)+encode3_hdm1(p,i+(dim==0),j+(dim==1),k+(dim==2),rhob)])/2;
      #else
        wtemp[fencode3_hdm1(p,iia,tmp2)]=(wmod[(shift)+fencode3_hdm1(p,iia,rho)]+wmod[(shift)+fencode3_hdm1(p,iia,rhob)]+wmod[(shift)+fencode_hdm1(p,i-(dim==0),j-(dim==1),rho)]+wmod[(shift)+fencode_hdm1(p,i-(dim==0),j-(dim==1),rhob)])/2;
        wtemp[fencode3_hdm1(p,iia,tmp3)]=(wmod[(shift)+fencode3_hdm1(p,iia,rho)]+wmod[(shift)+fencode3_hdm1(p,iia,rhob)]+wmod[(shift)+fencode_hdm1(p,i+(dim==0),j+(dim==1),rho)]+wmod[(shift)+fencode_hdm1(p,i+(dim==0),j+(dim==1),rhob)])/2;

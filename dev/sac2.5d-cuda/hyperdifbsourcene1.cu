@@ -334,7 +334,7 @@ int shift=order*NVAR*dimp;
      #endif
 
      #ifdef USE_SAC_3D
-     if(i>0 && j >0 && && k>0 i<((p->n[0])-1) && j<((p->n[1])-1) && k<((p->n[2])-1))
+     if(i>0 && j>0 &&  k>0 && i<((p->n[0])-1) && j<((p->n[1])-1) && k<((p->n[2])-1))
      #else
      if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
      #endif

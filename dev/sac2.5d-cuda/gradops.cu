@@ -922,7 +922,7 @@ k=0;
                 else if(i>((p->n[0])-3) && j>((p->n[1])-3) && k<2)
                 {
                   if(i==j  && k==(i-(p->n[0])) )                  
-                    wt[encode3_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,(p->n[0])-3),(p->n[1])-3),2,f)];                                                  
+                    wt[encode3_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,((p->n[0])-3),((p->n[1])-3),2,f)];                                                  
                 }
                 else if(i<2 && j<2  && k>((p->n[2])-3))
                 {
@@ -947,7 +947,7 @@ k=0;
                 else if(i==0 || i==1)                
                   wt[encode3_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,2,j,k,f)];              
                 else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)))                
-                  wt[encode3_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,(p->n[0])-3,j,k,k,f)];                            
+                  wt[encode3_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,(p->n[0])-3,j,k,f)];                            
                 else if(j==0 || j==1)                
                    wt[encode3_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,2,k,f)];                    
                 else if((j==((p->n[1])-1)) || (j==((p->n[1])-2)))                

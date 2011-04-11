@@ -36,17 +36,17 @@ void bc_hyperdif(real *wt, struct params *p,int *ii, int f,int dir) {
 #endif
  #ifdef USE_SAC_3D
    if(  (dir == 0) && (i==(p->n[0])-1)   && j>0   && j<(p->n[1])      && k>0   && k<(p->n[2])     )
-         wt[fencode3_hdv1(p,i+2,j,k,f)]=wt[fencode3_hdv1(p,(p->n[0])-5,j+1,k+1,f)];
+         wt[encode3_hdv1(p,i+2,j,k,f)]=wt[encode3_hdv1(p,(p->n[0])-5,j+1,k+1,f)];
    else if((dir == 1) && (j==(p->n[1])-1)    && i>0   && i<((p->n[0])) && k>0   && k<((p->n[2]))  )
-       wt[fencode3_hdv1(p,i,j+2,f)]=wt[fencode3_hdv1(p,i+1,(p->n[1])-5,k+1,f)];
+       wt[encode3_hdv1(p,i,j+2,k,f)]=wt[encode3_hdv1(p,i+1,(p->n[1])-5,k+1,f)];
    else if((dir == 2) && (k==(p->n[2])-1)    && i>0   && i<((p->n[0])) && j>0   && j<((p->n[1]))  )
-       wt[fencode3_hdv1(p,i,j,k+2,f)]=wt[fencode3_hdv1(p,i+1,j+1,(p->n[2])-5,f)];
+       wt[encode3_hdv1(p,i,j,k+2,f)]=wt[encode3_hdv1(p,i+1,j+1,(p->n[2])-5,f)];
   else if((dir == 0) && (i==0)    && j>0   && j<((p->n[1])) && k>0   && k<((p->n[2]))  )
-       wt[fencode3_hdv1(p,0,j+1,k+1,f)]=wt[fencode3_hdv1(p,6,j+1,k+1,f)];
+       wt[encode3_hdv1(p,0,j+1,k+1,f)]=wt[encode3_hdv1(p,6,j+1,k+1,f)];
    else if((dir == 1) && (j==0)    && i>0   && i<((p->n[0]))  && k>0   && k<((p->n[2]))  )
-       wt[fencode3_hdv1(p,i+1,0,k+1,f)]=wt[fencode3_hdv1(p,i+1,6,k+1,f)];
+       wt[encode3_hdv1(p,i+1,0,k+1,f)]=wt[encode3_hdv1(p,i+1,6,k+1,f)];
    else if((dir == 2) && (k==0)    && i>0   && i<((p->n[0])) && j>0   && j<((p->n[1]))   )
-       wt[fencode3_hdv1(p,i+1,j+1,0,f)]=wt[fencode3_hdv1(p,i+1,j+1,6,f)];
+       wt[encode3_hdv1(p,i+1,j+1,0,f)]=wt[encode3_hdv1(p,i+1,j+1,6,f)];
 #endif
 
 
@@ -831,7 +831,8 @@ int shift=order*NVAR*dimp;
      	else if(field !=energy)
         	wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,field)+shift];
      	else
-        wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,energy)+shift]-0.5*(wmod[fencode3_hdv1(p,ii,b1)+shift]*wmod[fencode3_hdv1(p,ii,b1)+shift]+wmod[fencode3_hdv1(p,ii,b2)+shift]*wmod[fencode3_hdv1(p,ii,b2)+shift]+wmod[fencode3_hdv1(p,ii,b3)+shift]*wmod[fencode3_hdv1(p,ii,b3)+shift])+(wmod[fencode3_hdv1(p,ii,mom1)+shift]*wmod[fencode3_hdv1(p,ii,mom1)+shift]+wmod[fencode3_hdv1(p,ii,mom2)+shift]*wmod[fencode3_hdv1(p,ii,mom2)+shift]++wmod[fencode3_hdv1(p,ii,mom3)+shift]*wmod[fencode3_hdv1(p,ii,mom3)+shift])/(wmod[fencode3_hdv1(p,ii,rho)+shift]+wmod[fencode3_hdv1(p,ii,rhob)+shift] );
+        wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,energy)+shift]-0.5*(wmod[fencode3_hdv1(p,ii,b1)+shift]*wmod[fencode3_hdv1(p,ii,b1)+shift]+wmod[fencode3_hdv1(p,ii,b2)+shift]*wmod[fencode3_hdv1(p,ii,b2)+shift]+wmod[fencode3_hdv1(p,ii,b3)+shift]*wmod[fencode3_hdv1(p,ii,b3)+shift])
++(wmod[fencode3_hdv1(p,ii,mom1)+shift]*wmod[fencode3_hdv1(p,ii,mom1)+shift]+wmod[fencode3_hdv1(p,ii,mom2)+shift]*wmod[fencode3_hdv1(p,ii,mom2)+shift]+wmod[fencode3_hdv1(p,ii,mom3)+shift]*wmod[fencode3_hdv1(p,ii,mom3)+shift])/(wmod[fencode3_hdv1(p,ii,rho)+shift]+wmod[fencode3_hdv1(p,ii,rhob)+shift] );
 
 #endif
 

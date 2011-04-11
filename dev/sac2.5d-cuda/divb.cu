@@ -173,7 +173,7 @@ __global__ void divb_parallel(struct params *p, real *w, real *wmod,
   int iia[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int nk,kp,kpg;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
