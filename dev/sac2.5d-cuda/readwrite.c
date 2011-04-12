@@ -501,7 +501,7 @@ nk=p.n[2];
 	        fprintf(fdt,"%f\n",i1*p.dx[1]);
 
 
-               #ifndef USE_SAC_3D
+               #ifdef USE_SAC_3D
 	      fprintf(fdt,"Z_COORDINATES %d double\n",nk);
               for(i1=0;i1<nk;i1++)
 	        fprintf(fdt,"%f\n",i1*p.dx[2]);
@@ -511,20 +511,20 @@ nk=p.n[2];
                #endif
 
 
-             #ifndef USE_SAC_3D
+             #ifdef USE_SAC_3D
 	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj)*nk);
              #else
 	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj));
              #endif
 	      fprintf(fdt,"VECTORS %s double \n",labels[i]);
 
-            #ifndef USE_SAC_3D
+            #ifdef USE_SAC_3D
 		for( k1=0;k1<(nk);k1++)
              #endif
 		for( j1=0;j1<(nj);j1++)
 	      		for( i1=0;i1<(nj);i1++)
    
-            #ifndef USE_SAC_3D
+            #ifdef USE_SAC_3D
                          fprintf(fdt,"%f %f %f\n",w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*iv)],w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*(iv+1))]);
             #else
                          fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))]);
