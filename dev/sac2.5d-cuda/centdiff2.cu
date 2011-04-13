@@ -108,7 +108,20 @@ real transportflux_cd2 (real *dw, real *wd, real *w, struct params *p,int *ii,in
 
    //transport flux
    //use versions with velocity less ops may improve performance
-    switch(direction)
+        #if defined USE_SAC  || defined USE_SAC_3D
+     flux= w[fencode3_cd2(p,ii,mom1+direction)]*w[fencode3_cd2(p,ii,field)]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
+     //flux= w[fencode3_cd2(p,ii,mom1)]*w[fencode3_cd2(p,ii,field)]/w[fencode3_cd2(p,ii,rho)];
+
+        #else
+     flux= w[fencode3_cd2(p,ii,mom1+direction)]*w[fencode3_cd2(p,ii,field)]/w[fencode3_cd2(p,ii,rho)];
+
+        #endif
+
+
+
+
+
+ /*   switch(direction)
   {
      case 0:
         #if defined USE_SAC  || defined USE_SAC_3D
@@ -137,7 +150,7 @@ real transportflux_cd2 (real *dw, real *wd, real *w, struct params *p,int *ii,in
      //flux= wd[fencode3_cd2(p,ii,vel3)]*w[fencode3_cd2(p,ii,field)];
      break;
      #endif
-   }
+   }*/
   return flux;
 
 
@@ -391,7 +404,7 @@ __global__ void centdiff2a_parallel(struct params *p, real *w, real *wmod,
                           #ifdef USE_SAC_3D
        				if(ii[0]<((p->n[0])-2) && ii[0]>1 && ii[1]>1 && ii[1]<((p->n[1])-2) && ii[2]>1 && ii[2]<((p->n[2])-2))
      			  #else
-       				if(ii[0]<((p->n[0]))-2 && ii[0]>1  && ii[1]>1 && ii[1]<((p->n[1])-1))
+       				if(ii[0]<((p->n[0]))-2 && ii[0]>1  && ii[1]>1 && ii[1]<((p->n[1])-2))
      			  #endif
                                 divflux_cd2(dwn1,wd,wmod+order*NVAR*dimp,p,ii,f,dir); 
 
@@ -480,7 +493,7 @@ __syncthreads();
      #ifdef USE_SAC_3D
        if(ii[0]<((p->n[0])-2) && ii[1]<((p->n[1])-2) && ii[2]<((p->n[2])-2)     && ii[0]>1    &&  ii[1]>1   && ii[2]>1   )
      #else
-       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+       if(ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2)
      #endif
                                 addenergyterms_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,ii,f,dir); 
 
@@ -635,18 +648,18 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                         {
                          case 0:
                           #ifdef USE_SAC_3D
-       				if(ii[0]<p->n[0] && ii[1]>1 && ii[1]<(p->n[1]-1) && ii[2]>1 && ii[2]<(p->n[2]-1))
+       				if(ii[0]<p->n[0] && ii[1]>1 && ii[1]<(p->n[1]-2) && ii[2]>1 && ii[2]<(p->n[2]-2))
      			  #else
-       				if(ii[0]<p->n[0] && ii[1]>1 && ii[1]<(p->n[1]-1))
+       				if(ii[0]<p->n[0] && ii[1]>1 && ii[1]<(p->n[1]-2))
      			  #endif
                          //if(i<(ni)  && j >1 &&  j<(nj-1))
                             computeflux_cd2(dwn1,wd,wmod+order*NVAR*dimp,p,ii,f,dir); 
                          break;
                          case 1:
                           #ifdef USE_SAC_3D
-       				if(ii[1]<p->n[1] && ii[0]>1 && ii[0]<(p->n[0]-1) && ii[2]>1 && ii[2]<(p->n[2]-1))
+       				if(ii[1]<p->n[1] && ii[0]>1 && ii[0]<(p->n[0]-2) && ii[2]>1 && ii[2]<(p->n[2]-2))
      			  #else
-       				if(ii[1]<p->n[1] && ii[0]>1 && ii[0]<(p->n[0]-1))
+       				if(ii[1]<p->n[1] && ii[0]>1 && ii[0]<(p->n[0]-2))
      			  #endif
                          //if(i>1 &&  i<(ni-1) && j<(nj))
                             computeflux_cd2(dwn1,wd,wmod+order*NVAR*dimp,p,ii,f,dir); 
@@ -654,7 +667,7 @@ __global__ void centdiff2_parallel(struct params *p, real *w, real *wmod,
                           #ifdef USE_SAC_3D
                          case 2:
 
-       				if(ii[2]<p->n[2] && ii[0]>1 && ii[0]<(p->n[0]-1) && ii[1]>1 && ii[1]<(p->n[1]-1))
+       				if(ii[2]<p->n[2] && ii[0]>1 && ii[0]<(p->n[0]-2) && ii[1]>1 && ii[1]<(p->n[1]-2))
 
                          //if(i>1 &&  i<(ni-1) && j<(nj))
                             computeflux_cd2(dwn1,wd,wmod+order*NVAR*dimp,p,ii,f,dir); 
