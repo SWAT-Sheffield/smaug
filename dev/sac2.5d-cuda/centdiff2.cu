@@ -37,7 +37,7 @@ computept3_cd2(w,wd,p,ii);
 
 
         #if defined USE_SAC_3D
-               flux += +w[fencode3_cd2(p,ii,b3b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3d_cd2(wd,p,ii,vel3,0);
+               flux += +w[fencode3_cd2(p,ii,b3b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3d_cd2(wd,p,ii,vel3,2);
         #endif
 
   return flux;
@@ -170,7 +170,14 @@ real fluxb1(real *dw, real *wd, real *w, struct params *p,int *ii,int field, int
 
    real flux=0;
 
-    switch(field)
+       #if defined USE_SAC  || defined USE_SAC_3D
+
+  flux= -(w[fencode3_cd2(p,ii,b1+direction)]+w[fencode3_cd2(p,ii,field+(NDIM+2)+direction)])*w[fencode3_cd2(p,ii,mom1+(field-b1))]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
+
+flux+= (w[fencode3_cd2(p,ii,field+(NDIM+2))])*w[fencode3_cd2(p,ii,mom1+direction)]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
+         #endif
+
+ /*   switch(field)
     {
       case b1:
       //if(direction !=0)
@@ -195,13 +202,13 @@ flux+= (w[fencode3_cd2(p,ii,field+(NDIM+2))])*w[fencode3_cd2(p,ii,mom1+direction
       case b3:
       //if(direction !=2)
 
-		flux= -(w[fencode3_cd2(p,ii,b1+direction)]+w[fencode3_cd2(p,ii,b1+(NDIM+2)+direction)])*w[fencode3_cd2(p,ii,mom2)]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
+		flux= -(w[fencode3_cd2(p,ii,b1+direction)]+w[fencode3_cd2(p,ii,b1+(NDIM+2)+direction)])*w[fencode3_cd2(p,ii,mom3)]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
 
                flux+= (w[fencode3_cd2(p,ii,field+(NDIM+2))])*w[fencode3_cd2(p,ii,mom1+direction)]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
 
        break;
          #endif
-     }
+     }*/
 
 
   return flux;
@@ -265,15 +272,11 @@ int computefluxe(real *dw, real *wd, real *w, struct params *p,int *ii,int direc
 }
 
 __device__ __host__
-int computefluxb (real *dw, real *wd, real *w, struct params *p,int *ii, int field,int direction) {
+int computefluxb1 (real *dw, real *wd, real *w, struct params *p,int *ii, int field,int direction) {
 
 
   int status=0;
 
-
-     switch(field)
-     {
-       case b1 :
          #if defined USE_SAC  || defined USE_SAC_3D
       if(direction==0)
 wd[fencode3_cd2(p,ii,flux)]= 0.0;
@@ -281,9 +284,14 @@ wd[fencode3_cd2(p,ii,flux)]= 0.0;
 wd[fencode3_cd2(p,ii,flux)]= transportflux_cd2(dw,wd,w,p,ii,field,direction)+fluxb1(dw,wd,w,p,ii,field,direction);
          #endif
 
-       break;
+  return ( status);
+}
 
-       case b2 :
+__device__ __host__
+int computefluxb2 (real *dw, real *wd, real *w, struct params *p,int *ii, int field,int direction) {
+
+
+  int status=0;
          #if defined USE_SAC  || defined USE_SAC_3D
       if(direction==1)
 wd[fencode3_cd2(p,ii,flux)]= 0.0;
@@ -291,10 +299,17 @@ else
 wd[fencode3_cd2(p,ii,flux)]= transportflux_cd2(dw,wd,w,p,ii,field,direction)+fluxb1(dw,wd,w,p,ii,field,direction);
          #endif
 
-       break;
+  return ( status);
+}
 
+
+__device__ __host__
+int computefluxb3 (real *dw, real *wd, real *w, struct params *p,int *ii, int field,int direction) {
+
+
+  int status=0;
  #ifdef USE_SAC_3D
-       case b3 :
+ 
 
       if(direction==2)
 wd[fencode3_cd2(p,ii,flux)]= 0.0;
@@ -302,17 +317,10 @@ else
 wd[fencode3_cd2(p,ii,flux)]= transportflux_cd2(dw,wd,w,p,ii,field,direction)+fluxb1(dw,wd,w,p,ii,field,direction);
 
 
-       break;
+ 
   #endif
-
-    }
-   
-    
   return ( status);
 }
-
-
-
 
 
 
@@ -330,14 +338,14 @@ void computeflux_cd2 (real *dw, real *wd, real *w, struct params *p,int *ii, int
       // del((b bb+ bb b).v)+ptb del v - bb bb del v
      break;
      case b1:
-      computefluxb(dw,wd,w,p,ii,field,dir);
+      computefluxb1(dw,wd,w,p,ii,field,dir);
      break;
      case b2:
-       computefluxb(dw,wd,w,p,ii,field,dir);
+       computefluxb2(dw,wd,w,p,ii,field,dir);
      break;
 #ifdef USE_SAC_3D
      case b3:
-      computefluxb(dw,wd,w,p,ii,field,dir);
+      computefluxb3(dw,wd,w,p,ii,field,dir);
      break;
 #endif
   }
