@@ -153,7 +153,8 @@ int ni=p->n[0];
      #ifdef USE_SAC_3D
        if(ii[0]>1 && ii[1]>1 && ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2 && ii[2]<(p->n[2])-2)
      #else
-       if(ii[0]>1 && ii[1]>1 && ii[2]>1 && ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2)
+       //if(ii[0]>1 && ii[1]>1 && ii[2]>1 && ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2)  //this form for OZT test???? 
+        if(ii[0]<(p->n[0]) && ii[1]<(p->n[1]))  //this form for BW test  //still issue here
      #endif
 	{
 

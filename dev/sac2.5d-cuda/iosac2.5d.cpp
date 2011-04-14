@@ -85,8 +85,8 @@ real dx = 0.55*xmax/(ni-4);
 #ifdef USE_SAC
 //vac ozt
 int ni;
-ni=96;    //OZT tests
-//ni=796; //BW tests
+//ni=96;    //OZT tests
+ni=796; //BW tests
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
@@ -121,8 +121,8 @@ real dy = 0.55*ymax/(nj-4);
 
 #ifdef USE_SAC
 //vac ozt
-int nj = 96;  //OZT tests
-//int nj=2;  //BW test
+//int nj = 96;  //OZT tests
+int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
@@ -206,10 +206,10 @@ dt=0.0002985;  //ADIABHYDRO
 //dt=0.15;
 
 #ifdef USE_SAC
-dt=0.00065;  //OZT test
+//dt=0.00065;  //OZT test
 //dt=6.5/10000000.0; //BW test
 //dt=0.00000065;  //BW tests
-//dt=0.000000493;  //BW tests
+dt=0.000000493;  //BW tests
 //dt=0.005;
 //dt=0.000139;
 //dt=3.0/10000000.0; //BW test
@@ -222,8 +222,8 @@ int nt=(int)((tmax)/dt);
 //nt=3000;
 //nt=5000;
 //nt=200000;
-//nt=100000;
-nt=100;
+nt=10000;
+//nt=100;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
 //t = [0:dt:tdomain];
@@ -266,8 +266,8 @@ p->adiab=1.0;
 #else
 
 //ozt test
-p->gamma=5.0/3.0;  //OZ test
-//p->gamma=2.0;  //BW test
+//p->gamma=5.0/3.0;  //OZ test
+p->gamma=2.0;  //BW test
 //p->gamma=5.0/3.0;  //BACH3D
 //alfven test
 //p->gamma=1.4;
@@ -295,7 +295,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=0.0;
 p->readini=0.0;
-p->cfgsavefrequency=1;
+p->cfgsavefrequency=1000;
 
 
 p->xmax[0]=xmax;
@@ -335,8 +335,8 @@ p->chyp[rho]=0.02;
 p->chyp[energy]=0.02;
 p->chyp[b1]=0.02;
 p->chyp[b2]=0.02;
-p->chyp[mom1]=0.4;
-p->chyp[mom2]=0.4;
+p->chyp[mom1]=0.2;
+p->chyp[mom2]=0.2;
 
 
 
@@ -612,7 +612,7 @@ if((p->rkon)==0)
        //cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,1);
 
 
-       cuhyperdifrhosource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim,dt);
+    //   cuhyperdifrhosource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim,dt);
        //cuhyperdifrhosource2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim,dt);
 
      }
@@ -631,7 +631,7 @@ if((p->rkon)==0)
        //cuhyperdifvisc3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
        //cuhyperdifvisc4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
 
-       cuhyperdifesource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim,dt);
+   //    cuhyperdifesource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim,dt);
        //cuhyperdifesource2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
        //cuhyperdifesource2a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim);
        //cuhyperdifesource3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim,dt);
@@ -725,14 +725,14 @@ for(int dim=0; dim<=1; dim++)
 
                   if(mm==dim)
                   {
-                     cuhyperdifbsource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
+          //           cuhyperdifbsource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
                      //cuhyperdifbsource2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);
                      //cuhyperdifbsource3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
                      //cuhyperdifbsource4(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
                    }
                    else
                    {
-                     cuhyperdifbsourcene1(&p,&d_p,&d_w, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
+         //            cuhyperdifbsourcene1(&p,&d_p,&d_w, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
                     // cuhyperdifbsourcene1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);
                     // cuhyperdifbsourcene2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);
                     // cuhyperdifbsourcene3(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb);

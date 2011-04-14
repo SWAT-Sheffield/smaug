@@ -172,15 +172,15 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
       fwrite(ibuffer,sizeof(int),1,fdt);
       fwrite(dbuffer,sizeof(double),1,fdt);
 
-    #ifdef USE_SAC_3D
+    #ifdef USE_SAC
       ibuffer[0]=2;
       ibuffer[1]=6;
       ibuffer[2]=10;
-    #else
+   #endif
+    #ifdef USE_SAC_3D
       ibuffer[0]=3;
       ibuffer[1]=7;
       ibuffer[2]=13;
-
     #endif
       fwrite(ibuffer,sizeof(int)*3,1,fdt);
 
@@ -189,8 +189,13 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
       //sprintf(buffer,"%ld %ld\n",ni,nj);
       ibuffer[0]=ni;
       ibuffer[1]=nj;
+    #ifdef USE_SAC
       fwrite(ibuffer,sizeof(int)*2,1,fdt);
-
+    #endif
+    #ifdef USE_SAC_3D
+      ibuffer[2]=nk;
+      fwrite(ibuffer,sizeof(int)*3,1,fdt);
+    #endif
       //*line4:
       //*   eqpar()     - equation parameters from filenameini (neqpar reals)
       //sprintf(buffer,"%lg %lg %lg %lg %lg %lg\n",p.gamma,p.eta,p.g[0],p.g[1],0,0);
@@ -199,17 +204,18 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
       dbuffer[2]=p.g[0];
       dbuffer[3]=p.g[1];
 
-    #ifdef USE_SAC_3D
+    #ifdef USE_SAC
       dbuffer[4]=0;
       dbuffer[5]=0;
-
-    #else
+     fwrite(dbuffer,sizeof(double)*6,1,fdt);
+    #endif
+    #ifdef USE_SAC_3D
       dbuffer[4]=p.g[2];
       dbuffer[5]=0;
       dbuffer[6]=0;
-
+     fwrite(dbuffer,sizeof(double)*7,1,fdt);
     #endif
-      fwrite(dbuffer,sizeof(double)*6,1,fdt);
+ 
 
       //*line5:
       //*   varnames    - names of the coordinates, variables, equation parameters
