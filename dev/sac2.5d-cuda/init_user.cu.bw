@@ -1,87 +1,67 @@
 //comment out one of the init_user routines
 
 
-//rt2d & 3d
-__device__ __host__
+//alftest
+/*__device__ __host__
 void init_user_MODID (real *w, struct params *p,int *ii) {
-                    
- 
-                    real b0=0.0;                  
-                    real ptot;
-                    real rrho;
-                    real rgamm1;
-                    real lx,ly,lz;
-                    real a;
-             real e1,e2;
+  int seg1,seg2,seg3,seg4;
+  int width=10;
+
+  real m2max=0.001;
+  real start=((p->n[0])-width)/2;
   int i,j,k;
   i=ii[0];
   j=ii[1];
-  real y;
-
-                    a=0.01;
-                    b0=0.0;
-                    y=j*(p->dx[1]);
-		    lx=(p->dx[0])*(p->n[0]);
-		    ly=(p->dx[1])*(p->n[1]);
-
-			#ifdef USE_SAC_3D
-			 lz=(p->dx[2])*(p->n[2]);
-                         k=ii[2];
-			#endif
+  //seg1=((p->n[0])/3)-1;
+  seg1=(p->n[0])/6;
+  seg2=((p->n[0])/3);
+  seg3=(2*(p->n[0])/3)-1;
+  //seg4=(2*(p->n[0])/3);
+  seg4=(p->n[0])-seg1;
 
 
-                    if(j<=((p->n[1])/2))
-			rrho=1.0;
-                    else
-                        rrho=2.0;
-                    ptot=2.5-rrho*(p->g[1])*y;
-		    w[fencode3_i(p,ii,rhob)]=0.0;
-		    w[fencode3_i(p,ii,rho)]=rrho;
-
-                    rgamm1=1.0/((p->gamma)-1);
-		    
-		    w[fencode3_i(p,ii,b1)]=0.25*sqrt(4.0*PI);
-		    w[fencode3_i(p,ii,b2)]=0.0;
 
 	#ifdef USE_SAC
-		    w[fencode3_i(p,ii,mom2)]=a*w[fencode3_i(p,ii,rho)]*(1+cos(2.0*PI*(i-((p->n[0])/2))*(p->dx[0])/lx))*(1-cos(2.0*PI*(j)*(p->dx[1])/ly))/4.0;
 
-        #endif
+		    w[fencode3_i(p,ii,rhob)]=1.0;
+		    w[fencode3_i(p,ii,b1b)]=1.0;
+		    w[fencode3_i(p,ii,energy)]=0.01;
 
-                    w[fencode3_i(p,ii,mom1)]=0.0;
+       #else
+		    w[fencode3_i(p,ii,rho)]=1.0;
+		    w[fencode3_i(p,ii,b1)]=1.0;
+		    w[fencode3_i(p,ii,energy)]=0.01;
 
-	#ifdef USE_SAC_3D
-		    w[fencode3_i(p,ii,mom2)]=a*w[fencode3_i(p,ii,rho)]*(1+cos(2.0*PI*i*(p->dx[0])/lx))*(1+cos(2.0*PI*j*(p->dx[1])/ly))*(1+cos(2.0*PI*k*(p->dx[2])/lz))/8.0;
-                    w[fencode3_i(p,ii,mom3)]=0.0;
-        #endif
+       #endif
 
-                   //gives agreement with vac ozt
-		   e1=ptot*rgamm1+(0.5*(w[fencode3_i(p,ii,mom1)]*w[fencode3_i(p,ii,mom1)]+w[fencode3_i(p,ii,mom2)]*w[fencode3_i(p,ii,mom2)])/rrho);
+		    //w[fencode3_i(p,ii,b1)]=15*j;
+		    //w[fencode3_i(p,ii,b3)]=150*j;
+		    
+		   //if (i > seg2)
+		    //if (i < seg3)
+                   // if (i < seg1)
+		   //   w[fencode3_i(p,ii,mom2)]=0.0;
 
+		   if (i > seg1)
+		    if (i < seg2)
+		      w[fencode3_i(p,ii,mom2)]=m2max*(i-seg1)/(seg2-seg1);
 
-                   e2=0.5*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)]);
-                    w[fencode3_i(p,ii,energy)]=(e1+e2);
-
-                   
-                   w[fencode3_i(p,ii,energyb)]=0.0;
-
-	#ifdef USE_SAC_3D
-		   e1=(0.5*(w[fencode3_i(p,ii,mom3)]*w[fencode3_i(p,ii,mom3)])/rrho);
-
-
-                   e2=0.5*(w[fencode3_i(p,ii,b3)]*w[fencode3_i(p,ii,b3)]);
-                    w[fencode3_i(p,ii,energy)]+=(e1+e2);
-
-        #endif
-
-
-
-
-
-}
+		   if (i > seg2)
+		    if (i < seg3)
+		      //w[fencode3_i(p,ii,mom2)]=m2max*(i-seg2)/(seg3-seg2);
+                      w[fencode3_i(p,ii,mom2)]=m2max;
+		   if (i > seg3)
+		    if (i < seg4)
+		      w[fencode3_i(p,ii,mom2)]=m2max*(seg4-i)/(seg4-seg3);
 
 
-//rt2d
+
+
+
+
+}*/
+
+//ozttest
 /*__device__ __host__
 void init_user_MODID (real *w, struct params *p,int *ii) {
                     
@@ -180,10 +160,87 @@ w[fencode3_i(p,ii,energy)]=-sin(1.0*i*(p->dx[0]));
 
 }*/
 
+//bwtests
+__device__ __host__
+void init_user_MODID (real *w, struct params *p,int *ii) {
+                    
+             real p1=1.0;
+             real p2=0.1;
+             real rho1=1.0;
+             real rho2=0.125;
+             real rrho=25.0/(36.0*PI);
+             real rgamm1;
+             real e1,e2;
+             int ni=p->n[0];
+             int nj=p->n[1];
+  int i,j,k;
+  i=ii[0];
+  j=ii[1];
+             e2=0;
+
+	#ifdef USE_SAC
+		    
+
+                    rgamm1=1.0/((p->gamma)-1);
+		    
+                    if(i<(ni*0.315))
+                    {
+
+                    w[fencode3_i(p,ii,rhob)]=0.0;
+                    w[fencode3_i(p,ii,rho)]=rho1;
+
+		    w[fencode3_i(p,ii,b1)]=0.75;
+		    w[fencode3_i(p,ii,b2)]=1.0;
+		    w[fencode3_i(p,ii,mom2)]=0.0;
+                    w[fencode3_i(p,ii,mom1)]=0.0;
+                    //ptot=1.0;
+                    //e2=0.5*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)]);
+                    //e1=(ptot)*rgamm1+(0.5*(w[fencode3_i(p,ii,mom1)]*w[fencode3_i(p,ii,mom1)]+w[fencode3_i(p,ii,mom2)]*w[fencode3_i(p,ii,mom2)])/rrho);
+                    e1=(p1)*rgamm1+(0.5*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)]));
+
+                    w[fencode3_i(p,ii,energyb)]=(e1);
+                    w[fencode3_i(p,ii,energy)]=w[fencode3_i(p,ii,energyb)];
+                    w[fencode3_i(p,ii,energyb)]=0.0;
+
+
+                    }
+                    else
+                    {
+
+                    w[fencode3_i(p,ii,rhob)]=0.0;
+                    w[fencode3_i(p,ii,rho)]=rho2;
+ 
+		    w[fencode3_i(p,ii,b1)]=0.75;
+		    w[fencode3_i(p,ii,b2)]=-1.0;
+		    w[fencode3_i(p,ii,mom2)]=0.0;
+                    w[fencode3_i(p,ii,mom1)]=0.0;
+                    //ptot=0.1;
+                    //e1=ptot*rgamm1+(0.5*(w[fencode3_i(p,ii,mom1)]*w[fencode3_i(p,ii,mom1)]+w[fencode3_i(p,ii,mom2)]*w[fencode3_i(p,ii,mom2)])/rrho);
+                    //e2=0.5*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)]);
+                    e1=(p2)*rgamm1+(0.5*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)]));
+
+                    w[fencode3_i(p,ii,energyb)]=(e1+e2);
+                    w[fencode3_i(p,ii,energy)]=w[fencode3_i(p,ii,energyb)];
+                    w[fencode3_i(p,ii,energyb)]=0.0;
+
+ 
+
+                    }
 
 
 
-//rt3d
+
+
+       #endif
+
+
+
+
+
+}
+
+
+//bach3d
 /*__device__ __host__
 void init_user_MODID (real *w, struct params *p,int *ii) {
                     

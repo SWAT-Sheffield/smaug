@@ -46,8 +46,8 @@ ALLBIN	=	$(Bin)/iosac
 #use -DUSE_IOME to enable IOME
 #CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DADIABHYDRO -DUSE_VAC -DD1D -DUSE_IOME
 #compiling with  -arch sm_13 enables double precision to be used
-CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DUSE_SAC_3D  -DD1D
-CCFLAGS = -DUSE_SAC_3D -DD1D
+CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DUSE_SAC  -DD1D
+CCFLAGS = -DUSE_SAC -DD1D
 
 #MYLIBS	=	libAgentSimulation2.a
 
@@ -56,6 +56,24 @@ CCFLAGS = -DUSE_SAC_3D -DD1D
 ##all:	IoSimTestSimple
 
 
+bw:
+	cp iosac2.5d.cpp.bw iosac2.5d.cpp
+	rm init.o
+	cp init_user.cu.bw init_user.cu
+	cp boundary.cu.bw boundary.cu
+
+
+rt:
+	cp iosac2.5d.cpp.rt iosac2.5d.cpp
+	rm init.o
+	cp init_user.cu.rt init_user.cu
+	cp boundary.cu.rt boundary.cu
+
+ot:
+	cp iosac2.5d.cpp.ot iosac2.5d.cpp
+	rm init.o
+	cp init_user.cu.ot init_user.cu
+	cp boundary.cu.ot boundary.cu
 
 
 cleanobjs:

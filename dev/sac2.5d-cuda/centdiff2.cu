@@ -27,7 +27,7 @@ real fluxe2(real *dw, real *wd, real *w, struct params *p,int *ii, int dir) {
 
 
         #if defined USE_SAC  || defined USE_SAC_3D
-computept3_cd2(w,wd,p,ii);
+//computept3_cd2(w,wd,p,ii);
 
 
 
@@ -109,12 +109,11 @@ real transportflux_cd2 (real *dw, real *wd, real *w, struct params *p,int *ii,in
    //transport flux
    //use versions with velocity less ops may improve performance
         #if defined USE_SAC  || defined USE_SAC_3D
-     flux= w[fencode3_cd2(p,ii,mom1+direction)]*w[fencode3_cd2(p,ii,field)]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
-     //flux= w[fencode3_cd2(p,ii,mom1)]*w[fencode3_cd2(p,ii,field)]/w[fencode3_cd2(p,ii,rho)];
-
+    // flux= w[fencode3_cd2(p,ii,mom1+direction)]*w[fencode3_cd2(p,ii,field)]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
+  flux= wd[fencode3_cd2(p,ii,vel1+direction)]*w[fencode3_cd2(p,ii,field)];
         #else
-     flux= w[fencode3_cd2(p,ii,mom1+direction)]*w[fencode3_cd2(p,ii,field)]/w[fencode3_cd2(p,ii,rho)];
-
+    // flux= w[fencode3_cd2(p,ii,mom1+direction)]*w[fencode3_cd2(p,ii,field)]/w[fencode3_cd2(p,ii,rho)];
+flux= w[fencode3_cd2(p,ii,vel1+direction)]*w[fencode3_cd2(p,ii,field)];
         #endif
 
 
