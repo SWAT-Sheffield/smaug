@@ -1166,13 +1166,13 @@ k=0;
         #else
                 
                 if(i==0)              
-                   ;// wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,4,j,f)];
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,4,j,f)];
                 else if(i==1)                
-                   ;// wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,3,j,f)];
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,3,j,f)];
                 else if( i==((p->n[0])-1))               
-                   ;// wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-5,j,f)];
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-5,j,f)];
                 else if (i==((p->n[0])-2))                
-                  ;//  wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-4,j,f)];
+                    wt[fencode_MODID(p,i,j,f)]=wt[fencode_MODID(p,(p->n[0])-4,j,f)];
                
 
 

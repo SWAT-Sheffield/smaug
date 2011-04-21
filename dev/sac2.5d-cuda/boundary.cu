@@ -82,13 +82,10 @@ int shift=order*NVAR*dimp;
 #ifdef ADIABHYDRO
                   bc3_cont_b(wmod+order*NVAR*dimp,p,iia,f);
 #else
-               bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,0);  //periodic in x-direction  for OZT
-               bc3_cont_dir_b(wmod+order*NVAR*dimp,p,iia,f,1); //continuous in y-direction
+               bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
                //  bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
 #endif                
-#ifdef USE_SAC_3D
-               bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,2);  //periodic in x-direction  for OZT
-#endif
+
                 //  bc3_fixed_b(wmod+order*NVAR*dimp,p,iia,f,0.0);
 
 	}

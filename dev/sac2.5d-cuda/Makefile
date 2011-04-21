@@ -57,21 +57,18 @@ CCFLAGS = -DUSE_SAC -DD1D
 
 
 bw:
-	cp iosac2.5d.cpp.bw iosac2.5d.cpp
-	rm init.o
+	cp iosac2.5d_params.h.bw iosac2.5dparams.h
 	cp init_user.cu.bw init_user.cu
 	cp boundary.cu.bw boundary.cu
 
 
 rt:
-	cp iosac2.5d.cpp.rt iosac2.5d.cpp
-	rm init.o
+	cp iosac2.5d_params.h.rt iosac2.5dparams.h
 	cp init_user.cu.rt init_user.cu
 	cp boundary.cu.rt boundary.cu
 
 ot:
-	cp iosac2.5d.cpp.ot iosac2.5d.cpp
-	rm init.o
+	cp iosac2.5d_params.h.ot iosac2.5dparams.h
 	cp init_user.cu.ot init_user.cu
 	cp boundary.cu.ot boundary.cu
 

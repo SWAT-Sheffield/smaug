@@ -108,24 +108,6 @@ int ni=p->n[0];
                               wmod[fencode3_i(p,ii,f)+ord*NVAR*(p->n[0])*(p->n[1])]=0;
 	    }
 
-	/*if(p->readini==0)
-	{
-        for(int f=0; f<NVAR; f++)
-            w[fencode3_i(p,ii,f)]=0;
-            w[fencode3_i(p,ii,rho)]=1.0;
-            #ifdef ADIABHYDRO
-		    if(i> (((p->n[0])/2)-2) && i<(((p->n[0])/2)+2) && j>(((p->n[1])/2)-2) && j<(((p->n[1])/2)+2) ) 
-				w[fencode3_i(p,ii,rho)]=1.3;
-            #else
-                   // init_alftest (real *w, struct params *p,int i, int j)
-                   // init_alftest(w,p,i,j);
-                   // init_ozttest (real *w, struct params *p,int i, int j)
-                   // init_ozttest(w,p,i,j);
-                   // init_bwtest(w,p,i,j);
-                   init_user_i(w,p,ii);
-           #endif
-
-	}*/
 
 
 //	 __syncthreads();
@@ -151,21 +133,15 @@ int ni=p->n[0];
      #endif
 
      #ifdef USE_SAC_3D
-       if(ii[0]>1 && ii[1]>1 && ii[2]>1 && ii[0]<((p->n[0])-2) && ii[1]<((p->n[1])-2) && ii[2]<((p->n[2])-2))
+       if((p->readini==0) && ii[0]>1 && ii[1]>1  && ii[2]>1 && ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2 && ii[2]<(p->n[2])-2)
      #else
-       //if(ii[0]>1 && ii[1]>1  && ii[0]<((p->n[0])-2) && ii[1]<((p->n[1])-2))  //this form for all
-                                                                              //defining mesh ghost cells determined using 
-                                                                              //BC's 
-        if(ii[0]<(p->n[0]) && ii[1]<(p->n[1]))  //this form for BW test  //still issue here
-      // if(ii[0]>1 && ii[2]>1 && ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])) 
+       if((p->readini==0) && ii[0]>1 && ii[1]>1 && ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2)  //this form for OZT test???? 
+     // if((p->readini==0) && ii[0]>=0 && ii[1]>=0 && ii[2]>1 && ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2)  //this form for OZT test???? 
+      //  if((p->readini==0) && ii[0]<(p->n[0]) && ii[1]<(p->n[1]))  //this form for BW test  //still issue here
      #endif
 	{
 
-	if(p->readini==0)
-	{
-        for(int f=0; f<NVAR; f++)
-            w[fencode3_i(p,ii,f)]=0;
-            w[fencode3_i(p,ii,rho)]=1.0;
+
             #ifdef ADIABHYDRO
 		    if(i> (((p->n[0])/2)-2) && i<(((p->n[0])/2)+2) && j>(((p->n[1])/2)-2) && j<(((p->n[1])/2)+2) ) 
 				w[fencode3_i(p,ii,rho)]=1.3;
@@ -178,7 +154,7 @@ int ni=p->n[0];
                    init_user_i(w,p,ii);
            #endif
 
-	}
+	
 
         }
 }	
