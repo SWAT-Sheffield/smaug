@@ -166,6 +166,7 @@ else
 cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 cuboundary(&p,&d_p,&d_w, 0);
 cuboundary(&p,&d_p,&d_wmod, 0);
+
 printf("after cuinit\n");
 /*for( j1=0;j1<nj;j1++)
       {
@@ -219,6 +220,8 @@ real time=0.0;
    state->it=0;
    state->t=0;
    state->dt=p->dt;
+
+//printf("dx dy%f %f",dx,dy);
 for( n=1;n<=nt;n++)
 //for( n=0;n<1;n++)
 {
@@ -251,7 +254,7 @@ if((p->rkon)==0)
   ordero=0;
  
  cucomputedervfields(&p,&d_p,&d_wmod, &d_wd,order);
- order=1; 
+  order=1;
 
  for(int dir=0;dir<2; dir++)
  {
@@ -274,7 +277,7 @@ if((p->rkon)==0)
    }
 #endif
   }
-   cuboundary(&p,&d_p,&d_wmod, ordero);
+  // cuboundary(&p,&d_p,&d_wmod, ordero);
    if(p->divbon==1)
 	       cudivb(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
    if(p->hyperdifmom==1)
