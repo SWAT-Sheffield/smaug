@@ -164,8 +164,8 @@ else
   v=w+(ni)*(nj)*mom2;
 
 cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
-cuboundary(&p,&d_p,&d_w, 0);
-cuboundary(&p,&d_p,&d_wmod, 0);
+cuboundary(&p,&d_p,&d_state,&d_w, 0);
+cuboundary(&p,&d_p,&d_state,&d_wmod, 0);
 
 printf("after cuinit\n");
 /*for( j1=0;j1<nj;j1++)
@@ -263,7 +263,7 @@ if((p->rkon)==0)
   cucomputepres(&p,&d_p,&d_wmod, &d_wd,order,dir);
   for(int f=rho; f<=mom2; f++)
   {
-      cucentdiff1(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
+      cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
       //cucentdiff1a(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
 
   }
@@ -271,7 +271,7 @@ if((p->rkon)==0)
 #ifndef ADIABHYDRO
    for(int f=energy; f<=b2; f++)
    {
-     cucentdiff2(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
+     cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
      //cucentdiff2a(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
 
    }
@@ -433,7 +433,7 @@ for(int dim=0; dim<=1; dim++)
 
    }
    //cuadvance(&p,&d_p,&d_wmod,&d_w, order);
-   cuboundary(&p,&d_p,&d_wmod, ordero);
+   cuboundary(&p,&d_p,&d_state,&d_wmod, ordero);
 }
 
    if((p->rkon)==1)
@@ -465,7 +465,7 @@ for(int dim=0; dim<=1; dim++)
 
            for(int f=rho; f<=mom2; f++)
            {
-	       cucentdiff1(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f,dir);
+	       cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f,dir);
 	       //cucentdiff1a(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f,dir);
 
             }
@@ -473,7 +473,7 @@ for(int dim=0; dim<=1; dim++)
 #ifndef ADIABHYDRO
            for(int f=energy; f<=b2; f++)
            {
-	       cucentdiff2(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
+	       cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
 	       //cucentdiff2a(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
 
            }
@@ -638,7 +638,7 @@ for(int dim=0; dim<=1; dim++)
            }
            //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
            cuadvance(&p,&d_p,&d_wmod,&d_w,order);
-           cuboundary(&p,&d_p,&d_wmod, orderb);
+           cuboundary(&p,&d_p,&d_state,&d_wmod, orderb);
 	   
 
    }

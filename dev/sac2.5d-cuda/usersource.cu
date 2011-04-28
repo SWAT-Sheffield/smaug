@@ -65,7 +65,7 @@ real usersource1a_MODID(real *dw, real *wd, real *w, struct params *p,int *ii, i
 
 
 __device__ __host__
-int addsourceterms2_MODID(real *dw, real *wd, real *w, struct params *p,int *ii,int field,int dir) {
+int addsourceterms2_MODID(real *dw, real *wd, real *w, struct params *p, struct state *s,int *ii,int field,int dir) {
 
   int direction;
   int status=0;
@@ -88,7 +88,7 @@ int addsourceterms2_MODID(real *dw, real *wd, real *w, struct params *p,int *ii,
 }
 
 __device__ __host__
-int addsourceterms1_MODID(real *dw, real *wd, real *w, struct params *p,int *ii,int field,int dir) {
+int addsourceterms1_MODID(real *dw, real *wd, real *w, struct params *p, struct state *s,int *ii,int field,int dir) {
 
   int direction;
   int status=0;

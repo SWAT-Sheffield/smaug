@@ -53,9 +53,7 @@ int ni=p->n[0];
   int i,j;
   int ii[NDIM];
    int dimp=((p->n[0]))*((p->n[1]));
- #ifdef USE_SAC_3D
-    int nk=p->n[2];
-#endif
+
    
  #ifdef USE_SAC_3D
    int kp,kpg;

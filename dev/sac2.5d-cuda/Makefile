@@ -46,7 +46,7 @@ ALLBIN	=	$(Bin)/iosac
 #use -DUSE_IOME to enable IOME
 #CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DADIABHYDRO -DUSE_VAC -DD1D -DUSE_IOME -DUSE_USERSOURCE -DUSE_SAC_3D
 #compiling with  -arch sm_13 enables double precision to be used
-CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DUSE_SAC  -DD1D
+CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DUSE_SAC
 CCFLAGS = -DUSE_SAC -DD1D
 
 #MYLIBS	=	libAgentSimulation2.a

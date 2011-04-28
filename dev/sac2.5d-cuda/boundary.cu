@@ -13,7 +13,7 @@
 /////////////////////////////////////
 #include "gradops_b.cuh"
 
-__global__ void boundary_parallel(struct params *p,  real *wmod, int order)
+__global__ void boundary_parallel(struct params *p,  struct state *s,  real *wmod, int order)
 {
 
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -137,7 +137,7 @@ int shift=order*NVAR*dimp;
   
 }
 
-int cuboundary(struct params **p, struct params **d_p,  real **d_wmod,  int order)
+int cuboundary(struct params **p, struct params **d_p,  struct state **d_s,  real **d_wmod,  int order)
 {
 
 
@@ -145,7 +145,7 @@ int cuboundary(struct params **p, struct params **d_p,  real **d_wmod,  int orde
 
 int numBlocks = ((dimproduct_b(*p)+numThreadsPerBlock-1)) / numThreadsPerBlock;
 
-    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, order);
+    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_wmod, order);
 
     cudaThreadSynchronize();
 

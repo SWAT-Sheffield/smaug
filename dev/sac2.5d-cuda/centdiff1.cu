@@ -360,7 +360,7 @@ void computeflux (real *dw, real *wd, real *w, struct params *p,int *ii, int fie
 
 
 
-__global__ void centdiff1_parallel(struct params *p, real *w, real *wmod, 
+__global__ void centdiff1_parallel(struct params *p, struct state *s, real *w, real *wmod, 
     real *dwn1, real *wd, int order, int ordero, real dt, int f, int dir)
 {
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -487,7 +487,7 @@ __syncthreads();
 
 
 
-__global__ void centdiff1a_parallel(struct params *p, real *w, real *wmod, 
+__global__ void centdiff1a_parallel(struct params *p, struct state *s, real *w, real *wmod, 
     real *dwn1, real *wd, int order, int ordero, real dt, int f, int dir)
 {
   // compute the global index in the vector from
@@ -590,7 +590,7 @@ __global__ void centdiff1a_parallel(struct params *p, real *w, real *wmod,
      #endif
 
                      #ifdef USE_USERSOURCE
-                                addsourceterms1_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,ii,f,dir); 
+                                addsourceterms1_cd1(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
 
 
                       }
@@ -697,7 +697,7 @@ void checkErrors_cd1(char *label)
   }
 }
 
-int cucentdiff1(struct params **p, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt, int field, int dir)
+int cucentdiff1(struct params **p, struct params **d_p,struct state **d_s, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt, int field, int dir)
 {
 
  dim3 dimBlock(dimblock, 1);
@@ -708,11 +708,11 @@ int cucentdiff1(struct params **p, struct params **d_p, real **d_w,  real **d_wm
  // if(order==0)
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
 
-     centdiff1_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
+     centdiff1_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();
-     centdiff1a_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
+     centdiff1a_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
      cudaThreadSynchronize();
 }
 

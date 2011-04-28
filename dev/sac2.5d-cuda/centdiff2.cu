@@ -355,7 +355,7 @@ void computeflux_cd2 (real *dw, real *wd, real *w, struct params *p,int *ii, int
 
 
 
-__global__ void centdiff2a_parallel(struct params *p, real *w, real *wmod, 
+__global__ void centdiff2a_parallel(struct params *p, struct state *s, real *w, real *wmod, 
     real *dwn1, real *wd, int order, int ordero, real dt,int f,int dir)
 {
   // compute the global index in the vector from
@@ -514,7 +514,7 @@ __syncthreads();
      #endif
 
                      #ifdef USE_USERSOURCE
-                                addsourceterms2_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,ii,f,dir); 
+                                addsourceterms2_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
                      #endif
 
 }
@@ -580,7 +580,7 @@ __syncthreads();
 
 
 
-__global__ void centdiff2_parallel(struct params *p, real *w, real *wmod, 
+__global__ void centdiff2_parallel(struct params *p, struct state *s, real *w, real *wmod, 
     real *dwn1, real *wd, int order, int ordero, real dt,int f,int dir)
 {
   // compute the global index in the vector from
@@ -738,7 +738,7 @@ void checkErrors_cd2(char *label)
 
 
 
-int cucentdiff2(struct params **p, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real dt, int field,int dir)
+int cucentdiff2(struct params **p, struct params **d_p, struct state **d_s, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real dt, int field,int dir)
 {
 
     dim3 dimBlock(dimblock, 1);
@@ -750,10 +750,10 @@ int cucentdiff2(struct params **p, struct params **d_p, real **d_w,  real **d_wm
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
 
 
-     centdiff2_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt,field,dir);
+     centdiff2_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt,field,dir);
      cudaThreadSynchronize();
 
-     centdiff2a_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt,field,dir);
+     centdiff2a_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt,field,dir);
      cudaThreadSynchronize();
 
      // cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
