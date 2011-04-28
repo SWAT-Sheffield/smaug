@@ -52,9 +52,14 @@ int ni=p->n[0];
 
   int i,j;
   int ii[NDIM];
+   int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+    int nk=p->n[2];
+#endif
    
  #ifdef USE_SAC_3D
    int kp,kpg;
+  dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    int ip,jp,ipg,jpg;
 
@@ -187,7 +192,8 @@ int ni=p->n[0];
 	{
         for(int f=rho; f<NVAR; f++)
         {               
-                  wmod[fencode3_i(p,ii,f)]=w[fencode3_i(p,ii,f)];              
+                  wmod[fencode3_i(p,ii,f)]=w[fencode3_i(p,ii,f)];
+                  wmod[  (((3*(1+(p->rkon)))-1)*NVAR*dimp)+fencode3_i(p,ii,f)]=w[fencode3_i(p,ii,f)];              
                   dwn1[fencode3_i(p,ii,f)]=0;
                             
         }
@@ -289,24 +295,35 @@ int cuinit(struct params **p, real **w, real **wnew, struct state **state, struc
   struct params *adp;
   struct state *ads;
 
+  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
+
+   
+ #ifdef USE_SAC_3D
+   
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif  
+
 if(((*p)->rkon)==1)
-  cudaMalloc((void**)d_wmod, 5*NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
+  cudaMalloc((void**)d_wmod, 6*NVAR*dimp*sizeof(real));
 else
-  cudaMalloc((void**)d_wmod, 2*NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
+  cudaMalloc((void**)d_wmod, 3*NVAR*dimp*sizeof(real));
 
-  cudaMalloc((void**)d_dwn1, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
-  cudaMalloc((void**)d_wd, NDERV*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
-  cudaMalloc((void**)d_wtemp, NTEMP*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
+  cudaMalloc((void**)d_dwn1, NVAR*dimp*sizeof(real));
+  cudaMalloc((void**)d_wd, NDERV*dimp*sizeof(real));
+  cudaMalloc((void**)d_wtemp, NTEMP*dimp*sizeof(real));
 
 
-  #ifndef ADIABHYDRO
+  #ifdef USE_SAC
   cudaMalloc((void**)d_wtemp1, NTEMP1*(((*p)->n[0])+1)* (((*p)->n[1])+1)*sizeof(real));
   cudaMalloc((void**)d_wtemp2, NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2)*sizeof(real));
   #endif
+  #ifdef USE_SAC_3D
+  cudaMalloc((void**)d_wtemp1, NTEMP1*(((*p)->n[0])+1)* (((*p)->n[1])+1)* (((*p)->n[2])+1)*sizeof(real));
+  cudaMalloc((void**)d_wtemp2, NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2)* (((*p)->n[2])+2)*sizeof(real));
+  #endif
 
-
-  cudaMalloc((void**)&adw, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
-  cudaMalloc((void**)&adwnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real));
+  cudaMalloc((void**)&adw, NVAR*dimp*sizeof(real));
+  cudaMalloc((void**)&adwnew, NVAR*dimp*sizeof(real));
   
   cudaMalloc((void**)&adp, sizeof(struct params));
   cudaMalloc((void**)&ads, sizeof(struct state));
@@ -322,7 +339,7 @@ printf("ni is %d\n",(*p)->n[1]);
 
      
 printf("allocating\n");
-    cudaMemcpy(*d_w, *w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
+    cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
    // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
     
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
@@ -331,7 +348,7 @@ printf("allocating\n");
     dim3 dimBlock(16, 1);
     //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
     dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-   int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
+   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
    
 
     printf("calling initialiser\n");
@@ -341,7 +358,7 @@ printf("allocating\n");
      init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd, *d_wtemp, *d_wtemp1, *d_wtemp2);
      cudaThreadSynchronize();
 	    printf("called initialiser\n");
-	cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+	cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
 
 	cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
         cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);

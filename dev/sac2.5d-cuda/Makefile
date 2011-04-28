@@ -44,7 +44,7 @@ ALLOBJS	=	$(BASICEXOBJS)
 ALLBIN	=	$(Bin)/iosac
 
 #use -DUSE_IOME to enable IOME
-#CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DADIABHYDRO -DUSE_VAC -DD1D -DUSE_IOME
+#CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DADIABHYDRO -DUSE_VAC -DD1D -DUSE_IOME -DUSE_USERSOURCE -DUSE_SAC_3D
 #compiling with  -arch sm_13 enables double precision to be used
 CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DUSE_SAC  -DD1D
 CCFLAGS = -DUSE_SAC -DD1D
@@ -60,18 +60,23 @@ bw:
 	cp iosac2.5d_params.h.bw iosac2.5dparams.h
 	cp init_user.cu.bw init_user.cu
 	cp boundary.cu.bw boundary.cu
-
+	cp usersource.cu.default usersource.cu
 
 rt:
 	cp iosac2.5d_params.h.rt iosac2.5dparams.h
 	cp init_user.cu.rt init_user.cu
 	cp boundary.cu.rt boundary.cu
-
+	cp usersource.cu.default usersource.cu
 ot:
 	cp iosac2.5d_params.h.ot iosac2.5dparams.h
 	cp init_user.cu.ot init_user.cu
 	cp boundary.cu.ot boundary.cu
-
+	cp usersource.cu.default usersource.cu
+kink1:
+	cp iosac2.5d_params.h.kink1 iosac2.5dparams.h
+	cp init_user.cu.kink1 init_user.cu
+	cp boundary.cu.kink1 boundary.cu
+	cp usersource.cu.default usersource.cu
 
 cleanobjs:
 	rm -f $(BASICEXOBJS) *.cuh
@@ -131,10 +136,12 @@ hyperdifmomsourcene1.o: hyperdifmomsourcene1.cu
 centdiff1.o: centdiff1.cu
 	sed 's/MODID/cd1/g' < gradops.cu > gradops_cd1.cuh
 	sed 's/MODID/cd1/g' < dervfields.cu > dervfields_cd1.cuh
+	sed 's/MODID/cd1/g' < usersource.cu > usersource_cd1.cuh
 	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 centdiff2.o: centdiff2.cu
 	sed 's/MODID/cd2/g' < gradops.cu > gradops_cd2.cuh
 	sed 's/MODID/cd2/g' < dervfields.cu > dervfields_cd2.cuh
+	sed 's/MODID/cd2/g' < usersource.cu > usersource_cd2.cuh
 	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 computedervfields.o: computedervfields.cu
 	sed 's/MODID/cdf/g' < gradops.cu > gradops_cdf.cuh

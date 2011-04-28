@@ -13,6 +13,7 @@
 /////////////////////////////////////
 #include "gradops_cd1.cuh"
 #include "dervfields_cd1.cuh"
+#include "usersource_cd1.cuh"
 
 __device__ __host__
 int divflux1(real *dw, real *wd, real *w, struct params *p,int *ii,int field,int dir) {
@@ -562,6 +563,42 @@ __global__ void centdiff1a_parallel(struct params *p, real *w, real *wmod,
 
 }
  __syncthreads();
+
+#if(defined(USE_USERSOURCE))
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+#endif
+   #if(defined(USE_SAC_3D) && defined(USE_USERSOURCE))
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
+#if(defined(USE_USERSOURCE))
+   {
+
+     ii[0]=ip*(p->npgp[0])+ipg;
+     ii[1]=jp*(p->npgp[1])+jpg;
+#endif
+     #if(defined(USE_SAC_3D) && defined(USE_USERSOURCE))
+	   ii[2]=kp*(p->npgp[2])+kpg;
+     #endif
+
+
+     #if(defined(USE_SAC_3D) && defined(USE_USERSOURCE))
+       if(ii[0]<((p->n[0])-2) && ii[1]<((p->n[1])-2) && ii[2]<((p->n[2])-2)     && ii[0]>1    &&  ii[1]>1   && ii[2]>1   )
+     #endif
+     #if(defined(USE_SAC) && defined(USE_USERSOURCE))
+       if(ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2)
+     #endif
+
+                     #ifdef USE_USERSOURCE
+                                addsourceterms1_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,ii,f,dir); 
+
+
+                      }
+                    __syncthreads();
+                     #endif
+
+
+
                // }
     
 

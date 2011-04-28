@@ -14,6 +14,8 @@
 #include "gradops_cd2.cuh"
 #include "dervfields_cd2.cuh"
 
+#include "usersource_cd2.cuh"
+
 __device__ __host__
 real fluxe2(real *dw, real *wd, real *w, struct params *p,int *ii, int dir) {
 
@@ -502,7 +504,18 @@ __syncthreads();
      #else
        if(ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2)
      #endif
-                                addenergyterms_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,ii,f,dir); 
+                                addenergyterms_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,ii,f,dir);
+
+     #if(defined(USE_SAC_3D) && defined(USE_USERSOURCE))
+       if(ii[0]<((p->n[0])-2) && ii[1]<((p->n[1])-2) && ii[2]<((p->n[2])-2)     && ii[0]>1    &&  ii[1]>1   && ii[2]>1   )
+     #endif
+     #if(defined(USE_SAC) && defined(USE_USERSOURCE))
+       if(ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2)
+     #endif
+
+                     #ifdef USE_USERSOURCE
+                                addsourceterms2_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,ii,f,dir); 
+                     #endif
 
 }
 __syncthreads();
