@@ -916,12 +916,18 @@ void checkErrors_hdv1(char *label)
 int cuhyperdifvisc1(struct params **p,  struct params **d_p,   real **d_wmod,  real **d_wd, int order, real **d_wtemp, real **d_wtemp1, real **d_wtemp2, int field, int dim,int hand)
 {
 
+  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
+   
+ #ifdef USE_SAC_3D
+   
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif 
 
- dim3 dimBlock(dimblock, 1);
+// dim3 dimBlock(dimblock, 1);
  
-    dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-   int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
+ //   dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
 
 
      hyperdifvisc1_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim,hand);

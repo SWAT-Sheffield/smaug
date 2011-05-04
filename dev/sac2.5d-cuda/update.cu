@@ -168,11 +168,17 @@ void checkErrors_u(char *label)
 
 int cuupdate(struct params **p, real **w, real **wnew, struct state **state,struct params **d_p, real **d_w, real **d_wmod, struct state **d_state, int step)
 {
+  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
+   
+ #ifdef USE_SAC_3D
+   
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif 
     dim3 dimBlock(dimblock, 1);
  
     dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-   int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
+   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
 
 
      update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_state,*d_w,*d_wmod);
@@ -182,7 +188,7 @@ int cuupdate(struct params **p, real **w, real **wnew, struct state **state,stru
     if((step%((*p)->cfgsavefrequency))==0)
     {
   
-    cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+    cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
 
     //cudaMemcpy(*wnew, *d_wd, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
 

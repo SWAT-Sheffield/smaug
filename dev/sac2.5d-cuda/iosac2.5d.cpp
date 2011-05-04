@@ -132,9 +132,17 @@ printf("calling cuinit\n");
 // Build empty u, v, b matrices
 // Define h
 printf("allocating w and wnew\n");
+
+  #ifdef USE_SAC_3D
+ w=(real *)calloc(ni*nj*nk*NVAR,sizeof(real ));
+wd=(real *)calloc(ni*nj*nk*NDERV,sizeof(real ));
+ wnew=(real *)calloc(ni*nj*nk*NVAR,sizeof(real ));
+
+ #else
  w=(real *)calloc(ni*nj*NVAR,sizeof(real ));
 wd=(real *)calloc(ni*nj*NDERV,sizeof(real ));
  wnew=(real *)calloc(ni*nj*NVAR,sizeof(real ));
+#endif
 
 if((p->readini)==0)
  initconfig(p, &meta, w);
@@ -253,15 +261,15 @@ if((p->rkon)==0)
 {
   ordero=0;
  
- cucomputedervfields(&p,&d_p,&d_wmod, &d_wd,order);
+  cucomputedervfields(&p,&d_p,&d_wmod, &d_wd,order);
   order=1;
 
- for(int dir=0;dir<2; dir++)
+ for(int dir=0;dir<NDIM; dir++)
  {
 
   cucomputevels(&p,&d_p,&d_wmod, &d_wd,order,dir);
   cucomputepres(&p,&d_p,&d_wmod, &d_wd,order,dir);
-  for(int f=rho; f<=mom2; f++)
+  for(int f=rho; f<=(mom1+NDIM-1); f++)
   {
       cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
       //cucentdiff1a(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
@@ -269,7 +277,7 @@ if((p->rkon)==0)
   }
 
 #ifndef ADIABHYDRO
-   for(int f=energy; f<=b2; f++)
+   for(int f=energy; f<=(b1+NDIM-1); f++)
    {
      cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
      //cucentdiff2a(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
@@ -283,7 +291,7 @@ if((p->rkon)==0)
    if(p->hyperdifmom==1)
    {
     dt=(p->dt);
-    for(int dim=0; dim<=1; dim++)
+    for(int dim=0; dim<=(NDIM-1); dim++)
      {
        cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
        //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
@@ -303,7 +311,7 @@ if((p->rkon)==0)
 
      }
 
-     for(int dim=0; dim<=1; dim++)
+     for(int dim=0; dim<=(NDIM-1); dim++)
      {
        cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
@@ -324,8 +332,8 @@ if((p->rkon)==0)
 
      }
 
-for(int dim=0; dim<=1; dim++)
-       for(int f=0; f<=1; f++)
+for(int dim=0; dim<=(NDIM-1); dim++)
+       for(int f=0; f<=(NDIM-1); f++)
            	                 
 	     {
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
@@ -374,8 +382,8 @@ for(int dim=0; dim<=1; dim++)
              }
             int jj,mm,kk;
              real sb;
-             for(int dim=0; dim<=1; dim++)
-	     for(int f=0; f<=1; f++)            
+             for(int dim=0; dim<=(NDIM-1); dim++)
+	     for(int f=0; f<=(NDIM-1); f++)            
 	     {
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
                //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
@@ -459,11 +467,11 @@ for(int dim=0; dim<=1; dim++)
 
 
            cucomputedervfields(&p,&d_p,&d_wmod, &d_wd,order);
- for(int dir=0;dir<2; dir++)
+ for(int dir=0;dir<(NDIM-1); dir++)
  {
            cucomputevels(&p,&d_p,&d_wmod, &d_wd,order,dir);
 
-           for(int f=rho; f<=mom2; f++)
+           for(int f=rho; f<=mom1+(NDIM-1); f++)
            {
 	       cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f,dir);
 	       //cucentdiff1a(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f,dir);
@@ -471,7 +479,7 @@ for(int dim=0; dim<=1; dim++)
             }
 
 #ifndef ADIABHYDRO
-           for(int f=energy; f<=b2; f++)
+           for(int f=energy; f<=b1+(NDIM-1); f++)
            {
 	       cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
 	       //cucentdiff2a(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
@@ -485,7 +493,7 @@ for(int dim=0; dim<=1; dim++)
 	       cudivb(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, order,ordero,p->dt);
            if(p->hyperdifmom==1)
            {
-	     for(int dim=0; dim<=1; dim++)
+	     for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
 	       cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
       //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
@@ -506,7 +514,7 @@ for(int dim=0; dim<=1; dim++)
 
 	     }
 
-     for(int dim=0; dim<=1; dim++)
+     for(int dim=0; dim<=(NDIM-1); dim++)
      {
        cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
@@ -527,8 +535,8 @@ for(int dim=0; dim<=1; dim++)
 
      }
              
-for(int dim=0; dim<=1; dim++)
-       for(int f=0; f<=1; f++)
+for(int dim=0; dim<=(NDIM-1); dim++)
+       for(int f=0; f<=(NDIM-1); f++)
            	                 
 	     {
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
@@ -579,8 +587,8 @@ for(int dim=0; dim<=1; dim++)
 
             int jj,mm,kk;
              real sb;
-             for(int dim=0; dim<=1; dim++)
-	     for(int f=0; f<=1; f++)            
+             for(int dim=0; dim<=(NDIM-1); dim++)
+	     for(int f=0; f<=(NDIM-1); f++)            
 	     {
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
               //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);

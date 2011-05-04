@@ -336,10 +336,10 @@ printf("ni is %d\n",(*p)->n[1]);
     *d_state=ads;
 
      
-printf("allocating\n");
+printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
     cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
    // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
-    
+    printf("here\n");
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_state, *state, sizeof(struct state), cudaMemcpyHostToDevice);
     

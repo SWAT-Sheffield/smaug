@@ -590,7 +590,7 @@ __global__ void centdiff1a_parallel(struct params *p, struct state *s, real *w, 
      #endif
 
                      #ifdef USE_USERSOURCE
-                                addsourceterms1_cd1(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
+                             ;//   addsourceterms1_cd1(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
 
 
                       }
@@ -699,11 +699,17 @@ void checkErrors_cd1(char *label)
 
 int cucentdiff1(struct params **p, struct params **d_p,struct state **d_s, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt, int field, int dir)
 {
+ int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
- dim3 dimBlock(dimblock, 1);
+   
+ #ifdef USE_SAC_3D
+   
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif 
+ //dim3 dimBlock(dimblock, 1);
     //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-    dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-   int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
+   // dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
  //  cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
  // if(order==0)
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);

@@ -149,6 +149,11 @@ p->n[1]=nj;
 p->ng[0]=ngi;
 p->ng[1]=ngj;
 
+#ifdef USE_SAC_3D
+  p->n[2]=nk;
+  p->ng[2]=ngk;
+#endif
+
 p->npgp[0]=4;
 p->npgp[1]=4;
 #ifdef USE_SAC_3D

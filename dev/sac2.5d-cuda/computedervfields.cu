@@ -510,12 +510,18 @@ void checkErrors_cdf(char *label)
 
 int cucomputedervfields(struct params **p,  struct params **d_p, real **d_wmod,  real **d_wd, int order)
 {
+  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
+   
+ #ifdef USE_SAC_3D
+   
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif  
 
  dim3 dimBlock(dimblock, 1);
     //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-    dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-   int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
+   // dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
 
 
      computedervfields_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order);
@@ -536,12 +542,18 @@ int cucomputedervfields(struct params **p,  struct params **d_p, real **d_wmod, 
 
 int cucomputevels(struct params **p,  struct params **d_p, real **d_wmod,  real **d_wd, int order, int dir)
 {
+  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
+   
+ #ifdef USE_SAC_3D
+   
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif 
 
- dim3 dimBlock(dimblock, 1);
+ //dim3 dimBlock(dimblock, 1);
     //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-    dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-   int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
+   // dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
 
 
      computevels_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
@@ -563,11 +575,18 @@ int cucomputevels(struct params **p,  struct params **d_p, real **d_wmod,  real 
 int cucomputepres(struct params **p,  struct params **d_p, real **d_wmod,  real **d_wd, int order, int dir)
 {
 
+ int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
- dim3 dimBlock(dimblock, 1);
+   
+ #ifdef USE_SAC_3D
+   
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif 
+
+ //dim3 dimBlock(dimblock, 1);
     //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-    dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-   int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
+   // dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
 
 
      computepres_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);

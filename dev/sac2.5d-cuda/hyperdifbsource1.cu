@@ -422,11 +422,14 @@ void checkErrors_hdb1(char *label)
 
 int cuhyperdifbsource1(struct params **p,  struct params **d_p,   real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real **d_wtemp, int field, int dim, int jj, int ii0,int mm,real sb, real dt)
 {
+  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
- dim3 dimBlock(dimblock, 1);
-
-    dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-   int numBlocks = (((*p)->n[0])*((*p)->n[1])+numThreadsPerBlock-1) / numThreadsPerBlock;
+   
+ #ifdef USE_SAC_3D
+   
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif 
+   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
 
 
      hyperdifbsource1_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,jj,ii0,mm,sb); 
