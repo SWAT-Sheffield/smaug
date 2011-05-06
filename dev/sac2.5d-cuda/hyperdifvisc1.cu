@@ -491,6 +491,13 @@ int shift=order*NVAR*dimp;
    }
 }
    __syncthreads();
+
+
+
+
+
+
+
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    #ifdef USE_SAC_3D
@@ -531,7 +538,7 @@ int shift=order*NVAR*dimp;
      #ifdef USE_SAC_3D
            wtemp1[encode3_hdv1(p,i,j,k,d1)]=fabs((wtemp2[encode3_hdv1(p,i,j,k,tmpnui)] - wtemp2[encode3_hdv1(p,i-(dim==0),j-(dim==1),k-(dim==2),tmpnui)] ));
      #else
-           wtemp1[encode3_hdv1(p,i,j,k,d1)]=fabs((wtemp2[encode3_hdv1(p,i+(dim==0),j+(dim==1),k,tmpnui)] - wtemp2[encode3_hdv1(p,i,j,k,tmpnui)] ));
+           wtemp1[encode3_hdv1(p,i,j,k,d1)]=fabs(wtemp2[encode3_hdv1(p,i,j,k,tmpnui)]-(wtemp2[encode3_hdv1(p,i-(dim==0),j-(dim==1),k,tmpnui)]   ));
      #endif
      }
    }
@@ -628,6 +635,39 @@ int shift=order*NVAR*dimp;
 
 
 
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
+   {
+
+     ii[0]=ip*(p->npgp[0])+ipg;
+     ii[1]=jp*(p->npgp[1])+jpg;
+     i=ii[0];
+     j=ii[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp*(p->npgp[2])+kpg;
+           k=ii[2];
+     #endif
+
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
+    //set viscosities
+   //if(i<((p->n[0])) && j<((p->n[1])))
+   {
+	
+        bc_hyperdif(wtemp2, p,ii, tmpnui,dim);
+
+   }
+
+
+    }
+   __syncthreads();
 
 
 
@@ -816,23 +856,34 @@ int shift=order*NVAR*dimp;
 
        //tmp6  tmpnu
 #ifdef USE_SAC
-	if((field ==mom1 || field == mom2))
-		wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,field)+shift]/(((wmod[fencode3_hdv1(p,ii,rho)+shift] +wmod[fencode3_hdv1(p,ii,rhob)+shift])));
-     	else if(field !=energy)
-        	wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,field)+shift];
-     	else
+        if(field==energy)
         wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,energy)+shift]-0.5*(wmod[fencode3_hdv1(p,ii,b1)+shift]*wmod[fencode3_hdv1(p,ii,b1)+shift]+wmod[fencode3_hdv1(p,ii,b2)+shift]*wmod[fencode3_hdv1(p,ii,b2)+shift])+(wmod[fencode3_hdv1(p,ii,mom1)+shift]*wmod[fencode3_hdv1(p,ii,mom1)+shift]+wmod[fencode3_hdv1(p,ii,mom2)+shift]*wmod[fencode3_hdv1(p,ii,mom2)+shift])/(wmod[fencode3_hdv1(p,ii,rho)+shift]+wmod[fencode3_hdv1(p,ii,rhob)+shift] );
+        else
+        {
+           wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,field)+shift];
+	   if((field ==mom1 || field == mom2))
+		wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,field)+shift]/(((wmod[fencode3_hdv1(p,ii,rho)+shift] +wmod[fencode3_hdv1(p,ii,rhob)+shift])));
+        }
+        //wtemp2[encode3_hdv1(p,i+1,j+1,k,tmpnui)]=wtemp[fencode3_hdv1(p,ii,tmp6)];
+
+
 
 #endif
 
 #ifdef USE_SAC_3D
+       if(field==energy)
+        wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,energy)+shift]-0.5*(wmod[fencode3_hdv1(p,ii,b1)+shift]*wmod[fencode3_hdv1(p,ii,b1)+shift]+wmod[fencode3_hdv1(p,ii,b2)+shift]*wmod[fencode3_hdv1(p,ii,b2)+shift]+wmod[fencode3_hdv1(p,ii,b3)+shift]*wmod[fencode3_hdv1(p,ii,b3)+shift])
++(wmod[fencode3_hdv1(p,ii,mom1)+shift]*wmod[fencode3_hdv1(p,ii,mom1)+shift]+wmod[fencode3_hdv1(p,ii,mom2)+shift]*wmod[fencode3_hdv1(p,ii,mom2)+shift]+wmod[fencode3_hdv1(p,ii,mom3)+shift]*wmod[fencode3_hdv1(p,ii,mom3)+shift])/(wmod[fencode3_hdv1(p,ii,rho)+shift]+wmod[fencode3_hdv1(p,ii,rhob)+shift] );       
+       else
+       {
+          wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,field)+shift];
 	if((field ==mom1 || field == mom2 || field == mom3))
 		wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,field)+shift]/(((wmod[fencode3_hdv1(p,ii,rho)+shift] +wmod[fencode3_hdv1(p,ii,rhob)+shift])));
-     	else if(field !=energy)
-        	wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,field)+shift];
-     	else
-        wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,energy)+shift]-0.5*(wmod[fencode3_hdv1(p,ii,b1)+shift]*wmod[fencode3_hdv1(p,ii,b1)+shift]+wmod[fencode3_hdv1(p,ii,b2)+shift]*wmod[fencode3_hdv1(p,ii,b2)+shift]+wmod[fencode3_hdv1(p,ii,b3)+shift]*wmod[fencode3_hdv1(p,ii,b3)+shift])
-+(wmod[fencode3_hdv1(p,ii,mom1)+shift]*wmod[fencode3_hdv1(p,ii,mom1)+shift]+wmod[fencode3_hdv1(p,ii,mom2)+shift]*wmod[fencode3_hdv1(p,ii,mom2)+shift]+wmod[fencode3_hdv1(p,ii,mom3)+shift]*wmod[fencode3_hdv1(p,ii,mom3)+shift])/(wmod[fencode3_hdv1(p,ii,rho)+shift]+wmod[fencode3_hdv1(p,ii,rhob)+shift] );
+
+        }
+        //wtemp2[encode3_hdv1(p,i+1,j+1,k+1,tmpnui)]=wtemp[fencode3_hdv1(p,ii,tmp6)];
+
+
 
 #endif
 
@@ -845,39 +896,6 @@ int shift=order*NVAR*dimp;
    __syncthreads();
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
-
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
-     i=ii[0];
-     j=ii[1];
-     k=0;
-     #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
-           k=ii[2];
-     #endif
-
-     #ifdef USE_SAC_3D
-       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
-     #else
-       if(ii[0]<p->n[0] && ii[1]<p->n[1])
-     #endif
-    //set viscosities
-   //if(i<((p->n[0])) && j<((p->n[1])))
-   {
-	
-        bc_hyperdif(wtemp2, p,ii, tmpnui,dim);
-
-   }
-
-
-    }
-   __syncthreads();
 
 
 }
