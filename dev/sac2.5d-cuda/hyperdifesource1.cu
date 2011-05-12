@@ -184,7 +184,7 @@ __syncthreads();
 
 
    
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+/*   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    #ifdef USE_SAC_3D
      for(kpg=0;kpg<(p->npgp[2]);kpg++)
@@ -214,7 +214,7 @@ __syncthreads();
                          }
               //  }	
 }
-  __syncthreads();
+  __syncthreads();*/
 
 
 

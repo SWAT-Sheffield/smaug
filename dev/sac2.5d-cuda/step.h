@@ -20,6 +20,7 @@ int cucentdiff2(struct params **p, struct params **d_p, struct state **d_s, real
 int cuadvance(struct params **p, struct params **d_p,    real **d_wmod, real **d_w,int order);
 int cucomputedervfields(struct params **p, struct params **d_p,  real **d_wmod, real **d_wd, int order);
 int cucomputevels(struct params **p, struct params **d_p,  real **d_wmod, real **d_wd, int order,int dir);
+int cucomputemaxc(struct params **p, struct params **d_p,  real **d_wmod, real **d_wd, int order,int dir);
 int cucomputepres(struct params **p, struct params **d_p,  real **d_wmod, real **d_wd, int order,int dir);
 //int cucorrector(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd, int order);
 int cudivb(struct params **p,struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real dt);

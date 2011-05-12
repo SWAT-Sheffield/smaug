@@ -22,7 +22,7 @@ int divflux1(real *dw, real *wd, real *w, struct params *p,int *ii,int field,int
   int status=0;
   real divflux=0;
 
-dw[fencode3_cd1(p,ii,field)]= grad3d_cd1(wd,p,ii,flux,dir); 
+dw[fencode3_cd1(p,ii,field)]+= grad3d_cd1(wd,p,ii,flux,dir); 
 //dw[fencode3_cd1(p,ii,field)]=0.0;
  switch(field)
   {
@@ -66,11 +66,11 @@ real transportflux (real *dw, real *wd, real *w, struct params *p,int *ii,int fi
    //transport flux
    //this will work without the switch as follows
         #if defined USE_SAC || defined USE_SAC_3D
-     //flux= w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]);
-flux= wd[fencode3_cd1(p,ii,vel1+direction)]*w[fencode3_cd1(p,ii,field)];
+     flux= w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]);
+//flux= wd[fencode3_cd1(p,ii,vel1+direction)]*w[fencode3_cd1(p,ii,field)];
         #else
-     //flux= w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/w[fencode3_cd1(p,ii,rho)];
-flux= wd[fencode3_cd1(p,ii,vel1+direction)]*w[fencode3_cd1(p,ii,field)];
+     flux= w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/w[fencode3_cd1(p,ii,rho)];
+//flux= wd[fencode3_cd1(p,ii,vel1+direction)]*w[fencode3_cd1(p,ii,field)];
         #endif
 
 
@@ -137,7 +137,7 @@ real fluxmom1 (real *dw, real *wd, real *w, struct params *p,int *ii,int field, 
 
 
          #if defined USE_SAC || defined USE_SAC_3D
-     		flux= -(w[fencode3_cd1(p,ii,field+(NDIM+1))]*w[fencode3_cd1(p,ii,b1b+direction)]-w[fencode3_cd1(p,ii,field+(2*NDIM+3))]*w[fencode3_cd1(p,ii,b1+direction)])-w[fencode3_cd1(p,ii,field+(NDIM+1))]*w[fencode3_cd1(p,ii,b1+direction)];
+     		flux= -(w[fencode3_cd1(p,ii,field+(NDIM+1))]*w[fencode3_cd1(p,ii,b1b+direction)]+w[fencode3_cd1(p,ii,field+(2*NDIM+3))]*w[fencode3_cd1(p,ii,b1+direction)])-w[fencode3_cd1(p,ii,field+(NDIM+1))]*w[fencode3_cd1(p,ii,b1+direction)];
         #endif
 
 
@@ -262,6 +262,10 @@ int computefluxmom2 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
                 //commented out to compare with vac
                  wd[fencode3_cd1(p,ii,flux)]+=wd[fencode3_cd1(p,ii,pressuret)];
 
+                 //wd[fencode3_cd1(p,ii,flux)]+=(((p->gamma)-1.0)*( w[fencode3_cd1(p,ii,energy)]-0.5*(w[fencode3_cd1(p,ii,mom1)]*w[fencode3_cd1(p,ii,mom1)]+w[fencode3_cd1(p,ii,mom2)]*w[fencode3_cd1(p,ii,mom2)])/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)])));
+
+//wd[fencode3_cd1(p,ii,flux)]-=(((p->gamma)-2.0)*((w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1b)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2b)])+0.5*(w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2)])));
+
         #ifdef USE_SAC
 
                //   wd[fencode3_cd1(p,ii,flux)]+=wd[fencode3_cd1(p,ii,ptb)];
@@ -306,7 +310,9 @@ int computefluxmom1 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
                 // computept_cd1(w,wd,p,ii);
                  //commented out to compare with vac 
                  wd[fencode3_cd1(p,ii,flux)]+=wd[fencode3_cd1(p,ii,pressuret)];
+                // wd[fencode3_cd1(p,ii,flux)]+=(((p->gamma)-1.0)*( w[fencode3_cd1(p,ii,energy)]-0.5*(w[fencode3_cd1(p,ii,mom1)]*w[fencode3_cd1(p,ii,mom1)]+w[fencode3_cd1(p,ii,mom2)]*w[fencode3_cd1(p,ii,mom2)])/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)])));
 
+//wd[fencode3_cd1(p,ii,flux)]-=(((p->gamma)-2.0)*((w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1b)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2b)])+0.5*(w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2)])));
         #ifdef USE_SAC
 
                 //  wd[fencode3_cd1(p,ii,flux)]+=wd[fencode3_cd1(p,ii,ptb)];
@@ -602,11 +608,62 @@ __global__ void centdiff1a_parallel(struct params *p, struct state *s, real *w, 
                // }
     
 
-         // if( i<(ni) && j<(nj))
-          //        bc_cont_cd1(dwn1,p,i,j,f);
-            //    __syncthreads();
+
+}
 
 
+
+
+
+__global__ void centdiff1b_parallel(struct params *p, struct state *s, real *w, real *wmod, 
+    real *dwn1, real *wd, int order, int ordero, real dt, int f, int dir)
+{
+  // compute the global index in the vector from
+  // the number of the current block, blockIdx,
+  // the number of threads per block, blockDim,
+  // and the number of the current thread within the block, threadIdx
+  //int i = blockIdx.x * blockDim.x + threadIdx.x;
+  //int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int fid;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+
+  //real dt=p->dt;
+  real dy=p->dx[1];
+  real dx=p->dx[0];
+  //real g=p->g;
+ //  dt=1.0;
+//dt=0.05;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+
+  int ii[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+    int nk=p->n[2];
+    real dz=p->dx[2];
+#endif
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
+
+   fid=0;
 
              // for(int f=rho; f<=mom3; f++)
               // {
@@ -671,6 +728,8 @@ __global__ void centdiff1a_parallel(struct params *p, struct state *s, real *w, 
 
 }
 
+
+
 /////////////////////////////////////
 // error checking routine
 /////////////////////////////////////
@@ -719,6 +778,10 @@ int cucentdiff1(struct params **p, struct params **d_p,struct state **d_s, real 
 	    //printf("called prop\n"); 
      cudaThreadSynchronize();
      centdiff1a_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
+     cudaThreadSynchronize();
+
+
+     centdiff1b_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
      cudaThreadSynchronize();
 }
 
