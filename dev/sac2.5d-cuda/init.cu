@@ -106,9 +106,9 @@ int ni=p->n[0];
 
 	    for(int f=0; f<NVAR; f++)
             { 
-		         
+		         w[fencode3_i(p,ii,f)]=0.0;
                           for(ord=0;ord<(2+3*(p->rkon==1));ord++)
-                              wmod[fencode3_i(p,ii,f)+ord*NVAR*(p->n[0])*(p->n[1])]=0;
+                              wmod[fencode3_i(p,ii,f)+ord*NVAR*(p->n[0])*(p->n[1])]=0.0;
 	    }
 
 

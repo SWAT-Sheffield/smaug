@@ -1,6 +1,7 @@
 
 
 
+
 real g  = 9.81;
 real u0 = 0;                               
 real v0 = 0;
@@ -27,8 +28,8 @@ real dx = 0.55*xmax/(ni-4);
 #ifdef USE_SAC
 //vac ozt
 int ni;
-//ni=96;    //OZT tests
-ni=796; //BW tests
+ni=96;    //OZT tests
+//ni=796; //BW tests
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
@@ -63,8 +64,8 @@ real dy = 0.55*ymax/(nj-4);
 
 #ifdef USE_SAC
 //vac ozt
-//int nj = 96;  //OZT tests
-int nj=2;  //BW test
+int nj = 96;  //OZT tests
+//int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
@@ -148,10 +149,10 @@ dt=0.0002985;  //ADIABHYDRO
 //dt=0.15;
 
 #ifdef USE_SAC
-//dt=0.00065;  //OZT test
+dt=0.00065;  //OZT test
 //dt=6.5/10000000.0; //BW test
 //dt=0.00000065;  //BW tests
-dt=0.000000493;  //BW tests
+//dt=0.000000493;  //BW tests
 //dt=0.005;
 //dt=0.000139;
 //dt=3.0/10000000.0; //BW test
@@ -164,8 +165,8 @@ int nt=(int)((tmax)/dt);
 //nt=3000;
 //nt=5000;
 //nt=200000;
-nt=150000;
-//nt=100;
+//nt=150000;
+nt=100;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
 //t = [0:dt:tdomain];
@@ -208,8 +209,8 @@ p->adiab=1.0;
 #else
 
 //ozt test
-//p->gamma=5.0/3.0;  //OZ test
-p->gamma=2.0;  //BW test
+p->gamma=5.0/3.0;  //OZ test
+//p->gamma=2.0;  //BW test
 //p->gamma=5.0/3.0;  //BACH3D
 //alfven test
 //p->gamma=1.4;
@@ -237,7 +238,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=1.0;
 p->readini=0.0;
-p->cfgsavefrequency=1000;
+p->cfgsavefrequency=1;
 
 
 p->xmax[0]=xmax;

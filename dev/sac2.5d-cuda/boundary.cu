@@ -82,8 +82,8 @@ int shift=order*NVAR*dimp;
 #ifdef ADIABHYDRO
                   bc3_cont_b(wmod+order*NVAR*dimp,p,iia,f);
 #else
-              // bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
-                 bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
+               bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
+               //  bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
 #endif                
 
                 //  bc3_fixed_b(wmod+order*NVAR*dimp,p,iia,f,0.0);
@@ -98,7 +98,7 @@ int shift=order*NVAR*dimp;
 ;
 #else
   //This second call makes sure corners are set correctly
-  /* for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    #ifdef USE_SAC_3D
      for(kpg=0;kpg<(p->npgp[2]);kpg++)
@@ -129,7 +129,7 @@ int shift=order*NVAR*dimp;
 
    } 
 }
- __syncthreads();*/
+ __syncthreads();
 #endif
 
 

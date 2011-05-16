@@ -635,7 +635,7 @@ __global__ void centdiff1a_parallel(struct params *p, struct state *s, real *w, 
      #endif
 
                      #ifdef USE_USERSOURCE
-                             ;//   addsourceterms1_cd1(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
+                                addsourceterms1_cd1(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
 
 
                       }
