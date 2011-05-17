@@ -1,6 +1,6 @@
 
 __device__ __host__
-real usersource2a_MODID(real *dw, real *wd, real *w, struct params *p,int *ii, int dir) {
+real usersource2a(real *dw, real *wd, real *w, struct params *p,int *ii, int dir) {
 
    real flux=0.0;
 
@@ -12,7 +12,7 @@ real usersource2a_MODID(real *dw, real *wd, real *w, struct params *p,int *ii, i
 
 
 __device__ __host__
-real usersource1a_MODID(real *dw, real *wd, real *w, struct params *p,int *ii,int field, int dir) {
+real usersource1a(real *dw, real *wd, real *w, struct params *p,int *ii,int field, int dir) {
 
   real vel=0;
   real x,y;
@@ -34,7 +34,7 @@ real usersource1a_MODID(real *dw, real *wd, real *w, struct params *p,int *ii,in
 }
 
 __device__ __host__
-real usersource1b_MODID(real *dw, real *wd, real *w, struct params *p,int *ii,int field, int dir) {
+real usersource1b(real *dw, real *wd, real *w, struct params *p,int *ii,int field, int dir) {
 
   real vel=0;
   switch(field)
@@ -77,11 +77,11 @@ int addsourceterms1_MODID(real *dw, real *wd, real *w, struct params *p, struct 
    real omega=2*PI/p0;
    real x,y,z;
    int i,j,k;
-   real a1;
+
         real rhorat=2.0; //rhotube/rhoexternal
         real rtube=0.2e6; //Mm tube radius (same as Gaussian width for field computation)
         real rrat=0.5; //ration of wall thickness to radius
-	 
+	  int i,j,k;
 	  i=ii[0];
 	  j=ii[1];
 	  k=ii[2];

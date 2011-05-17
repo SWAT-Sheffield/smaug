@@ -175,7 +175,7 @@ int shift=order*NVAR*dimp;
 
 
    p->maxviscoef=0;
-
+//  p->cmax=1.0;
 
     //finally update nur and nul
 //tmp4    md3r

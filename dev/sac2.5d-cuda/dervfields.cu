@@ -459,7 +459,7 @@ void computecmax3_MODID(real *wmod,real *wd,struct params *p,int *ii)
 #else
        if(wd[fencode3_MODID(p,ii,soundspeed)]>(p->cmax))
                     // atomicExch(&(p->cmax),(wd[fencode3_MODID(p,ii,soundspeed)]));
-       //             p->cmax=(wd[fencode3_MODID(p,ii,soundspeed)]);
+                    p->cmax=(wd[fencode3_MODID(p,ii,soundspeed)]);
        if(wd[fencode3_MODID(p,ii,cfast)]>(p->cmax))
                     // atomicExch(&(p->cmax),(wd[fencode3_MODID(p,ii,soundspeed)]));
                     p->cmax=(wd[fencode3_MODID(p,ii,cfast)]);

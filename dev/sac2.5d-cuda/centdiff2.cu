@@ -604,7 +604,7 @@ __global__ void centdiff2c_parallel(struct params *p, struct state *s, real *w, 
      #endif
 
                      #ifdef USE_USERSOURCE
-                                addsourceterms2_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
+                              ;//  addsourceterms2_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
                      #endif
 
 }
