@@ -293,6 +293,8 @@ if((p->rkon)==0)
     dt=(p->dt);
     for(int dim=0; dim<=(NDIM-1); dim++)
      {
+       ;//cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+       cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
        cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
        cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
        //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
@@ -314,6 +316,8 @@ if((p->rkon)==0)
 
      for(int dim=0; dim<=(NDIM-1); dim++)
      {
+       ;//cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+       cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
        cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
        cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
@@ -338,7 +342,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
        for(int f=0; f<=(NDIM-1); f++)
            	                 
 	     {
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+       ;//cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+       cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+       cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
        //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
                //cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
@@ -388,7 +394,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
              for(int dim=0; dim<=(NDIM-1); dim++)
 	     for(int f=0; f<=(NDIM-1); f++)            
 	     {
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+	       ;//cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+	       cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+	       cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
                //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
                //cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
@@ -499,7 +507,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
            {
 	     for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+	       cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+	       cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+
 	       cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
       //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
 	       //cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
@@ -521,7 +531,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 
      for(int dim=0; dim<=(NDIM-1); dim++)
      {
+       cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
        cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+
        cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
        //cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
@@ -545,7 +557,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
        for(int f=0; f<=(NDIM-1); f++)
            	                 
 	     {
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+	       cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+	       cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
  //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
                //cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
@@ -597,7 +611,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
              for(int dim=0; dim<=(NDIM-1); dim++)
 	     for(int f=0; f<=(NDIM-1); f++)            
 	     {
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+	       cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+	       cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
               //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
                //cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);

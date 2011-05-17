@@ -268,6 +268,7 @@ __global__ void computec_parallel(struct params *p,   real *wmod, real *wd, int 
 {
 
 
+
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int index,k;
@@ -301,7 +302,7 @@ __global__ void computec_parallel(struct params *p,   real *wmod, real *wd, int 
 #endif  
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+  for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    #ifdef USE_SAC_3D
      for(kpg=0;kpg<(p->npgp[2]);kpg++)
@@ -328,9 +329,6 @@ __global__ void computec_parallel(struct params *p,   real *wmod, real *wd, int 
 
 }
               __syncthreads();
-
-
-
 
 
 
@@ -380,6 +378,35 @@ __global__ void computemaxc_parallel(struct params *p,   real *wmod, real *wd, i
    ip=iindex-(jp*(ni/(p->npgp[0])));
 #endif  
 
+ for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
+   {
+
+     ii[0]=ip*(p->npgp[0])+ipg;
+     ii[1]=jp*(p->npgp[1])+jpg;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp*(p->npgp[2])+kpg;
+     #endif
+
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
+  //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+	{
+ //determin cmax
+            ;//   computec3_cdf(wmod+(order*dimp*NVAR),wd,p,ii,dir);
+            ;//   p->cmax=0.0;
+        }
+
+}
+
+ 
+
 
 
 if(iindex==0)
@@ -408,7 +435,11 @@ if(iindex==0)
 
  //  }
 }
- __syncthreads(); 
+
+ 
+
+
+ 
 
 
 
