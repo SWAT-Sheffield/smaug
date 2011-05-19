@@ -25,7 +25,7 @@ int ngk=2;
 int ni;
 //ni=28;    //BACH3D tests
 ni=96;    //kink13D tests
-//nj=21;
+//ni=21;
 ni=ni+2*ngi;
 //ni=512;
 

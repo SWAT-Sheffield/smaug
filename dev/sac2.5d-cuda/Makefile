@@ -47,7 +47,7 @@ ALLBIN	=	$(Bin)/iosac
 #CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DADIABHYDRO -DUSE_VAC -DD1D -DUSE_IOME -DUSE_USERSOURCE -DUSE_SAC_3D
 #compiling with  -arch sm_13 enables double precision to be used
 CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DUSE_SAC
-CCFLAGS = -DUSE_SAC -DD1D
+CCFLAGS = -DUSE_SAC -DD1D 
 
 #MYLIBS	=	libAgentSimulation2.a
 
@@ -76,7 +76,7 @@ kink1:
 	cp iosac2.5d_params.h.kink1 iosac2.5dparams.h
 	cp init_user.cu.kink1 init_user.cu
 	cp boundary.cu.kink1 boundary.cu
-	cp usersource.cu.default usersource.cu
+	cp usersource.cu.kink1 usersource.cu
 
 cleanobjs:
 	rm -f $(BASICEXOBJS) *.cuh
@@ -89,15 +89,19 @@ clean:	cleanobjs cleanbin
 
 cleanall:	cleanobjs cleanbin
 
-all: iosac
+all: allsac
+	$(NVCC) -g $(LIBS)  $(incDirs) -o $(Bin)/iosac $(BASICEXOBJS) $(MYLIBS)
 
-
+allsac:$(BASICEXOBJS)
+	$(NVCC) -g $(LIBS)  $(incDirs) -o $(Bin)/iosac $(BASICEXOBJS) $(MYLIBS)
 #@# Dependency rules follow -----------------------------
 
 
 #ioshalloww:$(BASICEXOBJS)
 #	$(NVCC) --allow-multiple-defintion -g $(LIBS)  $(incDirs) -o $(Bin)/ioshalloww $(BASICEXOBJS) $(MYLIBS)
-iosac:$(BASICEXOBJS)
+sac:$(BASICEXOBJS)
+	rm iosac2.5d.o
+	$(CC) $(C_FLAGS) $(CCFLAGS) $(incDirs) $(LINKFLAGS)  -o iosac2.5d.o -c iosac2.5d.cpp
 	$(NVCC) -g $(LIBS)  $(incDirs) -o $(Bin)/iosac $(BASICEXOBJS) $(MYLIBS)
 
 

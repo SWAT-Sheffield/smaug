@@ -14,7 +14,6 @@
 #include "gradops_hdm1.cuh"
 
 
-
 __global__ void hyperdifmomsource3_parallel(struct params *p,  real *wmod, 
     real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim, int ii, int ii0, real dt)
 {

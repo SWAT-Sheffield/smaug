@@ -25,28 +25,35 @@ void bc_hyperdif(real *wt, struct params *p,int *ii, int f,int dir) {
 
  #ifdef USE_SAC
    if(  (dir == 0) && (i==(p->n[0])-1)   && j>0   && j<(p->n[1])           )
-         wt[fencode_hdv1(p,i+2,j,f)]=wt[fencode_hdv1(p,(p->n[0])-5,j+1,f)];
+   {
+      for(int is=0;is<3-2*(j<((p->n[1])-1));is++)   
+         wt[fencode_hdv1(p,i+2,j+is,f)]=wt[fencode_hdv1(p,(p->n[0])-5,j+is,f)];
+         
+   }
    else if((dir == 1) && (j==(p->n[1])-1)    && i>0   && i<((p->n[0]))  )
-       wt[fencode_hdv1(p,i,j+2,f)]=wt[fencode_hdv1(p,i+1,(p->n[1])-5,f)];
+    for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
+       wt[fencode_hdv1(p,i+is,j+2,f)]=wt[fencode_hdv1(p,i+is,(p->n[1])-5,f)];
   else if((dir == 0) && (i==0)    && j>0   && j<((p->n[1]))   )
-       wt[fencode_hdv1(p,0,j+1,f)]=wt[fencode_hdv1(p,6,j+1,f)];
+    for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
+       wt[fencode_hdv1(p,0,j+is,f)]=wt[fencode_hdv1(p,6,j+is,f)];
    else if((dir == 1) && (j==0)    && i>0   && i<((p->n[0]))   )
-       wt[fencode_hdv1(p,i+1,0,f)]=wt[fencode_hdv1(p,i+1,6,f)];
+    for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
+       wt[fencode_hdv1(p,i+is,0,f)]=wt[fencode_hdv1(p,i+is,6,f)];
 
 #endif
  #ifdef USE_SAC_3D
    if(  (dir == 0) && (i==(p->n[0])-1)   && j>0   && j<(p->n[1])      && k>0   && k<(p->n[2])     )
-         wt[encode3_hdv1(p,i+2,j,k,f)]=wt[encode3_hdv1(p,(p->n[0])-5,j+1,k+1,f)];
+         wt[encode3_hdv1(p,i+2,j,k,f)]=wt[encode3_hdv1(p,(p->n[0])-5,j,k,f)];
    else if((dir == 1) && (j==(p->n[1])-1)    && i>0   && i<((p->n[0])) && k>0   && k<((p->n[2]))  )
-       wt[encode3_hdv1(p,i,j+2,k,f)]=wt[encode3_hdv1(p,i+1,(p->n[1])-5,k+1,f)];
+       wt[encode3_hdv1(p,i,j+2,k,f)]=wt[encode3_hdv1(p,i,(p->n[1])-5,k,f)];
    else if((dir == 2) && (k==(p->n[2])-1)    && i>0   && i<((p->n[0])) && j>0   && j<((p->n[1]))  )
-       wt[encode3_hdv1(p,i,j,k+2,f)]=wt[encode3_hdv1(p,i+1,j+1,(p->n[2])-5,f)];
+       wt[encode3_hdv1(p,i,j,k+2,f)]=wt[encode3_hdv1(p,i,j,(p->n[2])-5,f)];
   else if((dir == 0) && (i==0)    && j>0   && j<((p->n[1])) && k>0   && k<((p->n[2]))  )
-       wt[encode3_hdv1(p,0,j+1,k+1,f)]=wt[encode3_hdv1(p,6,j+1,k+1,f)];
+       wt[encode3_hdv1(p,0,j,k,f)]=wt[encode3_hdv1(p,6,j,k,f)];
    else if((dir == 1) && (j==0)    && i>0   && i<((p->n[0]))  && k>0   && k<((p->n[2]))  )
-       wt[encode3_hdv1(p,i+1,0,k+1,f)]=wt[encode3_hdv1(p,i+1,6,k+1,f)];
+       wt[encode3_hdv1(p,i,0,k,f)]=wt[encode3_hdv1(p,i,6,k,f)];
    else if((dir == 2) && (k==0)    && i>0   && i<((p->n[0])) && j>0   && j<((p->n[1]))   )
-       wt[encode3_hdv1(p,i+1,j+1,0,f)]=wt[encode3_hdv1(p,i+1,j+1,6,f)];
+       wt[encode3_hdv1(p,i,j,0,f)]=wt[encode3_hdv1(p,i,j,6,f)];
 #endif
 
 
