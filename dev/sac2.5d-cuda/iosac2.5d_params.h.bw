@@ -7,6 +7,9 @@ real v0 = 0;
 real b0  = 0;                               
 real h0 = 5030; 
 
+real cmax[NDIM];
+real courantmax;
+
 int ngi=2;
 int ngj=2;
 int ngk=2;

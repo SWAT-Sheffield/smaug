@@ -179,8 +179,8 @@ int cuupdate(struct params **p, real **w, real **wnew, struct state **state,stru
  
     dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
-
-
+  // cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyHostToDevice);
+cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
      update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_state,*d_w,*d_wmod);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();

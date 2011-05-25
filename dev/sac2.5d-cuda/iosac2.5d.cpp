@@ -268,9 +268,12 @@ if((p->rkon)==0)
  {
 
   cucomputevels(&p,&d_p,&d_wmod, &d_wd,order,dir);
+
   cucomputepres(&p,&d_p,&d_wmod, &d_wd,order,dir);
+
   for(int f=rho; f<=(mom1+NDIM-1); f++)
   {
+ 
       cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
       //cucentdiff1a(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
 
@@ -279,6 +282,7 @@ if((p->rkon)==0)
 #ifndef ADIABHYDRO
    for(int f=energy; f<=(b1+NDIM-1); f++)
    {
+
      cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
      //cucentdiff2a(&p,&w,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
 
@@ -291,9 +295,13 @@ if((p->rkon)==0)
    if(p->hyperdifmom==1)
    {
     dt=(p->dt);
+
     for(int dim=0; dim<=(NDIM-1); dim++)
      {
+       //printf(" courant is %f \n",p->courant);
        cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+       //printf(" courant is %f \n",p->courant);
+       cmax[dim]=p->cmax;
        cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
        //cuhyperdifvisc1a(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
        //cuhyperdifvisc2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
@@ -311,6 +319,7 @@ if((p->rkon)==0)
        //cuhyperdifrhosource2(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim,dt);
 
      }
+
 
      for(int dim=0; dim<=(NDIM-1); dim++)
      {
@@ -446,6 +455,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
    }
    //cuadvance(&p,&d_p,&d_wmod,&d_w, order);
    cuboundary(&p,&d_p,&d_state,&d_wmod, ordero);
+
 }
 
    if((p->rkon)==1)
@@ -658,8 +668,24 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	   
 
    }
+   if(p->moddton==1.0)
+   {
+        //printf(" courant is %f \n",p->courant);
+        p->courant=0.1;
+        courantmax=0.0;
+        for(int dim=0; dim<=(NDIM-1); dim++)
+        {
+           if((cmax[dim]/(p->dx[dim]))>courantmax)
+             courantmax=cmax[dim]/(p->dx[dim]);
+        }
+        printf("old dt is %g ",p->dt);
+        if(((p->courant)/courantmax)>1.0e-8)
+               p->dt=(p->courant)/courantmax;
+        printf(" modified dt is %g \n",p->dt);
 
+   } 
    cuupdate(&p,&w,&wd,&state,&d_p,&d_w,&d_wmod,  &d_state,n);
+
    //printf("nummaxthreads %d\n",p->mnthreads);
 
    t2=second()-t1;
@@ -670,6 +696,8 @@ for(int dim=0; dim<=(NDIM-1); dim++)
    state->t=time+(p->dt);
    time=state->t;
    state->dt=p->dt;
+
+
 
    //appendlog(meta.log_file,*p, *state);
 

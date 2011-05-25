@@ -121,7 +121,7 @@ struct params {
         int hyperdifmom; 
 
         int readini;
-
+        real courant;
         real maxviscoef;
         real chyp[NVAR];
         real chyp3;   
