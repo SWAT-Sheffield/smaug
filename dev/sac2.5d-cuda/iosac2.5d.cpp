@@ -234,7 +234,7 @@ for( n=1;n<=nt;n++)
 //for( n=0;n<1;n++)
 {
 
-    if((n%(p->cfgsavefrequency))==0)
+    if(((n-1)%(p->cfgsavefrequency))==0)
     {
       //writeconfig(name,n,*p, meta , w);
       writevtkconfig(name,n,*p, meta , w);

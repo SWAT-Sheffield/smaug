@@ -79,8 +79,8 @@ int shift=order*NVAR*dimp;
 	{
 
  
-#ifdef ADIABHYDRO
-                  bc3_cont_b(wmod+order*NVAR*dimp,p,iia,f);
+#ifdef USE_SAC_3D
+               bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,2);  //periodic in z-direction  for OZT
 #else
                bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,0);  //periodic in x-direction  for OZT
                //bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,1);  //periodic in x-direction  for OZT

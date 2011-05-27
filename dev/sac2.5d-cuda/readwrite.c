@@ -230,7 +230,7 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
       fwrite(buffer,sizeof(char)*79,1,fdt);
 
     #ifdef USE_SAC_3D
-      for(ifield=0;ifield<13;ifield++)   
+      for(ifield=0;ifield<16;ifield++)   
    #else
        for(ifield=0;ifield<12;ifield++)   
    #endif 
@@ -255,7 +255,7 @@ for( j1=0;j1<nj;j1++)
     #endif
                else
     #ifdef USE_SAC_3D
-                dbuffer[0]=w[(k1*ni*nj+j1*ni+i1)+(ni*nj*nk*(ifield-2))];
+                dbuffer[0]=w[(k1*ni*nj+j1*ni+i1)+(ni*nj*nk*(ifield-3))];
     #else
                 dbuffer[0]=w[(j1*ni+i1)+(ni*nj*(ifield-2))];
     #endif
@@ -424,7 +424,11 @@ nk=p.n[2];
 	      fprintf(fdt,"ASCII\n");
 	      fprintf(fdt," \n");
 	      fprintf(fdt,"DATASET RECTILINEAR_GRID\n");
+#ifdef USE_SAC_3D
+	      fprintf(fdt,"DIMENSIONS %d %d %d\n",ni,nj,nk);
+#else
 	      fprintf(fdt,"DIMENSIONS %d %d 1\n",ni,nj);
+#endif
 
 
 	      fprintf(fdt,"X_COORDINATES %d double\n",ni);
@@ -445,8 +449,13 @@ nk=p.n[2];
 	      fprintf(fdt,"Z_COORDINATES 1 double\n");
 	      fprintf(fdt,"0\n");
    #endif
+   #ifdef USE_SAC_3D
+	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj)*nk);
+   #else
 
 	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj));
+    #endif
+
 	      fprintf(fdt,"SCALARS %s double 1\n",labels[i/4]);
 
              fprintf(fdt,"LOOKUP_TABLE TableName \n");
