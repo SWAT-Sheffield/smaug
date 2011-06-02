@@ -152,7 +152,7 @@ dt=0.0002985;  //ADIABHYDRO
 //dt=0.15;
 
 #ifdef USE_SAC
-dt=0.000176;  //OZT test
+dt=0.00065;  //OZT test
 //dt=6.5/10000000.0; //BW test
 //dt=0.00000065;  //BW tests
 //dt=0.000000493;  //BW tests
@@ -169,7 +169,7 @@ int nt=(int)((tmax)/dt);
 //nt=5000;
 //nt=200000;
 //nt=150000;
-nt=1500;
+nt=100;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
 //t = [0:dt:tdomain];
@@ -241,7 +241,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=1.0;
 p->readini=0.0;
-p->cfgsavefrequency=5;
+p->cfgsavefrequency=1;
 
 
 p->xmax[0]=xmax;

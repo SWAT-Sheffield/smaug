@@ -223,6 +223,7 @@ int ordero=0;
 int order1;
 int orderb=0;
 int ii,ii0,ii1;
+real dtdiffvisc;
 ttot=0;
 real time=0.0;
    state->it=0;
@@ -295,6 +296,7 @@ if((p->rkon)==0)
    if(p->hyperdifmom==1)
    {
     dt=(p->dt);
+             p->maxviscoef=0.0;
 
     for(int dim=0; dim<=(NDIM-1); dim++)
      {
@@ -507,6 +509,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	       cudivb(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd, order,ordero,p->dt);
            if(p->hyperdifmom==1)
            {
+             p->maxviscoef=0.0;
 	     for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
@@ -681,6 +684,14 @@ for(int dim=0; dim<=(NDIM-1); dim++)
         printf("old dt is %g ",p->dt);
         if(((p->courant)/courantmax)>1.0e-8)
                p->dt=(p->courant)/courantmax;
+
+        for(int dim=0; dim<=(NDIM-1); dim++)
+        {
+        dtdiffvisc=0.25/(p->maxviscoef/((p->dx[dim])*(p->dx[dim])));
+        if(dtdiffvisc>1.0e-8 && (p->dt)>dtdiffvisc )
+                                      p->dt=dtdiffvisc;
+        }
+        
         printf(" modified dt is %g \n",p->dt);
 
    } 

@@ -120,6 +120,99 @@ void bc_periodic2_temp2(real *wt, struct params *p,int i, int j, int f) {
 }*/
 
 
+__global__ void hyperdifvisc5_parallel(struct params *p,real *wmod, 
+     real *wd, int order, real *wtemp, real *wtemp1, real *wtemp2, int field, int dim,int hand)
+{
+
+
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int is,js;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+  real dt=p->dt;
+  real dy=p->dx[1];
+  real dx=p->dx[0];
+  //real g=p->g;
+ //  dt=1.0;
+//dt=0.05;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+
+  real maxt=0,max3=0, max1=0;
+  
+   int ip,jp,ipg,jpg;
+  int ii[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
+
+
+int shift=order*NVAR*dimp;
+
+   
+if(iindex==0)
+{
+ //  for(ipg=0;ipg<(p->npgp[0]);ipg++)
+ //  for(jpg=0;jpg<(p->npgp[1]);jpg++)
+  // {
+
+  //   i=ip*(p->npgp[0])+ipg;
+ //    j=jp*(p->npgp[1])+jpg;
+   //if( i<((p->n[0])) && j<((p->n[1])))
+  //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
+    //p->cmax=0.0;
+    for(ii[0]>1;ii[0]<((p->n[0])-2);ii[0]++)
+      for(ii[1]>1;ii[1]<((p->n[1])-2);ii[1]++)
+     #ifdef USE_SAC_3D
+        for(ii[2]>1;ii[2]<((p->n[2])-2);ii[2]++)
+     #endif
+	{ 
+              // computecmax3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
+
+             
+                    // atomicExch(&(p->cmax),(wd[fencode3_MODID(p,ii,soundspeed)]));
+               #ifdef USE_SAC_3D
+                if(wd[encode3_hdv1(p,ii[0],ii[1],ii[2],hdnur+hand)]>(p->maxviscoef))
+                    p->maxviscoef=(wd[encode3_hdv1(p,ii[0],ii[1],ii[2],hdnur+hand)]);
+               #else
+                 if(wd[encode3_hdv1(p,ii[0],ii[1],0,hdnur+hand)]>(p->maxviscoef))
+                    p->maxviscoef=(wd[encode3_hdv1(p,ii[0],ii[1],0,hdnur+hand)]);
+               #endif
+
+
+
+	}
+
+ //  }
+}
+ __syncthreads();
+
+
+
+ 
+}
+
+
+
+
+
+
+
 __global__ void hyperdifvisc4_parallel(struct params *p,real *wmod, 
      real *wd, int order, real *wtemp, real *wtemp1, real *wtemp2, int field, int dim,int hand)
 {
@@ -181,7 +274,7 @@ int shift=order*NVAR*dimp;
 
 
 
-   p->maxviscoef=0;
+ //  p->maxviscoef=0;
 //  p->cmax=1.0;
 
     //finally update nur and nul
@@ -954,6 +1047,7 @@ int cuhyperdifvisc1(struct params **p,  struct params **d_p,   real **d_wmod,  r
  //   dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
 
+    cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
 
      hyperdifvisc1_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim,hand);
      cudaThreadSynchronize();
@@ -965,7 +1059,10 @@ int cuhyperdifvisc1(struct params **p,  struct params **d_p,   real **d_wmod,  r
      cudaThreadSynchronize();
      hyperdifvisc4_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim,hand);
      cudaThreadSynchronize();
+   ;//  hyperdifvisc5_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim,hand);
+     cudaThreadSynchronize();
 
+    cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
 }
 
 
