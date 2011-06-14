@@ -102,6 +102,14 @@ struct params {
 	real dt;
         real dx[NDIM];
 
+        #ifdef USE_SAC3D
+          real fixed1[4*NDIM*NDIM*NVAR];
+          real fixed2[4*NDIM*NDIM*NVAR];
+          real fixed3[4*NDIM*NDIM*NVAR];
+        #else
+          real fixed1[4*NDIM*NVAR];
+          real fixed2[4*NDIM*NVAR];
+        #endif
 
         real gamma;
 /*constant used for adiabatic hydrodynamics*/

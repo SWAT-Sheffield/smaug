@@ -67,6 +67,13 @@ rt:
 	cp init_user.cu.rt init_user.cu
 	cp boundary.cu.rt boundary.cu
 	cp usersource.cu.default usersource.cu
+
+kh:
+	cp iosac2.5d_params.h.kh iosac2.5dparams.h
+	cp init_user.cu.kh init_user.cu
+	cp boundary.cu.kh boundary.cu
+	cp usersource.cu.default usersource.cu
+
 ot:
 	cp iosac2.5d_params.h.ot iosac2.5dparams.h
 	cp init_user.cu.ot init_user.cu
