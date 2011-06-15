@@ -246,12 +246,12 @@ for( j1=0;j1<nj;j1++)
       {
    
                if(ifield==0)
-               dbuffer[0]=i1*p.dx[0];
+               dbuffer[0]=(p.xmin[0])+i1*p.dx[0];
                else if(ifield==1)
-               dbuffer[0]=j1*p.dx[1];
+               dbuffer[0]=(p.xmin[1])+j1*p.dx[1];
     #ifdef USE_SAC_3D
                else if(ifield==2)
-               dbuffer[0]=k1*p.dx[2];
+               dbuffer[0]=(p.xmin[2])+k1*p.dx[2];
     #endif
                else
     #ifdef USE_SAC_3D
@@ -433,17 +433,17 @@ nk=p.n[2];
 
 	      fprintf(fdt,"X_COORDINATES %d double\n",ni);
               for(i1=0;i1<ni;i1++)
-	        fprintf(fdt,"%f\n",i1*p.dx[0]);
+	        fprintf(fdt,"%f\n",(p.xmin[0])+i1*p.dx[0]);
 
 	      fprintf(fdt,"Y_COORDINATES %d double\n",nj);
               for(i1=0;i1<nj;i1++)
-	        fprintf(fdt,"%f\n",i1*p.dx[1]);
+	        fprintf(fdt,"%f\n",(p.xmin[1])+i1*p.dx[1]);
 
 
    #ifdef USE_SAC_3D
 	      fprintf(fdt,"Z_COORDINATES %d double\n",nk);
               for(k1=0;k1<nk;k1++)
-	        fprintf(fdt,"%f\n",k1*p.dx[2]);
+	        fprintf(fdt,"%f\n",(p.xmin[2])+k1*p.dx[2]);
 
     #else
 	      fprintf(fdt,"Z_COORDINATES 1 double\n");
@@ -509,17 +509,17 @@ nk=p.n[2];
 
 	      fprintf(fdt,"X_COORDINATES %d double\n",ni);
               for(i1=0;i1<ni;i1++)
-	        fprintf(fdt,"%f\n",i1*p.dx[0]);
+	        fprintf(fdt,"%f\n",(p.xmin[0])+i1*p.dx[0]);
 
 	      fprintf(fdt,"Y_COORDINATES %d double\n",nj);
               for(i1=0;i1<nj;i1++)
-	        fprintf(fdt,"%f\n",i1*p.dx[1]);
+	        fprintf(fdt,"%f\n",(p.xmin[1])+i1*p.dx[1]);
 
 
                #ifdef USE_SAC_3D
 	      fprintf(fdt,"Z_COORDINATES %d double\n",nk);
               for(i1=0;i1<nk;i1++)
-	        fprintf(fdt,"%f\n",i1*p.dx[2]);
+	        fprintf(fdt,"%f\n",(p.xmin[2])+i1*p.dx[2]);
                #else
 	      fprintf(fdt,"Z_COORDINATES 1 double\n");
 	      fprintf(fdt,"0\n");
