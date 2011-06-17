@@ -91,6 +91,7 @@ struct params {
         real xmax[NDIM];
         real xmin[NDIM];
 	int nt;
+        int it;
         real tmax;
 
         real boundu[NDIM][NVAR];

@@ -537,7 +537,7 @@ nk=p.n[2];
 		for( k1=0;k1<(nk);k1++)
              #endif
 		for( j1=0;j1<(nj);j1++)
-	      		for( i1=0;i1<(nj);i1++)
+	      		for( i1=0;i1<(ni);i1++)
    
             #ifdef USE_SAC_3D
                          fprintf(fdt,"%f %f %f\n",w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*iv)],w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*(iv+1))]);
