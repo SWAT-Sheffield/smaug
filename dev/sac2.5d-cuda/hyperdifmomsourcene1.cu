@@ -552,11 +552,13 @@ int shift=order*NVAR*dimp;
   //if(i<((p->n[0])) && j<((p->n[1])))
   {
 
-
+     #ifdef ADIABHYDRO
+;
+    #else
      wtemp[fencode3_hdmne1(p,iia,tmp1)]=wmod[(shift)+fencode3_hdmne1(p,iia,rho)]+wmod[(shift)+fencode3_hdmne1(p,iia,rhob)];
 
      wtemp[fencode3_hdmne1(p,iia,tmp4)]=wmod[(shift)+fencode3_hdmne1(p,iia,mom1+field)]/(wmod[(shift)+fencode3_hdmne1(p,iia,rho)]+wmod[(shift)+fencode3_hdmne1(p,iia,rhob)]);
-
+    #endif
 
 
 

@@ -55,12 +55,14 @@ real dbsourceb (real *dw, real *wd, real *w, struct params *p,int *ii,int field,
   real src=0;
   switch(direction)
   {
+   #ifdef USE_SAC
 	case 0:
          src= -wd[fencode3_db(p,ii,divb)]*w[fencode3_db(p,ii,mom1)]/(w[fencode3_db(p,ii,rho)]+w[fencode3_db(p,ii,rhob)]);
 	break;
 	case 1:
          src= -wd[fencode3_db(p,ii,divb)]*w[fencode3_db(p,ii,mom2)]/(w[fencode3_db(p,ii,rho)]+w[fencode3_db(p,ii,rhob)]);
 	break;
+   #endif
    #ifdef USE_SAC_3D
 	case 2:
          src= -wd[fencode3_db(p,ii,divb)]*w[fencode3_db(p,ii,mom3)]/(w[fencode3_db(p,ii,rho)]+w[fencode3_db(p,ii,rhob)]);

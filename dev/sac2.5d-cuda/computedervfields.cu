@@ -432,7 +432,11 @@ if(order == 0)
        if(ii[0]<p->n[0] && ii[1]<p->n[1])
      #endif
 	{		
-                for(int f=vel1; f<=pkb; f++)
+              #ifdef ADIABHYDRO
+              for(int f=vel1; f<NDERV; f++)
+             #else 
+               for(int f=vel1; f<=pkb; f++)
+             #endif
                         wd[fencode3_cdf(p,ii,f)]=0; 
 		#ifdef USE_SAC_3D
 		  for(int f=rho; f<=b3; f++)

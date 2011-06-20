@@ -271,9 +271,11 @@ wd[fencode3_MODID(p,ii,bdotv)]=((wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MOD
 __device__ __host__
 void computedivb3_MODID(real *wmod,real *wd,struct params *p,int *ii)
 {
+      #ifdef USE_SAC
 
 		wd[fencode3_MODID(p,ii,divb)]=grad3d_MODID(wmod,p,ii,b1,0)+grad3d_MODID(wmod,p,ii,b2,1);
 		wd[fencode3_MODID(p,ii,divb)]+=grad3d_MODID(wmod,p,ii,b1b,0)+grad3d_MODID(wmod,p,ii,b2b,1);
+        #endif
         #ifdef USE_SAC_3D
 		wd[fencode3_MODID(p,ii,divb)]=grad3d_MODID(wmod,p,ii,b2,2);
 		wd[fencode3_MODID(p,ii,divb)]+=grad3d_MODID(wmod,p,ii,b2b,2);		
@@ -457,9 +459,9 @@ void computecmax3_MODID(real *wmod,real *wd,struct params *p,int *ii)
                     // atomicExch(&(p->cmax),(wd[fencode3_MODID(p,ii,soundspeed)]));
                     p->cmax=(wd[fencode3_MODID(p,ii,soundspeed)]);
 #else
-       if(wd[fencode3_MODID(p,ii,soundspeed)]>(p->cmax))
+       /*if(wd[fencode3_MODID(p,ii,soundspeed)]>(p->cmax))
                     // atomicExch(&(p->cmax),(wd[fencode3_MODID(p,ii,soundspeed)]));
-                    p->cmax=(wd[fencode3_MODID(p,ii,soundspeed)]);
+                    p->cmax=(wd[fencode3_MODID(p,ii,soundspeed)]);*/
        if(wd[fencode3_MODID(p,ii,cfast)]>(p->cmax))
                     // atomicExch(&(p->cmax),(wd[fencode3_MODID(p,ii,soundspeed)]));
                     p->cmax=(wd[fencode3_MODID(p,ii,cfast)]);

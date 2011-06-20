@@ -65,8 +65,7 @@ int ni=p->n[0];
    kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
    jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
    ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #ifdef USE_SAC
+#else
     jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
 #endif  

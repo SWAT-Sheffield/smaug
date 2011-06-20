@@ -606,11 +606,11 @@ void bc_periodic2_original_MODID(real *wt, struct params *p,int i, int j, int f)
 __device__ __host__
 int fencode3_MODID (struct params *dp,int *ii, int field) {
 
-#ifdef USE_SAC
-   return ( ii[1] * ((dp)->n[0]) + ii[0]+(field*((dp)->n[0])*((dp)->n[1])));
-#endif
+
 #ifdef USE_SAC_3D
    return (ii[2]*((dp)->n[0])*((dp)->n[1])  + ii[1] * ((dp)->n[0]) + ii[0]+(field*((dp)->n[0])*((dp)->n[1])*((dp)->n[2])));
+#else
+   return ( ii[1] * ((dp)->n[0]) + ii[0]+(field*((dp)->n[0])*((dp)->n[1])));
 #endif
   //return (iz*((dp)->n[0])*((dp)->n[1])  + iy * ((dp)->n[0]) + ix);
 }

@@ -18,19 +18,10 @@ int ngk=2;
 
 //Domain definition
 // Define the x domain
-//adiab hydro
-#ifdef ADIABHYDRO
-int ni = 106;
 
-ni=ni+2*ngi;
-real xmax = 1.0;  
-real dx = 0.55*xmax/(ni-4);
-#endif
 
 #ifdef USE_SAC
-//vac ozt
 int ni;
-//ni=96;    //OZT tests
 ni=796; //BW tests
 ni=ni+2*ngi;
 //ni=512;
@@ -55,18 +46,9 @@ real dx = (xmax-xmin)/(ni);
 
 
 // Define the y domain
-//adiab hydro
-#ifdef ADIABHYDRO
-int nj = 106;
-nj=196;
-nj=nj+2*ngj;
-real ymax = 1.0;  
-real dy = 0.55*ymax/(nj-4);
-#endif
+
 
 #ifdef USE_SAC
-//vac ozt
-//int nj = 96;  //OZT tests
 int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
@@ -145,9 +127,7 @@ struct state *d_state;
 struct state *state=(struct state *)malloc(sizeof(struct state));
 
 
-#ifdef ADIABHYDRO
-dt=0.0002985;  //ADIABHYDRO
-#endif
+
 //dt=0.15;
 
 #ifdef USE_SAC
