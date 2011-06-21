@@ -439,11 +439,11 @@ if(order == 0)
              #endif
                         wd[fencode3_cdf(p,ii,f)]=0; 
 		#ifdef USE_SAC_3D
-		  for(int f=rho; f<=b3; f++)
+		  for(int f=rho; f<NVAR; f++)
                   	wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]=wmod[fencode3_cdf(p,ii,f)]; 
 
 		#else
-		  for(int f=rho; f<=b2; f++)
+		  for(int f=rho; f<NVAR; f++)
                   	wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]=wmod[fencode3_cdf(p,ii,f)]; 
 		#endif               
 
@@ -530,7 +530,7 @@ int cucomputedervfields(struct params **p,  struct params **d_p, real **d_wmod, 
 {
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
-   
+   ////cudaSetDevice(selectedDevice);
  #ifdef USE_SAC_3D
    
   dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
@@ -562,7 +562,7 @@ int cucomputevels(struct params **p,  struct params **d_p, real **d_wmod,  real 
 {
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
-   
+   ////cudaSetDevice(selectedDevice);
  #ifdef USE_SAC_3D
    
   dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
@@ -593,7 +593,7 @@ int cucomputevels(struct params **p,  struct params **d_p, real **d_wmod,  real 
 int cucomputemaxc(struct params **p,  struct params **d_p, real **d_wmod,  real **d_wd, int order, int dir)
 {
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
-
+////cudaSetDevice(selectedDevice);
    
  #ifdef USE_SAC_3D
    
@@ -627,7 +627,7 @@ int cucomputepres(struct params **p,  struct params **d_p, real **d_wmod,  real 
 {
 
  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
-
+////cudaSetDevice(selectedDevice);
    
  #ifdef USE_SAC_3D
    
