@@ -88,6 +88,9 @@ struct params {
 	int ng[NDIM];
         int npgp[NDIM];
 
+
+        
+
         real xmax[NDIM];
         real xmin[NDIM];
 	int nt;
@@ -103,7 +106,7 @@ struct params {
 	real dt;
         real dx[NDIM];
 
-        #ifdef USE_SAC3D
+        #ifdef USE_SAC_3D
           real fixed1[4*NDIM*NDIM*NVAR];
           real fixed2[4*NDIM*NDIM*NVAR];
           real fixed3[4*NDIM*NDIM*NVAR];

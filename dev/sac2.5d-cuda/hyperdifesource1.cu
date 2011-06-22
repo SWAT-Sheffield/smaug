@@ -425,9 +425,9 @@ int shift=order*NVAR*dimp;
 +((wmod[shift+fencode3_hde1(p,ii,mom1)]*wmod[shift+fencode3_hde1(p,ii,mom1)]+wmod[shift+fencode3_hde1(p,ii,mom2)]*wmod[shift+fencode3_hde1(p,ii,mom2)])/(wmod[shift+fencode3_hde1(p,ii,rho)]+wmod[shift+fencode3_hde1(p,ii,rhob)])));
 #endif
 #ifdef USE_SAC_3D
-     wtemp[fencode3_hde1(p,ii,tmp1)]=wmod[shift+fencode3_hde1(p,ii,energy)]-0.5*((wmod[shift+fencode3_hde1(p,ii,b1)]*wmod[shift+fencode3_hde1(p,ii,b1)]+wmod[shift+fencode3_hde1(p,ii,b2)]*wmod[shift+fencode3_hde1(p,ii,b2)]+fencode3_hde1(p,ii,b3)]*wmod[shift+fencode3_hde1(p,ii,b3)])
+     wtemp[fencode3_hde1(p,ii,tmp1)]=wmod[shift+fencode3_hde1(p,ii,energy)]-0.5*((wmod[shift+fencode3_hde1(p,ii,b1)]*wmod[shift+fencode3_hde1(p,ii,b1)]+wmod[shift+fencode3_hde1(p,ii,b2)]*wmod[shift+fencode3_hde1(p,ii,b2)]+wmod[shift+fencode3_hde1(p,ii,b3)]*wmod[shift+fencode3_hde1(p,ii,b3)])
 
-+((wmod[shift+fencode3_hde1(p,ii,mom1)]*wmod[shift+fencode3_hde1(p,ii,mom1)]+wmod[shift+fencode3_hde1(p,ii,mom2)]*wmod[shift+fencode3_hde1(p,ii,mom2)wmod[shift+fencode3_hde1(p,ii,mom3)]*wmod[shift+fencode3_hde1(p,ii,mom3)])/(wmod[shift+fencode3_hde1(p,ii,rho)]+wmod[shift+fencode3_hde1(p,ii,rhob)]))
++((wmod[shift+fencode3_hde1(p,ii,mom1)]*wmod[shift+fencode3_hde1(p,ii,mom1)]+wmod[shift+fencode3_hde1(p,ii,mom2)]*wmod[shift+fencode3_hde1(p,ii,mom2)]+wmod[shift+fencode3_hde1(p,ii,mom3)]*wmod[shift+fencode3_hde1(p,ii,mom3)])/(wmod[shift+fencode3_hde1(p,ii,rho)]+wmod[shift+fencode3_hde1(p,ii,rhob)]))
 );
 
 #endif
@@ -479,7 +479,7 @@ int cuhyperdifesource1(struct params **p,  struct params **d_p,   real **d_wmod,
 {
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
-   
+   //cudaSetDevice(selectedDevice);
  #ifdef USE_SAC_3D
    
   dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));

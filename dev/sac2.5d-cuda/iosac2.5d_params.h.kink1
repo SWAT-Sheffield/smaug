@@ -14,7 +14,7 @@ real courantmax;
 int ngi=2;
 int ngj=2;
 int ngk=2;
-
+int ni,nj;
 
 
 //Domain definition
@@ -25,7 +25,7 @@ int ngk=2;
 
 #ifdef USE_SAC_3D
 
-int ni;
+
 //ni=28;    //BACH3D tests
 ni=96;    //kink13D tests
 //ni=21;
@@ -45,7 +45,7 @@ real dx = (xmax-xmin)/(ni);
 
 #ifdef USE_SAC_3D
 //vac bach3d
-int nj;
+
 //nj=28;    //BACH3D tests
 nj=196;    //kink13D tests
 //nj=46;
