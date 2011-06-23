@@ -433,17 +433,17 @@ nk=p.n[2];
 
 	      fprintf(fdt,"X_COORDINATES %d double\n",ni);
               for(i1=0;i1<ni;i1++)
-	        fprintf(fdt,"%f\n",(p.xmin[0])+i1*p.dx[0]);
+	        fprintf(fdt,"%G\n",(p.xmin[0])+i1*p.dx[0]);
 
 	      fprintf(fdt,"Y_COORDINATES %d double\n",nj);
               for(i1=0;i1<nj;i1++)
-	        fprintf(fdt,"%f\n",(p.xmin[1])+i1*p.dx[1]);
+	        fprintf(fdt,"%G\n",(p.xmin[1])+i1*p.dx[1]);
 
 
    #ifdef USE_SAC_3D
 	      fprintf(fdt,"Z_COORDINATES %d double\n",nk);
               for(k1=0;k1<nk;k1++)
-	        fprintf(fdt,"%f\n",(p.xmin[2])+k1*p.dx[2]);
+	        fprintf(fdt,"%G\n",(p.xmin[2])+k1*p.dx[2]);
 
     #else
 	      fprintf(fdt,"Z_COORDINATES 1 double\n");
@@ -465,11 +465,21 @@ nk=p.n[2];
    #endif
 	     for( j1=0;j1<(nj);j1++)
 		for( i1=0;i1<(ni);i1++)
+                {
+                 if(is==0)
                     #ifdef USE_SAC_3D
-			fprintf(fdt,"%f\n",w[(k1*ni*nj)+(j1*ni+i1)+(ni*nj*nk*is)]);
+			fprintf(fdt,"%G\n",w[(k1*ni*nj)+(j1*ni+i1)+(ni*nj*nk*is)]+w[(k1*ni*nj)+(j1*ni+i1)+(ni*nj*nk*8)]);
                     #else
-			fprintf(fdt,"%f\n",w[(j1*ni+i1)+(ni*nj*is)]);
+			fprintf(fdt,"%G\n",w[(j1*ni+i1)+(ni*nj*is)]+w[(j1*ni+i1)+(ni*nj*7)]);
                     #endif
+                 else
+                    #ifdef USE_SAC_3D
+			fprintf(fdt,"%G\n",w[(k1*ni*nj)+(j1*ni+i1)+(ni*nj*nk*is)]);
+                    #else
+			fprintf(fdt,"%G\n",w[(j1*ni+i1)+(ni*nj*is)]);
+                    #endif
+
+                }
 
 	      fclose(fdt);
       }
@@ -509,17 +519,17 @@ nk=p.n[2];
 
 	      fprintf(fdt,"X_COORDINATES %d double\n",ni);
               for(i1=0;i1<ni;i1++)
-	        fprintf(fdt,"%f\n",(p.xmin[0])+i1*p.dx[0]);
+	        fprintf(fdt,"%G\n",(p.xmin[0])+i1*p.dx[0]);
 
 	      fprintf(fdt,"Y_COORDINATES %d double\n",nj);
               for(i1=0;i1<nj;i1++)
-	        fprintf(fdt,"%f\n",(p.xmin[1])+i1*p.dx[1]);
+	        fprintf(fdt,"%G\n",(p.xmin[1])+i1*p.dx[1]);
 
 
                #ifdef USE_SAC_3D
 	      fprintf(fdt,"Z_COORDINATES %d double\n",nk);
               for(i1=0;i1<nk;i1++)
-	        fprintf(fdt,"%f\n",(p.xmin[2])+i1*p.dx[2]);
+	        fprintf(fdt,"%G\n",(p.xmin[2])+i1*p.dx[2]);
                #else
 	      fprintf(fdt,"Z_COORDINATES 1 double\n");
 	      fprintf(fdt,"0\n");
@@ -540,9 +550,9 @@ nk=p.n[2];
 	      		for( i1=0;i1<(ni);i1++)
    
             #ifdef USE_SAC_3D
-                         fprintf(fdt,"%f %f %f\n",w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*iv)],w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*(iv+1))]);
+                         fprintf(fdt,"%G %G %G\n",w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*iv)],w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*(iv+1))],w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*(iv+2))]);
             #else
-                         fprintf(fdt,"%f %f %f\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))]);
+                         fprintf(fdt,"%G %G %G\n",w[(j1*ni+i1)+(ni*nj*iv)],w[(j1*ni+i1)+(ni*nj*(iv+1))]);
              #endif
 
                        //printing mag fields including backround for SAC

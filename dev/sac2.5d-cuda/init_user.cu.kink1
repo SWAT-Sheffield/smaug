@@ -8,11 +8,12 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
         real e1,e0;
         real wx,wy,wz;
         real x,y,z;
-        real b1,b2,b3;
+        //real b1,b2,b3;
         real b_amp=0.08;
         real delta=400.0;
         real rhorat=2.0; //rhotube/rhoexternal
         real ra=0.6667e6; //Mm tube radius (same as Gaussian width for field computation)
+//real ra=2.0e6;
         real rrat=4.0; //ration of wall thickness to radius
         real rb=ra/rrat;
         real l=ra-rb;
@@ -24,9 +25,9 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
 	v2=0.e0;
 	v3=0.e0;
 
-	b1=0.0;
-	b2=0.0;
-	b3=0.0;
+	//b1=0.0;
+	//b2=0.0;
+	//b3=0.0;
         real iniene=6840.0*8.31e3*(2.3409724e-09)/0.6/((p->gamma)-1.0);
 	xc=0.0e0;
 	yc=0.0e0;
@@ -43,45 +44,58 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
           wy=(p->n[1])*(p->dx[1]);
           wz=(p->n[2])*(p->dx[2]);
 
-          x=(i*(p->dx[0]));
-          y=(j*(p->dx[1]))-(wy/2);
-          z=(k*(p->dx[2]))-(wz/2);
+          x=(p->xmin[0])+(i*(p->dx[0]));
+          y=(p->xmin[1])+(j*(p->dx[1]));
+          z=(p->xmin[2])+(k*(p->dx[2]));
 
           a1=sqrt(z*z+y*y);
 
 	#ifdef USE_SAC_3D
 
-
-
+                    w[fencode3_i(p,ii,b1)]=0;
+		    w[fencode3_i(p,ii,b2)]=0;
+		    w[fencode3_i(p,ii,b3)]=0;
+                    
                     w[fencode3_i(p,ii,rhob)]=rhoe;
                     w[fencode3_i(p,ii,energy)]=0.0;
 
-                    if(a1<rb && a1>ra)
+
+                    if(a1<=ra)
                     {
-                      w[fencode3_i(p,ii,rho)]=rho0;
-                    }
-                    else if(a1>=rb && a1<ra)
-                     w[fencode3_i(p,ii,rho)]=rho0+((a1-rb)*(rhoe-rho0)/l);
-
-		    
-
-                    rgamm1=1.0/((p->gamma)-1);
-                    w[fencode3_i(p,ii,energyb)]=rgamm1*pow(rho0,(p->gamma));
-
-                    if(a1<=rb)
-                    {
+                      //p->rad[i][j][k]=1;
                       //smoothed field distribution for the flux tube
                       w[fencode3_i(p,ii,b1)]=b_amp;//*(1-(atan((a1-(rtube*rrat+rtube))/(wx*delta))+(PI/2))/PI);
                     }
                     else		    
 		      w[fencode3_i(p,ii,b1)]=0;
-		    w[fencode3_i(p,ii,b2)]=0;
-		    w[fencode3_i(p,ii,b3)]=0;
+
+                    if(a1<rb)
+                    {
+                      
+                      w[fencode3_i(p,ii,rhob)]=rho0;
+                      
+                    }
+                    else if(a1>=rb && a1<ra)
+                    {                         
+                     w[fencode3_i(p,ii,rhob)]=rho0+((a1-rb)*(rhoe-rho0)/l);
+                      // w[fencode3_i(p,ii,rho)]=(rho0+rhoe)/2;
+                      //w[fencode3_i(p,ii,b1)]=10.0;//b_amp;
+                     }
+
+		    
+                     //w[fencode3_i(p,ii,b1)]=10;
+
+
+
 
 
 		    w[fencode3_i(p,ii,mom3)]=v3;
 		    w[fencode3_i(p,ii,mom2)]=v2;
 		    w[fencode3_i(p,ii,mom1)]=v1;
+
+                    rgamm1=1.0/((p->gamma)-1);
+                    //w[fencode3_i(p,ii,energyb)]=rgamm1*pow(rho0,(p->gamma));
+
 
                    e1=(0.5*rgamm1*(1-((p->gamma)-1))*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)]+w[fencode3_i(p,ii,b3)]*w[fencode3_i(p,ii,b3)]));
                     w[fencode3_i(p,ii,energyb)]=w[fencode3_i(p,ii,energyb)]-e1;

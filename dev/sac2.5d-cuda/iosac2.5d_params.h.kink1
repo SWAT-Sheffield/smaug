@@ -55,8 +55,8 @@ nj=nj+2*ngj;
  
 //real ymax=14.19e18;  //bach3d
 //real ymin=-14.19e18;
-real ymax=2.0e6;
-real ymin=-2.0e6;
+real ymax=0.9e6;
+real ymin=-0.9e6;
 //real dx = xmax/(ni-4);
 real dy = (ymax-ymin)/(nj);
 #endif                   
@@ -72,8 +72,8 @@ nk=nk+2*ngk;
 
 //real zmax=14.19e18;  //bach3d
 //real zmin=-14.19e18;
-real zmax=2.0e6;
-real zmin=-2.0e6;
+real zmax=0.9e6;
+real zmin=-0.9e6;
 
 real dz = (zmax-zmin)/(nk);
 #endif     
@@ -138,7 +138,7 @@ int nt=(int)((tmax)/dt);
 //nt=5000;
 //nt=200000;
 //nt=150000;
-nt=100;
+nt=10;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
 //t = [0:dt:tdomain];
@@ -206,11 +206,11 @@ p->g[2]=0.0;
 p->cmax=0.02;
 
 p->rkon=0.0;
-p->sodifon=1.0;
-p->moddton=0.0;
+p->sodifon=0.0;
+p->moddton=1.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=1.0;
+p->hyperdifmom=0.0;
 p->readini=0.0;
 p->cfgsavefrequency=1;
 
@@ -218,6 +218,14 @@ p->cfgsavefrequency=1;
 p->xmax[0]=xmax;
 
 p->xmax[1]=ymax;
+#ifdef USE_SAC_3D
+p->xmax[2]=zmax;
+p->xmin[2]=zmin;
+#endif
+
+p->xmin[0]=xmin;
+p->xmin[1]=ymin;
+
 p->nt=nt;
 p->tmax=tmax;
 

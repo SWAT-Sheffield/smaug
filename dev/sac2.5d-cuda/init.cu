@@ -135,7 +135,8 @@ int ni=p->n[0];
      #endif
 
      #ifdef USE_SAC_3D
-       if((p->readini==0) && ii[0]>1 && ii[1]>1  && ii[2]>1 && ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2 && ii[2]<(p->n[2])-2)
+       //if((p->readini==0) && ii[0]>1 && ii[1]>1  && ii[2]>1 && ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2 && ii[2]<(p->n[2])-2)
+      if((p->readini==0) && ii[0]<(p->n[0]) && ii[1]<(p->n[1])  && ii[2]<(p->n[2]))
      #else
       // if((p->readini==0) && ii[0]>2 && ii[1]>2 && ii[0]<(p->n[0])-3 && ii[1]<(p->n[1])-3)  //this form for OZT test???? 
      
@@ -157,7 +158,7 @@ int ni=p->n[0];
                    // init_bwtest(w,p,i,j);
                    init_user_i(w,p,ii);
            #endif
-
+                   
 	
 
         }
