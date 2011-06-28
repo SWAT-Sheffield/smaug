@@ -264,7 +264,7 @@ __global__ void computepres_parallel(struct params *p,   real *wmod, real *wd, i
 }
 
 
-__global__ void computemaxc_parallel(struct params *p,   real *wmod, real *wd, int order, int dir)
+__global__ void computec_parallel(struct params *p,   real *wmod, real *wd, int order, int dir)
 {
 
 
@@ -333,6 +333,54 @@ __global__ void computemaxc_parallel(struct params *p,   real *wmod, real *wd, i
 
 }
               __syncthreads();
+
+
+
+  
+}
+
+
+
+__global__ void computemaxc_parallel(struct params *p,   real *wmod, real *wd, int order, int dir)
+{
+
+
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+  real dt=p->dt;
+  real dy=p->dx[1];
+  real dx=p->dx[0];
+//  real g=p->g;
+ //  dt=1.0;
+//dt=0.05;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+
+  int ii[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
+
+
+
+
+
 
 
 
@@ -439,11 +487,11 @@ if(order == 0)
              #endif
                         wd[fencode3_cdf(p,ii,f)]=0; 
 		#ifdef USE_SAC_3D
-		  for(int f=rho; f<NVAR; f++)
+		  for(int f=rho; f<=b3; f++)
                   	wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]=wmod[fencode3_cdf(p,ii,f)]; 
 
 		#else
-		  for(int f=rho; f<NVAR; f++)
+		  for(int f=rho; f<=b2; f++)
                   	wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]=wmod[fencode3_cdf(p,ii,f)]; 
 		#endif               
 
@@ -530,7 +578,7 @@ int cucomputedervfields(struct params **p,  struct params **d_p, real **d_wmod, 
 {
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
-   ////cudaSetDevice(selectedDevice);
+   
  #ifdef USE_SAC_3D
    
   dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
@@ -562,7 +610,7 @@ int cucomputevels(struct params **p,  struct params **d_p, real **d_wmod,  real 
 {
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
-   ////cudaSetDevice(selectedDevice);
+   
  #ifdef USE_SAC_3D
    
   dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
@@ -593,7 +641,7 @@ int cucomputevels(struct params **p,  struct params **d_p, real **d_wmod,  real 
 int cucomputemaxc(struct params **p,  struct params **d_p, real **d_wmod,  real **d_wd, int order, int dir)
 {
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
-////cudaSetDevice(selectedDevice);
+
    
  #ifdef USE_SAC_3D
    
@@ -604,7 +652,9 @@ int cucomputemaxc(struct params **p,  struct params **d_p, real **d_wmod,  real 
     //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    // dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
+     computec_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
 
+     cudaThreadSynchronize();
 
      computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
 
@@ -627,7 +677,7 @@ int cucomputepres(struct params **p,  struct params **d_p, real **d_wmod,  real 
 {
 
  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
-////cudaSetDevice(selectedDevice);
+
    
  #ifdef USE_SAC_3D
    

@@ -403,7 +403,7 @@ __device__ __host__
 void computec3_MODID(real *wmod,real *wd,struct params *p,int *ii,int dir)
 {
 
- real cmax; 
+ real cfasti; 
 #ifdef ADIABHYDRO
 /*below used for adiabatic hydrodynamics*/
   wd[fencode3_MODID(p,ii,soundspeed)]=sqrt((p->adiab)/wmod[fencode3_MODID(p,ii,rho)]);
@@ -411,31 +411,47 @@ void computec3_MODID(real *wmod,real *wd,struct params *p,int *ii,int dir)
 
 
 
-wd[fencode3_MODID(p,ii,soundspeed)]=sqrt(((p->gamma))*(wd[fencode3_MODID(p,ii,pressurek)]+(((p->gamma))-1)*(wmod[fencode3_MODID(p,ii,energyb)] -0.5*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]))/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]   )));
+wd[fencode3_MODID(p,ii,soundspeed)]=(((p->gamma))
+*(wd[fencode3_MODID(p,ii,pressurek)]+(((p->gamma))-1)*(
+wmod[fencode3_MODID(p,ii,energyb)] -0.5*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)])))
+/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
 
 
-wd[fencode3_MODID(p,ii,cfast)]=sqrt((   ( 
-(wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]) + (wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]) +2.0*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2)])    )/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]))
-+(wd[fencode3_MODID(p,ii,soundspeed)]*wd[fencode3_MODID(p,ii,soundspeed)]));
+wd[fencode3_MODID(p,ii,cfast)]=( ((wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]) + (wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]) +2.0*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2)]))/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]))
++(wd[fencode3_MODID(p,ii,soundspeed)]);
 
-cmax=sqrt(0.5*wd[fencode3_MODID(p,ii,cfast)]*wd[fencode3_MODID(p,ii,cfast)]+sqrt(wd[fencode3_MODID(p,ii,cfast)]*wd[fencode3_MODID(p,ii,cfast)]-4.0*wd[fencode3_MODID(p,ii,soundspeed)]*wd[fencode3_MODID(p,ii,soundspeed)]+((wmod[fencode3_MODID(p,ii,b1b+dir)]+wmod[fencode3_MODID(p,ii,b1+dir)])*(wmod[fencode3_MODID(p,ii,b1b+dir)]+wmod[fencode3_MODID(p,ii,b1+dir)]))/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)])));
+cfasti=0.5*(
+wd[fencode3_MODID(p,ii,cfast)]
++sqrt(wd[fencode3_MODID(p,ii,cfast)]*wd[fencode3_MODID(p,ii,cfast)]
+-4.0*wd[fencode3_MODID(p,ii,soundspeed)]*((wmod[fencode3_MODID(p,ii,b1b+dir)]+wmod[fencode3_MODID(p,ii,b1+dir)])*(wmod[fencode3_MODID(p,ii,b1b+dir)]+wmod[fencode3_MODID(p,ii,b1+dir)]))
+/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)])));
 
-wd[fencode3_MODID(p,ii,cfast)]=cmax+fabs(wmod[fencode3_MODID(p,ii,mom1+dir)]/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
-
+wd[fencode3_MODID(p,ii,cfast)]=sqrt(cfasti)+fabs(wmod[fencode3_MODID(p,ii,mom1+dir)]/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
+wd[fencode3_MODID(p,ii,soundspeed)]=sqrt(wd[fencode3_MODID(p,ii,soundspeed)]);
 #elif defined(USE_SAC_3D)
 
 
 
-wd[fencode3_MODID(p,ii,soundspeed)]=sqrt(((p->gamma))*(wd[fencode3_MODID(p,ii,pressurek)]+(((p->gamma))-1)*(wmod[fencode3_MODID(p,ii,energyb)] -0.5*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)] +wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3b)] ))/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]   )));
+
+wd[fencode3_MODID(p,ii,soundspeed)]=(((p->gamma))
+*(wd[fencode3_MODID(p,ii,pressurek)]+(((p->gamma))-1)*(
+wmod[fencode3_MODID(p,ii,energyb)] -0.5*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3b)])))
+/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
 
 
-wd[fencode3_MODID(p,ii,cfast)]=sqrt((   ( 
-(wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]) + (wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3b)]) +2.0*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3)])    )/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]))
-+(wd[fencode3_MODID(p,ii,soundspeed)]*wd[fencode3_MODID(p,ii,soundspeed)]));
+wd[fencode3_MODID(p,ii,cfast)]=( ((wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]+wmod[fencode3_MODID(p,ii,b3)]*wmod[fencode3_MODID(p,ii,b3)]) + (wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3b)]) +2.0*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3)]))/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]))
++(wd[fencode3_MODID(p,ii,soundspeed)]);
 
-cmax=sqrt(0.5*wd[fencode3_MODID(p,ii,cfast)]*wd[fencode3_MODID(p,ii,cfast)]+sqrt(wd[fencode3_MODID(p,ii,cfast)]*wd[fencode3_MODID(p,ii,cfast)]-4.0*wd[fencode3_MODID(p,ii,soundspeed)]*wd[fencode3_MODID(p,ii,soundspeed)]+((wmod[fencode3_MODID(p,ii,b1b+dir)]+wmod[fencode3_MODID(p,ii,b1+dir)])*(wmod[fencode3_MODID(p,ii,b1b+dir)]+wmod[fencode3_MODID(p,ii,b1+dir)]))/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)])));
+cfasti=0.5*(
+wd[fencode3_MODID(p,ii,cfast)]
++sqrt(wd[fencode3_MODID(p,ii,cfast)]*wd[fencode3_MODID(p,ii,cfast)]
+-4.0*wd[fencode3_MODID(p,ii,soundspeed)]*((wmod[fencode3_MODID(p,ii,b1b+dir)]+wmod[fencode3_MODID(p,ii,b1+dir)])*(wmod[fencode3_MODID(p,ii,b1b+dir)]+wmod[fencode3_MODID(p,ii,b1+dir)]))
+/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)])));
 
-wd[fencode3_MODID(p,ii,cfast)]=cmax+fabs(wmod[fencode3_MODID(p,ii,mom1+dir)]/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
+wd[fencode3_MODID(p,ii,cfast)]=sqrt(cfasti)+fabs(wmod[fencode3_MODID(p,ii,mom1+dir)]/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
+wd[fencode3_MODID(p,ii,soundspeed)]=sqrt(wd[fencode3_MODID(p,ii,soundspeed)]);
+
+
 
 #else
 wd[fencode3_MODID(p,ii,soundspeed)]=sqrt(((p->gamma))*wd[fencode3_MODID(p,ii,pressuret)]/wmod[fencode3_MODID(p,ii,rho)]);
@@ -459,9 +475,9 @@ void computecmax3_MODID(real *wmod,real *wd,struct params *p,int *ii)
                     // atomicExch(&(p->cmax),(wd[fencode3_MODID(p,ii,soundspeed)]));
                     p->cmax=(wd[fencode3_MODID(p,ii,soundspeed)]);
 #else
-       /*if(wd[fencode3_MODID(p,ii,soundspeed)]>(p->cmax))
+       //if(wd[fencode3_MODID(p,ii,soundspeed)]>(p->cmax))
                     // atomicExch(&(p->cmax),(wd[fencode3_MODID(p,ii,soundspeed)]));
-                    p->cmax=(wd[fencode3_MODID(p,ii,soundspeed)]);*/
+       //             p->cmax=(wd[fencode3_MODID(p,ii,soundspeed)]);
        if(wd[fencode3_MODID(p,ii,cfast)]>(p->cmax))
                     // atomicExch(&(p->cmax),(wd[fencode3_MODID(p,ii,soundspeed)]));
                     p->cmax=(wd[fencode3_MODID(p,ii,cfast)]);
