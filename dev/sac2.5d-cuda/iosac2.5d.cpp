@@ -283,9 +283,9 @@ if((p->rkon)==0)
 
     for(int dim=0; dim<=(NDIM-1); dim++)
      {
-       //printf(" courant is %f \n",p->courant);
-       cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
-       //printf(" courant is %f \n",p->courant);
+              cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+              // printf("cmax=%f\n",p->cmax);       //printf(" courant is %f \n",p->courant);
        cmax[dim]=p->cmax;
        cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
  
@@ -301,8 +301,9 @@ if((p->rkon)==0)
 
      for(int dim=0; dim<=(NDIM-1); dim++)
      {
-       cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
-       cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
+              cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               //printf("cmax=%f\n",p->cmax);       cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
 
 
       cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
@@ -315,7 +316,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
        for(int f=0; f<=(NDIM-1); f++)
            	                 
 	     {
+               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               //printf("cmax=%f\n",p->cmax);              
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
 
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,1);
@@ -344,9 +347,12 @@ for(int dim=0; dim<=(NDIM-1); dim++)
             int jj,mm,kk;
              real sb;
              for(int dim=0; dim<=(NDIM-1); dim++)
-	     for(int f=0; f<=(NDIM-1); f++)            
+	     for(int f=0; f<=(NDIM-1); f++) 
+             if(f!=dim)           
 	     {
+               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               //printf("cmax=%f\n",p->cmax);
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,1);
 
@@ -373,7 +379,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
                   if(mm==dim)
                      cuhyperdifbsource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
                    else
-                     cuhyperdifbsourcene1(&p,&d_p,&d_w, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
+                    cuhyperdifbsourcene1(&p,&d_p,&d_w, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
  
 
                 }
@@ -432,6 +438,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
              p->maxviscoef=0.0;
 	     for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
+               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
 	       cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
  
@@ -446,7 +453,8 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 
      for(int dim=0; dim<=(NDIM-1); dim++)
      {
-       cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
        cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
 
 
@@ -461,6 +469,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
        for(int f=0; f<=(NDIM-1); f++)
            	                 
 	     {
+               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
 
@@ -492,8 +501,10 @@ for(int dim=0; dim<=(NDIM-1); dim++)
             int jj,mm,kk;
              real sb;
              for(int dim=0; dim<=(NDIM-1); dim++)
-	     for(int f=0; f<=(NDIM-1); f++)            
+	     for(int f=0; f<=(NDIM-1); f++) 
+             if(f!=dim)                     
 	     {
+               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
 
