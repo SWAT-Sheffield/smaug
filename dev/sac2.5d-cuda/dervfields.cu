@@ -403,21 +403,22 @@ __device__ __host__
 void computec3_MODID(real *wmod,real *wd,struct params *p,int *ii,int dir)
 {
 
- real cfasti; 
+ real cfasti,pk; 
 #ifdef ADIABHYDRO
 /*below used for adiabatic hydrodynamics*/
   wd[fencode3_MODID(p,ii,soundspeed)]=sqrt((p->adiab)/wmod[fencode3_MODID(p,ii,rho)]);
 #elif defined(USE_SAC)
 
-
+pk=((p->gamma)-1)*(wmod[fencode3_MODID(p,ii,energy)]
+- 0.5*((wmod[fencode3_MODID(p,ii,mom1)]*wmod[fencode3_MODID(p,ii,mom1)]+wmod[fencode3_MODID(p,ii,mom2)]*wmod[fencode3_MODID(p,ii,mom2)])/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]))-0.5*(wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]) -(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2)]) );
 
 wd[fencode3_MODID(p,ii,soundspeed)]=(((p->gamma))
-*(wd[fencode3_MODID(p,ii,pressurek)]+(((p->gamma))-1)*(
+*(pk+(((p->gamma))-1)*(
 wmod[fencode3_MODID(p,ii,energyb)] -0.5*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)])))
 /(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
 
 
-wd[fencode3_MODID(p,ii,cfast)]=( ((wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]) + (wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]) +2.0*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2)])+(wd[fencode3_MODID(p,ii,soundspeed)]))/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
+wd[fencode3_MODID(p,ii,cfast)]=( ((wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]) + (wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]) +2.0*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2)]))/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]))+(wd[fencode3_MODID(p,ii,soundspeed)]);
 
 cfasti=0.5*(
 wd[fencode3_MODID(p,ii,cfast)]
@@ -427,13 +428,18 @@ wd[fencode3_MODID(p,ii,cfast)]
 
 wd[fencode3_MODID(p,ii,cfast)]=sqrt(cfasti)+fabs(wmod[fencode3_MODID(p,ii,mom1+dir)]/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
 wd[fencode3_MODID(p,ii,soundspeed)]=sqrt(wd[fencode3_MODID(p,ii,soundspeed)]);
+//wd[fencode3_MODID(p,ii,cfast)]=( ((wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]) + (wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]) +2.0*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2)]))/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
+
+//wd[fencode3_MODID(p,ii,cfast)]=cfasti;
+
 #elif defined(USE_SAC_3D)
 
-
+pk=((p->gamma)-1)*(wmod[fencode3_MODID(p,ii,energy)]
+- 0.5*((wmod[fencode3_MODID(p,ii,mom1)]*wmod[fencode3_MODID(p,ii,mom1)]+wmod[fencode3_MODID(p,ii,mom2)]*wmod[fencode3_MODID(p,ii,mom2)]+wmod[fencode3_MODID(p,ii,mom3)]*wmod[fencode3_MODID(p,ii,mom3)])/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]))-0.5*(wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]+wmod[fencode3_MODID(p,ii,b3)]*wmod[fencode3_MODID(p,ii,b3)]) -(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3)]) );
 
 
 wd[fencode3_MODID(p,ii,soundspeed)]=(((p->gamma))
-*(wd[fencode3_MODID(p,ii,pressurek)]+(((p->gamma))-1)*(
+*(pk+(((p->gamma))-1)*(
 wmod[fencode3_MODID(p,ii,energyb)] -0.5*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3b)])))
 /(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
 

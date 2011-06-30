@@ -309,7 +309,7 @@ __global__ void computemaxc_parallel(struct params *p,   real *wmod, real *wd, i
 
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+ /*  for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    #ifdef USE_SAC_3D
      for(kpg=0;kpg<(p->npgp[2]);kpg++)
@@ -334,7 +334,7 @@ __global__ void computemaxc_parallel(struct params *p,   real *wmod, real *wd, i
                //p->cmax=0.0;
         }
 
-}
+}*/
               __syncthreads();
 
 
@@ -351,8 +351,8 @@ if(iindex==0)
    //if( i<((p->n[0])) && j<((p->n[1])))
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
     //p->cmax=0.0;
-    for(ii[0]>1;ii[0]<((p->n[0])-2);ii[0]++)
-      for(ii[1]>1;ii[1]<((p->n[1])-2);ii[1]++)
+    for(ii[0]=2;ii[0]<((p->n[0])-2);ii[0]++)
+      for(ii[1]=2;ii[1]<((p->n[1])-2);ii[1]++)
      #ifdef USE_SAC_3D
         for(ii[2]>1;ii[2]<((p->n[2])-2);ii[2]++)
      #endif
