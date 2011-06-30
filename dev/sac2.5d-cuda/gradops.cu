@@ -673,11 +673,11 @@ real grad3d_MODID(real *wmod,struct params *p,int *ii,int field,int dir)
  
 #ifdef USE_SAC_3D
   #ifdef USE_DORDER3
- if(ii[0]>1 && ii[0]<((p->n[0])-2) )
+ if(ii[0]>2 && ii[0]<((p->n[0])-3) )
   grad=(  ( ((3*wmod[encode3_MODID(p,ii[0]+1,ii[1],ii[2],field)]-3*wmod[encode3_MODID(p,ii[0]-1,ii[1],ii[2],field)]+3.0*(wmod[encode3_MODID(p,ii[0]-2,ii[1],ii[2],field)]-wmod[encode3_MODID(p,ii[0]+2,ii[1],ii[2],field)])/5.0-(wmod[encode3_MODID(p,ii[0]-3,ii[1],ii[2],field)]-wmod[encode3_MODID(p,ii[0]+3,ii[1],ii[2],field)])/15.0)/2.0))/(2.0*(p->dx[0]))    );
  else 
   #endif
-if(ii[0]>2 && ii[0]<((p->n[0])-3) )
+if(ii[0]>1 && ii[0]<((p->n[0])-2) )
  grad=(  ( ((8*wmod[encode3_MODID(p,ii[0]+1,ii[1],ii[2],field)]-8*wmod[encode3_MODID(p,ii[0]-1,ii[1],ii[2],field)]+wmod[encode3_MODID(p,ii[0]-2,ii[1],ii[2],field)]-wmod[encode3_MODID(p,ii[0]+2,ii[1],ii[2],field)])/6.0))/(2.0*(p->dx[0]))    );
 
    if((ii[0]==(p->n[0])-3) || (ii[0]==(p->n[0])-4)  && ii[1]>1   && ii[1]<(p->n[1])-2 && ii[2]>1   && ii[2]<(p->n[2])-2  )

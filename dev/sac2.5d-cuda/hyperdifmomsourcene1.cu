@@ -79,8 +79,8 @@ int shift=order*NVAR*dimp;
                         //if(i<((p->n[0])) && j<((p->n[1])))
                          {
                               //                                                                              - sign here same as vac maybe a +
-                             ;//wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode3_hdmne1(p,iia,mom1+ii0)]; 
-wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdmne1(p,iia,mom1+ii0)];
+                             //wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]=wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*(p->n[0])*(p->n[1]))]+dt*dwn1[fencode3_hdmne1(p,iia,mom1+ii0)]; 
+                             wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdmne1(p,iia,mom1+ii0)];
                              wmod[fencode3_hdmne1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdmne1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdmne1(p,iia,energy)]; 
 
                          }
@@ -604,7 +604,7 @@ int cuhyperdifmomsourcene1(struct params **p, struct params **d_p, real **d_wmod
 {
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
-   
+   //cudaSetDevice(selectedDevice);
  #ifdef USE_SAC_3D
    
   dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));

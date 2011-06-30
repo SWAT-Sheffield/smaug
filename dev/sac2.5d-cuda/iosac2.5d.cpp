@@ -255,13 +255,17 @@ if((p->rkon)==0)
   cucomputedervfields(&p,&d_p,&d_wmod, &d_wd,order);
   order=1;
 
+//printf("\n");
  for(int dir=0;dir<NDIM; dir++)
  {
 
   cucomputevels(&p,&d_p,&d_wmod, &d_wd,order,dir);
 
   cucomputepres(&p,&d_p,&d_wmod, &d_wd,order,dir);
+              //cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dir);
+               //cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dir);
 
+              // printf("cmax=%10.12f\n",p->cmax);  
   for(int f=rho; f<=(mom1+NDIM-1); f++) 
       cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
 
@@ -273,6 +277,10 @@ if((p->rkon)==0)
 
 #endif
   }
+
+ 
+
+
   // cuboundary(&p,&d_p,&d_wmod, ordero);
    if(p->divbon==1)
 	       cudivb(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
@@ -285,7 +293,7 @@ if((p->rkon)==0)
      {
               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
-              // printf("cmax=%f\n",p->cmax);       //printf(" courant is %f \n",p->courant);
+               //printf("cmax=%f\n",p->cmax);       //printf(" courant is %f \n",p->courant);
        cmax[dim]=p->cmax;
        cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
  
@@ -470,7 +478,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
            	                 
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               //cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
 
 
@@ -505,7 +513,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
              if(f!=dim)                     
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               //cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim,0);
 
 
@@ -576,6 +584,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
    p->it=n+1;
    cuupdate(&p,&w,&wd,&state,&d_p,&d_w,&d_wmod,  &d_state,n);
 
+printf("\n");
    //printf("nummaxthreads %d\n",p->mnthreads);
 
    t2=second()-t1;

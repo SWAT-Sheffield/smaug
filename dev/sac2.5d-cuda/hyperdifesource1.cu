@@ -15,7 +15,7 @@
 
 
 
-__global__ void hyperdifesource3_parallel(struct params *p,  real *wmod, 
+__global__ void hyperdifesource4_parallel(struct params *p,  real *wmod, 
     real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim, real dt)
 {
 
@@ -101,7 +101,7 @@ __syncthreads();
 }
 
 
-__global__ void hyperdifesource2a_parallel(struct params *p,  real *wmod, 
+__global__ void hyperdifesource3_parallel(struct params *p,  real *wmod, 
     real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim)
 {
 
@@ -493,10 +493,10 @@ int cuhyperdifesource1(struct params **p,  struct params **d_p,   real **d_wmod,
      hyperdifesource2_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim);
       cudaThreadSynchronize();
 
-     hyperdifesource2a_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim);
+     hyperdifesource3_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim);
       cudaThreadSynchronize();
 
-     hyperdifesource3_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,dt);
+     hyperdifesource4_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,dt);
       cudaThreadSynchronize();
 
 
