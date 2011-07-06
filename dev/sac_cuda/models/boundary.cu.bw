@@ -1,17 +1,17 @@
-#include "cudapars.h"
-#include "paramssteeringtest1.h"
+#include "../include/cudapars.h"
+#include "../include/paramssteeringtest1.h"
 
 /////////////////////////////////////
 // standard imports
 /////////////////////////////////////
 #include <stdio.h>
 #include <math.h>
-#include "step.h"
+#include "../include/step.h"
 
 /////////////////////////////////////
 // kernel function (CUDA device)
 /////////////////////////////////////
-#include "gradops_b.cuh"
+#include "../include/gradops_b.cuh"
 
 __global__ void boundary_parallel(struct params *p,  struct state *s,  real *wmod, int order)
 {
