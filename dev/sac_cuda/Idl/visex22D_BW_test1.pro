@@ -66,6 +66,8 @@ close,2
 ;openr,1,'/home/mikeg/proj/sac2.5d-cuda/zero1_BW.ini',/f77_unf
 ;openr,1,'/home/mikeg/proj/sac2.5d-cuda/test_OT.out'
 ;directory='/home/mikeg/proj/sac2.5d-cuda/out/'
+directory='../out/'
+;pic=999
 name='zeroOT_'
 ;ndim=2
 ;n1=800
@@ -105,6 +107,8 @@ readu,1,x
 ;e2=rotate(e2,1)
 for iw=0,nw-1 do begin
  readu,1,wi
+ ;for model oriented along y axis
+ ;w(*,*,iw)=rotate(wi,3)
  w(*,*,iw)=rotate(wi,1)
 endfor
 
@@ -161,6 +165,7 @@ B(*,*)=sqrt((w(*,*,4)*SQRT(mu))^2.0+(w(*,*,5)*SQRT(mu))^2.0)
 ;B_bg(*,*,*)=sqrt((w1(*,*,*,5)*SQRT(mu))^2.0+(w1(*,*,*,6)*SQRT(mu))^2.0+(w1(*,*,*,7)*SQRT(mu))^2.0)
 
 p(*,*,0)=(gamma-1)*(w(*,*,3)+w(*,*,6)-0.5*((w(*,*,1)*w(*,*,1)+w(*,*,2)*w(*,*,2))/(w(*,*,0)+w(*,*,7)))-0.5*(B(*,*)*B(*,*)))
+p(*,*,0)=p(*,*,0)+0.5*B(*,*)*B(*,*)
 if (ii eq 1) then begin
 
 ;tvframe,reform(w(*,*,1)/(w(*,*,0)+w(*,*,7))),/bar,/sample, title='Vx', xtitle='x', ytitle='z',charsize=2.0    
@@ -199,19 +204,25 @@ if (ii eq 1) then begin
 
 t=3
 plot, w(t,*,0), title='rho', charsize=2.0
-oplot, w(t,*,0), psym=4
+
+;oplot, w(t,*,0), psym=4
 plot, w(t,*,1)/(w(t,*,0)+w(t,*,7)), title='v1', charsize=2.0
-oplot, w(t,*,1)/(w(t,*,0)+w(t,*,7)), psym=4
+;plot, w(t,200:300,1)/(w(t,200:300,0)+w(t,200:300,7)), title='v1', charsize=2.0
+;oplot, w(t,*,1)/(w(t,*,0)+w(t,*,7)), psym=4
+;plot, w(t,200:300,2)/(w(t,200:300,0)+w(t,200:300,7)), title='v2', charsize=2.0
 plot, w(t,*,2)/(w(t,*,0)+w(t,*,7)), title='v2', charsize=2.0
-oplot, w(t,*,2)/(w(t,*,0)+w(t,*,7)), psym=4
+;oplot, w(t,*,2)/(w(t,*,0)+w(t,*,7)), psym=4
 plot, w(t,*,3), title='e', charsize=2.0
-oplot, w(t,*,3), psym=4
-;plot, w(t,*,4), title='b1', charsize=2.0
+;plot, w(t,200:300,3), title='e', charsize=2.0
+;oplot, w(t,*,3), psym=4
+plot, w(t,*,4), title='b1', charsize=2.0
+;plot, w(t,*,6)*w(t,*,2)/(w(t,*,0)+w(t,*,7)), title='eb', charsize=2.0
 ;oplot, w(t,*,4), psym=4
-plot, p(*,t,0), title='p', charsize=2.0
-oplot, p(*,t,0), psym=4
+;plot, p(*,t,0), title='p', charsize=2.0
+;oplot, p(*,t,0), psym=4
 plot, w(t,*,5), title='b2', charsize=2.0
-oplot, w(t,*,5), psym=4
+;plot, w(t,200:300,5), title='b2', charsize=2.0
+;oplot, w(t,*,5), psym=4
 ;stop
 endif else begin
 

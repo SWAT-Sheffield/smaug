@@ -34,8 +34,8 @@ ni=ni+2*ngi;
 
 //real xmax=14.19e18;  //bach3d
 //real xmin=-14.19e18; 
-real xmax=0.9e6;
-real xmin=-0.9e-6;
+real xmax=2.4e6;
+real xmin=0.0;
 //real dx = xmax/(ni-4);
 real dx = (xmax-xmin)/(ni);
 #endif
@@ -157,10 +157,10 @@ p->ng[1]=ngj;
   p->ng[2]=ngk;
 #endif
 
-p->npgp[0]=4;
-p->npgp[1]=4;
+p->npgp[0]=1;
+p->npgp[1]=1;
 #ifdef USE_SAC_3D
-p->npgp[2]=4;
+p->npgp[2]=1;
 #endif
 
 p->dt=dt;
@@ -207,7 +207,7 @@ p->cmax=0.02;
 
 p->rkon=0.0;
 p->sodifon=0.0;
-p->moddton=1.0;
+p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=0.0;

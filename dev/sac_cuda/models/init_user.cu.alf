@@ -6,7 +6,7 @@
 __device__ __host__
 void init_user_MODID (real *w, struct params *p,int *ii) {
   int seg1,seg2,seg3,seg4;
-  int width=10;
+  int width=50;
 
   real m2max=0.001;
   real start=((p->n[0])-width)/2;
@@ -14,8 +14,9 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
   i=ii[0];
   j=ii[1];
   //seg1=((p->n[0])/3)-1;
-  seg1=(p->n[0])/6;
-  seg2=((p->n[0])/3);
+  seg1=((p->n[0])/2)-(width/2);
+  //seg2=((p->n[0])/3);
+  seg2=((p->n[0])/2)+(width/2);
   seg3=(2*(p->n[0])/3)-1;
   //seg4=(2*(p->n[0])/3);
   seg4=(p->n[0])-seg1;
@@ -31,6 +32,7 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
        #else*/
 		    w[fencode3_i(p,ii,rho)]=1.0;
 		    w[fencode3_i(p,ii,b1)]=1.0;
+                    w[fencode3_i(p,ii,b2)]=0.0;
 		    w[fencode3_i(p,ii,energy)]=0.01;
 
       // #endif
@@ -42,8 +44,12 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
 		    //if (i < seg3)
                    // if (i < seg1)
 		   //   w[fencode3_i(p,ii,mom2)]=0.0;
-
+                    w[fencode3_i(p,ii,mom2)]=0;
 		   if (i > seg1)
+		    if (i < seg2)
+		      w[fencode3_i(p,ii,mom2)]=m2max;
+
+		  /* if (i > seg1)
 		    if (i < seg2)
 		      w[fencode3_i(p,ii,mom2)]=m2max*(i-seg1)/(seg2-seg1);
 
@@ -53,7 +59,7 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
                       w[fencode3_i(p,ii,mom2)]=m2max;
 		   if (i > seg3)
 		    if (i < seg4)
-		      w[fencode3_i(p,ii,mom2)]=m2max*(seg4-i)/(seg4-seg3);
+		      w[fencode3_i(p,ii,mom2)]=m2max*(seg4-i)/(seg4-seg3);*/
 
 
 

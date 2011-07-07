@@ -3,6 +3,9 @@ maxa=fltarr(1)
 mina=fltarr(1)
 cuta=fltarr(2000,50)
 
+
+
+
 DEVICE, PSEUDO=8, DECOMPOSED=0, RETAIN=2
 WINDOW, /FREE, /PIXMAP, COLORS=256 & WDELETE, !D.WINDOW
 PRINT, 'Date:      ', systime(0)
@@ -11,6 +14,8 @@ PRINT, 'table_size ', STRCOMPRESS(!D.TABLE_SIZE,/REM)
 
 window, 0,xsize=1200,ysize=700,XPOS = 1000, YPOS = 300 ; ZOOM
 ii=1
+
+
 
 if (ii eq 1) then begin
 loadct,4
@@ -177,15 +182,18 @@ if (ii eq 1) then begin
 ;stop
 tvframe,w(*,*,1)/(w(*,*,7)+w(*,*,0)), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=2.0  
 tvframe,w(*,*,2)/(w(*,*,7)+w(*,*,0)), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=2.0 
-
-tvframe,w(*,*,3),/bar,/sample, title='e', xtitle='x', ytitle='z', charsize=2.0                                                                                                   
+;tvframe,w(*,*,1), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=2.0  
+;tvframe,w(*,*,2), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=2.0 
+tvframe,w(*,*,3)+w(*,*,6),/bar,/sample, title='e', xtitle='x', ytitle='z', charsize=2.0                                                                                                   
 
 ;;tvframe,w(*,*,6),/bar,/sample, title='eb',  xtitle='x', ytitle='z', charsize=2.0
-tvframe,w(*,*,0)+w(*,*,7),/bar,/sample, title='rho',  xtitle='x', ytitle='z', charsize=2.0
+tvframe,w(*,*,7)+w(*,*,0), /bar,title='log rho_b',/sample, xtitle='x', ytitle='y',charsize=2.0
+;tvframe,w(*,*,0),/bar,/sample, title='rho',  xtitle='x', ytitle='z', charsize=2.0
 
-tvframe,w(*,*,4),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
-tvframe,w(*,*,5),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
-
+;tvframe,w(*,*,4),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
+;tvframe,w(*,*,5),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
+tvframe,w(*,*,4)+w(*,*,8),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
+tvframe,w(*,*,5)+w(*,*,9),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
 ;tvframe,w(*,*,8),/bar,/sample, title='bg_z',  xtitle='x', ytitle='z', charsize=2.0
 ;tvframe,w(*,*,9),/bar,/sample, title='bg_x',  xtitle='x', ytitle='z', charsize=2.0
 

@@ -14,7 +14,7 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
         real rhorat=2.0; //rhotube/rhoexternal
         real ra=0.6667e6; //Mm tube radius (same as Gaussian width for field computation)
 //real ra=2.0e6;
-        real rrat=4.0; //ration of wall thickness to radius
+        real rrat=1.5; //ration of wall thickness to radius
         real rb=ra/rrat;
         real l=ra-rb;
         real a1;
@@ -49,7 +49,8 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
           //z=(p->xmin[2])+(k*(p->dx[2]));
 
           //a1=sqrt(z*z+y*y);
-          a1=x;
+          a1=sqrt(x*x);
+          
 
 	#ifdef USE_SAC
 
@@ -61,7 +62,7 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
                     w[fencode3_i(p,ii,energy)]=0.0;
 
 
-                    if(a1<=ra)
+                    if(x>=((wx/2)-rb)  && x<=((wx/2)+rb))
                     {
                       //p->rad[i][j][k]=1;
                       //smoothed field distribution for the flux tube
@@ -70,19 +71,30 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
                     else		    
 		      w[fencode3_i(p,ii,b1)]=0;
 
-                    if(a1<rb)
+                    //if(a1<rb)
+                    if(x>=((wx/2)-rb)  && x<=((wx/2)+rb))
                     {
                       
                       w[fencode3_i(p,ii,rhob)]=rho0;
                       
                     }
-                    else if(a1>=rb && a1<ra)
+                    else if(x>=((wx/2)-ra)  && x<=((wx/2)-rb))
+                    //else if(a1>=rb && a1<ra)
                     {                         
-                     w[fencode3_i(p,ii,rhob)]=rho0+((a1-rb)*(rhoe-rho0)/l);
+                     //w[fencode3_i(p,ii,rhob)]=rho0+((a1-rb)*(rhoe-rho0)/l);
+//w[fencode3_i(p,ii,rhob)]=rho0/2;
+w[fencode3_i(p,ii,rhob)]=rho0+((x-(wx/2)+rb)*(rho0-rhoe)/l);
                       // w[fencode3_i(p,ii,rho)]=(rho0+rhoe)/2;
                       //w[fencode3_i(p,ii,b1)]=10.0;//b_amp;
                      }
-
+                    else if(x<=((wx/2)+ra)  && x>=((wx/2)+rb))
+                    //else if(a1>=rb && a1<ra)
+                    {      
+w[fencode3_i(p,ii,rhob)]=rhoe+((x-(wx/2)-ra)*(rhoe-rho0)/l);                   
+                    // w[fencode3_i(p,ii,rhob)]=rho0+((a1-rb)*(rhoe-rho0)/l);
+                      // w[fencode3_i(p,ii,rho)]=(rho0+rhoe)/2;
+                      //w[fencode3_i(p,ii,b1)]=10.0;//b_amp;
+                     }
 		    
                      //w[fencode3_i(p,ii,b1)]=10;
 
