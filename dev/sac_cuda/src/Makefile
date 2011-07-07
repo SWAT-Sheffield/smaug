@@ -98,6 +98,18 @@ kink1:
 	cp ../models/boundary.cu.kink1 ../src/boundary.cu
 	cp ../models/usersource.cu.kink1 ../src/usersource.cu
 
+kink2d:
+	cp ../models/iosac2.5d_params.h.kink2d ../include/iosac2.5dparams.h
+	cp ../models/init_user.cu.kink2d ../src/init_user.cu
+	cp ../models/boundary.cu.kink2d ../src/boundary.cu
+	cp ../models/usersource.cu.kink2d ../src/usersource.cu
+
+alf:
+	cp ../models/iosac2.5d_params.h.alf ../include/iosac2.5dparams.h
+	cp ../models/init_user.cu.alf ../src/init_user.cu
+	cp ../models/boundary.cu.alf ../src/boundary.cu
+	cp ../models/usersource.cu.default ../src/usersource.cu
+
 cleanobjs:
 	rm -f $(BASICEXOBJS) ../include/*.cuh
 
