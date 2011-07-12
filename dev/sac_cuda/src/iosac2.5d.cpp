@@ -296,8 +296,6 @@ if((p->rkon)==0)
                //printf("cmax=%f\n",p->cmax);       //printf(" courant is %f \n",p->courant);
        cmax[dim]=p->cmax;
        cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,0);
- 
-
        cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim,1);
 
 
@@ -314,8 +312,9 @@ if((p->rkon)==0)
                //printf("cmax=%f\n",p->cmax);       cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
       p->cmax=cmax[dim];
 
+      cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
       cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,1);
- 
+       
        cuhyperdifesource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim,dt);
    
      }
@@ -330,7 +329,6 @@ for(int dim=0; dim<=(NDIM-1); dim++)
                p->cmax=cmax[dim];
               
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,0);
-
                cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim,1);
 
                 for(ii1=0;ii1<=1;ii1++)
