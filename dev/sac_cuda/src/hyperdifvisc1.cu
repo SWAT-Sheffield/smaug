@@ -989,7 +989,7 @@ int shift=order*NVAR*dimp;
 
 
 
-        wd[fencode3_hdv1(p,ii,hdnul+hand)]=0;
+        wd[fencode3_hdv1(p,ii,hdnur+hand)]=0;
    }
 
 }
