@@ -322,7 +322,9 @@ void computept3_MODID(real *wmod,real *wd,struct params *p,int *ii)
  wd[fencode3_MODID(p,ii,pressuret)]=(p->adiab)*pow(wmod[fencode3_MODID(p,ii,rho)],p->gamma);
 
 #elif defined(USE_SAC)
- 
+ wmod[fencode3_MODID(p,ii,b1b)]=0;
+ wmod[fencode3_MODID(p,ii,b2b)]=0;
+
 wd[fencode3_MODID(p,ii,pressuret)]=((p->gamma)-1.0)*( wmod[fencode3_MODID(p,ii,energy)]-0.5*(wmod[fencode3_MODID(p,ii,mom1)]*wmod[fencode3_MODID(p,ii,mom1)]+wmod[fencode3_MODID(p,ii,mom2)]*wmod[fencode3_MODID(p,ii,mom2)])/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
 wd[fencode3_MODID(p,ii,pressuret)]=wd[fencode3_MODID(p,ii,pressuret)]-((p->gamma)-2.0)*((wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2b)])+0.5*(wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]));
 
