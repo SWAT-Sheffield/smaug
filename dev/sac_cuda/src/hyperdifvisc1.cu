@@ -167,6 +167,8 @@ int shift=order*NVAR*dimp;
    
 if(iindex==0)
 {
+  p->hdmean=0.0;
+  p->hdmax=0;
  //  for(ipg=0;ipg<(p->npgp[0]);ipg++)
  //  for(jpg=0;jpg<(p->npgp[1]);jpg++)
   // {
@@ -176,10 +178,10 @@ if(iindex==0)
    //if( i<((p->n[0])) && j<((p->n[1])))
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
     //p->cmax=0.0;
-    for(ii[0]>1;ii[0]<((p->n[0])-2);ii[0]++)
-      for(ii[1]>1;ii[1]<((p->n[1])-2);ii[1]++)
+    for(ii[0]=1;ii[0]<((p->n[0])-2);ii[0]++)
+      for(ii[1]=1;ii[1]<((p->n[1])-2);ii[1]++)
      #ifdef USE_SAC_3D
-        for(ii[2]>1;ii[2]<((p->n[2])-2);ii[2]++)
+        for(ii[2]=1;ii[2]<((p->n[2])-2);ii[2]++)
      #endif
 	{ 
               // computecmax3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
@@ -194,10 +196,13 @@ if(iindex==0)
                     p->maxviscoef=(wd[encode3_hdv1(p,ii[0],ii[1],0,hdnur+hand)]);
                #endif
 
+              if(wd[encode3_hdv1(p,ii[0],ii[1],0,hdnur+hand)]>(p->hdmax))
+                    p->hdmax=(wd[encode3_hdv1(p,ii[0],ii[1],0,hdnur+hand)]);
 
+              p->hdmean=(p->hdmean)+wd[encode3_hdv1(p,ii[0],ii[1],0,hdnur+hand)];
 
 	}
-
+p->hdmean=(p->hdmean)/(dimp);
  //  }
 }
  __syncthreads();
@@ -314,14 +319,16 @@ int shift=order*NVAR*dimp;
      #else
 	wd[encode3_hdv1(p,i,j,k,hdnur+hand)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp[field])*wtemp[encode3_hdv1(p,i,j,k,tmp4)]/wtemp[encode3_hdv1(p,i,j,k,tmp5)];
      #endif
-
+       // wd[encode3_hdv1(p,i,j,k,hdnur+hand)]=1.0e-2; 
           //wd[encode3_hdv1(p,i,j,hdnur+hand)]=wtemp[encode3_hdv1(p,i,j,tmp4)];
 	//wd[encode3_hdv1(p,i,j,hdnul+hand)]=0.01;
 }
      else
         wd[encode3_hdv1(p,i,j,k,hdnur+hand)]=0;
 
- 
+
+//        wd[encode3_hdv1(p,i,j,k,hdnur+hand)]=1.0e-2; 
+
 
    }
 }
@@ -957,7 +964,7 @@ int shift=order*NVAR*dimp;
        //tmp6  tmpnu
 #ifdef USE_SAC
         if(field==energy)
-        wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,energy)+shift]-0.5*(wmod[fencode3_hdv1(p,ii,b1)+shift]*wmod[fencode3_hdv1(p,ii,b1)+shift]+wmod[fencode3_hdv1(p,ii,b2)+shift]*wmod[fencode3_hdv1(p,ii,b2)+shift])+(wmod[fencode3_hdv1(p,ii,mom1)+shift]*wmod[fencode3_hdv1(p,ii,mom1)+shift]+wmod[fencode3_hdv1(p,ii,mom2)+shift]*wmod[fencode3_hdv1(p,ii,mom2)+shift])/(wmod[fencode3_hdv1(p,ii,rho)+shift]+wmod[fencode3_hdv1(p,ii,rhob)+shift] );
+        wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,energy)+shift]-0.5*((wmod[fencode3_hdv1(p,ii,b1)+shift]*wmod[fencode3_hdv1(p,ii,b1)+shift]+wmod[fencode3_hdv1(p,ii,b2)+shift]*wmod[fencode3_hdv1(p,ii,b2)+shift])+(wmod[fencode3_hdv1(p,ii,mom1)+shift]*wmod[fencode3_hdv1(p,ii,mom1)+shift]+wmod[fencode3_hdv1(p,ii,mom2)+shift]*wmod[fencode3_hdv1(p,ii,mom2)+shift])/(wmod[fencode3_hdv1(p,ii,rho)+shift]+wmod[fencode3_hdv1(p,ii,rhob)+shift] ));
         else
         {
            wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,field)+shift];
@@ -972,8 +979,8 @@ int shift=order*NVAR*dimp;
 
 #ifdef USE_SAC_3D
        if(field==energy)
-        wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,energy)+shift]-0.5*(wmod[fencode3_hdv1(p,ii,b1)+shift]*wmod[fencode3_hdv1(p,ii,b1)+shift]+wmod[fencode3_hdv1(p,ii,b2)+shift]*wmod[fencode3_hdv1(p,ii,b2)+shift]+wmod[fencode3_hdv1(p,ii,b3)+shift]*wmod[fencode3_hdv1(p,ii,b3)+shift])
-+(wmod[fencode3_hdv1(p,ii,mom1)+shift]*wmod[fencode3_hdv1(p,ii,mom1)+shift]+wmod[fencode3_hdv1(p,ii,mom2)+shift]*wmod[fencode3_hdv1(p,ii,mom2)+shift]+wmod[fencode3_hdv1(p,ii,mom3)+shift]*wmod[fencode3_hdv1(p,ii,mom3)+shift])/(wmod[fencode3_hdv1(p,ii,rho)+shift]+wmod[fencode3_hdv1(p,ii,rhob)+shift] );       
+        wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,energy)+shift]-0.5*((wmod[fencode3_hdv1(p,ii,b1)+shift]*wmod[fencode3_hdv1(p,ii,b1)+shift]+wmod[fencode3_hdv1(p,ii,b2)+shift]*wmod[fencode3_hdv1(p,ii,b2)+shift]+wmod[fencode3_hdv1(p,ii,b3)+shift]*wmod[fencode3_hdv1(p,ii,b3)+shift])
++(wmod[fencode3_hdv1(p,ii,mom1)+shift]*wmod[fencode3_hdv1(p,ii,mom1)+shift]+wmod[fencode3_hdv1(p,ii,mom2)+shift]*wmod[fencode3_hdv1(p,ii,mom2)+shift]+wmod[fencode3_hdv1(p,ii,mom3)+shift]*wmod[fencode3_hdv1(p,ii,mom3)+shift])/(wmod[fencode3_hdv1(p,ii,rho)+shift]+wmod[fencode3_hdv1(p,ii,rhob)+shift] ));       
        else
        {
           wtemp[fencode3_hdv1(p,ii,tmp6)]=wmod[fencode3_hdv1(p,ii,field)+shift];
@@ -1059,10 +1066,16 @@ int cuhyperdifvisc1(struct params **p,  struct params **d_p,   real **d_wmod,  r
      cudaThreadSynchronize();
      hyperdifvisc4_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim,hand);
      cudaThreadSynchronize();
-   ;//  hyperdifvisc5_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim,hand);
+   
+ /* hyperdifvisc5_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim,hand);
      cudaThreadSynchronize();
 
     cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+
+  if(hand==0)
+    printf("field right hdmean hdmax %d %8.8g %8.8g \n",field, (*p)->hdmean, (*p)->hdmax);
+  else
+    printf("field left hdmean hdmax %d %8.8g %8.8g \n",field, (*p)->hdmean, (*p)->hdmax);*/
 }
 
 
