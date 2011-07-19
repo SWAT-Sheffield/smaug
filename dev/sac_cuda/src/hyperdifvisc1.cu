@@ -426,10 +426,10 @@ int shift=order*NVAR*dimp;
 
      #ifdef USE_SAC_3D
        //if(ii[0]>1 && ii[1]>1 && ii[2]>1 && ii[0]<p->n[0] && ii[1]<p->n[1]  && ii[2]<p->n[2])
-       if(i>1 && j>1 && k>1 && i<=((p->n[0])-2) && j<=((p->n[1])-2)   && k<=((p->n[2]))-2)
+       if(i>1 && j>1 && k>1 && i<((p->n[0])-2) && j<((p->n[1])-2)   && k<((p->n[2]))-2)
      #else
        //if(ii[0]>1 && ii[1]>1 && ii[0]<p->n[0] && ii[1]<p->n[1])
-       if(i>1 && j>1 && i<=((p->n[0])-2) && j<=((p->n[1])-2))
+       if(i>1 && j>1 && i<((p->n[0])-2) && j<((p->n[1])-2))
      #endif
 
  // if( i>1 && j>1 && i<((p->n[0])-2) && j<((p->n[1])-2))            
@@ -589,8 +589,8 @@ int shift=order*NVAR*dimp;
      else
      {
 	#ifdef USE_SAC_3D
-		  // wtemp1[encode3_hdv1(p,i,j,d3)]=fabs(3.0*(wtemp2[encode3_hdv1(p,i+(dim==0),j+(dim==1),tmpnui)] - wtemp2[encode3_hdv1(p,i,j,tmpnui)]) - (wtemp2[encode3_hdv1(p,i+2*(dim==0),j+2*(dim==1),tmpnui)] - wtemp2[encode3_hdv1(p,i-(dim==0),j-(dim==1),tmpnui)]    ));
-		   wtemp1[encode3_hdv1(p,i,j,k,d3)]=fabs(3.0*(wtemp2[encode3_hdv1(p,i,j,k,tmpnui)] - wtemp2[encode3_hdv1(p,i-(dim==0),j-(dim==1),k-(dim==2),tmpnui)]) - (wtemp2[encode3_hdv1(p,i+(dim==0),j+(dim==1),k+(dim==2),tmpnui)] - wtemp2[encode3_hdv1(p,i-2*(dim==0),j-2*(dim==1),k-2*(dim==2),tmpnui)]    ));
+		   wtemp1[encode3_hdv1(p,i,j,d3)]=fabs(3.0*(wtemp2[encode3_hdv1(p,i+(dim==0),j+(dim==1),tmpnui)] - wtemp2[encode3_hdv1(p,i,j,tmpnui)]) - (wtemp2[encode3_hdv1(p,i+2*(dim==0),j+2*(dim==1),tmpnui)] - wtemp2[encode3_hdv1(p,i-(dim==0),j-(dim==1),tmpnui)]    ));
+		   //wtemp1[encode3_hdv1(p,i,j,k,d3)]=fabs(3.0*(wtemp2[encode3_hdv1(p,i,j,k,tmpnui)] - wtemp2[encode3_hdv1(p,i-(dim==0),j-(dim==1),k-(dim==2),tmpnui)]) - (wtemp2[encode3_hdv1(p,i+(dim==0),j+(dim==1),k+(dim==2),tmpnui)] - wtemp2[encode3_hdv1(p,i-2*(dim==0),j-2*(dim==1),k-2*(dim==2),tmpnui)]    ));
 	#else
 		   wtemp1[encode3_hdv1(p,i,j,k,d3)]=fabs(3.0*(wtemp2[encode3_hdv1(p,i+(dim==0),j+(dim==1),k,tmpnui)] - wtemp2[encode3_hdv1(p,i,j,k,tmpnui)] ) - (wtemp2[encode3_hdv1(p,i+2*(dim==0),j+2*(dim==1),k,tmpnui)] - wtemp2[encode3_hdv1(p,i-(dim==0),j-(dim==1),k,tmpnui)]    ));
 	#endif
