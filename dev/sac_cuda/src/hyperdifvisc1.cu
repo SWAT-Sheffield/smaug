@@ -22,22 +22,22 @@ void bc_hyperdif(real *wt, struct params *p,int *ii, int f,int dir) {
 	int k=ii[2];
  #endif
 
-
+int is=1;
  #ifdef USE_SAC
-   if(  (dir == 0) && (i==(p->n[0])-1)   && j>0   && j<(p->n[1])           )
+   if(  (dir == 0) && (i==(p->n[0])-1)   && j>=0   && j<(p->n[1])           )
    {
-      for(int is=0;is<3-2*(j<((p->n[1])-1));is++)   
+      //for(int is=0;is<3-2*(j<((p->n[1])-1));is++)   
          wt[fencode_hdv1(p,i+2,j+is,f)]=wt[fencode_hdv1(p,(p->n[0])-5,j+is,f)];
          
    }
    else if((dir == 1) && (j==(p->n[1])-1)    && i>0   && i<((p->n[0]))  )
-    for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
+    //for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
        wt[fencode_hdv1(p,i+is,j+2,f)]=wt[fencode_hdv1(p,i+is,(p->n[1])-5,f)];
   else if((dir == 0) && (i==0)    && j>0   && j<((p->n[1]))   )
-    for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
+    //for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
        wt[fencode_hdv1(p,0,j+is,f)]=wt[fencode_hdv1(p,6,j+is,f)];
    else if((dir == 1) && (j==0)    && i>0   && i<((p->n[0]))   )
-    for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
+    //for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
        wt[fencode_hdv1(p,i+is,0,f)]=wt[fencode_hdv1(p,i+is,6,f)];
 
 #endif
@@ -901,25 +901,59 @@ int shift=order*NVAR*dimp;
       }
 
      #endif
-      if(j==((p->n[1])-1)  && i==j)
+      if(j==((p->n[1])-1)  && i==((p->n[0])-1))
+      {
+          for(int f=d1; f<=d3; f++)
+                 wtemp1[encode3_hdv1(p,i+1,j+1,k,f)]=0;
+
+
+
+          for(int di=0; di<2; di++)
+             for(int dj=0; dj<2; dj++)
+                   wtemp2[encode3_hdv1(p,i+1+di,j+1+dj,k,tmpnui)]=0;
+               
+
+      }
+     #ifdef USE_SAC_3D
+      if(i==((p->n[0])-1)  && k==((p->n[2])-1))
+      {
+          for(int f=d1; f<=d3; f++)
+                 wtemp1[encode3_hdv1(p,i+1,j,k+1,f)]=0;
+          for(int di=0; di<2; di++)
+             for(int dk=0; dk<2; dk++)
+                   wtemp2[encode3_hdv1(p,i+1+di,j,k+1+dk,tmpnui)]=0;
+
+
+      }
+      #endif
+     #ifdef USE_SAC_3D
+      if(j==((p->n[1])-1)  && k==((p->n[2])-1))
+      {
+          for(int f=d1; f<=d3; f++)
+                 wtemp1[encode3_hdv1(p,i+1,j+1,k,f)]=0;
+
+          for(int dk=0; dk<2; dk++)
+             for(int dj=0; dj<2; dj++)
+                   wtemp2[encode3_hdv1(p,i,j+1+dj,k+1+dk,tmpnui)]=0;
+
+
+      }
+      #endif
+
+     #ifdef USE_SAC_3D
+      if(i==((p->n[0])-1) && j==((p->n[1])-1)  && k==((p->n[2])-1))
       {
           for(int f=d1; f<=d3; f++)
                  wtemp1[encode3_hdv1(p,i+1,j+1,k+1,f)]=0;
-          for(int di=0; di<2; di++)
+       
+          for(int dk=0; dk<2; dk++)
              for(int dj=0; dj<2; dj++)
-     #ifdef USE_SAC_3D
-                for(int dk=0; dk<2; dk++)
-                {
-     #else
-                {
-                   int dk=-1;
-     #endif
+               for(int di=0; di<2; di++)
                    wtemp2[encode3_hdv1(p,i+1+di,j+1+dj,k+1+dk,tmpnui)]=0;
-                }
+
 
       }
-
-
+      #endif
 
    }
 

@@ -59,7 +59,7 @@ int shift=order*NVAR*dimp;
 #else
   rdx=(((p->dx[0])*(dim==0))+  (p->dx[1])*(dim==1)  );
 #endif
-
+real del;
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    #ifdef USE_SAC_3D
@@ -88,7 +88,9 @@ int shift=order*NVAR*dimp;
 //dwn1[fencode3_hde1(p,ii,field)]=( wtemp[fencode3_hde1(p,ii,hdnur)] *wtemp[fencode3_hde1(p,ii,tmp3)] - wtemp[fencode3_hde1(p,ii,hdnul)] *wtemp[fencode3_hde1(p,ii,tmp2)])/rdx;
 
     wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]=wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hde1(p,ii,field)]; 
-
+   //del=wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hde1(p,ii,field)]; 
+  // if(del<0.011 && del>0.009)
+   //          wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]=del;
   }
 }
 __syncthreads();
@@ -175,6 +177,7 @@ int shift=order*NVAR*dimp;
 
  
 dwn1[fencode3_hde1(p,ii,field)]=( wtemp[fencode3_hde1(p,ii,hdnur)] *wtemp[fencode3_hde1(p,ii,tmp3)] - wtemp[fencode3_hde1(p,ii,hdnul)] *wtemp[fencode3_hde1(p,ii,tmp2)])/rdx;
+   
 
 
   }

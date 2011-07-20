@@ -20,7 +20,7 @@ __global__ void hyperdifmomsource3_parallel(struct params *p,  real *wmod,
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int ii1;
-  real fip,fim1,tmpc;
+  real fip,fim1,tmpc,del;
   int index,k;
   int ni=p->n[0];
   int nj=p->n[1];
@@ -79,6 +79,7 @@ int shift=order*NVAR*dimp;
      #else
        if(i<((p->n[0])) && j<((p->n[1])))
      #endif
+
   //if(i<((p->n[0])) && j<((p->n[1])))
 	{		               
 
@@ -86,8 +87,12 @@ dwn1[fencode3_hdm1(p,iia,energy)]=(wtemp[fencode3_hdm1(p,iia,tmp6)]*wd[fencode3_
 
 dwn1[fencode3_hdm1(p,iia,mom1+ii0)]=(wtemp[fencode3_hdm1(p,iia,tmp3)]*wd[fencode3_hdm1(p,iia,hdnur)]*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp2)]*wd[fencode3_hdm1(p,iia,hdnul)]*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2;
 
-                              wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,mom1+ii0)]; 
-                             wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,energy)]; 
+                              wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,mom1+ii0)];
+
+   del=wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,energy)]; 
+   //if(del<0.011 && del>0.009)
+             wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]=del; 
+                            // wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,energy)]; 
 
                              // wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*((wtemp[fencode3_hdm1(p,iia,tmp3)]*wd[fencode3_hdm1(p,iia,hdnur)]*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp2)]*wd[fencode3_hdm1(p,iia,hdnul)]*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2); 
 

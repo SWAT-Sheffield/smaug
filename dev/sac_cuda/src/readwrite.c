@@ -62,10 +62,12 @@ int writeconfig(char *name,int n,params p, meta md, real *w)
 {
   int status=0;
   int i1,j1;
-  int ni,nj;
+  int ni,nj,nim,njm;
   char configfile[300];
 
 
+  nim=p.n[0];
+  njm=p.n[1];
   ni=p.n[0];
   nj=p.n[1];
 
@@ -137,7 +139,7 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
 {
   int status=0;
   int i1,j1,k1,ifield;
-  int ni,nj,nk;
+  int ni,nj,nk,nim,njm,nkm;
   char configfile[300];
   char buffer[800];
   double dbuffer[12];
@@ -147,6 +149,13 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
   nj=p.n[1];
     #ifdef USE_SAC_3D
   nk=p.n[2];
+    #endif
+
+
+  nim=p.n[0]-2*p.ng[0];
+  njm=p.n[1]-2*p.ng[1];
+    #ifdef USE_SAC_3D
+  nkm=p.n[2]-2*p.ng[2];
     #endif
 
       //save file containing current data
@@ -187,13 +196,13 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
       //line3:
       //*   nx()        - the grid dimensions      (ndim integers)
       //sprintf(buffer,"%ld %ld\n",ni,nj);
-      ibuffer[0]=ni;
-      ibuffer[1]=nj;
+      ibuffer[0]=nim;
+      ibuffer[1]=njm;
     #ifdef USE_SAC
       fwrite(ibuffer,sizeof(int)*2,1,fdt);
     #endif
     #ifdef USE_SAC_3D
-      ibuffer[2]=nk;
+      ibuffer[2]=nkm;
       fwrite(ibuffer,sizeof(int)*3,1,fdt);
     #endif
       //*line4:
@@ -236,22 +245,22 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
    #endif 
 
     #ifdef USE_SAC_3D
-   for( k1=0;k1<nk;k1++)
+   for( k1=p.ng[2];k1<(nkm+p.ng[2]);k1++)
     #endif
-for( j1=0;j1<nj;j1++)
+for( j1=p.ng[1];j1<(njm+p.ng[1]);j1++)
   
 	{
 //energyb,rhob,b1b,b2b         
-       for( i1=0;i1<ni;i1++)     
+       for( i1=p.ng[0];i1<(nim+p.ng[0]);i1++)     
       {
    
                if(ifield==0)
-               dbuffer[0]=(p.xmin[0])+i1*p.dx[0];
+               dbuffer[0]=(p.xmin[0])+(i1-p.ng[0])*p.dx[0];
                else if(ifield==1)
-               dbuffer[0]=(p.xmin[1])+j1*p.dx[1];
+               dbuffer[0]=(p.xmin[1])+(j1-p.ng[1])*p.dx[1];
     #ifdef USE_SAC_3D
                else if(ifield==2)
-               dbuffer[0]=(p.xmin[2])+k1*p.dx[2];
+               dbuffer[0]=(p.xmin[2])+(k1-p.ng[2])*p.dx[2];
     #endif
                else
     #ifdef USE_SAC_3D
@@ -278,7 +287,7 @@ int readbinvacconfig(char *name,params p, meta md, real *w, state st)
 {
   int status=0;
   int i1,j1;
-  int ni,nj;
+  int ni,nj,nim,njm,nkm;
   char configfile[300];
   char buffer[85];
   double dbuffer[12];
@@ -291,6 +300,12 @@ int readbinvacconfig(char *name,params p, meta md, real *w, state st)
   ni=p.n[0];
   nj=p.n[1];
 
+
+  nim=p.n[0]-2*p.ng[0];
+  njm=p.n[1]-2*p.ng[1];
+    #ifdef USE_SAC_3D
+  nkm=p.n[2]-2*p.ng[2];
+    #endif
       //save file containing current data
       //sprintf(configfile,"out/v%s.out",name);
       sprintf(configfile,"%s",name);
@@ -342,14 +357,17 @@ int readbinvacconfig(char *name,params p, meta md, real *w, state st)
       //*                 eg. 'x y rho mx my e bx by  gamma eta' (character*79)
       sprintf(buffer,"x y rho mx my mz e bx by bz gamma eta g1 g2 g3\n");
       //fread(buffer,sizeof(char)*79,1,fdt);
-         for( i1=0;i1<ni;i1++)   
+
+
+    #ifdef USE_SAC_3D
+   for( k1=p.ng[2];k1<(nkm+p.ng[2]);k1++)
+    #endif
+       for( i1=p.ng[0];i1<(nim+p.ng[0]);i1++)  
+
+  
 	{
 //energyb,rhob,b1b,b2b         
-     
-for( j1=0;j1<nj;j1++)  
-      {
-
-
+for( j1=p.ng[1];j1<(njm+p.ng[1]);j1++)
                // fread(dbuffer,12*sizeof(double),1,fdt);		
                 //i1*p.dx[0]=dbuffer[0];
                 //j1*p.dx[1]=dbuffer[1];
@@ -369,7 +387,7 @@ for( j1=0;j1<nj;j1++)
 #endif
 
 
-        }     
+            
       }
       fclose(fdt);
       free(bigbuf);
@@ -383,17 +401,28 @@ int writevtkconfig(char *name,int n,params p, meta md, real *w)
 {
   int status=0;
   int i1,j1,k1;
-  int ni,nj,nk;
+  int ni,nj,nk,nim,njm,nkm;
   char configfile[300];
   char labels[4][4]={"rho","e","mom","b"};
   int is;
+
+
   ni=p.n[0];
   nj=p.n[1];
+    #ifdef USE_SAC_3D
+  nk=p.n[2];
+    #endif
 
-#ifdef USE_SAC_3D
 
-nk=p.n[2];
-#endif
+  nim=p.n[0]-2*p.ng[0];
+  njm=p.n[1]-2*p.ng[1];
+    #ifdef USE_SAC_3D
+  nkm=p.n[2]-2*p.ng[2];
+    #endif
+
+
+
+
 
 
       //save file containing current data
@@ -425,24 +454,24 @@ nk=p.n[2];
 	      fprintf(fdt," \n");
 	      fprintf(fdt,"DATASET RECTILINEAR_GRID\n");
 #ifdef USE_SAC_3D
-	      fprintf(fdt,"DIMENSIONS %d %d %d\n",ni,nj,nk);
+	      fprintf(fdt,"DIMENSIONS %d %d %d\n",nim,njm,nkm);
 #else
-	      fprintf(fdt,"DIMENSIONS %d %d 1\n",ni,nj);
+	      fprintf(fdt,"DIMENSIONS %d %d 1\n",nim,njm);
 #endif
 
 
-	      fprintf(fdt,"X_COORDINATES %d double\n",ni);
-              for(i1=0;i1<ni;i1++)
+	      fprintf(fdt,"X_COORDINATES %d double\n",nim);
+              for(i1=0;i1<nim;i1++)
 	        fprintf(fdt,"%G\n",(p.xmin[0])+i1*p.dx[0]);
 
-	      fprintf(fdt,"Y_COORDINATES %d double\n",nj);
-              for(i1=0;i1<nj;i1++)
+	      fprintf(fdt,"Y_COORDINATES %d double\n",njm);
+              for(i1=0;i1<njm;i1++)
 	        fprintf(fdt,"%G\n",(p.xmin[1])+i1*p.dx[1]);
 
 
    #ifdef USE_SAC_3D
-	      fprintf(fdt,"Z_COORDINATES %d double\n",nk);
-              for(k1=0;k1<nk;k1++)
+	      fprintf(fdt,"Z_COORDINATES %d double\n",nkm);
+              for(k1=0;k1<nkm;k1++)
 	        fprintf(fdt,"%G\n",(p.xmin[2])+k1*p.dx[2]);
 
     #else
@@ -450,10 +479,10 @@ nk=p.n[2];
 	      fprintf(fdt,"0\n");
    #endif
    #ifdef USE_SAC_3D
-	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj)*nk);
+	      fprintf(fdt,"POINT_DATA  %d\n",(nim)*(njm)*nkm);
    #else
 
-	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj));
+	      fprintf(fdt,"POINT_DATA  %d\n",(nim)*(njm));
     #endif
 
 	      fprintf(fdt,"SCALARS %s double 1\n",labels[i/4]);
@@ -461,10 +490,10 @@ nk=p.n[2];
              fprintf(fdt,"LOOKUP_TABLE TableName \n");
 
    #ifdef USE_SAC_3D
-	     for( k1=0;k1<(nk);k1++)
+	     for( k1=p.ng[2];k1<(nkm+p.ng[2]);k1++)
    #endif
-	     for( j1=0;j1<(nj);j1++)
-		for( i1=0;i1<(ni);i1++)
+	     for( j1=p.ng[1];j1<(njm+p.ng[1]);j1++)
+		for( i1=p.ng[0];i1<(nim+p.ng[0]);i1++)
                 {
                  if(is==0)
                     #ifdef USE_SAC_3D
@@ -514,21 +543,21 @@ nk=p.n[2];
 	      fprintf(fdt,"ASCII\n");
 	      fprintf(fdt," \n");
 	      fprintf(fdt,"DATASET RECTILINEAR_GRID\n");
-	      fprintf(fdt,"DIMENSIONS %d %d 1\n",ni,nj);
+	      fprintf(fdt,"DIMENSIONS %d %d 1\n",nim,njm);
 
 
-	      fprintf(fdt,"X_COORDINATES %d double\n",ni);
-              for(i1=0;i1<ni;i1++)
+	      fprintf(fdt,"X_COORDINATES %d double\n",nim);
+              for(i1=0;i1<nim;i1++)
 	        fprintf(fdt,"%G\n",(p.xmin[0])+i1*p.dx[0]);
 
-	      fprintf(fdt,"Y_COORDINATES %d double\n",nj);
-              for(i1=0;i1<nj;i1++)
+	      fprintf(fdt,"Y_COORDINATES %d double\n",njm);
+              for(i1=0;i1<njm;i1++)
 	        fprintf(fdt,"%G\n",(p.xmin[1])+i1*p.dx[1]);
 
 
                #ifdef USE_SAC_3D
-	      fprintf(fdt,"Z_COORDINATES %d double\n",nk);
-              for(i1=0;i1<nk;i1++)
+	      fprintf(fdt,"Z_COORDINATES %d double\n",nkm);
+              for(i1=0;i1<nkm;i1++)
 	        fprintf(fdt,"%G\n",(p.xmin[2])+i1*p.dx[2]);
                #else
 	      fprintf(fdt,"Z_COORDINATES 1 double\n");
@@ -537,17 +566,17 @@ nk=p.n[2];
 
 
              #ifdef USE_SAC_3D
-	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj)*nk);
+	      fprintf(fdt,"POINT_DATA  %d\n",(nim)*(njm)*nkm);
              #else
-	      fprintf(fdt,"POINT_DATA  %d\n",(ni)*(nj));
+	      fprintf(fdt,"POINT_DATA  %d\n",(nim)*(njm));
              #endif
 	      fprintf(fdt,"VECTORS %s double \n",labels[i]);
 
             #ifdef USE_SAC_3D
-		for( k1=0;k1<(nk);k1++)
+		for( k1=p.ng[2];k1<(nkm+p.ng[2]);k1++)
              #endif
-		for( j1=0;j1<(nj);j1++)
-	      		for( i1=0;i1<(ni);i1++)
+		for( j1=p.ng[1];j1<(njm+p.ng[1]);j1++)
+	      		for( i1=p.ng[0];i1<(nim+p.ng[0]);i1++)
    
             #ifdef USE_SAC_3D
                          fprintf(fdt,"%G %G %G\n",w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*iv)],w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*(iv+1))],w[(k1*ni*nj)+(j1*ni+i1)+(ni*nk*nj*(iv+2))]);
@@ -584,10 +613,12 @@ int readasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines)
   int status=0;
   int i;
   int i1,j1;
-  int ni,nj;
+  int ni,nj,nim,njm;
   int shift;
   real x,y,val;
 
+   nim=p.n[0]-2*p.ng[0];
+   njm=p.n[1]-2*p.ng[1];
    ni=p.n[0];
    nj=p.n[1];
 
@@ -604,8 +635,8 @@ int readasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines)
    }
   //fscanf(fdt,"%f",&val);
  //printf("%f",val);
-for( j1=0;j1<(nj);j1++)
-for( i1=0;i1<(ni);i1++)
+for( j1=p.ng[1];j1<(njm+p.ng[1]);j1++)
+for( i1=p.ng[0];i1<(nim+p.ng[0]);i1++)
    
 	     
              {
@@ -634,10 +665,12 @@ int writeasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines
   int status=0;
   int i;
   int i1,j1;
-  int ni,nj;                         
+  int ni,nj,nim,njm;                         
   int shift;
   real x,y,val;
 
+   nim=p.n[0]-2*p.ng[0];
+   njm=p.n[1]-2*p.ng[1];
    ni=p.n[0];
    nj=p.n[1];
 
@@ -663,11 +696,11 @@ int writeasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines
      printf("%s\n",hlines[i]);
     }
 
-   for( j1=0;j1<(nj);j1++)
-	     for( i1=0;i1<(nj);i1++)
+   for( j1=p.ng[1];j1<(njm+p.ng[1]);j1++)
+	     for( i1=p.ng[0];i1<(nim+p.ng[0]);i1++)
              {
-                         x=(1+i1)*(p.dx[0]);
-                         y=(1+j1)*(p.dx[1]);
+                         x=(1+(i1-p.ng[0]))*(p.dx[0]);
+                         y=(1+(j1-p.ng[1]))*(p.dx[1]);
                          shift=(j1*ni+i1);
                          fprintf(fdt,"%lE %lE %lE %lE %lE %lE %lE %lE %lE %lE %lE %lE\n",x,y,w[shift],w[shift+(ni*nj)],w[shift+(ni*nj*2)],w[shift+(ni*nj*3)],w[shift+(ni*nj*4)],w[shift+(ni*nj*5)],w[shift+(ni*nj*6)],w[shift+(ni*nj*7)],w[shift+(ni*nj*8)],w[shift+(ni*nj*9)]);
 

@@ -61,7 +61,7 @@ int divflux_cd2(real *dw, real *wd, real *w, struct params *p,int *ii,int field,
   real divflux=0;
   dw[fencode3_cd2(p,ii,field)]= grad3d_cd2(wd,p,ii,flux,dir);//+grad_cd2(wd,p,ii,f2,1); 
 
-
+ 
  #ifdef USE_SAC
 
   //commented out to test against vac
@@ -235,8 +235,8 @@ real fluxe1(real *dw, real *wd, real *w, struct params *p,int *ii, int direction
          #if defined USE_SAC
 
 
-//flux = w[fencode3_cd2(p,ii,mom1+direction)]*(wd[fencode3_cd2(p,ii,pressuret)]+wd[fencode3_cd2(p,ii,ptb)]);
-flux = w[fencode3_cd2(p,ii,mom1+direction)]*(((((p->gamma)-1.0)*( w[fencode3_cd2(p,ii,energy)]-0.5*(w[fencode3_cd2(p,ii,mom1)]*w[fencode3_cd2(p,ii,mom1)]+w[fencode3_cd2(p,ii,mom2)]*w[fencode3_cd2(p,ii,mom2)])/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]))))+(((p->gamma)-1)*w[fencode3_cd2(p,ii,energyb)]- 0.5*((p->gamma)-2)*(w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b)]+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b2b)])));
+flux = w[fencode3_cd2(p,ii,mom1+direction)]*(wd[fencode3_cd2(p,ii,pressuret)]+wd[fencode3_cd2(p,ii,ptb)]);
+//flux = w[fencode3_cd2(p,ii,mom1+direction)]*(((((p->gamma)-1.0)*( w[fencode3_cd2(p,ii,energy)]-0.5*(w[fencode3_cd2(p,ii,mom1)]*w[fencode3_cd2(p,ii,mom1)]+w[fencode3_cd2(p,ii,mom2)]*w[fencode3_cd2(p,ii,mom2)])/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]))))+(((p->gamma)-1)*w[fencode3_cd2(p,ii,energyb)]- 0.5*((p->gamma)-2)*(w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b)]+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b2b)])));
 
 
 
@@ -461,6 +461,7 @@ __global__ void centdiff2b_parallel(struct params *p, struct state *s, real *w, 
  #ifdef USE_SAC_3D
    int nk=p->n[2];
    int kp,kpg;
+    real del;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
@@ -495,7 +496,7 @@ __global__ void centdiff2b_parallel(struct params *p, struct state *s, real *w, 
      #ifdef USE_SAC_3D
 	   ii[2]=kp*(p->npgp[2])+kpg;
      #endif
-
+  real del;
                         switch(dir)
                         {
                          case 0:
@@ -506,6 +507,9 @@ __global__ void centdiff2b_parallel(struct params *p, struct state *s, real *w, 
      			  #else
        				if(ii[0]<((p->n[0]))   && ii[1]>1 && ii[1]<((p->n[1])-2))
      			  #endif
+                           /*del=wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]-dt*dwn1[fencode3_cd2(p,ii,f)];
+                           if(del<0.0101 && del>0.0099 || (f !=energy))
+                              wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]=del; */
                               wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]=wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]-dt*dwn1[fencode3_cd2(p,ii,f)]; 
                          break;
                          case 1:
@@ -514,15 +518,23 @@ __global__ void centdiff2b_parallel(struct params *p, struct state *s, real *w, 
      			  #else
        				if(ii[0]>1 && ii[0]<((p->n[0])-2)   && ii[1]<((p->n[1])) )
      			  #endif
+                            /*del=wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]-dt*dwn1[fencode3_cd2(p,ii,f)];
+                           if(del<0.0101 && del>0.0099 || (f !=energy))
+                              wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]=del; */
+                              wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]=wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]-dt*dwn1[fencode3_cd2(p,ii,f)]; 
+
                          //if(i>1 &&  i<(ni-2) && j<(nj))
-                              wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]=wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]-dt*dwn1[fencode3_cd2(p,ii,f)];
+                              //wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]=wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]-dt*dwn1[fencode3_cd2(p,ii,f)];
                          break;
                          #ifdef USE_SAC_3D
                          case 2:
 
                          //if(i>1 &&  i<(ni-2) && j<(nj))
       			if(ii[0]>1 && ii[0]<((p->n[0])-2)  && ii[1]>1 && ii[1]<((p->n[1])-2)  && ii[2]<((p->n[2])))
-                              wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]=wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]-dt*dwn1[fencode3_cd2(p,ii,f)];
+                           /*del=wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]-dt*dwn1[fencode3_cd2(p,ii,f)];
+                           if(del<0.0101 && del>0.0099 || (f !=energy))
+                              wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]=del; */
+                              wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]=wmod[fencode3_cd2(p,ii,f)+(ordero*NVAR*dimp)]-dt*dwn1[fencode3_cd2(p,ii,f)]; 
                          break;
                          #endif
                         }
