@@ -115,7 +115,7 @@ wd[fencode_MODID(p,i,j,pressuret)]=  ((p->gamma)-1.0)*wmod[fencode_MODID(p,i,j,e
 
 
   if(wd[fencode_MODID(p,i,j,pressuret)]<0)
-              wd[fencode_MODID(p,i,j,pressuret)]=0.001;
+              wd[fencode_MODID(p,i,j,pressuret)]=1.0e-20;
 
 
  // return ( status);
@@ -322,8 +322,8 @@ void computept3_MODID(real *wmod,real *wd,struct params *p,int *ii)
  wd[fencode3_MODID(p,ii,pressuret)]=(p->adiab)*pow(wmod[fencode3_MODID(p,ii,rho)],p->gamma);
 
 #elif defined(USE_SAC)
- wmod[fencode3_MODID(p,ii,b1b)]=0;
- wmod[fencode3_MODID(p,ii,b2b)]=0;
+ //wmod[fencode3_MODID(p,ii,b1b)]=0;
+// wmod[fencode3_MODID(p,ii,b2b)]=0;
 
 wd[fencode3_MODID(p,ii,pressuret)]=((p->gamma)-1.0)*( wmod[fencode3_MODID(p,ii,energy)]-0.5*(wmod[fencode3_MODID(p,ii,mom1)]*wmod[fencode3_MODID(p,ii,mom1)]+wmod[fencode3_MODID(p,ii,mom2)]*wmod[fencode3_MODID(p,ii,mom2)])/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
 wd[fencode3_MODID(p,ii,pressuret)]=wd[fencode3_MODID(p,ii,pressuret)]-((p->gamma)-2.0)*((wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2b)])+0.5*(wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]));
@@ -347,8 +347,9 @@ wd[fencode3_MODID(p,ii,pressuret)]=  ((p->gamma)-1.0)*wmod[fencode3_MODID(p,ii,e
 
 
 
-  if(wd[fencode3_MODID(p,ii,pressuret)]<0)
-              wd[fencode3_MODID(p,ii,pressuret)]=0.001;
+  //if(wd[fencode3_MODID(p,ii,pressuret)]<0)
+              //wd[fencode3_MODID(p,ii,pressuret)]=1.0e-10;
+	//      wd[fencode3_MODID(p,ii,pressuret)]=0.01;
 
 
  // return ( status);
@@ -396,8 +397,8 @@ wd[fencode3_MODID(p,ii,pkb)]=((p->gamma)-1)*(wmod[fencode3_MODID(p,ii,energyb)]-
 
 
 
-  if(wd[fencode3_MODID(p,ii,pressurek)]<0)
-              wd[fencode3_MODID(p,ii,pressurek)]=0.001;
+  //if(wd[fencode3_MODID(p,ii,pressurek)]<0)
+  //           wd[fencode3_MODID(p,ii,pressurek)]=0.001;
   //return ( status);
 }
 
