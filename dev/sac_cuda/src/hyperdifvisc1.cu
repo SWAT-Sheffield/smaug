@@ -178,10 +178,10 @@ if(iindex==0)
    //if( i<((p->n[0])) && j<((p->n[1])))
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
     //p->cmax=0.0;
-    for(ii[0]=1;ii[0]<((p->n[0])-2);ii[0]++)
-      for(ii[1]=1;ii[1]<((p->n[1])-2);ii[1]++)
+    for(ii[0]=1;ii[0]<((p->n[0])-1);ii[0]++)
+      for(ii[1]=1;ii[1]<((p->n[1])-1);ii[1]++)
      #ifdef USE_SAC_3D
-        for(ii[2]=1;ii[2]<((p->n[2])-2);ii[2]++)
+        for(ii[2]=1;ii[2]<((p->n[2])-1);ii[2]++)
      #endif
 	{ 
               // computecmax3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
@@ -196,10 +196,10 @@ if(iindex==0)
                     p->maxviscoef=(wd[encode3_hdv1(p,ii[0],ii[1],0,hdnur+hand)]);
                #endif
 
-              if(wd[encode3_hdv1(p,ii[0],ii[1],0,hdnur+hand)]>(p->hdmax))
+              /*if(wd[encode3_hdv1(p,ii[0],ii[1],0,hdnur+hand)]>(p->hdmax))
                     p->hdmax=(wd[encode3_hdv1(p,ii[0],ii[1],0,hdnur+hand)]);
 
-              p->hdmean=(p->hdmean)+wd[encode3_hdv1(p,ii[0],ii[1],0,hdnur+hand)];
+              p->hdmean=(p->hdmean)+wd[encode3_hdv1(p,ii[0],ii[1],0,hdnur+hand)];*/
 
 	}
 p->hdmean=(p->hdmean)/(dimp);

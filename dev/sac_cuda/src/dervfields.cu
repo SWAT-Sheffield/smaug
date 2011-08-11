@@ -329,19 +329,53 @@ wd[fencode3_MODID(p,ii,pressuret)]=((p->gamma)-1.0)*( wmod[fencode3_MODID(p,ii,e
 wd[fencode3_MODID(p,ii,pressuret)]=wd[fencode3_MODID(p,ii,pressuret)]-((p->gamma)-2.0)*((wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2b)])+0.5*(wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]));
 
 
- wd[fencode3_MODID(p,ii,ptb)]=  ((p->gamma)-1)*wmod[fencode3_MODID(p,ii,energyb)]- 0.5*((p->gamma)-2)*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]) ;
-
 #elif defined(USE_SAC_3D)
 
  wd[fencode3_MODID(p,ii,pressuret)]=((p->gamma)-1.0)*( wmod[fencode3_MODID(p,ii,energy)]-0.5*(wmod[fencode3_MODID(p,ii,mom1)]*wmod[fencode3_MODID(p,ii,mom1)]+wmod[fencode3_MODID(p,ii,mom2)]*wmod[fencode3_MODID(p,ii,mom2)]+wmod[fencode3_MODID(p,ii,mom3)]*wmod[fencode3_MODID(p,ii,mom3)])/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
 wd[fencode3_MODID(p,ii,pressuret)]=wd[fencode3_MODID(p,ii,pressuret)]-((p->gamma)-2.0)*((wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2b)]  +wmod[fencode3_MODID(p,ii,b3)]*wmod[fencode3_MODID(p,ii,b3b)]   )+0.5*(wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]  +wmod[fencode3_MODID(p,ii,b3)]*wmod[fencode3_MODID(p,ii,b3)] ));
 
 
- wd[fencode3_MODID(p,ii,ptb)]=  ((p->gamma)-1)*wmod[fencode3_MODID(p,ii,energyb)]- 0.5*((p->gamma)-2)*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3b)]) ;
-
 #else
 
 wd[fencode3_MODID(p,ii,pressuret)]=  ((p->gamma)-1.0)*wmod[fencode3_MODID(p,ii,energy)]+(1.0-0.5*(p->gamma))*(wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)])+0.5*(1.0-(p->gamma))*(wmod[fencode3_MODID(p,ii,mom1)]*wmod[fencode3_MODID(p,ii,mom1)]+wmod[fencode3_MODID(p,ii,mom2)]*wmod[fencode3_MODID(p,ii,mom2)])/wmod[fencode3_MODID(p,ii,rho)];
+
+#endif
+
+
+
+  //if(wd[fencode3_MODID(p,ii,pressuret)]<0)
+              //wd[fencode3_MODID(p,ii,pressuret)]=1.0e-10;
+	//      wd[fencode3_MODID(p,ii,pressuret)]=0.01;
+
+
+ // return ( status);
+}
+
+
+__device__ __host__
+void computepbg3_MODID(real *wmod,real *wd,struct params *p,int *ii)
+{
+ // int status=0;
+
+#ifdef ADIABHYDRO
+
+/*below used for adiabatic hydrodynamics*/
+;// wd[fencode3_MODID(p,ii,pressuret)]=(p->adiab)*pow(wmod[fencode3_MODID(p,ii,rho)],p->gamma);
+
+#elif defined(USE_SAC)
+ //wmod[fencode3_MODID(p,ii,b1b)]=0;
+// wmod[fencode3_MODID(p,ii,b2b)]=0;
+
+
+
+ wd[fencode3_MODID(p,ii,ptb)]=  ((p->gamma)-1)*wmod[fencode3_MODID(p,ii,energyb)]- 0.5*((p->gamma)-2)*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]) ;
+
+#elif defined(USE_SAC_3D)
+
+
+
+ wd[fencode3_MODID(p,ii,ptb)]=  ((p->gamma)-1)*wmod[fencode3_MODID(p,ii,energyb)]- 0.5*((p->gamma)-2)*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3b)]) ;
+
 
 #endif
 

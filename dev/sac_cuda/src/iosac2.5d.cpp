@@ -260,8 +260,7 @@ if((p->rkon)==0)
  {
 
   cucomputevels(&p,&d_p,&d_wmod, &d_wd,order,dir);
-
-  cucomputepres(&p,&d_p,&d_wmod, &d_wd,order,dir);
+  cucomputept(&p,&d_p,&d_wmod, &d_wd,order,dir);
               //cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dir);
                //cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dir);
 
@@ -273,7 +272,11 @@ if((p->rkon)==0)
 
 #ifndef ADIABHYDRO
    for(int f=energy; f<=(b1+NDIM-1); f++)
+   {
+     if(f==energy)
+         cucomputepbg(&p,&d_p,&d_wmod, &d_wd,order,dir);
      cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
+   }
 
 #endif
   }
