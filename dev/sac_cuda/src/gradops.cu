@@ -616,6 +616,28 @@ int fencode3_MODID (struct params *dp,int *ii, int field) {
 }
 
 __device__ __host__
+int encode3p1_MODID (struct params *dp,int ix, int iy, int iz, int field) {
+
+
+  #ifdef USE_SAC_3D
+    return ( (iz*(((dp)->n[0])+1)*(((dp)->n[1])+1)  + iy * (((dp)->n[0])+1) + ix)+(field*(((dp)->n[0])+1)*(((dp)->n[1])+1)*(((dp)->n[2])+1)));
+  #else
+    return ( (iy * (((dp)->n[0])+1) + ix)+(field*(((dp)->n[0])+1)*(((dp)->n[1])+1)));
+  #endif
+}
+
+__device__ __host__
+int encode3p2_MODID (struct params *dp,int ix, int iy, int iz, int field) {
+
+
+  #ifdef USE_SAC_3D
+    return ( (iz*(((dp)->n[0])+2)*(((dp)->n[1])+2)  + iy * (((dp)->n[0])+2) + ix)+(field*(((dp)->n[0])+2)*(((dp)->n[1])+2)*(((dp)->n[2])+2)));
+  #else
+    return ( (iy * (((dp)->n[0])+2) + ix)+(field*(((dp)->n[0])+2)*(((dp)->n[1])+2)));
+  #endif
+}
+
+__device__ __host__
 int encode3_MODID (struct params *dp,int ix, int iy, int iz, int field) {
 
 
