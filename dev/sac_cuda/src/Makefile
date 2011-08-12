@@ -21,6 +21,8 @@ BASICEXOBJS	=\
 	hyperdifbsourcene1.o\
 	hyperdifrhosource1.o\
 	hyperdifvisc1.o\
+	hyperdifvisc1l.o\
+	hyperdifvisc1r.o\
 	centdiff1.o\
 	centdiff2.o\
 	computedervfields.o\
@@ -147,6 +149,12 @@ sac:$(BASICEXOBJS)
 #	$(NVCC) -o $@ --ptxas-options=-v -c $<
 hyperdifvisc1.o: hyperdifvisc1.cu
 	sed 's/MODID/hdv1/g' < gradops.cu > ../include/gradops_hdv1.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifvisc1l.o: hyperdifvisc1l.cu
+	sed 's/MODID/hdv1l/g' < gradops.cu > ../include/gradops_hdv1l.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
+hyperdifvisc1r.o: hyperdifvisc1r.cu
+	sed 's/MODID/hdv1r/g' < gradops.cu > ../include/gradops_hdv1r.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifviscmax.o: hyperdifviscmax.cu
 	sed 's/MODID/hdvmax/g' < gradops.cu > ../include/gradops_hdvmax.cuh
