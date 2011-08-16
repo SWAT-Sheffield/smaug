@@ -321,14 +321,14 @@ int shift=order*NVAR*dimp;
 	wd[encode3_hdv1l(p,i,j,k,hdnul)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp[field])*wtemp[encode3_hdv1l(p,i,j,k,tmp4)]/wtemp[encode3_hdv1l(p,i,j,k,tmp5)];
      #endif
        // wd[encode3_hdv1l(p,i,j,k,hdnul)]=1.0e-2; 
-          //wd[encode3_hdv1l(p,i,j,hdnul)]=wtemp[encode3_hdv1l(p,i,j,tmp4)];
+        //  wd[encode3_hdv1l(p,i,j,hdnul)]=wtemp[encode3_hdv1l(p,i,j,tmp4)];
 	//wd[encode3_hdv1l(p,i,j,k,hdnul)]=0.01;
 }
      else
         wd[encode3_hdv1l(p,i,j,k,hdnul)]=0;
 
 
-//        wd[encode3_hdv1l(p,i,j,k,hdnul)]=1.0e-2; 
+       // wd[encode3_hdv1l(p,i,j,k,hdnul)]=0.001; 
 
 
    }
@@ -1089,8 +1089,8 @@ int cuhyperdifvisc1l(struct params **p,  struct params **d_p,   real **d_wmod,  
      hyperdifvisc4l_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
      cudaThreadSynchronize();
    
-  hyperdifvisc5l_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
-     cudaThreadSynchronize();
+ // hyperdifvisc5l_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
+ //    cudaThreadSynchronize();
 
     cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
 

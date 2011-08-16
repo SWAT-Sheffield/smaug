@@ -197,7 +197,7 @@ if(iindex==0)
                     p->maxviscoef=(wd[encode3_hdv1r(p,ii[0],ii[1],0,hdnur)]);
                #endif
 
-              /*if(wd[encode3_hdv1r(p,ii[0],ii[1],0,hdnur)]>(p->hdmax))
+             /* if(wd[encode3_hdv1r(p,ii[0],ii[1],0,hdnur)]>(p->hdmax))
                     p->hdmax=(wd[encode3_hdv1r(p,ii[0],ii[1],0,hdnur)]);
 
               p->hdmean=(p->hdmean)+wd[encode3_hdv1r(p,ii[0],ii[1],0,hdnur)];*/
@@ -322,13 +322,13 @@ int shift=order*NVAR*dimp;
      #endif
        // wd[encode3_hdv1r(p,i,j,k,hdnur)]=1.0e-2; 
           //wd[encode3_hdv1r(p,i,j,hdnur)]=wtemp[encode3_hdv1r(p,i,j,tmp4)];
-	//wd[encode3_hdv1r(p,i,j,hdnul+hand)]=0.01;
+	//wd[encode3_hdv1r(p,i,j,k,hdnur)]=0.01;
 }
      else
         wd[encode3_hdv1r(p,i,j,k,hdnur)]=0;
 
 
-//        wd[encode3_hdv1r(p,i,j,k,hdnur)]=1.0e-2; 
+    //    wd[encode3_hdv1r(p,i,j,k,hdnur)]=0.001; 
 
 
    }
@@ -1091,13 +1091,13 @@ int cuhyperdifvisc1r(struct params **p,  struct params **d_p,   real **d_wmod,  
      hyperdifvisc4r_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
      cudaThreadSynchronize();
    
-  hyperdifvisc5r_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
-     cudaThreadSynchronize();
+//  hyperdifvisc5r_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
+//     cudaThreadSynchronize();
 
     cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
 
 
-    //printf("field right hdmean hdmax %d %8.8g %8.8g \n",field, (*p)->hdmean, (*p)->hdmax);
+  //  printf("field right hdmean hdmax %d %8.8g %8.8g \n",field, (*p)->hdmean, (*p)->hdmax);
 }
 
 
