@@ -23,7 +23,7 @@ DEFINE_PRECISION(double)
    //#define NVAR 13
    #define NVAR 10
    //#define NDERV 19
-   #define NDERV 15
+   #define NDERV 17
    #define NTEMP 8
    #define NTEMP1 2
    #define NTEMP2 1
@@ -33,7 +33,7 @@ DEFINE_PRECISION(double)
 #ifdef USE_SAC_3D
    #define NVAR 13
    //#define NVAR 10
-   #define NDERV 17
+   #define NDERV 20
    //#define NDERV 15
    #define NTEMP 8
    #define NTEMP1 2
@@ -194,12 +194,12 @@ struct hydrovars{
 
 #ifdef USE_SAC
 
-	typedef enum dvars {vel1,vel2,flux,hdnur,hdnul,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,ptb,pkb} DEV;
+	typedef enum dvars {vel1,vel2,flux,hdnur,hdnul,nushk1,nushk2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,ptb,pkb} DEV;
 //typedef enum dvars {vel1,vel2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
 #endif
 #ifdef USE_SAC_3D
 
-	typedef enum dvars {vel1,vel2,vel3,flux,hdnur,hdnul,soundspeed,pressuret,pressurek,current1,current2,current3,bdotv,divb,cfast,ptb,pkb} DEV;
+	typedef enum dvars {vel1,vel2,vel3,flux,hdnur,hdnul,nushk1,nushk2,nushk3,soundspeed,pressuret,pressurek,current1,current2,current3,bdotv,divb,cfast,ptb,pkb} DEV;
 //typedef enum dvars {vel1,vel2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
 #endif
 #ifdef ADIABHYDRO

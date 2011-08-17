@@ -19,26 +19,20 @@ int ngk=2;
 
 //Domain definition
 // Define the x domain
-//adiab hydro
-#ifdef ADIABHYDRO
-int ni = 106;
 
-ni=ni+2*ngi;
-real xmax = 1.0;  
-real dx = 0.55*xmax/(ni-4);
-#endif
 
 #ifdef USE_SAC
 //vac ozt
 int ni;
-ni=96;    //OZT tests
+ni=252;    //OZT tests
 //ni=796; //BW tests
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
-real xmax=1.0;
-//real dx = xmax/(ni-4);
-real dx = xmax/(ni);
+real xmax=14.19e18;
+real xmin=-14.19e18;
+real dx = (xmax-xmin)/(ni);
+
 #endif
 #ifdef USE_SAC_3D
 //vac ozt
@@ -56,26 +50,16 @@ real dx = (xmax-xmin)/(ni);
 
 
 // Define the y domain
-//adiab hydro
-#ifdef ADIABHYDRO
-int nj = 106;
-nj=196;
-nj=nj+2*ngj;
-real ymax = 1.0;  
-real dy = 0.55*ymax/(nj-4);
-#endif
+
 
 #ifdef USE_SAC
 //vac ozt
-int nj = 96;  //OZT tests
+int nj = 252;  //OZT tests
 //int nj=2;  //BW test
 nj=nj+2*ngj;
-//nj=512;
-//real ymax = 6.2831853; 
-real ymax = 1.0;   
-//real dy = ymax/(nj-4);
-real dy = ymax/(nj);    
-//nj=41;
+real ymax=14.19e18;
+real ymin=-14.19e18;
+real dy = (ymax-ymin)/(nj);
 #endif
 
 #ifdef USE_SAC_3D
@@ -146,30 +130,23 @@ struct state *d_state;
 struct state *state=(struct state *)malloc(sizeof(struct state));
 
 
-#ifdef ADIABHYDRO
-dt=0.0002985;  //ADIABHYDRO
-#endif
+
 //dt=0.15;
 
 #ifdef USE_SAC
-dt=0.00065;  //OZT test
-//dt=6.5/10000000.0; //BW test
-//dt=0.00000065;  //BW tests
-//dt=0.000000493;  //BW tests
-//dt=0.005;
-//dt=0.000139;
-//dt=3.0/10000000.0; //BW test
+dt=1000000.0;  //bach test
+
 #endif
 
 #ifdef USE_SAC_3D
-dt=3.5e24;;  //BACH3D
+dt=5.0e7;  //BACH3D
 #endif
 int nt=(int)((tmax)/dt);
 //nt=3000;
 //nt=5000;
 //nt=200000;
 //nt=150000;
-nt=100;
+nt=50;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
 //t = [0:dt:tdomain];
@@ -182,13 +159,10 @@ p->n[0]=ni;
 p->n[1]=nj;
 p->ng[0]=ngi;
 p->ng[1]=ngj;
-#ifdef ADIABHYDRO
-p->npgp[0]=1;
-p->npgp[1]=1;
-#else
-p->npgp[0]=1;
-p->npgp[1]=1;
-#endif
+
+p->npgp[0]=2;
+p->npgp[1]=2;
+
 
 p->dt=dt;
 p->dx[0]=dx;
@@ -196,20 +170,13 @@ p->dx[1]=dy;
 
 #ifdef USE_SAC_3D
 p->dx[2]=dz;
+p->npgp[2]=1;
 #endif
 //p->g=g;
 
 
 
-/*constants used for adiabatic hydrodynamics*/
-/*
-p->gamma=2.0;
-p->adiab=0.5;
-*/
-#ifdef ADIABHYDRO
-p->gamma=2.0;
-p->adiab=1.0;
-#else
+
 
 //ozt test
 p->gamma=5.0/3.0;  //OZ test
@@ -217,8 +184,6 @@ p->gamma=5.0/3.0;  //OZ test
 //p->gamma=5.0/3.0;  //BACH3D
 //alfven test
 //p->gamma=1.4;
-
-#endif
 
 
 
@@ -245,8 +210,9 @@ p->cfgsavefrequency=1;
 
 
 p->xmax[0]=xmax;
-
 p->xmax[1]=ymax;
+p->xmin[0]=xmin;
+p->xmin[1]=ymin;
 p->nt=nt;
 p->tmax=tmax;
 

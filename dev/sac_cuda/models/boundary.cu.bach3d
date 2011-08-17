@@ -79,12 +79,16 @@ int shift=order*NVAR*dimp;
 	{
 
  
-#ifdef ADIABHYDRO
-                  bc3_cont_b(wmod+order*NVAR*dimp,p,iia,f);
-#else
-               bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
-               //  bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
-#endif                
+
+              // bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
+              
+     /* #ifdef USE_SAC_3D
+         if(f!=mom1 || f !=mom2 || f != mom3)      
+      #else
+         if(f!=mom1 || f !=mom2 )
+      #endif  */           
+                 bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
+                
 
                 //  bc3_fixed_b(wmod+order*NVAR*dimp,p,iia,f,0.0);
 
@@ -93,7 +97,8 @@ int shift=order*NVAR*dimp;
                }
 }
  __syncthreads();
-
+ 
+/*
 #ifdef ADIABHYDRO
 ;
 #else
@@ -131,6 +136,7 @@ int shift=order*NVAR*dimp;
 }
  __syncthreads();
 #endif
+*/
 
 
 

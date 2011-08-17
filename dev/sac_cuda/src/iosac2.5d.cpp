@@ -291,7 +291,8 @@ if((p->rkon)==0)
    {
     dt=(p->dt);
              p->maxviscoef=0.0;
-
+    
+    //cunushk1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
     for(int dim=0; dim<=(NDIM-1); dim++)
      {
               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
@@ -449,6 +450,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
            if(p->hyperdifmom==1)
            {
              p->maxviscoef=0.0;
+             
+           //cunushk1(&p,&d_p,&d_wmod,&d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
+
 	     for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);

@@ -21,6 +21,7 @@ BASICEXOBJS	=\
 	hyperdifbsourcene1.o\
 	hyperdifrhosource1.o\
 	hyperdifvisc1.o\
+	nushk1.o\
 	hyperdifvisc1l.o\
 	hyperdifvisc1r.o\
 	centdiff1.o\
@@ -147,6 +148,9 @@ sac:$(BASICEXOBJS)
 #	$(NVCC) -o $@  --device-emulation -c $<
 #step.o: step.cu
 #	$(NVCC) -o $@ --ptxas-options=-v -c $<
+nushk1.o: nushk1.cu
+	sed 's/MODID/nshk/g' < gradops.cu > ../include/gradops_nshk.cuh
+	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
 hyperdifvisc1.o: hyperdifvisc1.cu
 	sed 's/MODID/hdv1/g' < gradops.cu > ../include/gradops_hdv1.cuh
 	$(NVCC) -o $@    $(CUDACCFLAGS) -c $<
