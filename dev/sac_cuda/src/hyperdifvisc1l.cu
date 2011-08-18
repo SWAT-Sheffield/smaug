@@ -1088,9 +1088,14 @@ int cuhyperdifvisc1l(struct params **p,  struct params **d_p,   real **d_wmod,  
      cudaThreadSynchronize();
      hyperdifvisc4l_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
      cudaThreadSynchronize();
-   
- // hyperdifvisc5l_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
- //    cudaThreadSynchronize();
+
+
+    //compute max hyperviscosity (only used by dt modifier)
+     if(((*p)->moddton)==1 )
+    {
+      hyperdifvisc5l_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
+     cudaThreadSynchronize();
+    }
 
     cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
 

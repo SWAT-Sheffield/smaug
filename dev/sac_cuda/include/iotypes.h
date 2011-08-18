@@ -142,6 +142,7 @@ struct params {
         int readini;
         real courant;
         real maxviscoef;
+        real dtdiffvisc;
         real chyp[NVAR];
         real chyp3;   
 

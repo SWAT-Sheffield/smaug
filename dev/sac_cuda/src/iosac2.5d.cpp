@@ -292,7 +292,9 @@ if((p->rkon)==0)
     dt=(p->dt);
              p->maxviscoef=0.0;
     
-    //cunushk1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
+    #ifdef USE_SHOCKVISC
+       cunushk1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
+    #endif
     for(int dim=0; dim<=(NDIM-1); dim++)
      {
               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
@@ -450,8 +452,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
            if(p->hyperdifmom==1)
            {
              p->maxviscoef=0.0;
-             
-           //cunushk1(&p,&d_p,&d_wmod,&d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
+         #ifdef USE_SHOCKVISC        
+           cunushk1(&p,&d_p,&d_wmod,&d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
+         #endif
 
 	     for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
@@ -568,7 +571,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
    if(p->moddton==1.0)
    {
         //printf(" courant is %f \n",p->courant);
-        p->courant=0.1;
+        //p->courant=0.1;
         courantmax=0.0;
         for(int dim=0; dim<=(NDIM-1); dim++)
         {
@@ -576,16 +579,18 @@ for(int dim=0; dim<=(NDIM-1); dim++)
              courantmax=cmax[dim]/(p->dx[dim]);
         }
         printf("old dt is %g ",p->dt);
-        if(((p->courant)/courantmax)>1.0e-8)
+        if((((p->courant)/courantmax)>1.0e-8) && dt>(((p->courant)/courantmax)   ))
                p->dt=(p->courant)/courantmax;
 
-        for(int dim=0; dim<=(NDIM-1); dim++)
+
+        cugetdtvisc1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
+        /*for(int dim=0; dim<=(NDIM-1); dim++)
         {
         dtdiffvisc=0.25/(p->maxviscoef/((p->dx[dim])*(p->dx[dim])));
         if(dtdiffvisc>1.0e-8 && (p->dt)>dtdiffvisc )
                                       p->dt=dtdiffvisc;
-        }
-        
+        }*/
+        //cugetdtvisc1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
         printf(" modified dt is %g \n",p->dt);
 
    } 

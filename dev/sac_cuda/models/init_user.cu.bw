@@ -17,7 +17,7 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
   j=ii[1];
              e2=0;
 
-	#ifdef USE_SAC
+
 		    
 
                     rgamm1=1.0/((p->gamma)-1);
@@ -38,7 +38,11 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
                     //e2=0.5*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)]);
                     //e1=(ptot)*rgamm1+(0.5*(w[fencode3_i(p,ii,mom1)]*w[fencode3_i(p,ii,mom1)]+w[fencode3_i(p,ii,mom2)]*w[fencode3_i(p,ii,mom2)])/rrho);
                     e1=(p1)*rgamm1+(0.5*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)]));
-
+            	#ifdef USE_SAC_3D
+ 	                w[fencode3_i(p,ii,mom3)]=0.0;
+    	            w[fencode3_i(p,ii,b3)]=0.0;
+            	    e1+= (0.5*(w[fencode3_i(p,ii,b3)]*w[fencode3_i(p,ii,b3)]));
+            	#endif
                     w[fencode3_i(p,ii,energyb)]=(e1);
                     w[fencode3_i(p,ii,energy)]=w[fencode3_i(p,ii,energyb)];
                     w[fencode3_i(p,ii,energyb)]=0.0;
@@ -59,7 +63,11 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
                     //e1=ptot*rgamm1+(0.5*(w[fencode3_i(p,ii,mom1)]*w[fencode3_i(p,ii,mom1)]+w[fencode3_i(p,ii,mom2)]*w[fencode3_i(p,ii,mom2)])/rrho);
                     //e2=0.5*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)]);
                     e1=(p2)*rgamm1+(0.5*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)]));
-
+            	#ifdef USE_SAC_3D
+ 	                w[fencode3_i(p,ii,mom3)]=0.0;
+    	            w[fencode3_i(p,ii,b3)]=0.0;
+            	    e1+= (0.5*(w[fencode3_i(p,ii,b3)]*w[fencode3_i(p,ii,b3)]));
+            	#endif
                     w[fencode3_i(p,ii,energyb)]=(e1+e2);
                     w[fencode3_i(p,ii,energy)]=w[fencode3_i(p,ii,energyb)];
                     w[fencode3_i(p,ii,energyb)]=0.0;
@@ -72,7 +80,7 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
 
 
 
-       #endif
+
 
 
 

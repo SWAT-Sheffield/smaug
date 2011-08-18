@@ -83,9 +83,9 @@ int shift=order*NVAR*dimp;
   //if(i<((p->n[0])) && j<((p->n[1])))
 	{		               
 
-dwn1[fencode3_hdm1(p,iia,energy)]=(wtemp[fencode3_hdm1(p,iia,tmp6)]*wd[fencode3_hdm1(p,iia,hdnur)]*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp5)]*wd[fencode3_hdm1(p,iia,hdnul)]*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2;
+dwn1[fencode3_hdm1(p,iia,energy)]=(wtemp[fencode3_hdm1(p,iia,tmp6)]*(wd[fencode3_hdm1(p,iia,hdnur)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp5)]*(wd[fencode3_hdm1(p,iia,hdnul)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2;
 
-dwn1[fencode3_hdm1(p,iia,mom1+ii0)]=(wtemp[fencode3_hdm1(p,iia,tmp3)]*wd[fencode3_hdm1(p,iia,hdnur)]*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp2)]*wd[fencode3_hdm1(p,iia,hdnul)]*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2;
+dwn1[fencode3_hdm1(p,iia,mom1+ii0)]=(wtemp[fencode3_hdm1(p,iia,tmp3)]*(wd[fencode3_hdm1(p,iia,hdnur)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp2)]*(wd[fencode3_hdm1(p,iia,hdnul)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2;
 
                               wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,mom1+ii0)];
 

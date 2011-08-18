@@ -94,7 +94,7 @@ int shift=order*NVAR*dimp;
 
 
 
-dwn1[fencode3_hdr1(p,ii,field)]=( wd[fencode3_hdr1(p,ii,hdnur)] * wtemp[fencode3_hdr1(p,ii,tmp1)] - wd[fencode3_hdr1(p,ii,hdnul)] *wtemp[fencode3_hdr1(p,ii,tmp2)]            )/rdx;
+dwn1[fencode3_hdr1(p,ii,field)]=( (wd[fencode3_hdr1(p,ii,hdnur)]+wd[fencode3_hdr1(p,ii,nushk1+dim)]) * wtemp[fencode3_hdr1(p,ii,tmp1)] - (wd[fencode3_hdr1(p,ii,hdnul)]+wd[fencode3_hdr1(p,ii,nushk1+dim)]) *wtemp[fencode3_hdr1(p,ii,tmp2)]            )/rdx;
 
                               wmod[fencode3_hdr1(p,ii,field)+(ordero*NVAR*dimp)]=wmod[fencode3_hdr1(p,ii,field)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdr1(p,ii,field)]; 
   }
