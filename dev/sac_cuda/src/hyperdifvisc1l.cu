@@ -323,12 +323,13 @@ int shift=order*NVAR*dimp;
        // wd[encode3_hdv1l(p,i,j,k,hdnul)]=1.0e-2; 
         //  wd[encode3_hdv1l(p,i,j,hdnul)]=wtemp[encode3_hdv1l(p,i,j,tmp4)];
 	//wd[encode3_hdv1l(p,i,j,k,hdnul)]=0.01;
+//wd[encode3_hdv1l(p,i,j,k,hdnul)]=0.2; 
 }
      else
         wd[encode3_hdv1l(p,i,j,k,hdnul)]=0;
 
 
-       // wd[encode3_hdv1l(p,i,j,k,hdnul)]=0.001; 
+        
 
 
    }
