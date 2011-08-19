@@ -580,7 +580,7 @@ int shift=order*NVAR*dimp;
    { 
  
 	#ifdef USE_SAC_3D
-		   wtemp1[encode3p1_hdv1l(p,i,j,d3)]=fabs(3.0*(wtemp2[encode3p2_hdv1l(p,i,j,k,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-(dim==0),j-(dim==1),k-(dim==2),tmpnui)]) - (wtemp2[encode3p2_hdv1l(p,i+(dim==0),j+(dim==1),k+(dim==2),tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-2*(dim==0),j-2*(dim==1),k-2*(dim==2),tmpnui)]    ));
+		   wtemp1[encode3p1_hdv1l(p,i,j,k,d3)]=fabs(3.0*(wtemp2[encode3p2_hdv1l(p,i,j,k,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-(dim==0),j-(dim==1),k-(dim==2),tmpnui)]) - (wtemp2[encode3p2_hdv1l(p,i+(dim==0),j+(dim==1),k+(dim==2),tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-2*(dim==0),j-2*(dim==1),k-2*(dim==2),tmpnui)]    ));
 		   //wtemp1[encode3_hdv1l(p,i,j,k,d3)]=fabs(3.0*(wtemp2[encode3_hdv1l(p,i,j,k,tmpnui)] - wtemp2[encode3_hdv1l(p,i-(dim==0),j-(dim==1),k-(dim==2),tmpnui)]) - (wtemp2[encode3_hdv1l(p,i+(dim==0),j+(dim==1),k+(dim==2),tmpnui)] - wtemp2[encode3_hdv1l(p,i-2*(dim==0),j-2*(dim==1),k-2*(dim==2),tmpnui)]    ));
 	#else
 		   wtemp1[encode3p1_hdv1l(p,i,j,k,d3)]=fabs(3.0*(wtemp2[encode3p2_hdv1l(p,i,j,k,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-(dim==0),j-(dim==1),k,tmpnui)] ) - (wtemp2[encode3p2_hdv1l(p,i+(dim==0),j+(dim==1),k,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-2*(dim==0),j-2*(dim==1),k,tmpnui)]    ));

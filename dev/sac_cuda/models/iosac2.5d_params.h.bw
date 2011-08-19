@@ -105,7 +105,7 @@ struct state *state=(struct state *)malloc(sizeof(struct state));
 
 //dt=0.15;
 
-#ifdef USE_SAC
+//#ifdef USE_SAC
 //dt=0.00065;  //OZT test
 //dt=6.5/10000000.0; //BW test
 //dt=0.00000065;  //BW tests
@@ -113,11 +113,9 @@ dt=0.000000493;  //BW tests
 //dt=0.005;
 //dt=0.000139;
 //dt=3.0/10000000.0; //BW test
-#endif
+//#endif
 
-#ifdef USE_SAC_3D
-dt=3.5e24;;  //BACH3D
-#endif
+
 int nt=(int)((tmax)/dt);
 //nt=3000;
 //nt=5000;
@@ -191,7 +189,7 @@ p->g[2]=0.0;
 p->cmax=0.02;
 
 p->rkon=0.0;
-p->sodifon=1.0;
+p->sodifon=0.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;

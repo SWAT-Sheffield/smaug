@@ -288,11 +288,13 @@ __global__ void computepbg_parallel(struct params *p,   real *wmod, real *wd, in
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
   int ii[NDIM];
-  int dimp=((p->n[0]))*((p->n[1]));
+  int dimp;
  #ifdef USE_SAC_3D
    int kp,kpg;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#else
+   dimp=((p->n[0]))*((p->n[1]));
 #endif  
    int ip,jp,ipg,jpg;
 
@@ -493,7 +495,7 @@ if(iindex==0)
     for(ii[0]=0;ii[0]<((p->n[0]));ii[0]++)
       for(ii[1]=0;ii[1]<((p->n[1]));ii[1]++)
      #ifdef USE_SAC_3D
-        for(ii[2]>1;ii[2]<((p->n[2])-2);ii[2]++)
+        for(ii[2]=0;ii[2]<((p->n[2]));ii[2]++)
      #endif
 	{ 
                computecmax3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);

@@ -58,10 +58,10 @@ CCFLAGS = -DUSE_SAC -DD1D
 
 ##all:	IoSimTestSimple
 
-bach3d:
-	cp ../models/iosac2.5d_params.h.bach3d ../include/iosac2.5dparams.h
-	cp ../models/init_user.cu.bach3d ../src/init_user.cu
-	cp ../models/boundary.cu.bach3d ../src/boundary.cu
+bach:
+	cp ../models/iosac2.5d_params.h.bach ../include/iosac2.5dparams.h
+	cp ../models/init_user.cu.bach ../src/init_user.cu
+	cp ../models/boundary.cu.bach ../src/boundary.cu
 	cp ../models/usersource.cu.default ../src/usersource.cu
 
 

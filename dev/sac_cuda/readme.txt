@@ -82,3 +82,41 @@ Guidelines for Users Developing Customised Models
 
 Help Support
 
+
+
+========================================
+
+* Please make sure your PATH includes /usr/local/cuda/bin
+* Please make sure your LD_LIBRARY_PATH
+*   for 32-bit Linux distributions includes /usr/local/cuda/lib
+*   for 64-bit Linux distributions includes /usr/local/cuda/lib64:/usr/local/cuda/lib
+* OR
+*   for 32-bit Linux distributions add /usr/local/cuda/lib
+*   for 64-bit Linux distributions add /usr/local/cuda/lib64 and /usr/local/cuda/lib
+* to /etc/ld.so.conf and run ldconfig as root
+
+* Please read the release notes in /usr/local/cuda/doc/
+
+* To uninstall CUDA, delete /usr/local/cuda
+* Installation Complete
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -626,7 +626,7 @@ int shift=order*NVAR*dimp;
    { 
 
      #ifdef USE_SAC_3D
-           wtemp1[encode3p1_hdv1l(p,i+1,j+1,k+1,d1)]=fabs((wtemp2[encode3p2_hdv1l(p,i+1,j+1,k+1,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-(dim==0)+1,j-(dim==1)+1,k-(dim==2)+1,tmpnui)] ));
+           wtemp1[encode3p1_hdv1r(p,i+1,j+1,k+1,d1)]=fabs((wtemp2[encode3p2_hdv1r(p,i+1,j+1,k+1,tmpnui)] - wtemp2[encode3p2_hdv1r(p,i-(dim==0)+1,j-(dim==1)+1,k-(dim==2)+1,tmpnui)] ));
            
      #else
            //wtemp1[encode3p1_hdv1r(p,i,j,k,d1)]=fabs((wtemp2[encode3p2_hdv1r(p,i+(dim==0),j+(dim==1),k,tmpnui)] - wtemp2[encode3p2_hdv1r(p,i,j,k,tmpnui)] ));
