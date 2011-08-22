@@ -359,7 +359,7 @@ int shift=order*NVAR*dimp;
   {
 
      wtemp[fencode3_hdmne1(p,iia,tmp6)]=wtemp[fencode3_hdmne1(p,iia,tmp5)]*((wd[fencode3_hdmne1(p,iia,hdnur)]+wd[fencode3_hdmne1(p,iia,hdnul)]+2.0*wd[fencode3_hdmne1(p,iia,nushk1+dim)]))/4.0;
-     wtemp[fencode3_hdmne1(p,iia,tmp6)]=1.0;
+     //wtemp[fencode3_hdmne1(p,iia,tmp6)]=1.0;
 
 
 

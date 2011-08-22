@@ -471,9 +471,9 @@ wd[fencode3_MODID(p,ii,soundspeed)]=sqrt(wd[fencode3_MODID(p,ii,soundspeed)]);
 
 #elif defined(USE_SAC_3D)
 
+
 pk=((p->gamma)-1)*(wmod[fencode3_MODID(p,ii,energy)]
 - 0.5*((wmod[fencode3_MODID(p,ii,mom1)]*wmod[fencode3_MODID(p,ii,mom1)]+wmod[fencode3_MODID(p,ii,mom2)]*wmod[fencode3_MODID(p,ii,mom2)]+wmod[fencode3_MODID(p,ii,mom3)]*wmod[fencode3_MODID(p,ii,mom3)])/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]))-0.5*(wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]+wmod[fencode3_MODID(p,ii,b3)]*wmod[fencode3_MODID(p,ii,b3)]) -(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3)]) );
-
 
 wd[fencode3_MODID(p,ii,soundspeed)]=(((p->gamma))
 *(pk+(((p->gamma))-1)*(
@@ -481,7 +481,7 @@ wmod[fencode3_MODID(p,ii,energyb)] -0.5*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fen
 /(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
 
 
-wd[fencode3_MODID(p,ii,cfast)]=( ((wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]+wmod[fencode3_MODID(p,ii,b3)]*wmod[fencode3_MODID(p,ii,b3)]) + (wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3b)]) +2.0*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3)])+(wd[fencode3_MODID(p,ii,soundspeed)]))/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]));
+wd[fencode3_MODID(p,ii,cfast)]=( ((wmod[fencode3_MODID(p,ii,b1)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2)]*wmod[fencode3_MODID(p,ii,b2)]+wmod[fencode3_MODID(p,ii,b3)]*wmod[fencode3_MODID(p,ii,b3)]) + (wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1b)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2b)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3b)]) +2.0*(wmod[fencode3_MODID(p,ii,b1b)]*wmod[fencode3_MODID(p,ii,b1)]+wmod[fencode3_MODID(p,ii,b2b)]*wmod[fencode3_MODID(p,ii,b2)]+wmod[fencode3_MODID(p,ii,b3b)]*wmod[fencode3_MODID(p,ii,b3)]))/(wmod[fencode3_MODID(p,ii,rho)]+wmod[fencode3_MODID(p,ii,rhob)]))+(wd[fencode3_MODID(p,ii,soundspeed)]);
 
 cfasti=0.5*(
 wd[fencode3_MODID(p,ii,cfast)]

@@ -1312,7 +1312,7 @@ k=0;
                 if((k==0 || k==1) && dir==2)              
                     wt[encode3_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,j,4-k,f)];             
                 else if((( k==((p->n[2])-1)   ))  && dir==2)               
-                    wt[encode3_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,j-4,k,f)];
+                    wt[encode3_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,j,k-4,f)];
                 else if(((  k==((p->n[2])-2) ))  && dir==2)               
                     wt[encode3_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,j,k-2,f)];
 

@@ -107,7 +107,7 @@ int ni=p->n[0];
             { 
 		         
                           for(ord=0;ord<(2+3*(p->rkon==1));ord++)
-                              wmod[fencode3_i(p,ii,f)+ord*NVAR*(p->n[0])*(p->n[1])]=0;
+                              wmod[fencode3_i(p,ii,f)+ord*NVAR*dimp]=0;
 	    }
 
 
@@ -135,13 +135,14 @@ int ni=p->n[0];
      #endif
 
      #ifdef USE_SAC_3D
-       if((p->readini==0) && ii[0]>1 && ii[1]>1  && ii[2]>1 && ii[0]<(p->n[0])-1 && ii[1]<(p->n[1])-1 && ii[2]<(p->n[2])-1)
+      // if((p->readini==0) && ii[0]>1 && ii[1]>1  && ii[2]>1 && ii[0]<(p->n[0])-1 && ii[1]<(p->n[1])-1 && ii[2]<(p->n[2])-1)
+         if((p->readini==0) && ii[0]<(p->n[0]) && ii[1]<(p->n[1])   && ii[2]<(p->n[2])) 
      #else
       // if((p->readini==0) && ii[0]>2 && ii[1]>2 && ii[0]<(p->n[0])-3 && ii[1]<(p->n[1])-3)  //this form for OZT test???? 
      
      
-     if((p->readini==0) && ii[0]>1 && ii[1]>1  && ii[0]<(p->n[0])-1 && ii[1]<(p->n[1])-1)  //this form for OZT test???? 
-      //  if((p->readini==0) && ii[0]<(p->n[0]) && ii[1]<(p->n[1]))  //this form for BW test  //still issue here
+     //if((p->readini==0) && ii[0]>1 && ii[1]>1  && ii[0]<(p->n[0])-1 && ii[1]<(p->n[1])-1)  //this form for OZT test???? 
+        if((p->readini==0) && ii[0]<(p->n[0]) && ii[1]<(p->n[1]))  //this form for BW test  //still issue here
      #endif
 	{
 

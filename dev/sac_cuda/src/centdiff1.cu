@@ -749,14 +749,13 @@ __global__ void centdiff1b_parallel(struct params *p, struct state *s, real *w, 
                          break;
                          case 2:
 
- 			     #ifdef USE_SAC
-				   if(ii[1]>1 && ii[0] <(ni) && ii[1]<(nj-2) )
-			     #endif
+ 
 			     #ifdef USE_SAC_3D
 				   if(ii[0]>1 &&  ii[0]<(ni-2)  && ii[1]>1 &&  ii[1]<(nj-2) && ii[2] <(nk) )
+                               wmod[fencode3_cd1(p,ii,f)+(ordero*NVAR*dimp)]=wmod[fencode3_cd1(p,ii,f)+(ordero*NVAR*dimp)]-dt*dwn1[fencode3_cd1(p,ii,f)];
 			     #endif                         
                          //if(i>1 &&  i<(ni-2) && j<(nj))
-                              wmod[fencode3_cd1(p,ii,f)+(ordero*NVAR*dimp)]=wmod[fencode3_cd1(p,ii,f)+(ordero*NVAR*dimp)]-dt*dwn1[fencode3_cd1(p,ii,f)];
+                             
                          break;
                         }
 
