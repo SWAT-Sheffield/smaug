@@ -182,6 +182,10 @@ if (ii eq 1) then begin
 ;stop
 tvframe,w(*,*,1)/(w(*,*,7)+w(*,*,0)), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=2.0  
 tvframe,w(*,*,2)/(w(*,*,7)+w(*,*,0)), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=2.0 
+;tvframe,w(200:220,120:140,1)/(w(200:220,120:140,7)+w(200:220,120:140,0)), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=2.0  
+;tvframe,w(200:220,120:140,2)/(w(200:220,120:140,7)+w(200:220,120:140,0)), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=2.0 
+
+
 ;tvframe,w(*,*,1), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=2.0  
 ;tvframe,w(*,*,2), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=2.0 
 tvframe,w(*,*,3)+w(*,*,6),/bar,/sample, title='e', xtitle='x', ytitle='z', charsize=2.0                                                                                                   

@@ -61,15 +61,15 @@ real transportflux (real *dw, real *wd, real *w, struct params *p,int *ii,int fi
  // real ddc1;
   real ddcx=0,ddcy=0;
 
-   real flux=0;
+   real fluxt=0;
 
    //transport flux
    //this will work without the switch as follows
         #if defined USE_SAC || defined USE_SAC_3D
-     flux= w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]);
+     fluxt= w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]);
 //flux= wd[fencode3_cd1(p,ii,vel1+direction)]*w[fencode3_cd1(p,ii,field)];
         #else
-     flux= w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/w[fencode3_cd1(p,ii,rho)];
+     fluxt= w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/w[fencode3_cd1(p,ii,rho)];
 //flux= wd[fencode3_cd1(p,ii,vel1+direction)]*w[fencode3_cd1(p,ii,field)];
         #endif
 
@@ -133,11 +133,11 @@ real fluxmom1 (real *dw, real *wd, real *w, struct params *p,int *ii,int field, 
  // real ddc1;
   real ddcx=0,ddcy=0;
 
-   real flux=0;
+   real fluxt=0;
 
 
          #if defined USE_SAC || defined USE_SAC_3D
-     		flux= -(w[fencode3_cd1(p,ii,field+(NDIM+1))]*w[fencode3_cd1(p,ii,b1b+direction)]+w[fencode3_cd1(p,ii,field+(2*NDIM+3))]*w[fencode3_cd1(p,ii,b1+direction)])-w[fencode3_cd1(p,ii,field+(NDIM+1))]*w[fencode3_cd1(p,ii,b1+direction)];
+     		fluxt= -(w[fencode3_cd1(p,ii,field+(NDIM+1))]*w[fencode3_cd1(p,ii,b1b+direction)]+w[fencode3_cd1(p,ii,field+(2*NDIM+3))]*w[fencode3_cd1(p,ii,b1+direction)])-w[fencode3_cd1(p,ii,field+(NDIM+1))]*w[fencode3_cd1(p,ii,b1+direction)];
         #endif
 
 
@@ -169,7 +169,7 @@ real fluxmom1 (real *dw, real *wd, real *w, struct params *p,int *ii,int field, 
 
 
 
-  return flux;
+  return fluxt;
 
 
   //return ( ddc1-ddc2);

@@ -402,8 +402,9 @@ case a of
  4:indexss='0'+indexs                                               
 endcase   
 
-;image_p = TVRD_24()
+image_p = TVRD_24()
 ;write_png,'/home/mikeg/proj/sac2.5d-cuda/'+indexss+'.png',image_p, red,green, blue
+write_png,'all'+indexss+'.png',image_p, red,green, blue
 ;stop
 ;endwhile
 close,1

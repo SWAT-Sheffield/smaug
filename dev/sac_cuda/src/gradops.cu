@@ -1747,4 +1747,8 @@ k=0;
 }
 
 
-
+__device__ __host__
+real sacdabs_MODID(real val) {
+   //return(fabs(val));
+   return sqrt(val*val);
+}

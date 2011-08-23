@@ -82,11 +82,11 @@ int shift=order*NVAR*dimp;
 
               // bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
               
-     /* #ifdef USE_SAC_3D
-         if(f!=mom1 || f !=mom2 || f != mom3)      
+     #ifdef USE_SAC_3D
+         ;//if((f!=mom1 || f !=mom2 || f != mom3) && (p->it)>0)      
       #else
-         if(f!=mom1 || f !=mom2 )
-      #endif  */           
+         ;//if(f!=mom1 || f !=mom2 )
+      #endif             
                  bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
                 
 

@@ -85,7 +85,8 @@ close,2
 
 ;openr,1,'/home/mikeg/proj/sac2.5d-cuda/test_OT.out'
 ;directory='/home/mikeg/proj/sac2.5d-cuda/out_OT_withhyper/'
-directory='../out/'
+;directory='../out/'
+directory='/home/mike/temp/swat/out/'
 ;pic=999
 name='zeroOT_'
 ;ndim=2
@@ -117,27 +118,23 @@ print, 'tuta1'
 xout=dblarr(3)
 yout=dblarr(3)
 
-
+llt=63 ; selected layer
 n1=nx(0)
 n2=nx(1)
 n3=nx(2)
 x=dblarr(n1,n2,n3,ndim)
 
 wi=dblarr(n1,n2,n3)
-;wt=dblarr(n1,n2)
-wt=dblarr(n2,n3)
-;w=dblarr(n1,n2,nw)
-w=dblarr(n2,n3,nw)
+wt=dblarr(n1,n2)
+w=dblarr(n1,n2,nw)
 
 readu,1,x
 for iw=0,nw-1 do begin
  print,iw
  readu,1,wi
  ;for model oriented along y axis
- ;w(*,*,*,iw)=rotate(wi,3)
- ;wt=reform(wi(*,*,3))
- wt=reform(wi(3,*,*))
-
+ ;w(*,*,*,iw)=rotate(wi,lt)
+ wt=reform(wi(*,*,15))
  ;w(*,*,iw)=rotate(wt,1)  ;n.b. only 1 or 2 dimensions allowed for rotation
  w(*,*,iw)=wt
 endfor
@@ -183,47 +180,28 @@ zend=799
 
 if (ii eq 1) then begin
 
-t=3
 
 
+tvframe,w(*,*,1)/(w(*,*,8)+w(*,*,0)), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=2.0  
+tvframe,w(*,*,2)/(w(*,*,8)+w(*,*,0)), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=2.0 
+;tvframe,w(200:220,120:140,1)/(w(200:220,120:140,7)+w(200:220,120:140,0)), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=2.0  
+;tvframe,w(200:220,120:140,2)/(w(200:220,120:140,7)+w(200:220,120:140,0)), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=2.0 
 
 
+;tvframe,w(*,*,1), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=2.0  
+;tvframe,w(*,*,2), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=2.0 
+tvframe,w(*,*,4)+w(*,*,9),/bar,/sample, title='e', xtitle='x', ytitle='z', charsize=2.0                                                                                                   
 
+;;tvframe,w(*,*,9),/bar,/sample, title='eb',  xtitle='x', ytitle='z', charsize=2.0
+tvframe,w(*,*,8)+w(*,*,0), /bar,title='rho',/sample, xtitle='x', ytitle='y',charsize=2.0
+;tvframe,w(*,*,0),/bar,/sample, title='rho',  xtitle='x', ytitle='z', charsize=2.0
 
-
-
-
-
-;plot, w(t,200:300,5), title='b2', charsize=2.0
-;oplot, w(*,t,5), psym=4
-
-
-;oplot, w(*,t,0), psym=4
-plot, w(t,*,2)/(w(t,*,0)+w(t,*,8)), title='v2', charsize=2.0
-;plot, w(t,200:300,2)/(w(t,200:300,0)+w(t,200:300,8)), title='v2', charsize=2.0
-plot, w(t,*,0), title='rho', charsize=2.0
-
-;plot, w(t,200:300,1)/(w(t,200:300,0)+w(t,200:300,7)), title='v1', charsize=2.0
-;oplot, w(*,t,1)/(w(*,t,0)+w(*,t,8)), psym=4
-;plot, w(t,200:300,3)/(w(t,200:300,0)+w(t,200:300,9)), title='v3', charsize=2.0
-plot, w(t,*,3)/(w(t,*,0)+w(t,*,8)), title='v3', charsize=2.0
-;oplot, w(*,t,2)/(w(*,t,0)+w(*,t,8)), psym=4
-
-
-plot, w(t,*,4), title='e', charsize=2.0
-;plot, w(t,200:300,4), title='e', charsize=2.0
-;oplot, w(t,*,3), psym=4
-
-plot, w(t,*,6), title='b2', charsize=2.0
-;plot, w(t,200:300,6), title='b2', charsize=2.0
-;plot, w(*,t,6)*w(*,t,2)/(w(*,t,0)+w(*,t,8)), title='eb', charsize=2.0
-;oplot, w(*,t,4), psym=4
-;plot, p(*,t,0), title='p', charsize=2.0
-;oplot, p(*,t,0), psym=4
-plot, w(t,*,7), title='b3', charsize=2.0
-;plot, w(t,200:300,7), title='b3', charsize=2.0
-
-
+;tvframe,w(*,*,5),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
+;tvframe,w(*,*,6),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
+tvframe,w(*,*,5)+w(*,*,10),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
+tvframe,w(*,*,6)+w(*,*,11),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
+;tvframe,w(*,*,8),/bar,/sample, title='bg_z',  xtitle='x', ytitle='z', charsize=2.0
+;tvframe,w(*,*,9),/bar,/sample, title='bg_x',  xtitle='x', ytitle='z', charsize=2.0
 
 
 
@@ -242,8 +220,12 @@ image_p = TVRD_24()
 ;write_png,'/data/ap1vf/png/3D/tube/test_200_puls/all/'+indexss+'.png',image_p, red,green, blue
 
 
-np=np+1
 
+np=np+1
+indexs=strtrim(nn,2)
+
+ ss='time ='+strTrim(string(time),1)+' it ='+strTrim(string(it),1)+'  nn = '+strTrim(string(nn),1)
+ xyouts,50,2, ss, /device, color=200
 ;goto, jump10
 wset,1
 

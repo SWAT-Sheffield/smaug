@@ -44,17 +44,17 @@ int is=1;
 #endif
  #ifdef USE_SAC_3D
    if(  (dir == 0) && (i==(p->n[0])-1)   && j>0   && j<(p->n[1])      && k>0   && k<(p->n[2])     )
-         wt[encode3p2_hdv1l(p,i+2,j,k,f)]=wt[encode3p2_hdv1l(p,(p->n[0])-5,j,k,f)];
+         wt[encode3p2_hdv1l(p,i+2,j+is,k+is,f)]=wt[encode3p2_hdv1l(p,(p->n[0])-5,j+is,k+is,f)];
    else if((dir == 1) && (j==(p->n[1])-1)    && i>0   && i<((p->n[0])) && k>0   && k<((p->n[2]))  )
-       wt[encode3p2_hdv1l(p,i,j+2,k,f)]=wt[encode3p2_hdv1l(p,i,(p->n[1])-5,k,f)];
+       wt[encode3p2_hdv1l(p,i+is,j+2,k+is,f)]=wt[encode3p2_hdv1l(p,i+is,(p->n[1])-5,k+is,f)];
    else if((dir == 2) && (k==(p->n[2])-1)    && i>0   && i<((p->n[0])) && j>0   && j<((p->n[1]))  )
-       wt[encode3p2_hdv1l(p,i,j,k+2,f)]=wt[encode3p2_hdv1l(p,i,j,(p->n[2])-5,f)];
+       wt[encode3p2_hdv1l(p,i+is,j+is,k+2,f)]=wt[encode3p2_hdv1l(p,i+is,j+is,(p->n[2])-5,f)];
   else if((dir == 0) && (i==0)    && j>0   && j<((p->n[1])) && k>0   && k<((p->n[2]))  )
-       wt[encode3p2_hdv1l(p,0,j,k,f)]=wt[encode3p2_hdv1l(p,6,j,k,f)];
+       wt[encode3p2_hdv1l(p,0,j+is,k+is,f)]=wt[encode3p2_hdv1l(p,6,j+is,k+is,f)];
    else if((dir == 1) && (j==0)    && i>0   && i<((p->n[0]))  && k>0   && k<((p->n[2]))  )
-       wt[encode3p2_hdv1l(p,i,0,k,f)]=wt[encode3p2_hdv1l(p,i,6,k,f)];
+       wt[encode3p2_hdv1l(p,i+is,0,k+is,f)]=wt[encode3p2_hdv1l(p,i+is,6,k+is,f)];
    else if((dir == 2) && (k==0)    && i>0   && i<((p->n[0])) && j>0   && j<((p->n[1]))   )
-       wt[encode3p2_hdv1l(p,i,j,0,f)]=wt[encode3p2_hdv1l(p,i,j,6,f)];
+       wt[encode3p2_hdv1l(p,i+is,j+is,0,f)]=wt[encode3p2_hdv1l(p,i+is,j+is,6,f)];
 #endif
 
 
@@ -320,10 +320,10 @@ int shift=order*NVAR*dimp;
      #else
 	wd[encode3_hdv1l(p,i,j,k,hdnul)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp[field])*wtemp[encode3_hdv1l(p,i,j,k,tmp4)]/wtemp[encode3_hdv1l(p,i,j,k,tmp5)];
      #endif
-       // wd[encode3_hdv1l(p,i,j,k,hdnul)]=1.0e-2; 
+      //  wd[encode3_hdv1l(p,i,j,k,hdnul)]=1.0e-1; 
         //  wd[encode3_hdv1l(p,i,j,hdnul)]=wtemp[encode3_hdv1l(p,i,j,tmp4)];
 	//wd[encode3_hdv1l(p,i,j,k,hdnul)]=0.01;
-//wd[encode3_hdv1l(p,i,j,k,hdnul)]=0.2; 
+        //wd[encode3_hdv1l(p,i,j,k,hdnul)]=0.0005; 
 }
      else
         wd[encode3_hdv1l(p,i,j,k,hdnul)]=0;
@@ -461,7 +461,7 @@ int shift=order*NVAR*dimp;
      #ifdef USE_SAC_3D
          for(is=-2*(dim==0); is<=2*(dim==0); is++)
                 for(js=-2*(dim==1); js<=2*(dim==1); js++)
-                   for(ks=-(dim==2); ks<=(dim==2); ks++)
+                   for(ks=-2*(dim==2); ks<=2*(dim==2); ks++)
                 {
                    if(wtemp1[encode3p1_hdv1l(p,i+1+is,j+1+js,k+1+ks,d1)]>maxt2)
                         maxt2=wtemp1[encode3p1_hdv1l(p,i+1+is,j+1+js,k+1+ks,d1)];
@@ -580,10 +580,10 @@ int shift=order*NVAR*dimp;
    { 
  
 	#ifdef USE_SAC_3D
-		   wtemp1[encode3p1_hdv1l(p,i,j,k,d3)]=fabs(3.0*(wtemp2[encode3p2_hdv1l(p,i,j,k,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-(dim==0),j-(dim==1),k-(dim==2),tmpnui)]) - (wtemp2[encode3p2_hdv1l(p,i+(dim==0),j+(dim==1),k+(dim==2),tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-2*(dim==0),j-2*(dim==1),k-2*(dim==2),tmpnui)]    ));
-		   //wtemp1[encode3_hdv1l(p,i,j,k,d3)]=fabs(3.0*(wtemp2[encode3_hdv1l(p,i,j,k,tmpnui)] - wtemp2[encode3_hdv1l(p,i-(dim==0),j-(dim==1),k-(dim==2),tmpnui)]) - (wtemp2[encode3_hdv1l(p,i+(dim==0),j+(dim==1),k+(dim==2),tmpnui)] - wtemp2[encode3_hdv1l(p,i-2*(dim==0),j-2*(dim==1),k-2*(dim==2),tmpnui)]    ));
+		   wtemp1[encode3p1_hdv1l(p,i,j,k,d3)]=sacdabs_hdv1l(3.0*(wtemp2[encode3p2_hdv1l(p,i,j,k,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-(dim==0),j-(dim==1),k-(dim==2),tmpnui)]) - (wtemp2[encode3p2_hdv1l(p,i+(dim==0),j+(dim==1),k+(dim==2),tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-2*(dim==0),j-2*(dim==1),k-2*(dim==2),tmpnui)]    ));
+		   //wtemp1[encode3_hdv1l(p,i,j,k,d3)]=sacdabs_hdv1l(3.0*(wtemp2[encode3_hdv1l(p,i,j,k,tmpnui)] - wtemp2[encode3_hdv1l(p,i-(dim==0),j-(dim==1),k-(dim==2),tmpnui)]) - (wtemp2[encode3_hdv1l(p,i+(dim==0),j+(dim==1),k+(dim==2),tmpnui)] - wtemp2[encode3_hdv1l(p,i-2*(dim==0),j-2*(dim==1),k-2*(dim==2),tmpnui)]    ));
 	#else
-		   wtemp1[encode3p1_hdv1l(p,i,j,k,d3)]=fabs(3.0*(wtemp2[encode3p2_hdv1l(p,i,j,k,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-(dim==0),j-(dim==1),k,tmpnui)] ) - (wtemp2[encode3p2_hdv1l(p,i+(dim==0),j+(dim==1),k,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-2*(dim==0),j-2*(dim==1),k,tmpnui)]    ));
+		   wtemp1[encode3p1_hdv1l(p,i,j,k,d3)]=sacdabs_hdv1l(3.0*(wtemp2[encode3p2_hdv1l(p,i,j,k,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-(dim==0),j-(dim==1),k,tmpnui)] ) - (wtemp2[encode3p2_hdv1l(p,i+(dim==0),j+(dim==1),k,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-2*(dim==0),j-2*(dim==1),k,tmpnui)]    ));
 	#endif
      
    }
@@ -625,10 +625,10 @@ int shift=order*NVAR*dimp;
    { 
 
      #ifdef USE_SAC_3D
-           wtemp1[encode3p1_hdv1l(p,i+1,j+1,k+1,d1)]=fabs((wtemp2[encode3p2_hdv1l(p,i+1,j+1,k+1,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-(dim==0)+1,j-(dim==1)+1,k-(dim==2)+1,tmpnui)] ));
+           wtemp1[encode3p1_hdv1l(p,i+1,j+1,k+1,d1)]=sacdabs_hdv1l((wtemp2[encode3p2_hdv1l(p,i+1,j+1,k+1,tmpnui)] - wtemp2[encode3p2_hdv1l(p,i-(dim==0)+1,j-(dim==1)+1,k-(dim==2)+1,tmpnui)] ));
      #else
-           //wtemp1[encode3p1_hdv1l(p,i,j,k,d1)]=fabs(wtemp2[encode3p2_hdv1l(p,i,j,k,tmpnui)]-(wtemp2[encode3p2_hdv1l(p,i-(dim==0),j-(dim==1),k,tmpnui)]   ));
-           wtemp1[encode3p1_hdv1l(p,i+1,j+1,k,d1)]=fabs(wtemp2[encode3p2_hdv1l(p,i+1,j+1,k,tmpnui)]-(wtemp2[encode3p2_hdv1l(p,i-(dim==0)+1,j-(dim==1)+1,k,tmpnui)]   ));
+           //wtemp1[encode3p1_hdv1l(p,i,j,k,d1)]=sacdabs_hdv1l(wtemp2[encode3p2_hdv1l(p,i,j,k,tmpnui)]-(wtemp2[encode3p2_hdv1l(p,i-(dim==0),j-(dim==1),k,tmpnui)]   ));
+           wtemp1[encode3p1_hdv1l(p,i+1,j+1,k,d1)]=sacdabs_hdv1l(wtemp2[encode3p2_hdv1l(p,i+1,j+1,k,tmpnui)]-(wtemp2[encode3p2_hdv1l(p,i-(dim==0)+1,j-(dim==1)+1,k,tmpnui)]   ));
      #endif
      
    }
@@ -751,7 +751,7 @@ int shift=order*NVAR*dimp;
    //if(i<((p->n[0])) && j<((p->n[1])))
    {
 	
-     ;//   bc_hyperdifl(wtemp2, p,ii, tmpnui,dim);
+        bc_hyperdifl(wtemp2, p,ii, tmpnui,dim);
 
    }
 
@@ -915,6 +915,9 @@ int shift=order*NVAR*dimp;
 
       }
       #endif
+
+    
+
      #ifdef USE_SAC_3D
       if(j==((p->n[1])-1)  && k==((p->n[2])-1))
       {

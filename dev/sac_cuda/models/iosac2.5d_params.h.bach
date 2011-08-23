@@ -1,7 +1,6 @@
 
 
 
-
 real g  = 9.81;
 real u0 = 0;                               
 real v0 = 0;
@@ -21,69 +20,45 @@ int ngk=2;
 // Define the x domain
 
 
-#ifdef USE_SAC
-//vac ozt
+//#ifdef USE_SAC
 int ni;
-ni=252;    //OZT tests
-//ni=796; //BW tests
+ni=124; //BW tests
+//ni=252;//2d model
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
+
 real xmax=14.19e18;
 real xmin=-14.19e18;
 real dx = (xmax-xmin)/(ni);
+//#endif
 
-#endif
-#ifdef USE_SAC_3D
-//vac ozt
-int ni;
-ni=28;    //BACH3D tests
-
-ni=ni+2*ngi;
-//ni=512;
-//real xmax = 6.2831853;  
-real xmax=14.19e18;
-real xmin=-14.19e18;
-//real dx = xmax/(ni-4);
-real dx = (xmax-xmin)/(ni);
-#endif
 
 
 // Define the y domain
 
 
-#ifdef USE_SAC
-//vac ozt
-int nj = 252;  //OZT tests
-//int nj=2;  //BW test
-nj=nj+2*ngj;
-real ymax=14.19e18;
-real ymin=-14.19e18;
-real dy = (ymax-ymin)/(nj);
-#endif
 
-#ifdef USE_SAC_3D
-//vac bach3d
-int nj;
-nj=28;    //BACH3D tests
-
+int nj=124;  //BW test
+//nj=252;//2d model
 nj=nj+2*ngj;
-//ni=512;
-//real xmax = 6.2831853;  
+//nj=512;
+//real ymax = 6.2831853; 
 real ymax=14.19e18;
 real ymin=-14.19e18;
 //real dx = xmax/(ni-4);
-real dy = (ymax-ymin)/(nj);
-#endif                   
+real dy = (ymax-ymin)/(nj);  
+//nj=41;
+
+
+               
 
 #ifdef USE_SAC_3D
-//vac bach3d
+
 int nk;
-nk=28;    //BACH3D tests
+nk=124;    //BW tests
 
 nk=nk+2*ngk;
-//ni=512;
-//real xmax = 6.2831853;  
 real zmax=14.19e18;
 real zmin=-14.19e18;
 //real dx = xmax/(ni-4);
@@ -129,24 +104,35 @@ struct params *p=(struct params *)malloc(sizeof(struct params));
 struct state *d_state;
 struct state *state=(struct state *)malloc(sizeof(struct state));
 
-
-
-//dt=0.15;
-
 #ifdef USE_SAC
 dt=1000000.0;  //bach test
 
 #endif
 
 #ifdef USE_SAC_3D
-dt=5.0e7;  //BACH3D
+dt=5.0e6;  //BACH3D
 #endif
+
+
+/*//dt=0.15;
+
+//#ifdef USE_SAC
+//dt=0.00065;  //OZT test
+//dt=6.5/10000000.0; //BW test
+//dt=0.00000065;  //BW tests
+dt=0.000000493;  //BW tests
+//dt=0.005;
+//dt=0.000139;
+//dt=3.0/10000000.0; //BW test
+//#endif*/
+
+
 int nt=(int)((tmax)/dt);
 //nt=3000;
 //nt=5000;
 //nt=200000;
-//nt=150000;
-nt=50;
+nt=2;
+//nt=100;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
 //t = [0:dt:tdomain];
@@ -160,9 +146,14 @@ p->n[1]=nj;
 p->ng[0]=ngi;
 p->ng[1]=ngj;
 
-p->npgp[0]=2;
-p->npgp[1]=2;
+p->npgp[0]=4;
+p->npgp[1]=4;
 
+#ifdef USE_SAC_3D
+p->n[2]=nk;
+p->ng[2]=ngk;
+p->npgp[2]=4;
+#endif
 
 p->dt=dt;
 p->dx[0]=dx;
@@ -170,20 +161,29 @@ p->dx[1]=dy;
 
 #ifdef USE_SAC_3D
 p->dx[2]=dz;
-p->npgp[2]=1;
 #endif
 //p->g=g;
 
 
 
-
+/*constants used for adiabatic hydrodynamics*/
+/*
+p->gamma=2.0;
+p->adiab=0.5;
+*/
+#ifdef ADIABHYDRO
+p->gamma=2.0;
+p->adiab=1.0;
+#else
 
 //ozt test
-p->gamma=5.0/3.0;  //OZ test
-//p->gamma=2.0;  //BW test
+//p->gamma=5.0/3.0;  //OZ test
+p->gamma=2.0;  //BW test
 //p->gamma=5.0/3.0;  //BACH3D
 //alfven test
 //p->gamma=1.4;
+
+#endif
 
 
 
@@ -200,7 +200,7 @@ p->g[2]=0.0;
 p->cmax=0.02;
 
 p->rkon=0.0;
-p->sodifon=1.0;
+p->sodifon=0.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
@@ -213,6 +213,11 @@ p->xmax[0]=xmax;
 p->xmax[1]=ymax;
 p->xmin[0]=xmin;
 p->xmin[1]=ymin;
+#ifdef USE_SAC_3D
+p->xmax[2]=zmax;
+p->xmin[2]=zmin;
+#endif
+
 p->nt=nt;
 p->tmax=tmax;
 
@@ -249,7 +254,10 @@ p->chyp[b1]=0.02;
 p->chyp[b2]=0.02;
 p->chyp[mom1]=0.4;
 p->chyp[mom2]=0.4;
-
+#ifdef USE_SAC_3D
+p->chyp[mom3]=0.4;
+p->chyp[b3]=0.02;
+#endif
 
 
 
