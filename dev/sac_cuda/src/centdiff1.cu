@@ -105,7 +105,7 @@ real transportflux (real *dw, real *wd, real *w, struct params *p,int *ii,int fi
 
         #else
      //flux= wd[fencode3_cd1(p,ii,vel2)]*w[fencode3_cd1(p,ii,field)];
-     flux= w[fencode3_cd1(p,ii,mom2)]*w[fencode3_cd1(p,ii,field)]/w[fencode3_cd1(p,ii,rho)];
+     flux= w[fencode3_cd1(p,ii,mom3)]*w[fencode3_cd1(p,ii,field)]/w[fencode3_cd1(p,ii,rho)];
 
         #endif
      break;
@@ -113,7 +113,7 @@ real transportflux (real *dw, real *wd, real *w, struct params *p,int *ii,int fi
      flux= wd[fencode3_cd1(p,ii,vel3)]*w[fencode3_cd1(p,ii,field)];
      break;*/
    //}*/
-  return flux;
+  return fluxt;
 
 
   //return ( ddc1-ddc2);
