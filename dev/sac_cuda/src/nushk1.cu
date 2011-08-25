@@ -63,13 +63,13 @@ if(iindex==0)
 {
   maxtmpdt=0.0;
   
-  #ifdef USE_SHOCKVISC
+ // #ifdef USE_SHOCKVISC
     for(ii[0]=0;ii[0]<((p->n[0]));ii[0]++)
       for(ii[1]=0;ii[1]<((p->n[1]));ii[1]++)
      #ifdef USE_SAC_3D
         for(ii[2]=0;ii[2]<((p->n[2]));ii[2]++)
      #endif
-  #endif
+ // #endif
 	{              
              tmpdt=(p->maxviscoef)+wd[encode3_nshk(p,ii[0],ii[1],ii[2],nushk1+dim)];
 
