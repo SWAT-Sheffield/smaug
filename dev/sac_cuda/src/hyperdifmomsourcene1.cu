@@ -615,7 +615,7 @@ int cuhyperdifmomsourcene1(struct params **p, struct params **d_p, real **d_wmod
    int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
 
 
-     /*hyperdifmomsourcene1_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
+     hyperdifmomsourcene1_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
      cudaThreadSynchronize();
      hyperdifmomsourcene2_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
      cudaThreadSynchronize();
@@ -624,7 +624,7 @@ int cuhyperdifmomsourcene1(struct params **p, struct params **d_p, real **d_wmod
      hyperdifmomsourcene4_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
      cudaThreadSynchronize();
      hyperdifmomsourcene5_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
-     cudaThreadSynchronize();*/
+     cudaThreadSynchronize();
      hyperdifmomsourcene6_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
      cudaThreadSynchronize();
 
