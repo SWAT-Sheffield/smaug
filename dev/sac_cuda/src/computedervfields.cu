@@ -543,7 +543,9 @@ __global__ void fastcomputemaxc_parallel(struct params *p,   real *wmod, real *w
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    int ip,jp,ipg,jpg;
-    extern __shared__ real sdata[];
+        extern __shared__ real sdata[];
+  // __shared__ float sdata[];
+ //real sdata[dimp];
   #ifdef USE_SAC_3D
    kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
    jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
@@ -604,7 +606,7 @@ __global__ void fastcomputemaxc_parallel(struct params *p,   real *wmod, real *w
 
     if (tid == 0) p->cmax = sdata[0];
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+  /* for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    #ifdef USE_SAC_3D
      for(kpg=0;kpg<(p->npgp[2]);kpg++)
@@ -633,10 +635,10 @@ __global__ void fastcomputemaxc_parallel(struct params *p,   real *wmod, real *w
         }
 
 }
-              __syncthreads();
+              __syncthreads();*/
 
     // do reduction in shared mem
-    for(unsigned int s=blockDim.x/2; s>0; s>>=1) {
+    /*for(unsigned int s=blockDim.x/2; s>0; s>>=1) {
         if (tid < s) {
             //sdata[tid] += sdata[tid + s];
             //if(sdata[tid]>sdata[0])
@@ -648,14 +650,24 @@ __global__ void fastcomputemaxc_parallel(struct params *p,   real *wmod, real *w
     }
 
 
-    if (tid == 0) p->cmax = sdata[0];
+    if (tid == 0) p->cmax = sdata[0];*/
 
   
 }
 
 
 
+/*
+    Parallel sum reduction using shared memory
+    - takes log(n) steps for n input elements
+    - uses n threads
+    - only works for power-of-2 arrays
+*/
 
+/* This reduction interleaves which threads are active by using the modulo
+   operator.  This operator is very expensive on GPUs, and the interleaved 
+   inactivity means that no whole warps are active, which is also very 
+   inefficient */
 
 
 //from http://www.nvidia.com/object/cuda_sample_data-parallel.html#reduction
@@ -673,9 +685,6 @@ __global__ void reduction0computemaxc_parallel(struct params *p,   real *wmod, r
   int index,k;
   int ni=p->n[0];
   int nj=p->n[1];
-  real dt=p->dt;
-  real dy=p->dx[1];
-  real dx=p->dx[0];
 
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
@@ -685,47 +694,45 @@ __global__ void reduction0computemaxc_parallel(struct params *p,   real *wmod, r
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    int ip,jp,ipg,jpg;
-    extern __shared__ real sdata[];
+        extern __shared__ real sdata[];
+   //__shared__ float sdata[];
+ 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/(ni);
+   ip=iindex-(kp*nj*ni)-(jp*(ni));
 #endif
  #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
+    jp=iindex/(ni);
+   ip=iindex-(jp*(ni));
 #endif  
 
 
     // perform first level of reduction,
     // reading from global memory, writing to shared memory
    sdata[tid]=0.0;
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
-     #ifdef USE_SAC_3D
+   /*  #ifdef USE_SAC_3D
        if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
      #else
        if(ii[0]<p->n[0] && ii[1]<p->n[1])
-     #endif
+     #endif*/
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
-	{
+//	{
  //determin cmax
                //computec3_cdf(wmod+(order*dimp*NVAR),wd,p,ii,dir);
                //p->cmax=0.0;
                
               // if(wd[fencode3_cdf(p,ii,cfast)]>(p->cmax))
-                    sdata[tid]=wd[fencode3_cdf(p,ii,cfast)];
+         if(iindex<dimp)
+                    sdata[tid]=wd[fencode3_cdf(p,ii,soundspeed)];
 
               __syncthreads();
 
@@ -740,19 +747,14 @@ __global__ void reduction0computemaxc_parallel(struct params *p,   real *wmod, r
         __syncthreads();
     }
 
-    if (tid == 0) p->cmax = sdata[0];
+    if (tid == 0 && p->cmax<sdata[0] ) p->cmax = sdata[0];
+ __syncthreads();
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+    /* ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
      #ifdef USE_SAC_3D
@@ -770,15 +772,73 @@ __global__ void reduction0computemaxc_parallel(struct params *p,   real *wmod, r
                     p->cmax=wd[fencode3_cdf(p,ii,cfast)];
         }
 
+
+              __syncthreads();*/
+ 
+//        }
+
+//}
+
+ 
 }
+
+
+
+__global__ void reduction0computemaxcfast_parallel(struct params *p,   real *wmod, real *wd, int order, int dir)
+{
+
+
+ // int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  unsigned int tid = threadIdx.x;
+  int i,j;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+
+    
+    unsigned int iindex = blockIdx.x*(blockDim.x*2) + threadIdx.x;
+
+  int ii[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   int ip,jp,ipg,jpg;
+    extern __shared__ real sdata[];
+
+
+
+    // perform first level of reduction,
+    // reading from global memory, writing to shared memory
+   sdata[tid]=0.0;
+
+                   sdata[tid]=wd[blockDim.x+(cfast*dimp)+iindex];
+
               __syncthreads();
- 
+
+
+    // do reduction in shared mem
+    for(unsigned int s=1; s < blockDim.x; s *= 2) {
+        // modulo arithmetic is slow!
+        if ((tid % (2*s)) == 0) {
+            if(sdata[tid+s]>sdata[tid])
+                 sdata[tid]=sdata[tid + s];
         }
+        __syncthreads();
+    }
 
-}
+    if (tid == 0 && (p->cmax)<sdata[0] ) p->cmax = sdata[0];
+ __syncthreads();
+
+
 
  
 }
+
+
+
 
 //from http://www.nvidia.com/object/cuda_sample_data-parallel.html#reduction
 /* This reduction interleaves which threads are active by using the modulo
@@ -807,7 +867,9 @@ __global__ void reductiona0computemaxc_parallel(struct params *p,   real *wmod, 
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    int ip,jp,ipg,jpg;
-    extern __shared__ real sdata[];
+        extern __shared__ real sdata[];
+   //__shared__ float sdata[];
+ //real sdata[dimp];
   #ifdef USE_SAC_3D
    kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
    jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
@@ -1191,20 +1253,27 @@ int cucomputemaxc(struct params **p,  struct params **d_p, real **d_wmod,  real 
    
   dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
 #endif 
-
+   (*p)->cmax=0.0;
+    int smemSize = numThreadsPerBlock * sizeof(real);
+  cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
  //dim3 dimBlock(dimblock, 1);
     //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    // dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
- //reductiona0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
-   //computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
-   //  fastcomputemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+   //reduction0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+//cudaThreadSynchronize();
+reduction0computemaxcfast_parallel<<<numBlocks, numThreadsPerBlock,smemSize>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+//myreduction0computemaxcfast_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd,*d_wtemp, order, dir);
 
- for(int i=0; i<nit;i++)
+ //reductiona0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+  // computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+    // fastcomputemaxc_parallel<<<numBlocks, numThreadsPerBlock,smemSize>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+cudaThreadSynchronize();
+ /*for(int i=0; i<nit;i++)
 {
     computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
      cudaThreadSynchronize();
-}
+}*/
 
 
 
