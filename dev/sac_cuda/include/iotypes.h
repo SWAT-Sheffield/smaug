@@ -144,7 +144,8 @@ struct params {
         real maxviscoef;
         real dtdiffvisc;
         real chyp[NVAR];
-        real chyp3;   
+        real chyp3;
+        real test;  
 
         int mnthreads;   
 };

@@ -358,15 +358,29 @@ int shift=order*NVAR*dimp;
   //if(i<((p->n[0])) && j<((p->n[1])))
   {
 
-     wtemp[fencode3_hdmne1(p,iia,tmp6)]=wtemp[fencode3_hdmne1(p,iia,tmp5)]*((wd[fencode3_hdmne1(p,iia,hdnur)]+wd[fencode3_hdmne1(p,iia,hdnul)]+2.0*wd[fencode3_hdmne1(p,iia,nushk1+dim)]))/4.0;
+     //wtemp[fencode3_hdmne1(p,iia,tmp6)]=wtemp[fencode3_hdmne1(p,iia,tmp5)]*((wd[fencode3_hdmne1(p,iia,hdnur)]+wd[fencode3_hdmne1(p,iia,hdnul)]+2.0*wd[fencode3_hdmne1(p,iia,nushk1+dim)]))/4.0;
      //wtemp[fencode3_hdmne1(p,iia,tmp6)]=1.0;
-
-
+     // wtemp[fencode3_hdmne1(p,iia,tmp6)]=-1.0e-41*((wd[fencode3_hdmne1(p,iia,hdnur)]+wd[fencode3_hdmne1(p,iia,hdnul)]+2.0*wd[fencode3_hdmne1(p,iia,nushk1+dim)]))/4.0;
+     wtemp[fencode3_hdmne1(p,iia,tmp6)]=wtemp[fencode3_hdmne1(p,iia,tmp5)]*((wd[fencode3_hdmne1(p,iia,hdnur)]+wd[fencode3_hdmne1(p,iia,hdnul)]+2.0*wd[fencode3_hdmne1(p,iia,nushk1+dim)]))/4.0;
 
 
    }
 }
 __syncthreads();
+
+/*if(iindex==0)
+{
+
+    for(iia[0]=0;iia[0]<((p->n[0]));iia[0]++)
+      for(iia[1]=0;iia[1]<((p->n[1]));iia[1]++)
+        //(p->test)+=wtemp[fencode3_hdmne1(p,iia,tmp5)];
+        if((wtemp[fencode3_hdmne1(p,iia,tmp5)])>(p->test))
+               p->test=wtemp[fencode3_hdmne1(p,iia,tmp5)];
+
+//   p->test/=((p->n[0])*(p->n[1]));
+
+
+}*/
 
 
 
@@ -628,7 +642,8 @@ int cuhyperdifmomsourcene1(struct params **p, struct params **d_p, real **d_wmod
      hyperdifmomsourcene6_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
      cudaThreadSynchronize();
 
-
+cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+//printf("test %g\n",(*p)->test);
 
 }
 

@@ -929,7 +929,7 @@ real grad13_MODID(real *wmod,struct params *p,int *ii,int field,int dir)
 
  if((dir == 0) && i>0 && i<((p->n[0])-1))
  {
-    grad=(  ( wmod[encode3_MODID(p,i+1,j,k,field)]-wmod[encode3_MODID(p,i-1,j,k,field)]) /((p->dx[0]))    );
+    grad=(  ( wmod[encode3_MODID(p,i+1,j,k,field)]-wmod[encode3_MODID(p,i-1,j,k,field)]) /((p->dx[0]))/2.0    );
 
    #ifdef USE_SAC_3D
 	   if((i==(p->n[0])-2) || (i==(p->n[0])-3)  && j>0   && j<(p->n[1])-1 && k>0   && k<(p->n[2])-1 )
@@ -945,7 +945,7 @@ real grad13_MODID(real *wmod,struct params *p,int *ii,int field,int dir)
  }
  else if((dir == 1)    && j>0 && j<((p->n[1])-1))
  {
-    grad=(  ( wmod[encode3_MODID(p,i,j+1,k,field)]-wmod[encode3_MODID(p,i,j-1,k,field)])/((p->dx[1]))    );
+    grad=(  ( wmod[encode3_MODID(p,i,j+1,k,field)]-wmod[encode3_MODID(p,i,j-1,k,field)])/((p->dx[1]))/2.0    );
    #ifdef USE_SAC_3D
 	   if((j==(p->n[1])-2) || (j==(p->n[1])-3)  && i>0   && i<(p->n[0])-1 && k>0   && k<(p->n[2])-1 )
 	       grad=0;
@@ -963,7 +963,7 @@ real grad13_MODID(real *wmod,struct params *p,int *ii,int field,int dir)
    #ifdef USE_SAC_3D
  else if((dir == 2)    && k>0 && k<((p->n[2])-1))
  {
-    grad=(  ( wmod[encode3_MODID(p,i,j,k+1,field)]-wmod[encode3_MODID(p,i,j,k-1,field)])/((p->dx[2]))    );
+    grad=(  ( wmod[encode3_MODID(p,i,j,k+1,field)]-wmod[encode3_MODID(p,i,j,k-1,field)])/((p->dx[2]))/2.0    );
 
    if((k==(p->n[2])-2) || (k==(p->n[2])-3)  && i>0   && i<(p->n[0])-1  && j>0   && j<(p->n[1])-1 )
        grad=0;

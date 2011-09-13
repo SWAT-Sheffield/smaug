@@ -505,7 +505,7 @@ int shift=order*NVAR*dimp;
   {
 
 
-       wtemp[fencode3_hdbne1(p,iia,tmp2)]=grad13_hdbne1(wtemp,p,iia,tmp1,dim);
+       wtemp[fencode3_hdbne1(p,iia,tmp2)]=/*0.25**/grad13_hdbne1(wtemp,p,iia,tmp1,dim);
 
 
 

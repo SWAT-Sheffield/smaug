@@ -105,7 +105,7 @@ struct state *d_state;
 struct state *state=(struct state *)malloc(sizeof(struct state));
 
 #ifdef USE_SAC
-dt=10000.0;  //bach test
+dt=5.0e10;  //bach test
 
 #endif
 
@@ -181,7 +181,7 @@ p->adiab=1.0;
 p->gamma=2.0;  //BW test
 //p->gamma=5.0/3.0;  //BACH3D
 //alfven test
-p->gamma=1.4;
+p->gamma=2.0;
 
 #endif
 
