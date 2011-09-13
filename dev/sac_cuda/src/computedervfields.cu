@@ -35,21 +35,21 @@ __global__ void computevels_parallel(struct params *p,   real *wmod, real *wd, i
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
 
 
 
@@ -60,17 +60,12 @@ __global__ void computevels_parallel(struct params *p,   real *wmod, real *wd, i
 
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
      #ifdef USE_SAC_3D
@@ -114,7 +109,7 @@ __global__ void computevels_parallel(struct params *p,   real *wmod, real *wd, i
 
          }
 
-}
+
               __syncthreads();
 
 
@@ -151,21 +146,21 @@ __global__ void computept_parallel(struct params *p,   real *wmod, real *wd, int
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
 
 
 
@@ -176,17 +171,12 @@ __global__ void computept_parallel(struct params *p,   real *wmod, real *wd, int
 
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
      #ifdef USE_SAC_3D
@@ -254,7 +244,7 @@ __global__ void computept_parallel(struct params *p,   real *wmod, real *wd, int
 
          }
 
-}
+
               __syncthreads();
 
 
@@ -290,7 +280,7 @@ __global__ void computepbg_parallel(struct params *p,   real *wmod, real *wd, in
   int ii[NDIM];
   int dimp;
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #else
@@ -299,14 +289,14 @@ __global__ void computepbg_parallel(struct params *p,   real *wmod, real *wd, in
    int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
 
 
 
@@ -317,17 +307,12 @@ __global__ void computepbg_parallel(struct params *p,   real *wmod, real *wd, in
 
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
      #ifdef USE_SAC_3D
@@ -395,7 +380,7 @@ __global__ void computepbg_parallel(struct params *p,   real *wmod, real *wd, in
 
          }
 
-}
+
               __syncthreads();
 
 
@@ -432,21 +417,21 @@ __global__ void computemaxc_parallel(struct params *p,   real *wmod, real *wd, i
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
 
 
 
@@ -538,7 +523,7 @@ __global__ void fastcomputemaxc_parallel(struct params *p,   real *wmod, real *w
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
@@ -547,30 +532,25 @@ __global__ void fastcomputemaxc_parallel(struct params *p,   real *wmod, real *w
   // __shared__ float sdata[];
  //real sdata[dimp];
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
 
 
     // perform first level of reduction,
     // reading from global memory, writing to shared memory
    sdata[tid]=0.0;
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
      #ifdef USE_SAC_3D
@@ -588,7 +568,7 @@ __global__ void fastcomputemaxc_parallel(struct params *p,   real *wmod, real *w
                     sdata[tid]=wd[fencode3_cdf(p,ii,cfast)];
         }
 
-}
+
               __syncthreads();
 
     // do reduction in shared mem
@@ -689,23 +669,22 @@ __global__ void reduction0computemaxc_parallel(struct params *p,   real *wmod, r
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
-   int ip,jp,ipg,jpg;
+   int ip,jp;
         extern __shared__ real sdata[];
    //__shared__ float sdata[];
  
   #ifdef USE_SAC_3D
    kp=iindex/(nj*ni);
-   jp=(iindex-(kp*(nj*ni)))/(ni);
-   ip=iindex-(kp*nj*ni)-(jp*(ni));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni);
-   ip=iindex-(jp*(ni));
-#endif  
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
 
 
     // perform first level of reduction,
@@ -801,11 +780,11 @@ __global__ void reduction0computemaxcfast_parallel(struct params *p,   real *wmo
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
-   int ip,jp,ipg,jpg;
+   int ip,jp;
     extern __shared__ real sdata[];
 
 
@@ -862,23 +841,23 @@ __global__ void reductiona0computemaxc_parallel(struct params *p,   real *wmod, 
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
-   int ip,jp,ipg,jpg;
+   int ip,jp;
         extern __shared__ real sdata[];
    //__shared__ float sdata[];
  //real sdata[dimp];
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
 
 
     // perform first level of reduction,
@@ -907,17 +886,12 @@ __global__ void reductiona0computemaxc_parallel(struct params *p,   real *wmod, 
 
     if (tid == 0) p->cmax = sdata[0];
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
      #ifdef USE_SAC_3D
@@ -935,7 +909,7 @@ __global__ void reductiona0computemaxc_parallel(struct params *p,   real *wmod, 
                     p->cmax=wd[fencode3_cdf(p,ii,cfast)];
         }
 
-}
+
               __syncthreads();
   
 }
@@ -961,21 +935,20 @@ __global__ void computec_parallel(struct params *p,   real *wmod, real *wd, int 
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
-   int ip,jp,ipg,jpg;
+   int ip,jp;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
 
 
 
@@ -983,17 +956,12 @@ __global__ void computec_parallel(struct params *p,   real *wmod, real *wd, int 
 
 
  p->cmax=0.0;
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
      #ifdef USE_SAC_3D
@@ -1008,7 +976,7 @@ __global__ void computec_parallel(struct params *p,   real *wmod, real *wd, int 
                //p->cmax=0.0;
         }
 
-}
+
               __syncthreads();
 
 
@@ -1046,38 +1014,32 @@ __global__ void computedervfields_parallel(struct params *p,   real *wmod, real 
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
-   int ip,jp,ipg,jpg;
+   int ip,jp;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
 
 
 
 
 
 if(order == 0)
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
      #ifdef USE_SAC_3D
@@ -1103,24 +1065,19 @@ if(order == 0)
 
         }
 
-}
+
                __syncthreads();
 
 
 
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
      #ifdef USE_SAC_3D
@@ -1145,7 +1102,7 @@ if(order == 0)
 
          }
 
-}
+
               __syncthreads();
 
   

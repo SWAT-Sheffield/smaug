@@ -382,35 +382,29 @@ __global__ void centdiff1init_parallel(struct params *p, struct state *s, real *
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
-   int ip,jp,ipg,jpg;
+   int ip,jp;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+ 
 
    fid=0;
    
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
      #ifdef USE_SAC_3D
@@ -425,7 +419,7 @@ __global__ void centdiff1init_parallel(struct params *p, struct state *s, real *
                                //wmod[fencode_cd1(p,i,j,flux)+order*NVAR*(p->n[0])*(p->n[1])]=0.0;
                         }
 
-   }
+   
  __syncthreads();                       
 
 
@@ -450,37 +444,31 @@ __global__ void centdiff1_parallel(struct params *p, struct state *s, real *w, r
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
-   int ip,jp,ipg,jpg;
+   int ip,jp;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
 
    fid=0;
 
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
 
@@ -518,7 +506,7 @@ __global__ void centdiff1_parallel(struct params *p, struct state *s, real *w, r
               //  }
                         //might need to set boundaries correctly
  
-}
+
 __syncthreads();                        
 
 
@@ -566,37 +554,31 @@ __global__ void centdiff1a_parallel(struct params *p, struct state *s, real *w, 
     real dz=p->dx[2];
 #endif
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
-   int ip,jp,ipg,jpg;
+   int ip,jp;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
 
    fid=0;
 
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
 			// if(i>1 && j >1 && i<(ni-2) && j<(nj-2))
@@ -608,24 +590,18 @@ __global__ void centdiff1a_parallel(struct params *p, struct state *s, real *w, 
 			     #endif                        
                                divflux1(dwn1,wd,wmod+order*NVAR*dimp,p,ii,f,dir);  
 
-}
+
  __syncthreads();
 
-#if(defined(USE_USERSOURCE))
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-#endif
-   #if(defined(USE_SAC_3D) && defined(USE_USERSOURCE))
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
+
 #if(defined(USE_USERSOURCE))
    {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
 #endif
      #if(defined(USE_SAC_3D) && defined(USE_USERSOURCE))
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
 
@@ -688,38 +664,33 @@ __global__ void centdiff1b_parallel(struct params *p, struct state *s, real *w, 
     real dz=p->dx[2];
 #endif
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
-   int ip,jp,ipg,jpg;
+   int ip,jp;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
 
    fid=0;
 
              // for(int f=rho; f<=mom3; f++)
               // {
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
 
@@ -762,7 +733,7 @@ __global__ void centdiff1b_parallel(struct params *p, struct state *s, real *w, 
 
               //  }
 	
-}
+
   __syncthreads();
 
 

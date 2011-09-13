@@ -51,15 +51,16 @@ int ni=p->n[0];
 
 
   int i,j;
+  int ip,jp;
   int ii[NDIM];
    int dimp=((p->n[0]))*((p->n[1]));
 
    
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
-   int ip,jp,ipg,jpg;
+/*   int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
    kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
@@ -68,22 +69,23 @@ int ni=p->n[0];
 #else
     jp=iindex/(ni/(p->npgp[0]));
    ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+#endif */ 
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
 
    
 
-   
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
-
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
      #endif
 
      #ifdef USE_SAC_3D
@@ -116,23 +118,13 @@ int ni=p->n[0];
 
 			}
 
-        }	
+        	
 	 __syncthreads();
 
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
-     #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
-     #endif
+
 
      #ifdef USE_SAC_3D
       // if((p->readini==0) && ii[0]>1 && ii[1]>1  && ii[2]>1 && ii[0]<(p->n[0])-1 && ii[1]<(p->n[1])-1 && ii[2]<(p->n[2])-1)
@@ -162,7 +154,7 @@ int ni=p->n[0];
 	
 
         }
-}	
+	
 	 __syncthreads();
 
 
@@ -171,18 +163,6 @@ int ni=p->n[0];
 
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
-
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
-     #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
-     #endif
 
      #ifdef USE_SAC_3D
        if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
@@ -203,21 +183,9 @@ int ni=p->n[0];
 
 
 }
-}
+
  __syncthreads();
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
-
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
-     #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
-     #endif
 
      #ifdef USE_SAC_3D
        if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
@@ -227,7 +195,7 @@ int ni=p->n[0];
      
                for(int f=vel1; f<NDERV; f++)
                     wd[fencode3_i(p,ii,f)]=0.0;
-     }
+     
 
  __syncthreads(); 
 }

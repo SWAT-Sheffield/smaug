@@ -70,21 +70,20 @@ __global__ void update_parallel(struct params *p, struct state *s, real *w, real
   int iia[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    //int ip,jp,ipg,jpg;
-
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
-#endif  
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
 
 
 //int shift=order*NVAR*dimp;
@@ -93,20 +92,14 @@ __global__ void update_parallel(struct params *p, struct state *s, real *w, real
   u=w+dimp*mom1;
   v=w+dimp*mom2;
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     iia[0]=ip*(p->npgp[0])+ipg;
-     iia[1]=jp*(p->npgp[1])+jpg;
+     iia[0]=ip;
+     iia[1]=jp;
      i=iia[0];
      j=iia[1];
      k=0;
      #ifdef USE_SAC_3D
-	   iia[2]=kp*(p->npgp[2])+kpg;
+	   iia[2]=kp;
            k=iia[2];
            for( f=rho; f<=b3; f++)
      #else
@@ -126,7 +119,7 @@ __global__ void update_parallel(struct params *p, struct state *s, real *w, real
 
 
 }
-}
+
 __syncthreads(); 
 
 
