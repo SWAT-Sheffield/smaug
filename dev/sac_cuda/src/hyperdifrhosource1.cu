@@ -38,26 +38,24 @@ __global__ void hyperdifrhosource2_parallel(struct params *p,  real *wmod,
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
   real rdx;
 
-   int ip,jp,ipg,jpg;
+   int ip,jp;
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    //int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
 #endif  
-
 
 int shift=order*NVAR*dimp;  
    
@@ -67,20 +65,14 @@ int shift=order*NVAR*dimp;
 	  rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1));
 	#endif
   
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
      i=ii[0];
      j=ii[1];
      k=0;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
            k=ii[2];
      #endif
 
@@ -98,8 +90,8 @@ dwn1[fencode3_hdr1(p,ii,field)]=( (wd[fencode3_hdr1(p,ii,hdnur)]+wd[fencode3_hdr
 
                               wmod[fencode3_hdr1(p,ii,field)+(ordero*NVAR*dimp)]=wmod[fencode3_hdr1(p,ii,field)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdr1(p,ii,field)]; 
   }
-}
-__syncthreads();
+
+//__syncthreads();
 
 
 
@@ -135,44 +127,36 @@ __global__ void hyperdifrhosource1_parallel(struct params *p,  real *wmod,
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
   real rdx;
 
-   int ip,jp,ipg,jpg;
+   int ip,jp;
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    //int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
 #endif  
-
 
 int shift=order*NVAR*dimp;  
 
  
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
      i=ii[0];
      j=ii[1];
      k=0;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
            k=ii[2];
      #endif
 
@@ -191,8 +175,8 @@ int shift=order*NVAR*dimp;
     wtemp[fencode3_hdr1(p,ii,tmp2)]=0.0;
     //wtemp[fencode_hdr1(p,i,j,tmp3)]=0.0;
    }
-}
- __syncthreads();
+
+ //__syncthreads();
 
      #ifdef USE_SAC_3D
 	  rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1)+(p->dx[2])*(dim==2));
@@ -201,20 +185,14 @@ int shift=order*NVAR*dimp;
 	#endif
 
  
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
      i=ii[0];
      j=ii[1];
      k=0;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
            k=ii[2];
      #endif
 
@@ -232,8 +210,8 @@ int shift=order*NVAR*dimp;
     wtemp[fencode3_hdr1(p,ii,tmp1)]=grad1r3_hdr1(wmod+shift,p,ii,rho,dim);
     wtemp[fencode3_hdr1(p,ii,tmp2)]=grad1l3_hdr1(wmod+shift,p,ii,rho,dim);
   }
-}
-__syncthreads();
+
+//__syncthreads();
 
 
 

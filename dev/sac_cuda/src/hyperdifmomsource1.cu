@@ -28,26 +28,24 @@ __global__ void hyperdifmomsource3_parallel(struct params *p,  real *wmod,
   real dy=p->dx[1];
   real dx=p->dx[0];
   real rdx;
-   int ip,jp,ipg,jpg;
+   int ip,jp;
   int iia[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    //int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
 #endif  
-
 
 int shift=order*NVAR*dimp;
 
@@ -57,20 +55,14 @@ int shift=order*NVAR*dimp;
   rdx=(((p->dx[0])*(dim==0))+  (p->dx[1])*(dim==1)  );
 #endif
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     iia[0]=ip*(p->npgp[0])+ipg;
-     iia[1]=jp*(p->npgp[1])+jpg;
+     iia[0]=ip;
+     iia[1]=jp;
      i=iia[0];
      j=iia[1];
      k=0;
      #ifdef USE_SAC_3D
-	   iia[2]=kp*(p->npgp[2])+kpg;
+	   iia[2]=kp;
            k=iia[2];
      #endif
 
@@ -100,8 +92,8 @@ dwn1[fencode3_hdm1(p,iia,mom1+ii0)]=(wtemp[fencode3_hdm1(p,iia,tmp3)]*(wd[fencod
 
 
    }
-}
- __syncthreads();
+
+ //__syncthreads();
 
 
 
@@ -137,26 +129,24 @@ __global__ void hyperdifmomsource2_parallel(struct params *p,  real *wmod,
   real dx=p->dx[0];
   real rdx;
 
-   int ip,jp,ipg,jpg;
+   int ip,jp;
   int iia[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    //int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
 #endif  
-
 
 int shift=order*NVAR*dimp;
 
@@ -167,20 +157,14 @@ int shift=order*NVAR*dimp;
 #endif
 
  
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     iia[0]=ip*(p->npgp[0])+ipg;
-     iia[1]=jp*(p->npgp[1])+jpg;
+     iia[0]=ip;
+     iia[1]=jp;
      i=iia[0];
      j=iia[1];
      k=0;
      #ifdef USE_SAC_3D
-	   iia[2]=kp*(p->npgp[2])+kpg;
+	   iia[2]=kp;
            k=iia[2];
      #endif
 
@@ -197,8 +181,8 @@ int shift=order*NVAR*dimp;
 
    }
 
-}
-__syncthreads();  //can remove?
+
+//__syncthreads();  //can remove?
 
 
 
@@ -220,26 +204,24 @@ __global__ void hyperdifmomsource1_parallel(struct params *p,  real *wmod,
   real dy=p->dx[1];
   real dx=p->dx[0];
   real rdx;
-   int ip,jp,ipg,jpg;
+   int ip,jp;
   int iia[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    //int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
 #endif  
-
 
 int shift=order*NVAR*dimp;
 
@@ -250,20 +232,14 @@ int shift=order*NVAR*dimp;
 #endif
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     iia[0]=ip*(p->npgp[0])+ipg;
-     iia[1]=jp*(p->npgp[1])+jpg;
+     iia[0]=ip;
+     iia[1]=jp;
      i=iia[0];
      j=iia[1];
      k=0;
      #ifdef USE_SAC_3D
-	   iia[2]=kp*(p->npgp[2])+kpg;
+	   iia[2]=kp;
            k=iia[2];
      #endif
 
@@ -284,8 +260,8 @@ dwn1[fencode3_hdm1(p,iia,mom1+ii0)]=0.0;
    }
 
 
-}
- __syncthreads();
+
+ //__syncthreads();
 
 //tmp2  rhor
 //tmp3  rhol
@@ -293,20 +269,14 @@ dwn1[fencode3_hdm1(p,iia,mom1+ii0)]=0.0;
 
 //tmp4  rhoc
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     iia[0]=ip*(p->npgp[0])+ipg;
-     iia[1]=jp*(p->npgp[1])+jpg;
+     iia[0]=ip;
+     iia[1]=jp;
      i=iia[0];
      j=iia[1];
      k=0;
      #ifdef USE_SAC_3D
-	   iia[2]=kp*(p->npgp[2])+kpg;
+	   iia[2]=kp;
            k=iia[2];
      #endif
 
@@ -325,26 +295,20 @@ dwn1[fencode3_hdm1(p,iia,mom1+ii0)]=0.0;
 
    }
 
-}
-__syncthreads();
+
+//__syncthreads();
 
 
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     iia[0]=ip*(p->npgp[0])+ipg;
-     iia[1]=jp*(p->npgp[1])+jpg;
+     iia[0]=ip;
+     iia[1]=jp;
      i=iia[0];
      j=iia[1];
      k=0;
      #ifdef USE_SAC_3D
-	   iia[2]=kp*(p->npgp[2])+kpg;
+	   iia[2]=kp;
            k=iia[2];
      #endif
 
@@ -369,24 +333,18 @@ __syncthreads();
 
    }
 
-}
-__syncthreads();
+
+//__syncthreads();
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     iia[0]=ip*(p->npgp[0])+ipg;
-     iia[1]=jp*(p->npgp[1])+jpg;
+     iia[0]=ip;
+     iia[1]=jp;
      i=iia[0];
      j=iia[1];
      k=0;
      #ifdef USE_SAC_3D
-	   iia[2]=kp*(p->npgp[2])+kpg;
+	   iia[2]=kp;
            k=iia[2];
      #endif
 
@@ -406,8 +364,8 @@ __syncthreads();
      #endif
    }
 
-}
-__syncthreads();
+
+//__syncthreads();
 
 
 

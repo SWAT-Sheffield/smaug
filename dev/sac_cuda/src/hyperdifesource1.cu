@@ -31,26 +31,24 @@ __global__ void hyperdifesource4_parallel(struct params *p,  real *wmod,
   real dy=p->dx[1];
   real dx=p->dx[0];
 
-   int ip,jp,ipg,jpg;
+   int ip,jp;
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    //int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
 #endif  
-
 
 int shift=order*NVAR*dimp;
 
@@ -60,20 +58,14 @@ int shift=order*NVAR*dimp;
   rdx=(((p->dx[0])*(dim==0))+  (p->dx[1])*(dim==1)  );
 #endif
 real del;
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
      i=ii[0];
      j=ii[1];
      k=0;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
            k=ii[2];
      #endif
 
@@ -92,8 +84,8 @@ real del;
   // if(del<0.011 && del>0.009)
    //          wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]=del;
   }
-}
-__syncthreads();
+
+//__syncthreads();
 
 
 /*if(iindex==0)
@@ -115,7 +107,7 @@ __syncthreads();
        p->hdmean=(p->hdmean)/(((p->n[0]))*((p->n[1])));
 
 }
- __syncthreads();*/
+ //__syncthreads();*/
 
 
  
@@ -138,26 +130,24 @@ __global__ void hyperdifesource3_parallel(struct params *p,  real *wmod,
   real dy=p->dx[1];
   real dx=p->dx[0];
 
-   int ip,jp,ipg,jpg;
+   int ip,jp;
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    //int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
 #endif  
-
 
 int shift=order*NVAR*dimp;
 
@@ -169,20 +159,14 @@ int shift=order*NVAR*dimp;
  
 
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
      i=ii[0];
      j=ii[1];
      k=0;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
            k=ii[2];
      #endif
 
@@ -200,8 +184,8 @@ dwn1[fencode3_hde1(p,ii,field)]=( (wd[fencode3_hde1(p,ii,hdnur)]+wd[fencode3_hde
 
 
   }
-}
-__syncthreads();
+
+//__syncthreads();
 
 
 
@@ -236,7 +220,7 @@ __syncthreads();
                          }
               //  }	
 }
-  __syncthreads();*/
+  //__syncthreads();*/
 
 
 
@@ -269,26 +253,24 @@ __global__ void hyperdifesource2_parallel(struct params *p,  real *wmod,
 //dt=0.05;
 //enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
 
-   int ip,jp,ipg,jpg;
+   int ip,jp;
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    //int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
 #endif  
-
 
 int shift=order*NVAR*dimp;
 
@@ -298,20 +280,14 @@ int shift=order*NVAR*dimp;
   rdx=(((p->dx[0])*(dim==0))+  (p->dx[1])*(dim==1)  );
 #endif
    
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
      i=ii[0];
      j=ii[1];
      k=0;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
            k=ii[2];
      #endif
 
@@ -330,8 +306,8 @@ int shift=order*NVAR*dimp;
 	//wtemp[fencode3_hde1(p,ii,tmp3)]= (  ( wtemp[encode3_hde1(p,i+(dim==0),j+(dim==1),k,rho)]-wtemp[encode3_hde1(p,i,j,k,rho)]) /((p->dx[0]))    ) ;
 
   }
-}
-__syncthreads();
+
+//__syncthreads();
 
 
 
@@ -356,45 +332,37 @@ __global__ void hyperdifesource1a_parallel(struct params *p,  real *wmod,
   real rdx;
   real dy=p->dx[1];
   real dx=p->dx[0];
-   int ip,jp,ipg,jpg;
+   int ip,jp;
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    //int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
 #endif  
-
 
 int shift=order*NVAR*dimp;
 
 
    
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
      i=ii[0];
      j=ii[1];
      k=0;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
            k=ii[2];
      #endif
 
@@ -425,8 +393,8 @@ int shift=order*NVAR*dimp;
 
 
   }
-}
-__syncthreads();
+
+//__syncthreads();
 
 
 
@@ -453,43 +421,35 @@ __global__ void hyperdifesource1_parallel(struct params *p,  real *wmod,
   real rdx;
   real dy=p->dx[1];
   real dx=p->dx[0];
-   int ip,jp,ipg,jpg;
+   int ip,jp;
   int ii[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp,kpg;
+   int kp;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    //int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
-   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
-   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
-#endif
- #if defined USE_SAC || defined ADIABHYDRO
-    jp=iindex/(ni/(p->npgp[0]));
-   ip=iindex-(jp*(ni/(p->npgp[0])));
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
 #endif  
-
 
 int shift=order*NVAR*dimp;
 
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
 
-     ii[0]=ip*(p->npgp[0])+ipg;
-     ii[1]=jp*(p->npgp[1])+jpg;
+     ii[0]=ip;
+     ii[1]=jp;
      i=ii[0];
      j=ii[1];
      k=0;
      #ifdef USE_SAC_3D
-	   ii[2]=kp*(p->npgp[2])+kpg;
+	   ii[2]=kp;
            k=ii[2];
      #endif
 
@@ -505,8 +465,8 @@ int shift=order*NVAR*dimp;
         wtemp[fencode3_hde1(p,ii,f)]=0.0;
     dwn1[fencode3_hde1(p,ii,field)]=0.0;
    }
-}
- __syncthreads();
+
+ //__syncthreads();
 
  
 
