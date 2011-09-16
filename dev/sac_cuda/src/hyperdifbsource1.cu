@@ -79,7 +79,7 @@ int shift=order*NVAR*dimp;
 
                          {
                               //                                                                                  - sign here same as vac maybe a +
-                              wmod[fencode3_hdb1(p,iia,b1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdb1(p,iia,b1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdb1(p,iia,b1+field)]; 
+                              wmod[fencode3_hdb1(p,iia,b1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdb1(p,iia,b1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdb1(p,iia,b1+ii0)]; 
                              wmod[fencode3_hdb1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdb1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdb1(p,iia,energy)]; 
 
                          }
