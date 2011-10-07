@@ -139,9 +139,11 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
   int i1,j1,k1,ifield;
   int ni,nj,nk;
   char configfile[300];
+  char tcfg[300];
   char buffer[800];
   double dbuffer[12];
   int ibuffer[5];
+  char ext[3];
 
   ni=p.n[0];
   nj=p.n[1];
@@ -149,11 +151,41 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
   nk=p.n[2];
     #endif
 
-      //save file containing current data
+
+   sprintf(configfile,"%s",name);
+   
+   #ifdef USE_MPI
+   
+   char *pch1,*pch2;
+   pch1 = strtok (configfile,".");
+   sprintf(tcfg,"%s",pch1);
+   pch2 = strtok (NULL,".");
+
+   //printf("here1 %s \n",tcfg);
+   sprintf(ext,"%s",pch2);
+
+      //set the input filename corresponding to proc id
+      if(p.ipe>99)
+        sprintf(configfile,"out/%s_%d_%d.%s",tcfg,st.it,p.ipe,ext);
+      else if(p.ipe>9)
+        sprintf(configfile,"out/%s_%d_0%d.%s",tcfg,st.it,p.ipe,ext);
+      else
+        sprintf(configfile,"out/%s_%d_00%d.%s",tcfg,st.it,p.ipe,ext);
+   //printf("here2 %s %d %d %s \n",tcfg,st.it,p.ipe,ext); 
+    
+   #else
+   
+         //save file containing current data
       sprintf(configfile,"out/%s_%d.out",name,st.it);
+  #endif
+   
+
      // sprintf(configfile,"%s",name);
       printf("write vac check dims %d %d %d %lf\n",ni,nj,st.it,st.t);
+//printf("here3 %s \n",configfile); 
       FILE *fdt=fopen(configfile,"w");
+      //FILE *fdt=fopen("out/test.out","w");
+
 
       fwrite(md.name,sizeof(char)*79,1,fdt);
       //*line2:
@@ -587,11 +619,38 @@ int readasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines)
   int ni,nj;
   int shift;
   real x,y,val;
+  char cfgfilename[300];
+  char ext[3];
 
    ni=p.n[0];
    nj=p.n[1];
-
-   FILE *fdt=fopen(cfgfile,"r+");
+   sprintf(cfgfilename,"%s",cfgfile);
+   
+   #ifdef USE_MPI
+   
+   char *pch1,*pch2;
+ //  printf("hello1 %d\n",p.ipe);
+//printf("%s\n",cfgfilename);
+   pch1 = strtok (cfgfilename,".");
+   pch2 = strtok (NULL,".");
+   sprintf(ext,"%s",pch2);
+ // printf("hello2 %d\n",p.ipe);
+//printf("%s\n",pch1);
+   //printf("%s %s %s %s\n",cfgfilename,cfgfile,pch1,pch2);
+//printf("%s\n",ext);
+  // sprintf(cfgfilename,"%s_00%d.%s\n",pch1,p.ipe,ext);
+      //set the input filename corresponding to proc id
+      if(p.ipe>99)
+        sprintf(cfgfilename,"%s_%d.%s",pch1,p.ipe,ext);
+      else if(p.ipe>9)
+        sprintf(cfgfilename,"%s_0%d.%s",pch1,p.ipe,ext);
+      else
+        sprintf(cfgfilename,"%s_00%d.%s",pch1,p.ipe,ext);
+     printf("%s\n",cfgfilename); 
+   #endif
+printf("reading\n");
+   FILE *fdt=fopen(cfgfilename,"r+");
+//FILE *fdt=fopen("zero1_np0201_001.ini","r+");
    //char **hlines;
    char *line;
    //hlines=(char **)calloc(5, sizeof(char*));
@@ -602,6 +661,7 @@ int readasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines)
      freadl(fdt, &hlines[i]);
      printf("%s\n", hlines[i]);
    }
+printf("read header\n");
   //fscanf(fdt,"%f",&val);
  //printf("%f",val);
 for( j1=0;j1<(nj);j1++)

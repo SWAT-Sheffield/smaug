@@ -1,7 +1,7 @@
 #make include file for building StarSimulation IoSimTestSimple on Felix
 # Standard defines:
-CC  	=	g++
-##CC  	=	mpiCC
+#CC  	=	g++
+CC  	=	mpiCC
 NVCC  	=	nvcc
 FF  	=	gfortran
 LD  	=	g++
@@ -12,7 +12,7 @@ Bin	=	../bin
 obj	=	../obj
 MYLIBS  =
 BASE = /usr/local/dx
-incDirs = -I$(BASE)/include  -I$(IOME_HOME)/include  -I/usr/local/include -I/usr/local/cuda/include -I$../include
+incDirs = -I$(BASE)/include  -I$(IOME_HOME)/include  -I/usr/local/include -I/usr/local/cuda/include -I$../include -I/usr/local/cuda/include
 
 
 LD_FLAGS =	-g
@@ -29,14 +29,12 @@ LD_FLAGS =	-g
 #use -DUSE_IOME to enable IOME
 #CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DUSE_SHOCKVISC  -DADIABHYDRO -DUSE_VAC -DD1D -DUSE_IOME -DUSE_USERSOURCE -DUSE_SAC_3D -DUSE_DORDER3
 #compiling with  -arch sm_13 enables double precision to be used
-CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DUSE_SAC
-CCFLAGS = -DUSE_SAC -DD1D
+CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DUSE_SAC -DUSE_MPI
+CCFLAGS = -DUSE_SAC -DD1D -DUSE_MPI
 
 
 
-
-
-LIBS	=	-L/usr/local/cuda/lib -L/usr/local/cuda/lib64 -L../lib -L/usr/local/lib -lm $(IOMELIBS) -lcudart
+LIBS	=	-L/usr/local/cuda/lib64 -L../lib -L/usr/local/lib -lm $(IOMELIBS) -lcudart
 
 
 #C_FLAGS
@@ -56,31 +54,6 @@ INCLUDES = $(IOME_INLUDES)
 
 
 BASICEXOBJS	=\
-	iosac2.5d.o\
-	initialisation.o\
-	dxroutines.o\
-	hyperdifmomsource1.o\
-	hyperdifmomsourcene1.o\
-	hyperdifesource1.o\
-	hyperdifbsource1.o\
-	hyperdifbsourcene1.o\
-	hyperdifrhosource1.o\
-	hyperdifvisc1.o\
-	nushk1.o\
-	hyperdifvisc1l.o\
-	hyperdifvisc1r.o\
-	centdiff1.o\
-	centdiff2.o\
-	computedervfields.o\
-	boundary.o\
-	init.o\
-	update.o\
-        advance.o\
-	readwrite.o\
-	divb.o
-
-PROCEXOBJS	=\
-	gradops_pre.oBASICEXOBJS	=\
 	iosac2.5d.o\
 	initialisation.o\
 	dxroutines.o\

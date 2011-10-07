@@ -20,7 +20,7 @@ int ngk=2;
 // Define the x domain
 
 
-//#ifdef USE_SAC
+#ifdef USE_SAC
 int ni;
 ni=796; //BW tests
 ni=ni+2*ngi;
@@ -29,14 +29,26 @@ ni=ni+2*ngi;
 real xmax=1.0;
 //real dx = xmax/(ni-4);
 real dx = xmax/(ni);
-//#endif
+#endif
+#ifdef USE_SAC_3D
+//vac ozt
+int ni;
+ni=28;    //BACH3D tests
 
+ni=ni+2*ngi;
+//ni=512;
+//real xmax = 6.2831853;  
+real xmax=14.19e18;
+real xmin=-14.19e18;
+//real dx = xmax/(ni-4);
+real dx = (xmax-xmin)/(ni);
+#endif
 
 
 // Define the y domain
 
 
-
+#ifdef USE_SAC
 int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
@@ -45,20 +57,33 @@ real ymax = 1.0;
 //real dy = ymax/(nj-4);
 real dy = ymax/(nj);    
 //nj=41;
-
-
-               
+#endif
 
 #ifdef USE_SAC_3D
+//vac bach3d
+int nj;
+nj=28;    //BACH3D tests
 
+nj=nj+2*ngj;
+//ni=512;
+//real xmax = 6.2831853;  
+real ymax=14.19e18;
+real ymin=-14.19e18;
+//real dx = xmax/(ni-4);
+real dy = (ymax-ymin)/(nj);
+#endif                   
+
+#ifdef USE_SAC_3D
+//vac bach3d
 int nk;
-nk=2;    //BW tests
+nk=28;    //BACH3D tests
 
 nk=nk+2*ngk;
-  
-real zmax=1.0;
-real zmin=0.0;
-
+//ni=512;
+//real xmax = 6.2831853;  
+real zmax=14.19e18;
+real zmin=-14.19e18;
+//real dx = xmax/(ni-4);
 real dz = (zmax-zmin)/(nk);
 #endif     
 real *x=(real *)calloc(ni,sizeof(real));
@@ -105,7 +130,7 @@ struct state *state=(struct state *)malloc(sizeof(struct state));
 
 //dt=0.15;
 
-//#ifdef USE_SAC
+#ifdef USE_SAC
 //dt=0.00065;  //OZT test
 //dt=6.5/10000000.0; //BW test
 //dt=0.00000065;  //BW tests
@@ -113,9 +138,11 @@ dt=0.000000493;  //BW tests
 //dt=0.005;
 //dt=0.000139;
 //dt=3.0/10000000.0; //BW test
-//#endif
+#endif
 
-
+#ifdef USE_SAC_3D
+dt=3.5e24;;  //BACH3D
+#endif
 int nt=(int)((tmax)/dt);
 //nt=3000;
 //nt=5000;
@@ -134,14 +161,12 @@ p->n[0]=ni;
 p->n[1]=nj;
 p->ng[0]=ngi;
 p->ng[1]=ngj;
-
+#ifdef ADIABHYDRO
 p->npgp[0]=1;
 p->npgp[1]=1;
-
-#ifdef USE_SAC_3D
-p->n[2]=nk;
-p->ng[2]=ngk;
-p->npgp[2]=1;
+#else
+p->npgp[0]=1;
+p->npgp[1]=1;
 #endif
 
 p->dt=dt;
@@ -189,7 +214,7 @@ p->g[2]=0.0;
 p->cmax=0.02;
 
 p->rkon=0.0;
-p->sodifon=0.0;
+p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
@@ -211,7 +236,7 @@ p->maxviscoef=0;
 //p->chyp=0.0;       
 //p->chyp=0.00000;
 p->chyp3=0.00000;
-p->mnthreads=1;
+
 
 for(i=0;i<NVAR;i++)
   p->chyp[i]=0.0;
@@ -237,10 +262,7 @@ p->chyp[b1]=0.02;
 p->chyp[b2]=0.02;
 p->chyp[mom1]=0.4;
 p->chyp[mom2]=0.4;
-#ifdef USE_SAC_3D
-p->chyp[mom3]=0.4;
-p->chyp[b3]=0.02;
-#endif
+
 
 
 

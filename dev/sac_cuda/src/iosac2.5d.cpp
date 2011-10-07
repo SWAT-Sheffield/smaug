@@ -90,8 +90,18 @@ printf("rho %d mom1 %d mom2 %d\n",rho,mom1,mom2);
 
 printf("calling cuinit\n");
 
+#ifdef USE_MPI
+     MPI::Init(argc, argv);
+     mpiinit(p);
+     sprintf(configfile,"%s",cfgout);
+     ipe2iped(p);     
+     mpineighbours(0,p);
+     mpineighbours(1,p);
+#else
+     sprintf(configfile,"%s",cfgout);
+#endif
 
-
+//printf("cfgfile %s\n",configfile);
  //   getintparam_( &elist.id,"i1",&it,  &elist.port, "localhost" );	
 //	printf("Get integer %d\n",it);
     //Set input filename as first arg
@@ -149,7 +159,7 @@ if((p->readini)==0)
 else
  readasciivacconfig(cfgfile,*p,meta,w,hlines);
 
-
+printf("after read\n");
 
 
 //writeasciivacconfig(cfgout,*p, meta , w,hlines,*state);
@@ -238,10 +248,12 @@ for( n=1;n<=nt;n++)
     if(((n-1)%(p->cfgsavefrequency))==0)
     {
       //writeconfig(name,n,*p, meta , w);
+#ifndef USE_MPI
       writevtkconfig(name,n,*p, meta , w);
+#endif
       //writeasciivacconfig(cfgout,*p, meta , w,hlines,*state);
 
-      writevacconfig(cfgout,n,*p, meta , w,*state);
+      writevacconfig(configfile,n,*p, meta , w,*state);
     }
    order=0;
    t1=second();
@@ -275,7 +287,9 @@ if((p->rkon)==0)
    {
      if(f==energy)
          cucomputepbg(&p,&d_p,&d_wmod, &d_wd,order,dir);
-     cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
+
+    
+      cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
    }
 
 #endif
@@ -313,10 +327,10 @@ if((p->rkon)==0)
 
      for(int dim=0; dim<=(NDIM-1); dim++)
      {
-              //cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
-               //cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+              cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
                //printf("cmax=%f\n",p->cmax);       cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
-      p->cmax=cmax[dim];
+      //p->cmax=cmax[dim];
 
       cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim);
       cuhyperdifvisc1l(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim);
@@ -329,11 +343,11 @@ for(int dim=0; dim<=(NDIM-1); dim++)
        for(int f=0; f<=(NDIM-1); f++)
            	                 
 	     {
-               //cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
-               //cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
                //printf("cmax=%f\n",p->cmax);
-               p->cmax=cmax[dim];
-              
+               //p->cmax=cmax[dim];
+              //p->cmax=1.0;
                cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim);
                cuhyperdifvisc1l(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim);
 
@@ -364,10 +378,10 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	     for(int f=0; f<=(NDIM-1); f++) 
              if(f!=dim)           
 	     {
-               //cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
-               //cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
                //printf("cmax=%f\n",p->cmax);
-      p->cmax=cmax[dim];
+      //p->cmax=cmax[dim];
 
                cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim);
                cuhyperdifvisc1l(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim);
@@ -697,6 +711,10 @@ printf("\n");
 //}//end //while finishsteering loop
 //cufinish(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd);
 cufinish(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+
+#ifdef USE_MPI
+     mpifinalize(p);
+#endif
 free(hlines);
 free(p);
 free(sdir);

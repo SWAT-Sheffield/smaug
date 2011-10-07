@@ -1,7 +1,7 @@
 #Makefile for StarSimulation IoSimTestSimple
 
 ##### User configurable options #####
-include make_inputs
+include make_inputs_mpi
 ### End User configurable options ###
 
 
@@ -10,32 +10,7 @@ include make_inputs
 
 
 
-BASICEXOBJS	=\
-	iosac2.5d.o\
-	initialisation.o\
-	dxroutines.o\
-	hyperdifmomsource1.o\
-	hyperdifmomsourcene1.o\
-	hyperdifesource1.o\
-	hyperdifbsource1.o\
-	hyperdifbsourcene1.o\
-	hyperdifrhosource1.o\
-	hyperdifvisc1.o\
-	nushk1.o\
-	hyperdifvisc1l.o\
-	hyperdifvisc1r.o\
-	centdiff1.o\
-	centdiff2.o\
-	computedervfields.o\
-	boundary.o\
-	init.o\
-	update.o\
-        advance.o\
-	readwrite.o\
-	divb.o
 
-PROCEXOBJS	=\
-	gradops_pre.o
 	
 #	../../IoGenericSimulationLib.o\
 #	../../../IoSimulation/IoGenericSteerSimulation.o\
@@ -46,11 +21,7 @@ PROCEXOBJS	=\
 ALLOBJS	=	$(obj)/$(BASICEXOBJS)
 ALLBIN	=	$(Bin)/iosac
 
-#use -DUSE_IOME to enable IOME
-#CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DUSE_SHOCKVISC  -DADIABHYDRO -DUSE_VAC -DD1D -DUSE_IOME -DUSE_USERSOURCE -DUSE_SAC_3D -DUSE_DORDER3
-#compiling with  -arch sm_13 enables double precision to be used
-CUDACCFLAGS = --ptxas-options=-v -arch sm_13  -maxrregcount=32 -DUSE_SAC
-CCFLAGS = -DUSE_SAC -DD1D
+
 
 #MYLIBS	=	libAgentSimulation2.a
 
@@ -132,7 +103,7 @@ clean:	cleanobjs cleanbin
 cleanall:	cleanobjs cleanbin
 
 all: allsac
-	$(NVCC) -g $(LIBS)  $(incDirs) -o $(Bin)/iosac $(ALLOBJS) $(MYLIBS)
+	$(CC) -g $(LIBS)  $(incDirs) -o $(Bin)/iosac $(ALLOBJS) $(MYLIBS)
 
 allsac:$(ALLOBJS)
 	$(NVCC) -g $(LIBS)  $(incDirs) -o $(Bin)/iosac $(ALLOBJS) $(MYLIBS)
@@ -144,7 +115,7 @@ allsac:$(ALLOBJS)
 sac:$(BASICEXOBJS)
 	rm iosac2.5d.o
 	$(CC) $(C_FLAGS) $(CCFLAGS) $(incDirs) $(LINKFLAGS)  -o ../obj/iosac2.5d.o -c iosac2.5d.cpp
-	$(NVCC) -g $(LIBS)  $(incDirs) -o $(Bin)/iosac $(ALLOBJS) $(MYLIBS)
+	$(CC) -g $(LIBS)  $(incDirs) -o $(Bin)/iosac $(ALLOBJS) $(MYLIBS)
 
 
 

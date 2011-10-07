@@ -55,6 +55,10 @@ mikeg@photon0.freeserve.co.uk
 	#include <sys/wait.h>
         #include <sys/time.h>
 
+#ifdef USE_MPI
+        #include "sacmpi.h"
+#endif
+
 
 
 

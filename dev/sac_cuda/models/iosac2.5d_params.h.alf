@@ -22,7 +22,7 @@ int ngk=2;
 
 #ifdef USE_SAC
 int ni;
-ni=796; //BW tests
+ni=1024; //BW tests
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
@@ -49,7 +49,7 @@ real dx = (xmax-xmin)/(ni);
 
 
 #ifdef USE_SAC
-int nj=2;  //BW test
+int nj=4;  //BW test
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
@@ -236,7 +236,7 @@ p->maxviscoef=0;
 //p->chyp=0.0;       
 //p->chyp=0.00000;
 p->chyp3=0.00000;
-p->mnthreads=1;
+
 
 for(i=0;i<NVAR;i++)
   p->chyp[i]=0.0;

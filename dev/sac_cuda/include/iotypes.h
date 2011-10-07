@@ -147,7 +147,23 @@ struct params {
         real chyp3;
         real test;  
 
-        int mnthreads;   
+       #ifdef USE_MPI
+		int ipe;
+	        int npe;
+                int pnpe[NDIM];
+                int pipe[NDIM];
+                int mpiupperb[NDIM];
+                int mpilowerb[NDIM];
+                
+                //nearest neighbours                
+                int phpe[NDIM];
+                int pjpe[NDIM];
+                int hpe;
+                int jpe;
+                
+                int gpemin[NDIM];
+                int gpemax[NDIM];
+       #endif   
 };
 
 //it   t   dt    rho m1 m2 e bx by

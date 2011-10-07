@@ -236,7 +236,7 @@ p->maxviscoef=0;
 //p->chyp=0.0;       
 //p->chyp=0.00000;
 p->chyp3=0.00000;
-p->mnthreads=1;
+
 
 for(i=0;i<NVAR;i++)
   p->chyp[i]=0.0;
@@ -263,10 +263,7 @@ p->chyp[b2]=0.02;
 p->chyp[mom1]=0.4;
 p->chyp[mom2]=0.4;
 
-#ifdef USE_SAC_3D
-p->chyp[mom3]=0.4;
-p->chyp[b3]=0.02;
-#endif
+
 
 
 iome elist;

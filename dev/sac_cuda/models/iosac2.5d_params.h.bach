@@ -228,7 +228,7 @@ p->maxviscoef=0;
 //p->chyp=0.0;       
 //p->chyp=0.00000;
 p->chyp3=0.00000;
-p->mnthreads=1;
+
 
 for(i=0;i<NVAR;i++)
   p->chyp[i]=0.0;
