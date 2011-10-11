@@ -5,8 +5,12 @@
 #include <string.h>
 
 MPI::Intracomm comm;
+MPI::Request request;
 double gwall_time;
-
+real *gmpisendbuffer;
+real *gmpirecvbuffer;
+int gnmpirequest,gnmpibuffer;
+MPI::Request *gmpirequest;
 /*void mpiinit(params *p);
 void mpifinalize(params *p);
 void mpisetnpediped(params *p, char *string);
@@ -30,13 +34,57 @@ void iped2ipe(params *p);*/
 //ipetest=0
 void mpiinit(params *p)
 {
-     
+    int nmpibuffer;
+   int numbuffers=2;
+
+
      //MPI::Intracomm comm;
      //MPI_Init(&argc, &argv);
      gwall_time = MPI_Wtime();
      comm=MPI::COMM_WORLD;
      p->npe=comm.Get_size();
-     p->ipe=comm.Get_rank();	
+     p->ipe=comm.Get_rank();
+
+#ifdef USE_SAC3D
+   if((p->n[0])>(p->n[1])  && (p->n[0])>(p->n[2]))
+   {
+     if((p->n[1])>(p->n[2]))
+       nmpibuffer=NVAR*(p->n[0])*(p->n[1])*(p->ng[0]);
+     else
+       nmpibuffer=NVAR*(p->n[0])*(p->n[2])*(p->ng[0]);
+
+   }
+   else((p->n[1])>(p->n[0])  && (p->n[1])>(p->n[2]))
+   {
+     if((p->n[0])>(p->n[2]))
+       nmpibuffer=NVAR*(p->n[1])*(p->n[0])*(p->ng[1]);
+     else
+       nmpibuffer=NVAR*(p->n[1])*(p->n[2])*(p->ng[1]);
+   }
+   else((p->n[2])>(p->n[0])  && (p->n[2])>(p->n[1]))
+   {
+     if((p->n[0])>(p->n[1]))
+       nmpibuffer=NVAR*(p->n[2])*(p->n[0])*(p->ng[2]);
+     else
+       nmpibuffer=NVAR*(p->n[2])*(p->n[1])*(p->ng[2]);
+   }
+
+#else
+   if((p->n[0])>(p->n[1]))
+    nmpibuffer=NVAR*(p->n[0])*(p->ng[0]);
+   else
+    nmpibuffer=NVAR*(p->n[1])*(p->ng[1]);
+#endif
+     gnmpirequest=0;
+     gnmpibuffer=nmpibuffer;
+     gmpirequest=(MPI::Request *)calloc(numbuffers,sizeof(MPI::Request));
+     gmpisendbuffer=(real *)calloc(nmpibuffer,sizeof(real));
+     gmpirecvbuffer=(real *)calloc(nmpibuffer*numbuffers,sizeof(real));	
+     
+
+     
+     
+     	
 }
 
 
@@ -52,6 +100,9 @@ void mpifinalize(params *p)
      gwall_time = MPI_Wtime() - gwall_time;
      if ((p->ipe) == 0)
 	  printf("\n Wall clock time = %f secs\n", gwall_time);
+     free(gmpisendbuffer);
+     free(gmpirecvbuffer);
+     free(gmpirequest);
      MPI_Finalize();
 }
 
@@ -125,6 +176,21 @@ void ipe2iped(params *p)
 
 #endif
 
+
+
+    //ensure boundary set correctly 
+    for(int ii=0; ii<NVAR; ii++)
+    for(int idir=0; idir<NDIM; idir++)
+    {
+       if( ((p->boundtype[ii][idir])==0) && ((p->pnpe[idir])>0) )
+                                     p->boundtype[ii][idir]=2;
+       else if( (((p->mpiupperb[idir])==1)    &&  ((p->pipe[idir])<(p->pnpe[idir])-1)) || 
+          ( ((p->mpiupperb[idir])!=1)    &&  ((p->pipe[idir])>0) )  )
+                                     p->boundtype[ii][idir]=1;
+    }
+
+
+
 }
 
 //!==============================================================================
@@ -185,6 +251,410 @@ void mpineighbours(int dir, params *p)
      
      iped2ipe(p->phpe,p->pnpe,&(p->hpe));
      iped2ipe(p->pjpe,p->pnpe,&(p->jpe));
+}
+
+//!==============================================================================
+//subroutine mpisend(nvar,var,ixmin1,ixmin2,ixmax1,ixmax2,qipe,iside)
+//
+//! Send var(ix^L,1:nvar) to processor qipe.
+//! jside is 0 for min and 1 for max side of the grid for the sending PE
+void mpisend(int nvar,real *var, int *ixmin, int *ixmax  ,int qipe,int iside, params *p)
+{
+   int n=0;
+   int i1,i2,i3,ivar;
+ 
+   for(ivar=0; ivar<NVAR;ivar++)
+     for(i1=ixmin[0];i1<ixmax[0];i1++)
+      for(i2=ixmin[1];i2<ixmax[1];i2++)
+#ifdef USE_SAC3D
+        for(i3=ixmin[2];i3<ixmax[2];i3++)
+#endif
+      {
+	n++;
+
+#ifdef USE_SAC3D
+	gmpisendbuffer[n]= *(var+(i3*(p->n[0])*(p->n[1]))+(i2*(p->n[0])+i1)+(ivar*(p->n[0])*(p->n[1])*(p->n[2])));
+#else
+	gmpisendbuffer[n]=*(var+(i2*(p->n[0])+i1)+(ivar*(p->n[0])*(p->n[1])));
+#endif
+        
+
+      }
+   
+   comm.Rsend(gmpisendbuffer, nvar, MPI_DOUBLE_PRECISION, qipe, 10*(p->ipe)+iside);
+
+
+}
+
+
+//!==============================================================================
+//subroutine mpirecvbuffer(nvar,ixmin1,ixmin2,ixmax1,ixmax2,qipe,iside)
+//
+//! receive buffer for a ghost cell region of size ix^L sent from processor qipe
+//! and sent from side iside of the grid
+//
+//include 'vacdef.f'
+//
+//integer:: nvar, ixmin1,ixmin2,ixmax1,ixmax2, qipe, iside, n
+//
+//integer :: nmpirequest, mpirequests(2)
+//integer :: mpistatus(MPI_STATUS_SIZE,2)
+//common /mpirecv/ nmpirequest,mpirequests,mpistatus
+//!----------------------------------------------------------------------------
+void mpirecvbuffer(int nvar,int *ixmin, int *ixmax  ,int qipe,int iside, params *p)
+{
+int nrecv;
+#ifdef USE_SAC3D
+   nrecv = nvar* (ixmax[0]-ixmin[0]+1)*(ixmax[1]-ixmin[1]+1)*(ixmax[2]-ixmin[2]+1);
+#else
+   nrecv = nvar* (ixmax[0]-ixmin[0]+1)*(ixmax[1]-ixmin[1]+1);
+#endif
+
+gnmpirequest++;
+
+gmpirequest[gnmpirequest]=comm.Irecv(gmpirecvbuffer+(iside*gnmpibuffer),nrecv,MPI_DOUBLE_PRECISION,qipe,10*(p->ipe)+iside);
+
+}
+
+
+//!==============================================================================
+//subroutine mpibuffer2var(iside,nvar,var,ixmin1,ixmin2,ixmax1,ixmax2)
+//
+//! Copy mpibuffer(:,iside) into var(ix^L,1:nvar)
+//include 'vacdef.f'
+//
+//integer :: nvar
+//double precision:: var(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nvar)
+//integer:: ixmin1,ixmin2,ixmax1,ixmax2,iside,n,ix1,ix2,ivar
+//!-----------------------------------------------------------------------------
+void mpibuffer2var(int iside,int nvar,real *var,int *ixmin, int *ixmax, params *p)
+{
+   int n=0;
+   int ivar,i1,i2,i3;
+ 
+   for(ivar=0; ivar<NVAR;ivar++)
+     for(i1=ixmin[0];i1<ixmax[0];i1++)
+      for(i2=ixmin[1];i2<ixmax[1];i2++)
+#ifdef USE_SAC3D
+        for(i3=ixmin[2];i3<ixmax[2];i3++)
+#endif
+      {
+	n++;
+
+#ifdef USE_SAC3D
+	*(var+(i3*(p->n[0])*(p->n[1]))+(i2*(p->n[0])+i1)+(ivar*(p->n[0])*(p->n[1])*(p->n[2])))=gmpirecvbuffer[n+iside*gnmpibuffer];
+#else
+	*(var+(i2*(p->n[0])+i1)+(ivar*(p->n[0])*(p->n[1])))=gmpirecvbuffer[n+iside*gnmpibuffer];
+#endif
+      }
+}
+
+
+
+
+//!==============================================================================
+//subroutine mpibound(nvar,var)
+//
+//! Fill in ghost cells of var(ixG,nvar) from other processors
+//
+//include 'vacdef.f'
+//
+//integer :: nvar
+//double precision :: var(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nvar)
+//
+//! processor indexes for left and right neighbors
+//integer :: hpe,jpe
+//! index limits for the left and right side mesh and ghost cells 
+//integer :: ixLMmin1,ixLMmin2,ixLMmax1,ixLMmax2, ixRMmin1,ixRMmin2,ixRMmax1,&
+//   ixRMmax2, ixLGmin1,ixLGmin2,ixLGmax1,ixLGmax2, ixRGmin1,ixRGmin2,ixRGmax1,&
+//   ixRGmax2
+//logical :: periodic
+void mpibound(int nvar,  real *var, params *p)
+{
+   int i;
+
+   int ixlgmin[NDIM],ixlgmax[NDIM];
+   int ixrgmin[NDIM],ixrgmax[NDIM];
+
+   int ixlmmin[NDIM],ixlmmax[NDIM];
+   int ixrmmin[NDIM],ixrmmax[NDIM];
+
+
+
+if((p->pnpe[0])>1)
+{
+   gnmpirequest=0;
+   for(i=0; i<2; i++)
+     gmpirequest[i]=MPI_REQUEST_NULL;
+   //periodic=typeB(1,2*1)=='mpiperiod'
+   //! Left and right side ghost cell regions (target)
+   for(i=0;i<NDIM;i++)
+   {
+	ixlgmin[i]=0;
+	ixlgmax[i]=(p->n[i])-1;
+	ixrgmin[i]=0;
+	ixrgmax[i]=(p->n[i])-1;
+   }
+      ixlgmax[0]=1;
+   ixrgmin[0]=(p->n[0])-2;
+   //! Left and right side mesh cell regions (source)
+   for(i=0;i<NDIM;i++)
+   {
+	ixlmmin[i]=0;
+	ixlmmax[i]=(p->n[i])-1;
+	ixrmmin[i]=0;
+	ixrmmax[i]=(p->n[i])-1;
+   }
+   ixlmmin[0]=2;   
+   ixlmmax[0]=1;
+   ixrmmax[0]=(p->n[0])-3;
+   ixrmmin[0]=(p->n[0])-4; 
+     //! Obtain left and right neighbor processors for this direction
+   //call mpineighbors(1,hpe,jpe)
+   //already computed initially use phpe pjpe arrays
+
+   //! receive right (2) boundary from left neighbor hpe
+   //if(mpilowerB(1) .or. periodic)call mpirecvbuffer(nvar,ixRMmin1,ixRMmin2,&
+   //   ixRMmax1,ixRMmax2,hpe,2)
+   if(((p->mpilowerb[0])==1) ||  ((p->boundtype[0][0])==0))
+             mpirecvbuffer(nvar,ixrmmin,ixrmmax,p->phpe[0],1,p);
+   //! receive left (1) boundary from right neighbor jpe
+   //if(mpiupperB(1) .or. periodic)call mpirecvbuffer(nvar,ixLMmin1,ixLMmin2,&
+   //   ixLMmax1,ixLMmax2,jpe,1)
+   if(((p->mpiupperb[0])==1) ||  ((p->boundtype[0][0])==0))
+             mpirecvbuffer(nvar,ixlmmin,ixlmmax,p->pjpe[0],0,p);
+   //! Wait for all receives to be posted
+   //call MPI_BARRIER(MPI_COMM_WORLD,ierrmpi)
+   comm.Barrier();
+   //! Ready send left (1) boundary to left neighbor hpe
+   //if(mpilowerB(1) .or. periodic)call mpisend(nvar,var,ixLMmin1,ixLMmin2,&
+   //   ixLMmax1,ixLMmax2,hpe,1)
+   if(((p->mpilowerb[0])==1) ||  ((p->boundtype[0][0])==0))
+             mpisend(nvar,var,ixlmmin,ixlmmax,p->phpe[0],0,p);
+   //! Ready send right (2) boundary to right neighbor
+   //if(mpiupperB(1) .or. periodic)call mpisend(nvar,var,ixRMmin1,ixRMmin2,&
+   //   ixRMmax1,ixRMmax2,jpe,2)
+   if(((p->mpiupperb[0])==1) ||  ((p->boundtype[0][0])==0))
+             mpisend(nvar,var,ixrmmin,ixrmmax,p->pjpe[0],1,p);
+   //! Wait for messages to arrive
+   //call MPI_WAITALL(nmpirequest,mpirequests,mpistatus,ierrmpi)
+   request.Waitall(gnmpirequest,gmpirequest);
+
+   //! Copy buffer received from right (2) physical cells into left ghost cells
+   //if(mpilowerB(1) .or. periodic)call mpibuffer2var(2,nvar,var,ixLGmin1,&
+   //   ixLGmin2,ixLGmax1,ixLGmax2)
+   if(((p->mpilowerb[0])==1) ||  ((p->boundtype[0][0])==0))
+             mpibuffer2var(1,nvar,var,ixlgmin,ixlgmax,p);
+   //! Copy buffer received from left (1) physical cells into right ghost cells
+   //if(mpiupperB(1) .or. periodic)call mpibuffer2var(1,nvar,var,ixRGmin1,&
+   //   ixRGmin2,ixRGmax1,ixRGmax2)
+   if(((p->mpiupperb[0])==1) ||  ((p->boundtype[0][0])==0))
+             mpibuffer2var(0,nvar,var,ixrgmin,ixrgmax,p);
+
+}
+
+
+if((p->pnpe[1])>1)
+{
+  gnmpirequest=0;  
+  for(i=0; i<2; i++)
+     gmpirequest[i]=MPI_REQUEST_NULL;
+   //periodic=typeB(1,2*1)=='mpiperiod'
+   //! Left and right side ghost cell regions (target)
+   for(i=0;i<NDIM;i++)
+   {
+	ixlgmin[i]=0;
+	ixlgmax[i]=(p->n[i])-1;
+	ixrgmin[i]=0;
+	ixrgmax[i]=(p->n[i])-1;
+   }
+   ixlgmax[1]=1;
+   ixrgmin[1]=(p->n[1])-2;
+   //! Left and right side mesh cell regions (source)
+   for(i=0;i<NDIM;i++)
+   {
+	ixlmmin[i]=0;
+	ixlmmax[i]=(p->n[i])-1;
+	ixrmmin[i]=0;
+	ixrmmax[i]=(p->n[i])-1;
+   }
+   ixlmmin[1]=2;   
+   ixlmmax[1]=1;
+   ixrmmax[1]=(p->n[1])-3;
+   ixrmmin[1]=(p->n[1])-4; 
+     //! Obtain left and right neighbor processors for this direction
+   //call mpineighbors(1,hpe,jpe)
+   //already computed initially use phpe pjpe arrays
+
+   //! receive right (2) boundary from left neighbor hpe
+   //if(mpilowerB(1) .or. periodic)call mpirecvbuffer(nvar,ixRMmin1,ixRMmin2,&
+   //   ixRMmax1,ixRMmax2,hpe,2)
+   if(((p->mpilowerb[1])==1) ||  ((p->boundtype[0][1])==0))
+             mpirecvbuffer(nvar,ixrmmin,ixrmmax,p->phpe[1],1,p);
+   //! receive left (1) boundary from right neighbor jpe
+   //if(mpiupperB(1) .or. periodic)call mpirecvbuffer(nvar,ixLMmin1,ixLMmin2,&
+   //   ixLMmax1,ixLMmax2,jpe,1)
+   if(((p->mpiupperb[1])==1) ||  ((p->boundtype[0][1])==0))
+             mpirecvbuffer(nvar,ixlmmin,ixlmmax,p->pjpe[1],0,p);
+   //! Wait for all receives to be posted
+   //call MPI_BARRIER(MPI_COMM_WORLD,ierrmpi)
+   comm.Barrier();
+   //! Ready send left (1) boundary to left neighbor hpe
+   //if(mpilowerB(1) .or. periodic)call mpisend(nvar,var,ixLMmin1,ixLMmin2,&
+   //   ixLMmax1,ixLMmax2,hpe,1)
+   if(((p->mpilowerb[1])==1) ||  ((p->boundtype[0][1])==0))
+             mpisend(nvar,var,ixlmmin,ixlmmax,p->phpe[1],0,p);
+   //! Ready send right (2) boundary to right neighbor
+   //if(mpiupperB(1) .or. periodic)call mpisend(nvar,var,ixRMmin1,ixRMmin2,&
+   //   ixRMmax1,ixRMmax2,jpe,2)
+   if(((p->mpiupperb[1])==1) ||  ((p->boundtype[0][1])==0))
+             mpisend(nvar,var,ixrmmin,ixrmmax,p->pjpe[1],1,p);
+   //! Wait for messages to arrive
+   //call MPI_WAITALL(nmpirequest,mpirequests,mpistatus,ierrmpi)
+   request.Waitall(gnmpirequest,gmpirequest);
+
+   //! Copy buffer received from right (2) physical cells into left ghost cells
+   //if(mpilowerB(1) .or. periodic)call mpibuffer2var(2,nvar,var,ixLGmin1,&
+   //   ixLGmin2,ixLGmax1,ixLGmax2)
+   if(((p->mpilowerb[1])==1) ||  ((p->boundtype[0][1])==0))
+             mpibuffer2var(1,nvar,var,ixlgmin,ixlgmax,p);
+   //! Copy buffer received from left (1) physical cells into right ghost cells
+   //if(mpiupperB(1) .or. periodic)call mpibuffer2var(1,nvar,var,ixRGmin1,&
+   //   ixRGmin2,ixRGmax1,ixRGmax2)
+   if(((p->mpiupperb[1])==1) ||  ((p->boundtype[0][1])==0))
+             mpibuffer2var(0,nvar,var,ixrgmin,ixrgmax,p);
+}
+
+#ifdef USE_SAC3D
+
+if((p->pnpe[2])>1)
+{
+  gnmpirequest=0;  
+  for(i=0; i<2; i++)
+     gmpirequest[i]=MPI_REQUEST_NULL;
+   //periodic=typeB(1,2*1)=='mpiperiod'
+   //! Left and right side ghost cell regions (target)
+   for(i=0;i<NDIM;i++)
+   {
+	ixlgmin[i]=0;
+	ixlgmax[i]=(p->n[i])-1;
+	ixrgmin[i]=0;
+	ixrgmax[i]=(p->n[i])-1;
+   }
+   ixlgmax[2]=1;
+   ixrgmin[2]=(p->n[2])-2;
+   //! Left and right side mesh cell regions (source)
+   for(i=0;i<NDIM;i++)
+   {
+	ixlmmin[i]=0;
+	ixlmmax[i]=(p->n[i])-1;
+	ixrmmin[i]=0;
+	ixrmmax[i]=(p->n[i])-1;
+   }
+   ixlmmin[2]=2;   
+   ixlmmax[2]=1;
+   ixrmmax[2]=(p->n[2])-3;
+   ixrmmin[2]=(p->n[2])-4; 
+     //! Obtain left and right neighbor processors for this direction
+   //call mpineighbors(1,hpe,jpe)
+   //already computed initially use phpe pjpe arrays
+
+   //! receive right (2) boundary from left neighbor hpe
+   //if(mpilowerB(1) .or. periodic)call mpirecvbuffer(nvar,ixRMmin1,ixRMmin2,&
+   //   ixRMmax1,ixRMmax2,hpe,2)
+   if(((p->mpilowerb[2])==1) ||  ((p->boundtype[0][2])==0))
+             mpirecvbuffer(nvar,ixrmmin,ixrmmax,p->phpe[2],1,p);
+   //! receive left (1) boundary from right neighbor jpe
+   //if(mpiupperB(1) .or. periodic)call mpirecvbuffer(nvar,ixLMmin1,ixLMmin2,&
+   //   ixLMmax1,ixLMmax2,jpe,1)
+   if(((p->mpiupperb[2])==1) ||  ((p->boundtype[0][2])==0))
+             mpirecvbuffer(nvar,ixlmmin,ixlmmax,p->pjpe[2],0,p);
+   //! Wait for all receives to be posted
+   //call MPI_BARRIER(MPI_COMM_WORLD,ierrmpi)
+   comm.Barrier();
+   //! Ready send left (1) boundary to left neighbor hpe
+   //if(mpilowerB(1) .or. periodic)call mpisend(nvar,var,ixLMmin1,ixLMmin2,&
+   //   ixLMmax1,ixLMmax2,hpe,1)
+   if(((p->mpilowerb[2])==1) ||  ((p->boundtype[0][2])==0))
+             mpisend(nvar,var,ixlmmin,ixlmmax,p->phpe[2],0,p);
+   //! Ready send right (2) boundary to right neighbor
+   //if(mpiupperB(1) .or. periodic)call mpisend(nvar,var,ixRMmin1,ixRMmin2,&
+   //   ixRMmax1,ixRMmax2,jpe,2)
+   if(((p->mpiupperb[2])==1) ||  ((p->boundtype[0][2])==0))
+             mpisend(nvar,var,ixrmmin,ixrmmax,p->pjpe[2],1,p);
+   //! Wait for messages to arrive
+   //call MPI_WAITALL(nmpirequest,mpirequests,mpistatus,ierrmpi)
+   request.Waitall(gnmpirequest,gmpirequest);
+
+   //! Copy buffer received from right (2) physical cells into left ghost cells
+   //if(mpilowerB(1) .or. periodic)call mpibuffer2var(2,nvar,var,ixLGmin1,&
+   //   ixLGmin2,ixLGmax1,ixLGmax2)
+   if(((p->mpilowerb[2])==1) ||  ((p->boundtype[0][2])==0))
+             mpibuffer2var(1,nvar,var,ixlgmin,ixlgmax,p);
+   //! Copy buffer received from left (1) physical cells into right ghost cells
+   //if(mpiupperB(1) .or. periodic)call mpibuffer2var(1,nvar,var,ixRGmin1,&
+   //   ixRGmin2,ixRGmax1,ixRGmax2)
+   if(((p->mpiupperb[2])==1) ||  ((p->boundtype[0][2])==0))
+             mpibuffer2var(0,nvar,var,ixrgmin,ixrgmax,p);
+}
+
+
+#endif
+
+
+}
+
+
+//!=============================================================================
+//subroutine mpireduce(a,mpifunc)
+//
+//! reduce input for one PE 0 using mpifunc
+//
+//include 'mpif.h'
+//
+//double precision :: a, alocal
+//integer          :: mpifunc, ierrmpi
+//!----------------------------------------------------------------------------
+//alocal = a
+//call MPI_REDUCE(alocal,a,1,MPI_DOUBLE_PRECISION,mpifunc,0,MPI_COMM_WORLD,&
+//   ierrmpi)
+void mpireduce(real *a, MPI::Op mpifunc)
+{
+  real *alocal;
+
+   *alocal=*a;
+   comm.Reduce(alocal, a, 1, MPI_DOUBLE_PRECISION, mpifunc, 0);
+
+}
+
+
+
+//!==============================================================================
+//subroutine mpiallreduce(a,mpifunc)
+//
+//! reduce input onto all PE-s using mpifunc
+//
+//include 'mpif.h'
+//
+//double precision :: a, alocal
+//integer          :: mpifunc, ierrmpi
+//!-----------------------------------------------------------------------------
+//alocal = a
+//call MPI_ALLREDUCE(alocal,a,1,MPI_DOUBLE_PRECISION,mpifunc,MPI_COMM_WORLD,&
+//   ierrmpi)
+void mpiallreduce(real *a, MPI::Op mpifunc)
+{
+   real *alocal;
+
+   *alocal=*a;
+   comm.Allreduce(alocal, a, 1, MPI_DOUBLE_PRECISION, mpifunc);
+
+}
+
+//update viscosity term
+void mpivisc(real *var, params *p)
+{
+
 }
 
 

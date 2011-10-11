@@ -70,7 +70,9 @@ int shift=order*NVAR*dimp;
      #else
            for( f=rho; f<=b2; f++)
      #endif
-             {  
+             {
+                       
+                       
          #ifdef USE_SAC_3D
       if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
      #else

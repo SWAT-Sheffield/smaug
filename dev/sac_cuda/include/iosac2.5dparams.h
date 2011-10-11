@@ -301,6 +301,13 @@ p->pnpe[2]=1;
 iome elist;
 meta meta;
 
+//set boundary types
+for(int ii=0; ii<NVAR; ii++)
+for(int idir=0; idir<NDIM; idir++)
+{
+   (p->boundtype[ii][idir])=0;  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
+}
+
 
 
 

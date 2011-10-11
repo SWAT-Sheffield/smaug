@@ -97,6 +97,11 @@ printf("calling cuinit\n");
      ipe2iped(p);     
      mpineighbours(0,p);
      mpineighbours(1,p);
+     
+     #ifdef USE_SAC3D
+          mpineighbours(2,p);
+     #endif
+     
 #else
      sprintf(configfile,"%s",cfgout);
 #endif
@@ -182,8 +187,16 @@ printf("after read\n");
   v=w+(ni)*(nj)*mom2;
 
 cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+
+
 cuboundary(&p,&d_p,&d_state,&d_w, 0);
+#ifdef USE_MPI
+   mpibound(NVAR, d_w ,d_p);
+#endif
 cuboundary(&p,&d_p,&d_state,&d_wmod, 0);
+#ifdef USE_MPI
+   mpibound(NVAR, d_wmod ,d_p);
+#endif
 
 printf("after cuinit\n");
 /*for( j1=0;j1<nj;j1++)
@@ -313,6 +326,9 @@ if((p->rkon)==0)
      {
               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+          #ifdef USE_MPI
+              mpiallreduce(&(p->cmax), MPI_MAX);
+          #endif
                //printf("cmax=%f\n",p->cmax);       //printf(" courant is %f \n",p->courant);
        cmax[dim]=p->cmax;
        cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim);
@@ -329,6 +345,9 @@ if((p->rkon)==0)
      {
               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+          #ifdef USE_MPI
+              mpiallreduce(&(p->cmax), MPI_MAX);
+          #endif
                //printf("cmax=%f\n",p->cmax);       cuhyperdifvisc1(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim,0);
       //p->cmax=cmax[dim];
 
@@ -345,6 +364,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+          #ifdef USE_MPI
+              mpiallreduce(&(p->cmax), MPI_MAX);
+          #endif
                //printf("cmax=%f\n",p->cmax);
                //p->cmax=cmax[dim];
               //p->cmax=1.0;
@@ -380,6 +402,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+          #ifdef USE_MPI
+              mpiallreduce(&(p->cmax), MPI_MAX);
+          #endif
                //printf("cmax=%f\n",p->cmax);
       //p->cmax=cmax[dim];
 
@@ -418,6 +443,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 
    }
    //cuadvance(&p,&d_p,&d_wmod,&d_w, order);
+	#ifdef USE_MPI
+	   mpibound(NVAR, d_wmod ,d_p);
+	#endif
    cuboundary(&p,&d_p,&d_state,&d_wmod, ordero);
 
 }
@@ -474,6 +502,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+          #ifdef USE_MPI
+              mpiallreduce(&(p->cmax), MPI_MAX);
+          #endif
 	       cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim);
  
 
@@ -489,6 +520,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
      {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+          #ifdef USE_MPI
+              mpiallreduce(&(p->cmax), MPI_MAX);
+          #endif
        cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim);
 
 
@@ -505,6 +539,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                //cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+          #ifdef USE_MPI
+           ;//   mpiallreduce(&(p->cmax), MPI_MAX);
+          #endif
                cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim);
 
 
@@ -540,6 +577,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                //cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+          #ifdef USE_MPI
+              ;//mpiallreduce(&(p->cmax), MPI_MAX);
+          #endif
                cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim);
 
 
@@ -578,6 +618,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
            }
            //cuboundary(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1, &d_wd,ordero);
            cuadvance(&p,&d_p,&d_wmod,&d_w,order);
+	#ifdef USE_MPI
+	   mpibound(NVAR, d_wmod ,d_p);
+	#endif
            cuboundary(&p,&d_p,&d_state,&d_wmod, orderb);
 	   
 
@@ -598,6 +641,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 
 
         cugetdtvisc1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
+          #ifdef USE_MPI
+              mpiallreduce(&(p->maxviscoef), MPI_MAX);
+          #endif
         /*for(int dim=0; dim<=(NDIM-1); dim++)
         {
         dtdiffvisc=0.25/(p->maxviscoef/((p->dx[dim])*(p->dx[dim])));
