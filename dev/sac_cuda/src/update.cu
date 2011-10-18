@@ -157,9 +157,9 @@ void checkErrors_u(char *label)
     fprintf(stderr, "CUDA Error: %s (at %s)", e, label);
   }
 }
-
-
-int cuupdate(struct params **p, real **w, real **wnew, struct state **state,struct params **d_p, real **d_w, real **d_wmod, struct state **d_state, int step)
+int cuupdate(struct params **p, real **w, real **wmod,real **wtemp2, struct state **state,struct params **d_p, real **d_w, real **d_wmod, real ** d_wtemp2, struct state **d_state, int step)
+//int cuupdate(struct params **p, real **w, real **wmod, real **wd, real **temp2, struct state **state,
+//             struct params **d_p, real **d_w, real **d_wmod, real **d_wtemp2, struct state **d_state, int step)
 {
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
@@ -177,10 +177,26 @@ cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
      update_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_state,*d_w,*d_wmod);
 	    //printf("called update\n"); 
     cudaThreadSynchronize();
+//following comments removed from if def pragmas  if
+//using MPI and copying all cell data to host (how slow!?)
+//#ifdef USE_MPI
 
+//#else
     if((step%((*p)->cfgsavefrequency))==0)
+//#endif
     {
-  
+
+//following commentes removed from section if
+//using MPI and copying all cell data to host (how slow!?)
+/*#ifdef USE_MPI
+    cudaMemcpy(*wmod, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+    #ifdef USE_SAC_3D  
+           cudaMemcpy(*wtemp2, *d_wtemp2,NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2)* (((*p)->n[2])+2)*sizeof(real), cudaMemcpyDeviceToHost);
+    #else
+       cudaMemcpy(*wtemp2, *d_wtemp2,NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2)*sizeof(real), cudaMemcpyDeviceToHost);
+    #endif
+
+#endif */ 
     cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
 
     //cudaMemcpy(*wnew, *d_wd, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
@@ -224,7 +240,33 @@ int cufinish(struct params **p, real **w, real **wnew, struct state **state, str
   cudaFree(*d_wtemp);
   cudaFree(*d_wtemp1);
   cudaFree(*d_wtemp2);
+  
+
 
 
 
 }
+
+  #ifdef USE_MPI
+
+int cufinishmpi(struct params **p,real **w, real **wmod, real **temp2, real **gmpivisc,   real **gmpiw, real **gmpiwmod, struct params **d_p,   real **d_w, real **d_wmod,real **d_wtemp2,    real **d_gmpivisc,   real **d_gmpiw, real **d_gmpiwmod)
+{
+  
+
+ //cudaMemcpy(*w, *d_w, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*wnew, *d_wnew, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
+//cudaMemcpy(*b, *d_u, (((*p)->n[0])* ((*p)->n[1]))*sizeof(real), cudaMemcpyDeviceToHost);
+
+  checkErrors_u("copy data from device");
+
+
+  cudaFree(*d_gmpiw);
+  cudaFree(*d_gmpiwmod);
+  cudaFree(*d_gmpivisc);
+
+  free(*gmpiw);
+  free(*gmpiwmod);
+  free(*gmpivisc);
+  free(*temp2);
+}
+#endif

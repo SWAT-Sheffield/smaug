@@ -142,14 +142,32 @@ real *d_wnew;
 
 real *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
 
-real *w,*wnew,*wd;
+real *w,*wnew,*wd, *temp2,*wmod;
 real *d_wtemp,*d_wtemp1,*d_wtemp2;
+
+#ifdef USE_MPI
+  real *gmpivisc, *gmpiw, *gmpiwmod;
+  real *d_gmpivisc, *d_gmpiw, *d_gmpiwmod;
+#endif
+
+
 struct params *d_p;
 struct params *p=(struct params *)malloc(sizeof(struct params));
 
 struct state *d_state;
 struct state *state=(struct state *)malloc(sizeof(struct state));
 
+#ifdef USE_MPI
+//buffers to use on GPU
+  real *d_gmpisendbuffer;
+  real *d_gmpirecvbuffer;
+
+   
+  real *d_gmpisrcbufferl;
+  real *d_gmpisrcbufferr;
+  real *d_gmpitgtbufferl;
+  real *d_gmpitgtbufferr;
+#endif
 
 #ifdef ADIABHYDRO
 dt=0.0002985;  //ADIABHYDRO

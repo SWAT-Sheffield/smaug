@@ -9,8 +9,28 @@ MPI::Request request;
 double gwall_time;
 real *gmpisendbuffer;
 real *gmpirecvbuffer;
+
+real **gmpisrcbufferl;
+real **gmpisrcbufferr;
+real **gmpitgtbufferl;
+real **gmpitgtbufferr;
+
+
 int gnmpirequest,gnmpibuffer;
 MPI::Request *gmpirequest;
+
+
+
+int encode3p2_sacmpi (struct params *dp,int ix, int iy, int iz, int field) {
+
+
+  #ifdef USE_SAC_3D
+    return ( (iz*(((dp)->n[0])+2)*(((dp)->n[1])+2)  + iy * (((dp)->n[0])+2) + ix)+(field*(((dp)->n[0])+2)*(((dp)->n[1])+2)*(((dp)->n[2])+2)));
+  #else
+    return ( (iy * (((dp)->n[0])+2) + ix)+(field*(((dp)->n[0])+2)*(((dp)->n[1])+2)));
+  #endif
+}
+
 /*void mpiinit(params *p);
 void mpifinalize(params *p);
 void mpisetnpediped(params *p, char *string);
@@ -36,6 +56,7 @@ void mpiinit(params *p)
 {
     int nmpibuffer;
    int numbuffers=2;
+   int i;
 
 
      //MPI::Intracomm comm;
@@ -82,8 +103,56 @@ void mpiinit(params *p)
      gmpirecvbuffer=(real *)calloc(nmpibuffer*numbuffers,sizeof(real));	
      
 
-     
-     
+for(i=0;i<NDIM;i++)
+{
+     gmpisrcbufferl=(real **)calloc(NDIM,sizeof(real *));
+     gmpisrcbufferr=(real **)calloc(NDIM,sizeof(real *));
+     gmpitgtbufferl=(real **)calloc(NDIM,sizeof(real *));
+     gmpitgtbufferr=(real **)calloc(NDIM,sizeof(real *));
+}
+
+for(i=0;i<NDIM;i++)
+{
+              switch(i)
+              {
+                 case 0:
+#ifdef USE_SAC3D
+     gmpisrcbufferl[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2),sizeof(real));
+     gmpisrcbufferr[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)),sizeof(real ));
+     gmpitgtbufferl[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2),sizeof(real ));
+     gmpitgtbufferr[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2),sizeof(real ));
+#else
+     gmpisrcbufferl[i]=(real *)calloc((p->n[1])+2,sizeof(real ));
+     gmpisrcbufferr[i]=(real *)calloc((p->n[1])+2,sizeof(real ));
+     gmpitgtbufferl[i]=(real *)calloc((p->n[1])+2,sizeof(real ));
+     gmpitgtbufferr[i]=(real *)calloc((p->n[1])+2,sizeof(real ));
+#endif
+                      
+                      break;   
+                 case 1:
+#ifdef USE_SAC3D
+     gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2),sizeof(real ));
+     gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)),sizeof(real ));
+     gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2),sizeof(real ));
+     gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2),sizeof(real ));
+#else
+     gmpisrcbufferl[i]=(real *)calloc((p->n[0])+2,sizeof(real ));
+     gmpisrcbufferr[i]=(real *)calloc((p->n[0])+2,sizeof(real ));
+     gmpitgtbufferl[i]=(real *)calloc((p->n[0])+2,sizeof(real ));
+     gmpitgtbufferr[i]=(real *)calloc((p->n[0])+2,sizeof(real ));
+#endif
+                      
+                      break;
+#ifdef USE_SAC3D         
+                 case 2:
+     gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2),sizeof(real ));
+     gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)),sizeof(real ));
+     gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2),sizeof(real ));
+     gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2),sizeof(real ));
+                      break;
+#endif                             
+                       }     
+}    
      	
 }
 
@@ -652,10 +721,180 @@ void mpiallreduce(real *a, MPI::Op mpifunc)
 }
 
 //update viscosity term
-void mpivisc(real *var, params *p)
+void mpivisc( int idim,params *p, real *temp2)
 {
+   comm.Barrier();
+   int i,n;
+   int i1,i2,i3;
+   i3=0;
+   #ifdef USE_SAC3D
+   n=(p->n[0])*(p->n[1])*(p->n[2]);
+   switch(idim)
+   {
+               case 0:
+                    n/=(p->n[0]);
+                    break;
+               case 1:
+                    n/=(p->n[1]);
+                    break;
+               case 2:
+                    n/=(p->n[2]);
+                    break;               
+               }
+   #else
+   n=(p->n[0])*(p->n[1]);
 
+   switch(idim)
+   {
+               case 0:
+                    n/=(p->n[0]);
+                    break;
+               case 1:
+                    n/=(p->n[1]);
+                    break;           
+               }   
+   #endif
+   
+
+   switch(idim)
+   {
+   case 0:
+     gnmpirequest=0;  
+  for(i=0; i<2; i++)
+     gmpirequest[i]=MPI_REQUEST_NULL;
+     
+        if((p->mpiupperb[idim])==1) gnmpirequest++;
+        if((p->mpiupperb[idim])==1) gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferr[0],n,MPI_DOUBLE_PRECISION,p->pjpe[idim],10*(p->pjpe[idim]));
+        if((p->mpilowerb[idim])==1) gnmpirequest++;
+        if((p->mpilowerb[idim])==1) gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferl[0],n,MPI_DOUBLE_PRECISION,p->phpe[idim],10*(p->phpe[idim])+1);
+        comm.Barrier();
+          
+        if((p->mpiupperb[idim])==1) comm.Rsend(gmpisrcbufferr[0], n, MPI_DOUBLE_PRECISION, p->pjpe[idim], 10*(p->ipe)+1);
+        if((p->mpilowerb[idim])==1) comm.Rsend(gmpisrcbufferl[0], n, MPI_DOUBLE_PRECISION, p->phpe[idim], 10*(p->ipe));
+     
+        request.Waitall(gnmpirequest,gmpirequest);
+
+  
+        //copy data from buffer to the viscosity data in temp2
+        //organise buffers so that pointers are swapped instead
+
+        #ifdef USE_SAC3D
+   //tmp_nuI(ixFhi1+1,ixFlo2:ixFhi2,ixFlo3:ixFhi3)=tgtbufferR1(1,ixFlo2:ixFhi2,&
+   //   ixFlo3:ixFhi3) !right, upper R
+   //tmp_nuI(ixFlo1-1,ixFlo2:ixFhi2,ixFlo3:ixFhi3)=tgtbufferL1(1,ixFlo2:ixFhi2,&
+   //   ixFlo3:ixFhi3) !left, lower  L
+         for(i2=1;i2<((p->n[1])+2);i2++ )
+                  for(i3=1;i3<((p->n[2])+2);i3++ )
+         {
+          i1=(p->n[0])+1;
+         
+          temp2[encode3p2_sacmpi (p,i1, i2, i3, tmpnui)]=gmpitgtbufferr[0][i2+i3*((p->n[1])+2)];
+          temp2[encode3p2_sacmpi (p,0, i2, i3, tmpnui)]=gmpitgtbufferl[0][i2+i3*((p->n[1])+2)];
+          }
+
+
+
+
+        #else
+        //tmp_nuI(ixFhi1+1,ixFlo2:ixFhi2)=tgtbufferR1(1,ixFlo2:ixFhi2) !right, upper R
+        //tmp_nuI(ixFlo1-1,ixFlo2:ixFhi2)=tgtbufferL1(1,ixFlo2:ixFhi2) !left, lower  L
+                  for(i2=1;i2<((p->n[1])+2);i2++ )
+         {
+          i1=(p->n[0])+1;
+         
+          temp2[encode3p2_sacmpi (p,i1, i2, i3, tmpnui)]=gmpitgtbufferr[0][i2];
+          temp2[encode3p2_sacmpi (p,0, i2, i3, tmpnui)]=gmpitgtbufferl[0][i2];
+          }
+
+ 
+         
+        #endif
+
+        
+
+     break;
+     
+        case 1:
+     gnmpirequest=0;  
+  for(i=0; i<2; i++)
+     gmpirequest[i]=MPI_REQUEST_NULL;
+     
+             if((p->mpiupperb[idim])==1) gnmpirequest++;
+        if((p->mpiupperb[idim])==1) gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferr[1],n,MPI_DOUBLE_PRECISION,p->pjpe[idim],10*(p->pjpe[idim]));
+        if((p->mpilowerb[idim])==1) gnmpirequest++;
+        if((p->mpilowerb[idim])==1) gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferl[1],n,MPI_DOUBLE_PRECISION,p->phpe[idim],10*(p->phpe[idim])+1);
+        comm.Barrier();
+          
+        if((p->mpiupperb[idim])==1) comm.Rsend(gmpisrcbufferr[1], n, MPI_DOUBLE_PRECISION, p->pjpe[idim], 10*(p->ipe)+1);
+        if((p->mpilowerb[idim])==1) comm.Rsend(gmpisrcbufferl[1], n, MPI_DOUBLE_PRECISION, p->phpe[idim], 10*(p->ipe));
+     
+        request.Waitall(gnmpirequest,gmpirequest);
+      #ifdef USE_SAC3D
+  //tmp_nuI(ixFlo1:ixFhi1,ixFhi2+1,ixFlo3:ixFhi3)=tgtbufferR2(ixFlo1:ixFhi1,1,&
+  //    ixFlo3:ixFhi3) !right, upper R
+  // tmp_nuI(ixFlo1:ixFhi1,ixFlo2-1,ixFlo3:ixFhi3)=tgtbufferL2(ixFlo1:ixFhi1,1,&
+   //   ixFlo3:ixFhi3) !left, lower  L
+         for(i1=1;i1<((p->n[0])+2);i1++ )
+                  for(i3=1;i3<((p->n[2])+2);i3++ )
+         {
+          i2=(p->n[1])+1;
+         
+          temp2[encode3p2_sacmpi (p,i1, i2, i3, tmpnui)]=gmpitgtbufferr[1][i1+i3*((p->n[0])+2)];
+          temp2[encode3p2_sacmpi (p,i1, 0, i3, tmpnui)]=gmpitgtbufferl[1][i1+i3*((p->n[0])+2)];
+          }
+
+
+     #else
+       // tmp_nuI(ixFlo1:ixFhi1,ixFhi2+1)=tgtbufferR2(ixFlo1:ixFhi1,1) !right, upper R
+   //tmp_nuI(ixFlo1:ixFhi1,ixFlo2-1)=tgtbufferL2(ixFlo1:ixFhi1,1) !left, lower  L
+                  for(i1=1;i1<((p->n[0])+2);i1++ )
+         {
+          i2=(p->n[1])+1;
+         
+          temp2[encode3p2_sacmpi (p,i1, i2, i3, tmpnui)]=gmpitgtbufferr[1][i1];
+          temp2[encode3p2_sacmpi (p,i1, 0, i3, tmpnui)]=gmpitgtbufferl[1][i1];
+          }
+
+      #endif
+     break;
+     #ifdef USE_SAC3D
+        case 2:
+     gnmpirequest=0;  
+  for(i=0; i<2; i++)
+     gmpirequest[i]=MPI_REQUEST_NULL;
+     
+             if((p->mpiupperb[idim])==1) gnmpirequest++;
+        if((p->mpiupperb[idim])==1) gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferr[2],n,MPI_DOUBLE_PRECISION,p->pjpe[idim],10*(p->pjpe[idim]));
+        if((p->mpilowerb[idim])==1) gnmpirequest++;
+        if((p->mpilowerb[idim])==1) gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferl[2],n,MPI_DOUBLE_PRECISION,p->phpe[idim],10*(p->phpe[idim])+1);
+        comm.Barrier();
+          
+        if((p->mpiupperb[idim])==1) comm.Rsend(gmpisrcbufferr[2], n, MPI_DOUBLE_PRECISION, p->pjpe[idim], 10*(p->ipe)+1);
+        if((p->mpilowerb[idim])==1) comm.Rsend(gmpisrcbufferl[2], n, MPI_DOUBLE_PRECISION, p->phpe[idim], 10*(p->ipe));
+     
+        request.Waitall(gnmpirequest,gmpirequest);
+   //  tmp_nuI(ixFlo1:ixFhi1,ixFlo2:ixFhi2,ixFhi3+1)=tgtbufferR3(ixFlo1:ixFhi1,&
+   //   ixFlo2:ixFhi2,1) !right, upper R
+
+   //tmp_nuI(ixFlo1:ixFhi1,ixFlo2:ixFhi2,ixFlo3-1)=tgtbufferL3(ixFlo1:ixFhi1,&
+   //   ixFlo2:ixFhi2,1) !left, lower  L
+        for(i1=1;i1<((p->n[0])+2);i1++ )
+                  for(i2=1;i2<((p->n[1])+2);i2++ )
+         {
+          i3=(p->n[2])+1;
+         
+          temp2[encode3p2_sacmpi (p,i1, i2, i3, tmpnui)]=gmpitgtbufferr[2][i1+i2*((p->n[0])+2)];
+          temp2[encode3p2_sacmpi (p,i1, i2, 0, tmpnui)]=gmpitgtbufferl[2][i1+i2*((p->n[0])+2)];
+          }
+
+     
+     break;
+     #endif
+   
+  }
+   comm.Barrier();
 }
+
 
 
 

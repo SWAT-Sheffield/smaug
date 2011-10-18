@@ -1046,6 +1046,33 @@ int cuhyperdifvisc1r(struct params **p,  struct params **d_p,   real **d_wmod,  
   //  printf("field right hdmean hdmax %d %8.8g %8.8g \n",field, (*p)->hdmean, (*p)->hdmax);
 }
 
+int cuhyperdifvisc1ir(struct params **p,  struct params **d_p,   real **d_wmod,  real **d_wd, int order, real **d_wtemp, real **d_wtemp1, real **d_wtemp2, int field, int dim)
+{
+
+  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
+
+   
+ #ifdef USE_SAC_3D
+   
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif 
+
+// dim3 dimBlock(dimblock, 1);
+ 
+ //   dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
+
+    cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
+
+     hyperdifvisc1r_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
+     cudaThreadSynchronize();
+
+    cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+
+
+  //  printf("field right hdmean hdmax %d %8.8g %8.8g \n",field, (*p)->hdmean, (*p)->hdmax);
+}
+
 
 
 
