@@ -718,11 +718,20 @@ __global__ void reduction0computemaxc_parallel(struct params *p,   real *wmod, r
 
     // do reduction in shared mem
     for(unsigned int s=1; s < blockDim.x; s *= 2) {
+
+
+
         // modulo arithmetic is slow!
         if ((tid % (2*s)) == 0) {
             if(sdata[tid+s]>sdata[tid])
                  sdata[tid]=sdata[tid + s];
         }
+        // strided indexing using sequential addressing is better!
+        /*int tindex=2*s*tid;
+        if (tindex<blockDim.x) {
+            if(sdata[tid+s]>sdata[tid])
+                 sdata[tid]=sdata[tid + s];
+        }*/
         __syncthreads();
     }
 
