@@ -75,14 +75,14 @@ void mpiinit(params *p)
        nmpibuffer=NVAR*(p->n[0])*(p->n[2])*(p->ng[0]);
 
    }
-   else((p->n[1])>(p->n[0])  && (p->n[1])>(p->n[2]))
+   else if((p->n[1])>(p->n[0])  && (p->n[1])>(p->n[2]))
    {
      if((p->n[0])>(p->n[2]))
        nmpibuffer=NVAR*(p->n[1])*(p->n[0])*(p->ng[1]);
      else
        nmpibuffer=NVAR*(p->n[1])*(p->n[2])*(p->ng[1]);
    }
-   else((p->n[2])>(p->n[0])  && (p->n[2])>(p->n[1]))
+   else if((p->n[2])>(p->n[0])  && (p->n[2])>(p->n[1]))
    {
      if((p->n[0])>(p->n[1]))
        nmpibuffer=NVAR*(p->n[2])*(p->n[0])*(p->ng[2]);
@@ -117,8 +117,8 @@ for(i=0;i<NDIM;i++)
               {
                  case 0:
 #ifdef USE_SAC3D
-     gmpisrcbufferl[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2),sizeof(real));
-     gmpisrcbufferr[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)),sizeof(real ));
+     gmpisrcbufferl[i]=(real *)calloc( ((p->n[1])+2)*((p->n[2])+2),sizeof(real));
+     gmpisrcbufferr[i]=(real *)calloc( ((p->n[1])+2)*((p->n[2])+2),sizeof(real ));
      gmpitgtbufferl[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2),sizeof(real ));
      gmpitgtbufferr[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2),sizeof(real ));
 #else
@@ -132,7 +132,7 @@ for(i=0;i<NDIM;i++)
                  case 1:
 #ifdef USE_SAC3D
      gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2),sizeof(real ));
-     gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)),sizeof(real ));
+     gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2),sizeof(real ));
      gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2),sizeof(real ));
      gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2),sizeof(real ));
 #else
@@ -146,7 +146,7 @@ for(i=0;i<NDIM;i++)
 #ifdef USE_SAC3D         
                  case 2:
      gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2),sizeof(real ));
-     gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)),sizeof(real ));
+     gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2),sizeof(real ));
      gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2),sizeof(real ));
      gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2),sizeof(real ));
                       break;

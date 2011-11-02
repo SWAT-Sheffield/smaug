@@ -1021,9 +1021,9 @@ int cucopywtompiw(struct params **p,real **w, real **wmod,    real **gmpiw, real
                        break; 
             #ifdef USE_SAC3D
                        case 2:
-         i3=bound*(bound<2)+(((*p)->n[2])-(bound-1))*(bound>1);
-         for(i1=0;i1<((p->n[0]));i1++ )
-                  for(i2=0;i2<((p->n[1]));i2++ )
+         i3=bound*(bound<2)+( ((*p)->n[2])-(bound-1) )*(bound>1);
+         for(i1=0;i1<(((*p)->n[0]));i1++ )
+                  for(i2=0;i2<(((*p)->n[1]));i2++ )
                   {
                        ii[0]=i1;
                        ii[1]=i2;
@@ -1130,8 +1130,8 @@ int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw, re
             #ifdef USE_SAC3D
                        case 2:
          i3=bound*(bound<2)+(((*p)->n[2])-(bound-1))*(bound>1);
-         for(i1=0;i1<((p->n[0]));i1++ )
-                  for(i2=0;i2<((p->n[1]));i2++ )
+         for(i1=0;i1<(((*p)->n[0]));i1++ )
+                  for(i2=0;i2<(((*p)->n[1]));i2++ )
                   {
                        ii[0]=i1;
                        ii[1]=i2;
@@ -1215,8 +1215,8 @@ int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw, re
             #ifdef USE_SAC3D
                        case 2:
          i3=bound*(bound<2)+(((*p)->n[2])-(bound-1))*(bound>1);
-         for(i1=0;i1<((p->n[0]));i1++ )
-                  for(i2=0;i2<((p->n[1]));i2++ )
+         for(i1=0;i1<(((*p)->n[0]));i1++ )
+                  for(i2=0;i2<(((*p)->n[1]));i2++ )
                   {
                        ii[0]=i1;
                        ii[1]=i2;

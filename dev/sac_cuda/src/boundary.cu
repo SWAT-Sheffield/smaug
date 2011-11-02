@@ -32,39 +32,45 @@ __global__ void boundary_parallel(struct params *p,  struct state *s,  real *wmo
   int iia[NDIM];
   int dimp=((p->n[0]))*((p->n[1]));
  #ifdef USE_SAC_3D
-   int kp;
+   int kp,kpg;
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
    //int ip,jp,ipg,jpg;
 
   #ifdef USE_SAC_3D
-   kp=iindex/(nj*ni);
-   jp=(iindex-(kp*(nj*ni)))/ni;
-   ip=iindex-(kp*nj*ni)-(jp*ni);
-#else
-    jp=iindex/ni;
-   ip=iindex-(jp*ni);
-#endif     
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
 
 
 int shift=order*NVAR*dimp;
 
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(jpg=0;jpg<(p->npgp[1]);jpg++)
+   #ifdef USE_SAC_3D
+     for(kpg=0;kpg<(p->npgp[2]);kpg++)
+   #endif
+   {
 
-     iia[0]=ip;
-     iia[1]=jp;
+     iia[0]=ip*(p->npgp[0])+ipg;
+     iia[1]=jp*(p->npgp[1])+jpg;
      i=iia[0];
      j=iia[1];
      k=0;
      #ifdef USE_SAC_3D
-	   iia[2]=kp;
+	   iia[2]=kp*(p->npgp[2])+kpg;
            k=iia[2];
            for( f=rho; f<=b3; f++)
      #else
            for( f=rho; f<=b2; f++)
      #endif
-             {
-            
+             {  
          #ifdef USE_SAC_3D
       if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
      #else
@@ -76,8 +82,8 @@ int shift=order*NVAR*dimp;
 #ifdef ADIABHYDRO
                   bc3_cont_b(wmod+order*NVAR*dimp,p,iia,f);
 #else
-              // bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
-                 bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
+               bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
+               //  bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
 #endif                
 
                 //  bc3_fixed_b(wmod+order*NVAR*dimp,p,iia,f,0.0);
@@ -85,14 +91,14 @@ int shift=order*NVAR*dimp;
 	}
 
                }
-
+}
  __syncthreads();
 
 #ifdef ADIABHYDRO
 ;
 #else
   //This second call makes sure corners are set correctly
-  /* for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    #ifdef USE_SAC_3D
      for(kpg=0;kpg<(p->npgp[2]);kpg++)
@@ -123,7 +129,7 @@ int shift=order*NVAR*dimp;
 
    } 
 }
- __syncthreads();*/
+ __syncthreads();
 #endif
 
 

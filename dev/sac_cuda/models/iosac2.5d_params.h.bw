@@ -107,19 +107,7 @@ char *cfgfile="zero1_BW.ini";
 //char *cfgfile="zero1_BW_bin.ini";
 char *cfgout="zeroOT";
 
-char **hlines; //header lines for vac config files 
-hlines=(char **)calloc(5, sizeof(char*));
-// Define time-domain
-real dt;
 
-
-real *d_w;
-real *d_wnew;
-
-real *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
-
-real *w,*wnew,*wd;
-real *d_wtemp,*d_wtemp1,*d_wtemp2;
 struct params *d_p;
 struct params *p=(struct params *)malloc(sizeof(struct params));
 
