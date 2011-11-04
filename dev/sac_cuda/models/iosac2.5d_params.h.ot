@@ -31,7 +31,7 @@ real dx = 0.55*xmax/(ni-4);
 #ifdef USE_SAC
 //vac ozt
 int ni;
-ni=60;    //OZT tests
+ni=252;    //OZT tests
 //ni=796; //BW tests
 ni=ni+2*ngi;
 //ni=512;
@@ -67,7 +67,7 @@ real dy = 0.55*ymax/(nj-4);
 
 #ifdef USE_SAC
 //vac ozt
-int nj = 124;  //OZT tests
+int nj = 252;  //OZT tests
 //int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
@@ -124,12 +124,12 @@ char configfile[300];
 //char *cfgfile="zero1.ini";
 
 //char *cfgfile="zero1_np020203.ini";
-char *cfgfile="zero1_np0201.ini";
-//char *cfgfile="zero1_asc.ini";
+//char *cfgfile="zero1_np0201.ini";
+char *cfgfile="zero1_ot_asc.ini";
 //char *cfgfile="zero1_BW_bin.ini";
 //char *cfgout="zero1_np010203."
-//char *cfgout="zeroOT";
-char *cfgout="zero1_np0201.out";
+char *cfgout="zeroOT";
+//char *cfgout="zero1_np0201.out";
 
 
 struct params *d_p;
@@ -205,7 +205,7 @@ p->adiab=1.0;
 #else
 
 //ozt test
-p->gamma=5.0/3.0;  //OZ test
+p->gamma=1.66667;  //OZ test
 //p->gamma=2.0;  //BW test
 //p->gamma=5.0/3.0;  //BACH3D
 //alfven test

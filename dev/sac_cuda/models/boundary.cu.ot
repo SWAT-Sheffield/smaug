@@ -13,7 +13,7 @@
 /////////////////////////////////////
 #include "../include/gradops_b.cuh"
 
-__global__ void boundary_parallel(struct params *p,  struct state *s,  real *wmod, int order)
+__global__ void boundary_parallel(struct params *p,  struct state *s,  real *wmod, int order,int dir)
 {
 
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -70,9 +70,7 @@ int shift=order*NVAR*dimp;
      #else
            for( f=rho; f<=b2; f++)
      #endif
-             {
-                       
-                       
+             {  
          #ifdef USE_SAC_3D
       if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
      #else
@@ -84,7 +82,7 @@ int shift=order*NVAR*dimp;
 #ifdef ADIABHYDRO
                   bc3_cont_b(wmod+order*NVAR*dimp,p,iia,f);
 #else
-               bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
+               bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,dir);  //for OZT
                //  bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
 #endif                
 
@@ -96,7 +94,7 @@ int shift=order*NVAR*dimp;
 }
  __syncthreads();
 
-#ifdef ADIABHYDRO
+/*#ifdef ADIABHYDRO
 ;
 #else
   //This second call makes sure corners are set correctly
@@ -132,7 +130,7 @@ int shift=order*NVAR*dimp;
    } 
 }
  __syncthreads();
-#endif
+#endif*/
 
 
 
@@ -147,8 +145,9 @@ int cuboundary(struct params **p, struct params **d_p,  struct state **d_s,  rea
 
 int numBlocks = ((dimproduct_b(*p)+numThreadsPerBlock-1)) / numThreadsPerBlock;
 
-    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_wmod, order);
+    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_wmod, order,0);
 
     cudaThreadSynchronize();
-
+    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_wmod, order,1);
+    cudaThreadSynchronize();
 }
