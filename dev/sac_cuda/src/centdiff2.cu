@@ -121,7 +121,7 @@ real transportflux_cd2 (real *dw, real *wd, real *w, struct params *p,int *ii,in
 //flux= w[fencode3_cd2(p,ii,vel1+direction)]*w[fencode3_cd2(p,ii,field)];
         #endif
 
-
+    
 
 
 
@@ -242,8 +242,13 @@ real fluxe1(real *dw, real *wd, real *w, struct params *p,int *ii, int direction
          #if defined USE_SAC
 
 
-fluxt = w[fencode3_cd2(p,ii,mom1+direction)]*(wd[fencode3_cd2(p,ii,pressuret)]+wd[fencode3_cd2(p,ii,ptb)]);
-//flux = w[fencode3_cd2(p,ii,mom1+direction)]*(((((p->gamma)-1.0)*( w[fencode3_cd2(p,ii,energy)]-0.5*(w[fencode3_cd2(p,ii,mom1)]*w[fencode3_cd2(p,ii,mom1)]+w[fencode3_cd2(p,ii,mom2)]*w[fencode3_cd2(p,ii,mom2)])/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]))))+(((p->gamma)-1)*w[fencode3_cd2(p,ii,energyb)]- 0.5*((p->gamma)-2)*(w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b)]+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b2b)])));
+//fluxt = w[fencode3_cd2(p,ii,mom1+direction)]*(wd[fencode3_cd2(p,ii,pressuret)]+wd[fencode3_cd2(p,ii,ptb)]);
+//fluxt = w[fencode3_cd2(p,ii,mom1+direction)]*(+wd[fencode3_cd2(p,ii,ptb)]);
+
+fluxt = w[fencode3_cd2(p,ii,mom1+direction)]*(wd[fencode3_cd2(p,ii,pressuret)]);
+
+;//fluxt =w[fencode3_cd2(p,ii,mom1+direction)]*(((((p->gamma)-1.0)*( w[fencode3_cd2(p,ii,energy)]-0.5*(w[fencode3_cd2(p,ii,mom1)]*w[fencode3_cd2(p,ii,mom1)]+w[fencode3_cd2(p,ii,mom2)]*w[fencode3_cd2(p,ii,mom2)])/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]))))-( ((p->gamma)-2)*(w[fencode3_cd2(p,ii,b1)]*w[fencode3_cd2(p,ii,b1b)]+w[fencode3_cd2(p,ii,b2)]*w[fencode3_cd2(p,ii,b2b)]+0.5*(   w[fencode3_cd2(p,ii,b1)]*w[fencode3_cd2(p,ii,b1)]+w[fencode3_cd2(p,ii,b2)]*w[fencode3_cd2(p,ii,b2)]   )          )));
+//fluxt =w[fencode3_cd2(p,ii,mom1+direction)]*((p->gamma)-1.0)*( -0.5*(w[fencode3_cd2(p,ii,mom1)]*w[fencode3_cd2(p,ii,mom1)]+w[fencode3_cd2(p,ii,mom2)]*w[fencode3_cd2(p,ii,mom2)])/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]));
 
 
 
@@ -252,14 +257,14 @@ fluxt -= w[fencode3_cd2(p,ii,b1b+direction)]*(w[fencode3_cd2(p,ii,b1)]*w[fencode
 fluxt /= (w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
 fluxt += w[fencode3_cd2(p,ii,mom1+direction)]*w[fencode3_cd2(p,ii,energyb)]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
 fluxt -=w[fencode3_cd2(p,ii,b1+direction)]*(w[fencode3_cd2(p,ii,b1)]*w[fencode3_cd2(p,ii,mom1)]+w[fencode3_cd2(p,ii,b2)]*w[fencode3_cd2(p,ii,mom2)])/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
-
-
+//fluxt=0.0;
+//fluxt += w[fencode3_cd2(p,ii,mom1+direction)]*(wd[fencode3_cd2(p,ii,pressuret)]);
 
          #endif
 
 #ifdef USE_SAC_3D
-
-fluxt = w[fencode3_cd2(p,ii,mom1+direction)]*(wd[fencode3_cd2(p,ii,pressuret)]+wd[fencode3_cd2(p,ii,ptb)]);
+fluxt = w[fencode3_cd2(p,ii,mom1+direction)]*(wd[fencode3_cd2(p,ii,pressuret)]);
+//fluxt = w[fencode3_cd2(p,ii,mom1+direction)]*(wd[fencode3_cd2(p,ii,pressuret)]+wd[fencode3_cd2(p,ii,ptb)]);
 //flux = w[fencode3_cd2(p,ii,mom1+direction)]*((((((p->gamma)-1.0)*( w[fencode3_cd2(p,ii,energy)]-0.5*(w[fencode3_cd2(p,ii,mom1)]*w[fencode3_cd2(p,ii,mom1)]+w[fencode3_cd2(p,ii,mom2)]*w[fencode3_cd2(p,ii,mom2)]+w[fencode3_cd2(p,ii,mom3)]*w[fencode3_cd2(p,ii,mom3)])/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]))))+(((p->gamma)-1)*w[fencode3_cd2(p,ii,energyb)]- 0.5*((p->gamma)-2)*(w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b)]+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b2b)]+w[fencode3_cd2(p,ii,b3b)]*w[fencode3_cd2(p,ii,b3b)]))));
 
 fluxt  -= w[fencode3_cd2(p,ii,b1+direction)]*(w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,mom1)]+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,mom2)]+w[fencode3_cd2(p,ii,b3b)]*w[fencode3_cd2(p,ii,mom3)]);
@@ -627,7 +632,7 @@ __global__ void centdiff2c_parallel(struct params *p, struct state *s, real *w, 
      #else
        if(ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2)
      #endif
-                                addenergyterms_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,ii,f,dir);
+                             ;//   addenergyterms_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,ii,f,dir);
 
      #if(defined(USE_SAC_3D) && defined(USE_USERSOURCE))
        if(ii[0]<((p->n[0])-2) && ii[1]<((p->n[1])-2) && ii[2]<((p->n[2])-2)     && ii[0]>1    &&  ii[1]>1   && ii[2]>1   )

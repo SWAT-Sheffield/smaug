@@ -435,7 +435,7 @@ __global__ void computemaxc_parallel(struct params *p,   real *wmod, real *wd, i
 
 
 
- /*  for(ipg=0;ipg<(p->npgp[0]);ipg++)
+   /*for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    #ifdef USE_SAC_3D
      for(kpg=0;kpg<(p->npgp[2]);kpg++)
@@ -494,7 +494,7 @@ if(iindex==0)
 }
  __syncthreads(); 
 
-
+//p->cmax=1.0;
 
 
 
@@ -675,7 +675,6 @@ __global__ void reduction0computemaxc_parallel(struct params *p,   real *wmod, r
 #endif  
    int ip,jp;
         extern __shared__ real sdata[];
-   //__shared__ float sdata[];
  
   #ifdef USE_SAC_3D
    kp=iindex/(nj*ni);
@@ -684,13 +683,17 @@ __global__ void reduction0computemaxc_parallel(struct params *p,   real *wmod, r
 #else
     jp=iindex/ni;
    ip=iindex-(jp*ni);
-#endif     
+#endif
 
-
+int tnumThreadsPerBlock = 128;
+    
+int numBlocks = (dimp+tnumThreadsPerBlock-1) / tnumThreadsPerBlock;
+  real temp[1024];
     // perform first level of reduction,
     // reading from global memory, writing to shared memory
-   sdata[tid]=0.0;
-
+   //sdata[tid]=0.0;
+    if(iindex<1024)
+      temp[iindex]=0.0;
 
      ii[0]=ip;
      ii[1]=jp;
@@ -710,8 +713,10 @@ __global__ void reduction0computemaxc_parallel(struct params *p,   real *wmod, r
                //p->cmax=0.0;
                
               // if(wd[fencode3_cdf(p,ii,cfast)]>(p->cmax))
+
+
          if(iindex<dimp)
-                    sdata[tid]=wd[fencode3_cdf(p,ii,soundspeed)];
+                    sdata[tid]=wd[fencode3_cdf(p,ii,cfast)];
 
               __syncthreads();
 
@@ -725,18 +730,27 @@ __global__ void reduction0computemaxc_parallel(struct params *p,   real *wmod, r
         if ((tid % (2*s)) == 0) {
             if(sdata[tid+s]>sdata[tid])
                  sdata[tid]=sdata[tid + s];
+            
         }
         // strided indexing using sequential addressing is better!
         /*int tindex=2*s*tid;
         if (tindex<blockDim.x) {
             if(sdata[tid+s]>sdata[tid])
                  sdata[tid]=sdata[tid + s];
-        }*/
-        __syncthreads();
+        }
+        __syncthreads();*/
+         __syncthreads();
     }
 
-    if (tid == 0 && p->cmax<sdata[0] ) p->cmax = sdata[0];
- __syncthreads();
+    __syncthreads();
+    if(tid==0)
+      temp[blockIdx.x]=sdata[0];
+__syncthreads();
+    if(iindex==0)
+       for(int i=0; i<numBlocks; i++)
+         if(temp[i]>(p->cmax)) p->cmax=temp[i];
+     if (tid == 0 && p->cmax<sdata[0] ) p->cmax = sdata[0];
+ 
 
 
     /* ii[0]=ip;
@@ -766,6 +780,91 @@ __global__ void reduction0computemaxc_parallel(struct params *p,   real *wmod, r
 //        }
 
 //}
+//p->cmax=1.0;
+ 
+}
+
+
+
+__global__ void myreduction0computemaxc_parallel(struct params *p,   real *wmod, real *wd, int order, int dir, real *temp)
+{
+
+
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  unsigned int tid = threadIdx.x;
+  int i,j;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+
+  int ii[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   int ip,jp;
+//        extern __shared__ real sdata[];
+ 
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif
+
+int tnumThreadsPerBlock = 128;
+    
+int numBlocks = (dimp+tnumThreadsPerBlock-1) / tnumThreadsPerBlock;
+  //real temp[dimp];
+    // perform first level of reduction,
+    // reading from global memory, writing to shared memory
+   //sdata[tid]=0.0;
+   // if(iindex<1024)
+    //  temp[iindex]=0.0;
+
+     ii[0]=ip;
+     ii[1]=jp;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp;
+     #endif
+    int s=1;
+
+ 
+
+
+         //if(iindex<dimp)
+         //           temp[iindex]=wd[fencode3_cdf(p,ii,cfast)];
+
+            //  __syncthreads();
+
+
+    // do reduction in shared mem
+    //for(unsigned int s=1; s < blockDim.x; s *= 2) {
+   
+    while(((s*=2)<=((dimp/2)-1)) && ((index+s)<dimp)) {
+            if(temp[iindex+s]>temp[iindex])
+                 temp[iindex]=temp[iindex + s];
+            
+        }
+        // strided indexing using sequential addressing is better!
+        /*int tindex=2*s*tid;
+        if (tindex<blockDim.x) {
+            if(sdata[tid+s]>sdata[tid])
+                 sdata[tid]=sdata[tid + s];
+        }
+        __syncthreads();*/
+         __syncthreads();
+    
+
+    __syncthreads();
+
+   if(iindex==0)
+      p->cmax=temp[0];
+
 
  
 }
@@ -1210,11 +1309,11 @@ int cucomputevels(struct params **p,  struct params **d_p, real **d_wmod,  real 
 
 }
 
-int cucomputemaxc(struct params **p,  struct params **d_p, real **d_wmod,  real **d_wd, int order, int dir)
+int cucomputemaxc(struct params **p,  struct params **d_p, real **d_wmod,  real **d_wd, int order, int dir, real **wd, real **d_wtemp)
 {
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 ////cudaSetDevice(selectedDevice);
-   int nit=1;
+   int nit=100;
  #ifdef USE_SAC_3D
    
   dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
@@ -1226,26 +1325,49 @@ int cucomputemaxc(struct params **p,  struct params **d_p, real **d_wmod,  real 
     //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    // dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
-   //reduction0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+
+
+//cudaMemcpy(*d_wtemp, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+cudaMemcpy(*d_wtemp, ((*wd)+(cfast*dimp)), dimp*sizeof(real), cudaMemcpyHostToDevice);
+   
+ //  myreduction0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp);
 //cudaThreadSynchronize();
-reduction0computemaxcfast_parallel<<<numBlocks, numThreadsPerBlock,smemSize>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+//reduction0computemaxcfast_parallel<<<numBlocks, numThreadsPerBlock,smemSize>>>(*d_p, *d_wmod,  *d_wd, order, dir);
 //myreduction0computemaxcfast_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd,*d_wtemp, order, dir);
 
  //reductiona0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
   // computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
     // fastcomputemaxc_parallel<<<numBlocks, numThreadsPerBlock,smemSize>>>(*d_p, *d_wmod,  *d_wd, order, dir);
 cudaThreadSynchronize();
+
+(*p)->cmax=2.0;
+cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
+//cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+
+//printf("cmax on device %.8f\n",(*p)->cmax);
+//(*p)->cmax=0.0;
+//cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+/*for(int i=0; i<dimp;i++)
+{
+
+if(((*wd)[i+(cfast*dimp)])>((*p)->cmax))
+                    (*p)->cmax=(*wd)[i+(cfast*dimp)];
+}
+printf("cmax on cpu %.8f\n",(*p)->cmax);*/
+//cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
  /*for(int i=0; i<nit;i++)
 {
-    computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+ reduction0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+   // computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
      cudaThreadSynchronize();
 }*/
 
 
 
-    cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+//    cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
 
-
+  // cudaFree(*d_ttemp);
   //checkErrors("copy data from device");
 
 
