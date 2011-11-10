@@ -69,7 +69,7 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
                     real b0=1.0;
                     //real ptot=5.0/(12.0*PI);
                     real ptot=5.0/3.0;
-                    real rrho=25.0/(36.0*PI);
+                    real rrho=25.0/36.0/PI;
                     real rgamm1;
              real e1,e2;
   int i,j,k;
@@ -78,7 +78,7 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
 
 	#ifdef USE_SAC
                     b0=1.0/sqrt(4.0*PI);
-                    ptot=5.0/(12.0*PI);
+                    ptot=5.0/12.0/PI;
 		    w[fencode3_i(p,ii,rhob)]=25.0/(36.0*PI);
                     //w[fencode3_i(p,ii,rhob)]=25.0/9.0;
 
@@ -101,11 +101,14 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
 
 //gives agreement with vac ozt
 //w[fencode3_i(p,ii,energy)]=-sin(1.0*i*(p->dx[0]));
+
+
+
                     //w[fencode3_i(p,ii,energy)]=ptot+(0.5*((p->gamma)-1)*(w[fencode3_i(p,ii,mom1)]*w[fencode3_i(p,ii,mom1)]+w[fencode3_i(p,ii,mom2)]*w[fencode3_i(p,ii,mom2)])/rrho);
 e1=ptot*rgamm1+(0.5*(w[fencode3_i(p,ii,mom1)]*w[fencode3_i(p,ii,mom1)]+w[fencode3_i(p,ii,mom2)]*w[fencode3_i(p,ii,mom2)])/rrho);
                     //w[fencode3_i(p,ii,energy)]+=0.5*((p->gamma)-2)*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)]);
 
-                   e2=0.5*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)]);
+                   e2=0.5*(w[fencode3_i(p,ii,b1)]*w[fencode3_i(p,ii,b1)]+w[fencode3_i(p,ii,b2)]*w[fencode3_i(p,ii,b2)])/rrho;
                     //w[fencode3_i(p,ii,energy)]*=rgamm1;
                     w[fencode3_i(p,ii,energyb)]=(e1+e2);
 
