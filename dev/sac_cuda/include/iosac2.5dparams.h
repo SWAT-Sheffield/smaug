@@ -31,7 +31,7 @@ real dx = 0.55*xmax/(ni-4);
 #ifdef USE_SAC
 //vac ozt
 int ni;
-ni=60;    //OZT tests
+ni=252;    //OZT tests
 //ni=796; //BW tests
 ni=ni+2*ngi;
 //ni=512;
@@ -67,7 +67,7 @@ real dy = 0.55*ymax/(nj-4);
 
 #ifdef USE_SAC
 //vac ozt
-int nj = 124;  //OZT tests
+int nj = 252;  //OZT tests
 //int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
@@ -124,31 +124,12 @@ char configfile[300];
 //char *cfgfile="zero1.ini";
 
 //char *cfgfile="zero1_np020203.ini";
-char *cfgfile="zero1_np0201.ini";
-//char *cfgfile="zero1_asc.ini";
+//char *cfgfile="zero1_np0201.ini";
+char *cfgfile="zero1_ot_asc.ini";
 //char *cfgfile="zero1_BW_bin.ini";
 //char *cfgout="zero1_np010203."
-//char *cfgout="zeroOT";
-char *cfgout="zero1_np0201.out";
-
-char **hlines; //header lines for vac config files 
-hlines=(char **)calloc(5, sizeof(char*));
-// Define time-domain
-real dt;
-
-
-real *d_w;
-real *d_wnew;
-
-real *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
-
-real *w,*wnew,*wd, *temp2,*wmod;
-real *d_wtemp,*d_wtemp1,*d_wtemp2;
-
-#ifdef USE_MPI
-  real *gmpivisc, *gmpiw, *gmpiwmod;
-  real *d_gmpivisc, *d_gmpiw, *d_gmpiwmod;
-#endif
+char *cfgout="zeroOT";
+//char *cfgout="zero1_np0201.out";
 
 
 struct params *d_p;
@@ -157,17 +138,6 @@ struct params *p=(struct params *)malloc(sizeof(struct params));
 struct state *d_state;
 struct state *state=(struct state *)malloc(sizeof(struct state));
 
-#ifdef USE_MPI
-//buffers to use on GPU
-  real *d_gmpisendbuffer;
-  real *d_gmpirecvbuffer;
-
-   
-  real *d_gmpisrcbufferl;
-  real *d_gmpisrcbufferr;
-  real *d_gmpitgtbufferl;
-  real *d_gmpitgtbufferr;
-#endif
 
 #ifdef ADIABHYDRO
 dt=0.0002985;  //ADIABHYDRO
@@ -175,7 +145,7 @@ dt=0.0002985;  //ADIABHYDRO
 //dt=0.15;
 
 #ifdef USE_SAC
-dt=0.0002;  //OZT test
+dt=0.00001;  //OZT test
 //dt=6.5/10000000.0; //BW test
 //dt=0.00000065;  //BW tests
 //dt=0.000000493;  //BW tests
@@ -192,7 +162,7 @@ int nt=(int)((tmax)/dt);
 //nt=5000;
 //nt=200000;
 //nt=150000;
-nt=10;
+nt=40000;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
 //t = [0:dt:tdomain];
@@ -235,7 +205,7 @@ p->adiab=1.0;
 #else
 
 //ozt test
-p->gamma=5.0/3.0;  //OZ test
+p->gamma=1.6666666667;  //OZ test
 //p->gamma=2.0;  //BW test
 //p->gamma=5.0/3.0;  //BACH3D
 //alfven test
@@ -264,7 +234,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=1.0;
 p->readini=1.0;
-p->cfgsavefrequency=1;
+p->cfgsavefrequency=200;
 
 
 p->xmax[0]=xmax;
@@ -300,12 +270,12 @@ p->chyp[mom2]=0;
 
 
 
-p->chyp[rho]=0.02;
-p->chyp[energy]=0.02;
-p->chyp[b1]=0.02;
-p->chyp[b2]=0.02;
-p->chyp[mom1]=0.4;
-p->chyp[mom2]=0.4;
+p->chyp[rho]=0.04;
+p->chyp[energy]=0.04;
+p->chyp[b1]=0.04;
+p->chyp[b2]=0.04;
+p->chyp[mom1]=0.5;
+p->chyp[mom2]=0.5;
 
 
 #ifdef USE_MPI

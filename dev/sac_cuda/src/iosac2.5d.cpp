@@ -58,7 +58,7 @@ char *outfile=(char *)calloc(500,sizeof(char));
 char *formfile=(char *)calloc(500,sizeof(char));
 
 
-
+#include "../include/defs.h"
 #include "../include/iosac2.5dparams.h"
 
 FILE *portf;
@@ -318,7 +318,7 @@ if((p->rkon)==0)
 
 #endif
   }
-
+   
  
 
 
@@ -336,7 +336,7 @@ if((p->rkon)==0)
     for(int dim=0; dim<=(NDIM-1); dim++)
      {
               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
           #ifdef USE_MPI
               mpiallreduce(&(p->cmax), MPI_MAX);
           #endif
@@ -356,7 +356,7 @@ if((p->rkon)==0)
 
 
 
-       cuhyperdifrhosource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim,dt);
+      cuhyperdifrhosource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,rho,dim,dt);
 
      }
 
@@ -364,7 +364,7 @@ if((p->rkon)==0)
      for(int dim=0; dim<=(NDIM-1); dim++)
      {
               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
           #ifdef USE_MPI
               mpiallreduce(&(p->cmax), MPI_MAX);
           #endif
@@ -389,7 +389,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
            	                 
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
           #ifdef USE_MPI
               mpiallreduce(&(p->cmax), MPI_MAX);
           #endif
@@ -435,7 +435,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
              if(f!=dim)           
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
           #ifdef USE_MPI
               mpiallreduce(&(p->cmax), MPI_MAX);
           #endif
@@ -546,7 +546,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	     for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
           #ifdef USE_MPI
               mpiallreduce(&(p->cmax), MPI_MAX);
           #endif
@@ -571,7 +571,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
      for(int dim=0; dim<=(NDIM-1); dim++)
      {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
-               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim);
+               cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
           #ifdef USE_MPI
               mpiallreduce(&(p->cmax), MPI_MAX);
           #endif
