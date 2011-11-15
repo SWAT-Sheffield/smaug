@@ -469,7 +469,7 @@ __global__ void centdiff2b_parallel(struct params *p, struct state *s, real *w, 
  #ifdef USE_SAC_3D
    int nk=p->n[2];
    int kp;
-    real del;
+
    real dz=p->dx[2];
    dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
 #endif  
