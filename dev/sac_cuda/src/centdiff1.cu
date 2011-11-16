@@ -28,14 +28,14 @@ dw[fencode3_cd1(p,ii,field)]+= grad3d_cd1(wd,p,ii,flux,dir);
   {
 
      case mom1:
-       dw[fencode3_cd1(p,ii,field)]+= (p->g[dir])*w[fencode3_cd1(p,ii,rho)];
+       dw[fencode3_cd1(p,ii,field)]-= (p->g[dir])*w[fencode3_cd1(p,ii,rho)];
       break;
     case mom2:
-      dw[fencode3_cd1(p,ii,field)]+= (p->g[dir])*w[fencode3_cd1(p,ii,rho)];
+      dw[fencode3_cd1(p,ii,field)]-= (p->g[dir])*w[fencode3_cd1(p,ii,rho)];
       break;
 #if defined USE_SAC_3D
     case mom3:
-      dw[fencode3_cd1(p,ii,field)]+= (p->g[dir])*w[fencode3_cd1(p,ii,rho)];
+      dw[fencode3_cd1(p,ii,field)]-= (p->g[dir])*w[fencode3_cd1(p,ii,rho)];
       break;
 #endif
     case rho:
@@ -606,14 +606,16 @@ __global__ void centdiff1a_parallel(struct params *p, struct state *s, real *w, 
 
 
      #if(defined(USE_SAC_3D) && defined(USE_USERSOURCE))
-       if(ii[0]<((p->n[0])-2) && ii[1]<((p->n[1])-2) && ii[2]<((p->n[2])-2)     && ii[0]>1    &&  ii[1]>1   && ii[2]>1   )
+       //if(ii[0]<((p->n[0])-2) && ii[1]<((p->n[1])-2) && ii[2]<((p->n[2])-2)     && ii[0]>1    &&  ii[1]>1   && ii[2]>1   )
+       if(ii[0]<((p->n[0])) && ii[1]<((p->n[1])) && ii[2]<((p->n[2]))    )
      #endif
      #if(defined(USE_SAC) && defined(USE_USERSOURCE))
-       if(ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2)
+       //if(ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2)
+      if(ii[0]<(p->n[0]) && ii[1]<(p->n[1]))
      #endif
 
                      #ifdef USE_USERSOURCE
-                             ;//   addsourceterms1_cd1(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
+                                addsourceterms1_cd1(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
 
 
                       }
