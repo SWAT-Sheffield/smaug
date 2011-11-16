@@ -650,32 +650,26 @@ int encode3_MODID (struct params *dp,int ix, int iy, int iz, int field) {
 
 __device__ __host__
 int encodefixed13_MODID (struct params *dp,int ix, int iy, int iz, int field) {
-
-
   #ifdef USE_SAC_3D
-    return ( (2*iz*((dp)->ng[0])*((dp)->n[1])  + 2*iy * ((dp)->ng[0]) + ix)+(field*2*((dp)->ng[0])*((dp)->n[1])*((dp)->n[2])));
+    return ( (ix*((dp)->ng[2])*((dp)->n[1])  + iy * ((dp)->ng[2]) + iz)+(field*4*((dp)->n[1])*((dp)->n[2])));
   #else
-    return ( (2*iy * ((dp)->ng[0]) + ix)+(field*2*((dp)->ng[0])*((dp)->n[1])));
+    return ( (ix * ((dp)->ng[1]) + iy)+(field*4*((dp)->n[1])));
   #endif
 }
 
 __device__ __host__
 int encodefixed23_MODID (struct params *dp,int ix, int iy, int iz, int field) {
-
-
   #ifdef USE_SAC_3D
-    return ( (2*iz*((dp)->n[0])*((dp)->ng[1])  + iy * ((dp)->n[0]) + ix)+(2*field*((dp)->n[0])*((dp)->ng[1])*((dp)->n[2])));
+    return ( (iy*((dp)->n[0])*((dp)->ng[2])  + ix * ((dp)->n[0]) + iz)+(4*field*((dp)->n[0])*((dp)->n[2])));
   #else
-    return ( (  iy * ((dp)->n[0]) + ix)+(2*field*((dp)->n[0])*((dp)->ng[1])));
+    return ( (  iy * ((dp)->n[0]) + ix)+(4*field*((dp)->n[0])));
   #endif
 }
 
 __device__ __host__
 int encodefixed33_MODID (struct params *dp,int ix, int iy, int iz, int field) {
-
-
   #ifdef USE_SAC_3D
-    return ( ( iz*((dp)->n[0])*((dp)->n[1])  + iy * ((dp)->n[0]) + ix)+(2*field*((dp)->n[0])*((dp)->n[1])*((dp)->ng[2])));
+    return ( ( iz*((dp)->n[0])*((dp)->n[1])  + iy * ((dp)->n[0]) + ix)+(4*field*((dp)->n[0])*((dp)->n[1])));
   #endif
 }
 
@@ -1369,7 +1363,7 @@ k=0;
                 else if(j==0 || j==1  && dir==1 )                
                   p->fixed2[encodefixed23_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];                
                 else if((j==((p->n[1])-1)) || (j==((p->n[1])-2))  && dir==1)                
-                  p->fixed2[encodefixed13_MODID(p,i,1+(p->n[1])-j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];
+                  p->fixed2[encodefixed23_MODID(p,i,1+(p->n[1])-j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];
            #ifdef USE_SAC_3D
                 else if(k==0 || k==1 && dir==2)                
                   p->fixed3[encodefixed33_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];                

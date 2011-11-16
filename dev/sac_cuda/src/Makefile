@@ -33,7 +33,7 @@ fluxtube1:
 	cp ../models/iosac2.5d_params.h.fluxtube1 ../include/iosac2.5dparams.h
 	cp ../models/init_user.cu.fluxtube1 ../src/init_user.cu
 	cp ../models/boundary.cu.fluxtube1 ../src/boundary.cu
-	cp ../models/usersource.cu.default ../src/usersource.cu
+	cp ../models/usersource.cu.fluxtube1 ../src/usersource.cu
 
 
 sedov:

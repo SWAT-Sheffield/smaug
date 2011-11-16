@@ -13,7 +13,7 @@
 /////////////////////////////////////
 #include "../include/gradops_b.cuh"
 
-__global__ void boundary_parallel(struct params *p,  struct state *s,  real *wmod, int order)
+__global__ void boundary_parallel(struct params *p,  struct state *s,  real *wmod, int order, int dir)
 {
 
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -79,21 +79,30 @@ int shift=order*NVAR*dimp;
 	{
 
  
-#ifdef ADIABHYDRO
-                  bc3_cont_b(wmod+order*NVAR*dimp,p,iia,f);
-#else
-               bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
-               //  bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
-#endif                
+
+              // bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
+              
+     #ifdef USE_SAC_3D
+         ;//if((f!=mom1 || f !=mom2 || f != mom3) && (p->it)>0)      
+      #else
+         ;//if(f!=mom1 || f !=mom2 )
+      #endif             
+                // bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
+                
 
                 //  bc3_fixed_b(wmod+order*NVAR*dimp,p,iia,f,0.0);
+               if(p->it==0)
+		  bc3_setfixed_dir_b(wmod+order*NVAR*dimp,p,iia,f,dir);
+               else
+                  bc3_fixed_dir_b(wmod+order*NVAR*dimp,p,iia,f,dir);
 
 	}
 
                }
 }
  __syncthreads();
-
+ 
+/*
 #ifdef ADIABHYDRO
 ;
 #else
@@ -131,6 +140,7 @@ int shift=order*NVAR*dimp;
 }
  __syncthreads();
 #endif
+*/
 
 
 
@@ -145,8 +155,10 @@ int cuboundary(struct params **p, struct params **d_p,  struct state **d_s,  rea
 
 int numBlocks = ((dimproduct_b(*p)+numThreadsPerBlock-1)) / numThreadsPerBlock;
 
-    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_wmod, order);
+    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_wmod, order,0);
 
+    cudaThreadSynchronize();
+    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_wmod, order,1);
     cudaThreadSynchronize();
 
 }

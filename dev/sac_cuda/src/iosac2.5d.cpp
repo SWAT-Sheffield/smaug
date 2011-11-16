@@ -165,7 +165,7 @@ else
  readasciivacconfig(cfgfile,*p,meta,w,hlines);
 
 printf("after read\n");
-
+p->it=0;
 
 //writeasciivacconfig(cfgout,*p, meta , w,hlines,*state);
 //writevacconfig(cfgout,0,*p, meta , w,*state);
