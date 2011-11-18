@@ -615,17 +615,19 @@ int readasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines)
 {
   int status=0;
   int i;
-  int i1,j1;
-  int ni,nj;
+  int i1,j1,k1;
+  int ni,nj,nk;
   int shift;
-  real x,y,val;
+  real x,y,z,val;
   char cfgfilename[300];
   char ext[3];
 
    ni=p.n[0];
    nj=p.n[1];
    sprintf(cfgfilename,"%s",cfgfile);
-   
+   #ifdef USE_SAC_3D
+   nk=p.n[2];
+   #endif
    #ifdef USE_MPI
    
    char *pch1,*pch2;
@@ -664,13 +666,25 @@ printf("reading\n");
 printf("read header\n");
   //fscanf(fdt,"%f",&val);
  //printf("%f",val);
+#ifdef USE_SAC_3D
+for( k1=0;k1<(nk);k1++)
+#endif
 for( j1=0;j1<(nj);j1++)
 for( i1=0;i1<(ni);i1++)
+
    
 	     
              {
+
+#ifdef USE_SAC_3D
+                         shift=(k1*ni*nj+j1*ni+i1);
+                         fscanf(fdt,"%lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG\n",&x,&y,&z, &w[shift],&w[shift+(ni*nj*nk)],&w[shift+(ni*nj*nk*2)],&w[shift+(ni*nj*nk*3)],&w[shift+(ni*nj*nk*4)],&w[shift+(ni*nj*nk*5)],&w[shift+(ni*nj*nk*6)],&w[shift+(ni*nj*nk*7)],&w[shift+(ni*nj*nk*8)],&w[shift+(ni*nj*nk*9)],&w[shift+(ni*nj*nk*10)],&w[shift+(ni*nj*nk*11)],&w[shift+(ni*nj*nk*12)]);
+//printf("density %lG %lG %lG %lG \n",x,y,z,w[shift]);
+#else
                          shift=(j1*ni+i1);
                          fscanf(fdt,"%lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG\n",&x,&y,&w[shift],&w[shift+(ni*nj)],&w[shift+(ni*nj*2)],&w[shift+(ni*nj*3)],&w[shift+(ni*nj*4)],&w[shift+(ni*nj*5)],&w[shift+(ni*nj*6)],&w[shift+(ni*nj*7)],&w[shift+(ni*nj*8)],&w[shift+(ni*nj*9)]);
+#endif
+
                          //freadl(fdt, &line);
                          /*for(i=0; i<NVAR;i++)
                          {
