@@ -81,7 +81,8 @@ int steeringenabled=1;
 int finishsteering=0;
 char configfile[300];
 //char *cfgfile="zero1.ini";
-char *cfgfile="zero1_BW.ini";
+//char *cfgfile="zero1_BW.ini";
+char *cfgfile="zero1_asc.ini";
 //char *cfgfile="zero1_BW_bin.ini";
 char *cfgout="zeroOT";
 
@@ -94,7 +95,7 @@ struct state *state=(struct state *)malloc(sizeof(struct state));
 
 #ifdef USE_SAC
 dt=5.0e10;  //bach test
-
+//dt=5.0e16;  //bach test
 #endif
 
 #ifdef USE_SAC_3D
@@ -119,7 +120,7 @@ int nt=(int)((tmax)/dt);
 //nt=3000;
 //nt=5000;
 //nt=200000;
-nt=200;
+nt=100;
 //nt=100;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -193,8 +194,8 @@ p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=1.0;
-p->readini=0.0;
-p->cfgsavefrequency=1;
+p->readini=1.0;
+p->cfgsavefrequency=20;
 
 
 p->xmax[0]=xmax;

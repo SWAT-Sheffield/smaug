@@ -47,16 +47,16 @@ int addsourceterms2_MODID(real *dw, real *wd, real *w, struct params *p, struct 
 
     aa=10000.0;
     s_period=30.0;
-    tdep=1.0d0;
+    tdep=1.00;
 
 
         //exp_z=exp(-zz**2.d0/(delta_z**2.d0))
         //exp_x=exp(-xx**2.d0/(delta_x**2.d0))
         //exp_y=exp(-yy**2.d0/(delta_y**2.d0))       
         //exp_xyz=exp_x*exp_y*exp_z
-        exp_z=exp(-z**2.0/(dz**2.0));
-        exp_x=exp(-x**2.0/(dx**2.0));
-        exp_y=exp(-y**2.0/(dy**2.0));       
+        exp_z=exp(-z*z/(dz*dz));
+        exp_x=exp(-x*x/(dx*dx));
+        exp_y=exp(-y*y/(dy*dy));       
         exp_xyz=exp_x*exp_y*exp_z;
 
         //vvx(ix_1,ix_2,ix_3)=AA*yy/yymax*exp_xyz*tdep    
@@ -89,7 +89,7 @@ int addsourceterms1_MODID(real *dw, real *wd, real *w, struct params *p, struct 
 
    real xc1,xc2,xc3;
    real xxmax,yymax;
-   real dx,dy,dz;
+   real delx,dely,delz;
    real aa;
    real s_period;
    real tdep;
@@ -122,22 +122,22 @@ int addsourceterms1_MODID(real *dw, real *wd, real *w, struct params *p, struct 
     xxmax=2.0e6;
     yymax=2.0e6;
 
-    dx=0.1e6;
-    dy=0.1e6;
-    dz=0.05e6;
+    delx=0.1e6;
+    dely=0.1e6;
+    delz=0.05e6;
 
     aa=10000.0;
     s_period=30.0;
-    tdep=1.0d0;
+    tdep=1.00;
 
 
         //exp_z=exp(-zz**2.d0/(delta_z**2.d0))
         //exp_x=exp(-xx**2.d0/(delta_x**2.d0))
         //exp_y=exp(-yy**2.d0/(delta_y**2.d0))       
         //exp_xyz=exp_x*exp_y*exp_z
-        exp_z=exp(-z**2.0/(dz**2.0));
-        exp_x=exp(-x**2.0/(dx**2.0));
-        exp_y=exp(-y**2.0/(dy**2.0));       
+        exp_z=exp(-z*z/(delz*delz));
+        exp_x=exp(-x*x/(delx*delx));
+        exp_y=exp(-y*y/(dely*dely));       
         exp_xyz=exp_x*exp_y*exp_z;
 
         //vvx(ix_1,ix_2,ix_3)=AA*yy/yymax*exp_xyz*tdep    

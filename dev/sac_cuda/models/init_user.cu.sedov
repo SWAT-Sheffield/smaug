@@ -10,6 +10,8 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
         real x,y,z;
         real rgamm1, e1;
         real temp,boltz,mion;
+        real fac;
+        real exp_x,exp_y,delta_x,delta_y;
 
 
 	Ly=9.46e15;
@@ -31,7 +33,7 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
 	xc=(p->dx[0])/2;
 	yc=(p->dx[1])/2;
 
-
+ 
 
 #ifdef USE_SAC_3D
 
@@ -50,8 +52,8 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
 	
 	
 	
-	
-	
+          delta_x=5.0e14;
+          delta_y=5.0e14;		
 
 	  int i,j,k;
 	  i=ii[0];
@@ -61,6 +63,11 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
           x=i*(p->dx[0])+(p->xmin[0]);
           y=j*(p->dx[1])+(p->xmin[1]);
 
+	exp_x=exp(-(x*x)/(delta_x*delta_x));
+	exp_y=exp(-(y*y)/(delta_y*delta_y));
+	
+//	fac=exp_x*exp_y*exp_z
+	fac=exp_x*exp_y;
 	#ifdef USE_SAC_3D
 	 	  k=ii[2];
 
@@ -91,9 +98,9 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
                     //w[fencode3_i(p,ii,energy)]=w[fencode3_i(p,ii,energyb)];
                      //w[fencode3_i(p,ii,energyb)]=0.0;
 
-                     if(i==63 && j==63  && k==63)
-                        w[fencode3_i(p,ii,energy)]=e0/pow(p->dx[0],3.0);
-  
+                     //if(i==63 && j==63  && k==63)
+                     //   w[fencode3_i(p,ii,energy)]=e0/pow(p->dx[0],3.0);
+                     w[fencode3_i(p,ii,energy)]=fac*e0/pow(p->dx[0],3.0);
 			// w(40,28,e_)=e0/(x(1,3,2)-x(1,2,2))**3.d0
 			//  w(80,92,e_)=e0/(x(1,3,2)-x(1,2,2))**3.d0  
 
@@ -139,11 +146,13 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
                     w[fencode3_i(p,ii,energy)]=w[fencode3_i(p,ii,energyb)];
                     w[fencode3_i(p,ii,energyb)]=0.0;
 
-                    w[fencode3_i(p,ii,rho)]=0;
+                    //w[fencode3_i(p,ii,rho)]=0;
                     //w[fencode3_i(p,ii,rhob)]=0.0;
-                    //w[fencode3_i(p,ii,rho)]=w[fencode3_i(p,ii,rhob)];
-                     if(i==63 && j==63)
-                        w[fencode3_i(p,ii,energy)]+=e0/pow(p->dx[0],3.0);
+                    w[fencode3_i(p,ii,rho)]=w[fencode3_i(p,ii,rhob)];
+                    w[fencode3_i(p,ii,rhob)]=0.0;
+                    //  fac=1.0;
+                    // if(i==63 && j==63)
+                        w[fencode3_i(p,ii,energy)]+=fac*e0/pow(p->dx[0],3.0);
 		       //w[fencode3_i(p,ii,energy)]=e0/(0.0140098e42);
   
 			// w(40,28,e_)=e0/(x(1,3,2)-x(1,2,2))**3.d0

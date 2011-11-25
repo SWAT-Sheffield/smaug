@@ -98,7 +98,8 @@ dt=2.0;  //bach test
 #endif
 
 #ifdef USE_SAC_3D
-dt=2.0;  //BACH3D
+//dt=2.0;  //BACH3D
+dt=0.13;  //BACH3D
 #endif
 
 
@@ -119,7 +120,7 @@ int nt=(int)((tmax)/dt);
 //nt=3000;
 //nt=5000;
 //nt=200000;
-nt=10;
+nt=50000;
 //nt=100;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -185,7 +186,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=1.0;
 p->readini=1.0;
-p->cfgsavefrequency=5;
+p->cfgsavefrequency=25;
 
 
 p->xmax[0]=xmax;

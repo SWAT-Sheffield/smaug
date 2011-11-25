@@ -65,10 +65,10 @@ int divflux_cd2(real *dw, real *wd, real *w, struct params *p,int *ii,int field,
  #ifdef USE_SAC
 
   //commented out to test against vac
-  if(field==energy)
+  /*if(field==energy)
   {    
-     dw[fencode3_cd2(p,ii,field)]+=fluxe2(dw, wd, w, p,ix, iy,dir)-w[fencode3_cd2(p,ii,rho)]*((p->g[dir])*w[fencode3_cd2(p,ii,mom1+dir)]    )/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
-   }
+     dw[fencode3_cd2(p,ii,field)]+=fluxe2(dw, wd, w, p,ii,dir)-w[fencode3_cd2(p,ii,rho)]*((p->g[dir])*w[fencode3_cd2(p,ii,mom1+dir)]    )/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
+   }*/
 
 
  #endif
@@ -632,7 +632,7 @@ __global__ void centdiff2c_parallel(struct params *p, struct state *s, real *w, 
      #else
        if(ii[0]<(p->n[0])-2 && ii[1]<(p->n[1])-2)
      #endif
-                                addenergyterms_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,ii,f,dir);
+                              ;//  addenergyterms_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,ii,f,dir);
 
      #if(defined(USE_SAC_3D) && defined(USE_USERSOURCE))
        //if(ii[0]<((p->n[0])-2) && ii[1]<((p->n[1])-2) && ii[2]<((p->n[2])-2)     && ii[0]>1    &&  ii[1]>1   && ii[2]>1   )
@@ -644,7 +644,7 @@ __global__ void centdiff2c_parallel(struct params *p, struct state *s, real *w, 
      #endif
 
                      #ifdef USE_USERSOURCE
-                                addsourceterms2_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
+                             ;//   addsourceterms2_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
                      #endif
 
 
