@@ -65,10 +65,10 @@ int divflux_cd2(real *dw, real *wd, real *w, struct params *p,int *ii,int field,
  #ifdef USE_SAC
 
   //commented out to test against vac
-  /*if(field==energy)
+  if(field==energy)
   {    
      dw[fencode3_cd2(p,ii,field)]+=fluxe2(dw, wd, w, p,ii,dir)-w[fencode3_cd2(p,ii,rho)]*((p->g[dir])*w[fencode3_cd2(p,ii,mom1+dir)]    )/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
-   }*/
+   }
 
 
  #endif
@@ -91,7 +91,7 @@ int addenergyterms_cd2(real *dw, real *wd, real *w, struct params *p,int *ii,int
   if(field==energy)
   {    
      //computept3_cd2(w,wd,p,ii);
-     dw[fencode3_cd2(p,ii,field)]=fluxe2(dw, wd, w, p,ii,dir)+w[fencode3_cd2(p,ii,rho)]*((p->g[dir])*w[fencode3_cd2(p,ii,mom1+dir)]    )/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
+     dw[fencode3_cd2(p,ii,field)]=fluxe2(dw, wd, w, p,ii,dir);//+w[fencode3_cd2(p,ii,rho)]*((p->g[dir])*w[fencode3_cd2(p,ii,mom1+dir)]    )/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
    }
 
 
