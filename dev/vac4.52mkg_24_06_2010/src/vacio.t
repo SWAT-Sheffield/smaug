@@ -581,8 +581,6 @@ select case(typefileini)
       call readfileini_asc(w)
    case('binary')
       call readfileini_bin(w)
-   case('special')
-      call readfileini_special(w)
    case default
       call die('Error in VAC: Unknown typefileini='//typefileini)
 end select
@@ -907,7 +905,7 @@ double precision:: w(ixG^T,nw)
 character*10:: itstring
 !-----------------------------------------------------------------------------
 
-if(nproc(ifile+2)>0) call process(ifile+2,1,ndim,w)
+!if(nproc(ifile+2)>0) call process(ifile+2,1,ndim,w)
 
 ! In most cases the mesh should be saved
 ix^L=ixM^L;
@@ -938,8 +936,6 @@ select case(ifile)
             call savefileout_asc(unitini+ifile,w,ix^L)
          case('binary')
             call savefileout_bin(unitini+ifile,w,ix^L)
-         case('special')
-            call savefileout_special(unitini+ifile,w,ix^L)
          case default
             call die('Error in SaveFile: Unknown typefileout:'//typefileout)
       end select
@@ -947,8 +943,6 @@ select case(ifile)
       select case(typefilelog)
          case('default')
             call savefilelog_default(unitini+ifile,w,ix^L)
-         case('special')
-            call savefilelog_special(unitini+ifile,w,ix^L)
          case default
             call die('Error in SaveFile: Unknown typefilelog:'//typefilelog)
       end select
@@ -1122,8 +1116,8 @@ implicit none
 
 integer::qunit, ierror
 
-!call flush(qunit,ierror) ! F90=f95 (NAG)
-call flush(qunit)   ! OS=Linux, SunOS, UNICOS, T3E, Fujitsu
+call flush(qunit,ierror) ! F90=f95 (NAG)
+!call flush(qunit)   ! OS=Linux, SunOS, UNICOS, T3E, Fujitsu
 !call flush_(qunit)  ! OS=AIX, F90=xlf
 
 ! no flush on Linux IA64 with Intel compiler

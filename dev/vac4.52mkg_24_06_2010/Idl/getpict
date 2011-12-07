@@ -1,4 +1,3 @@
-;^CFG COPYRIGHT VAC_UM
 ;===========================================================================
 ;    Read the npict-th picture from an ascii or binary ini or out file 
 ;
@@ -63,29 +62,30 @@ print
 str2arr,physics,physicss,nfile
 physics=''
 for ifile=0,nfile-1 do begin
+   ; Read header info from file
 
+   openfile,1,filenames(ifile),filetypes(ifile)
    phys=physicss(ifile)
-
-   ; Read data from file
-
+   gethead,1,filetypes(ifile),phys, $
+      headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
    print
    if nfile gt 1 then print,'filename  =',filenames(ifile)
-
-   openfile,10,filenames(ifile),filetypes(ifile)
-
-   getpict,10,filetypes(ifile),npict,x,w,headline,phys,it,time,$
-          gencoord,ndim,neqpar,nw,nx,eqpar,variables,rBody,error
-
    print,         'headline  =',strtrim(headline,2)
    print,FORMAT='("ndim      =",i2,", neqpar=",i2,", nw=",i2)',ndim,neqpar,nw
    if gencoord eq 1 then print,'Generalized coordinates'
-   print,         'it        =',it,', time=',time
-   print,FORMAT='("nx        = ",3(i8))',nx
+   print,FORMAT='("nx        = ",3(i5))',nx
    print,         'eqpar     =',eqpar
    print,         'variables =',variables
    askstr,'physics (eg. mhd12)',phys,doask
    physicss(ifile)=phys
    physics=physics + phys + ' '
+
+   ; Read data from file
+
+   openfile,1,filenames(ifile),filetypes(ifile)
+   getpict,1,filetypes(ifile),npict,x,w,headline,it,time
+
+   print,         'it      =',it,', time=',time
 
    if nfile gt 1 then begin
      case ifile of
@@ -105,7 +105,7 @@ for ifile=0,nfile-1 do begin
      print,'Read x',ifile,' and w',ifile,FORMAT='(a,i1,a,i1)'
    endif else print,'Read x and w'
 
-   readtransform,ndim,nx,gencoord,transform,nxreg,xreglimits,wregpad,$
+   readtransform,ndim,nx,gencoord,transform,nxreg,wregpad,$
 		physics,nvector,vectors,grid,doask
 
    if (gencoord and (transform eq 'polar' or transform eq 'regular')) or $
@@ -114,8 +114,8 @@ for ifile=0,nfile-1 do begin
            print,'...transform to xreg and wreg' $
       else print,'...transform to xreg and wreg',ifile,FORMAT='(a,i1)'
       case transform of
-         'regular':regulargrid,x_old,nxreg_old,xreglimits_old,$
-                   x,xreg,nxreg,xreglimits,w,wreg,nw,wregpad,triangles,symmtri
+         'regular':regulargrid,x_old,nxreg_old,x,xreg,nxreg,dxreg,$
+                     w,wreg,nw,wregpad,triangles
          'polar'  :begin
                      polargrid,nvector,vectors,x,w,xreg,wreg
                      variables(0:1)=['r','phi']
@@ -134,9 +134,10 @@ for ifile=0,nfile-1 do begin
       endcase
    endif
 endfor
-close,10
+close,1
 
 ; Produce a wnames from the last file
 wnames=variables(ndim:ndim+nw-1)
 
 end
+

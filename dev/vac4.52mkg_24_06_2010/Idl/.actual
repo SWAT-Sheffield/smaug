@@ -1,2 +1,2 @@
-filename='peak33.out'
-print,'filename=',filename
+filename='data/simon11.out'
+filetype='binary'

@@ -20,9 +20,9 @@ double precision:: cputime
 verbose=.true. .and.ipe==0^IFMPI
 if(verbose)then
    write(*,'(a)')'VAC 4.52 configured to'
-   write(*,'(a)')'  -d=22 -phi=0 -z=0 -g=260,260 -p=mhd -u=gravity'
-   write(*,'(a)')'  -on=cd,tvdlf,tvd,poisson,resist'
-   write(*,'(a)')'  -off=mc,fct,impl,ct,gencoord,rk,mpi'
+   write(*,'(a)')'  -d=33 -phi=0 -z=0 -g=128,128,128 -p=mhd -u=sim1'
+   write(*,'(a)')'  -on=cd,rk'
+   write(*,'(a)')'  -off=mc,fct,tvdlf,tvd,impl,poisson,ct,gencoord,resist,mpi'
    {^IFMPI write(*,'(a,i3,a)')'Running on ',npe,' processors'}
 endif
 
@@ -525,35 +525,11 @@ ixO^L=ixI^L^LSUB2;
 
 select case(method)
 {^ANDIFCD
-case('cd')
-   call centdiff(qdt,ixI^L,ixO^L,iws,idim^LIM,qtC,wCT,qt,w)
+
 case('cd4')
    call centdiff4(qdt,ixI^L,ixO^L,iws,idim^LIM,qtC,wCT,qt,w)
 }
-{^ANDIFMC
-case('mc')
-   call maccormack(qdt,ixI^L,ixO^L,iws,idim^LIM,qt,w)
-}
-{^IFFCT
-case('fct')
-   call fct(qdt,ixI^L,ixO^L,iws,idim^LIM,qtC,wCT,qt,w)
-}
-{^IFTVDLF
-case('hancock')
-   call hancock(qdt,ixI^L,ixO^L,iws,idim^LIM,qtC,wCT,qt,w)
-case('tvdlf','tvdlf1','tvdmu','tvdmu1')
-   call tvdmusclf(.true.,method,qdt,ixI^L,ixO^L,iws,idim^LIM,qtC,wCT,qt,w)
-}
-{^IFTVD{^ANDIFMC
-case('tvdmc')
-   call       maccormack(qdt,ixI^L,ixO^L,iws,idim^LIM,qt,w)
-   call tvdlimit(method,qdt,ixI^L,ixO^L,iws,idim^LIM,wCT,qt+qdt,w)
-}}
-{^IFTVD{^ANDIFCD
-case('tvd','tvd1')
-   call centdiff(qdt,ixI^L,ixO^L,iws,idim^LIM,qtC,wCT,qt,w)
-   call tvdlimit(method,qdt,ixI^L,ixO^L,iws,idim^LIM,wCT,qt+qdt,w)
-}}
+
 case('source')
    if(sourceunsplit)call addsource2(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
 case('nul')

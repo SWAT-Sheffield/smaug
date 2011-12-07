@@ -436,7 +436,8 @@ C ----------------------------------------------------------------------------
          do ix3=1,nx3
             do ix2=1,nx2
                do ix1=1,nx1
-                  write(unitout,'(100(1pe18.10))')
+C   DS mod 1pe18.10 became 1pe20.10
+                  write(unitout,'(100(1pe20.10))')
      &                 (x(ix1,ix2,ix3,idim),idim=1,ndim),
      &                 (w(ix1,ix2,ix3,iw),iw=1,nw)
                enddo

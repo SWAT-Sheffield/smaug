@@ -1,9 +1,7 @@
-;^CFG COPYRIGHT VAC_UM
-; Written by G. Toth for the Versatile Advection Code and BATSRUS
-; Some improvements by Aaron Ridley.
+; Written by G. Toth for the Versatile Advection Code
 ;
-; Procedures for
-;
+; Procedures for 
+; 
 ; reading ascii and binary data produced by VAC and VACINI:
 ;    openfile,gettype,gethead,getpict,getpict_asc,getpict_bin
 ; reading numbers and strings from input:
@@ -24,53 +22,13 @@
 ;    quit
 ;
 ; Functions for
-;
+;    
 ; calculating derivatives in 2D for Cartesian grids to 2nd,3rd,4th order
 ;    diff2,diff3,diff4
-; calculate minmod limited slope
-;    minmod
-; calculating symmetric differences with respect to some mirror plane
-;    symmdiff
 ; calculating derivatives in 2D for general grids
 ;    grad,div,curl,grad_rz,div_rz,curl_rz, filledge,intedge,intedge_rz
 ; taking a part of an array or coarsen an array
 ;    triplet, quadruplet, coarse
-; eliminating degenerate dimensions from an array
-;    reform2
-
-
-
-;==========================================
-function str_sep,string,sep
-;==========================================
-   ;on_error,2
-   ;print,'str sep'
-   ;print,string
-   res=strtok(string,sep)
-   ;print,res
-   strlentot=strlen(string)
-
-   if strlentot gt 0 then begin
-	   lenres=size(res)
-	   len=lenres(1)
-	   strsep=strarr(len)
-	   ;si=0
-
-	   
-	   if len gt 1 then begin
-		   for si = 0, len-2 do begin
-		     strsep(si)=strmid(string,res(si),res(si+1)-res(si))
-		   endfor
-	   endif
-
-	   strsep(len-1)=strmid(string,res(len-1),strlentot-res(len-1))
-   endif else begin
-     strsep=strarr(1)
-     strsep(0)=string
-   endelse
-   return,strsep
-end
-
 
 ;==========================================
 pro openfile,unit,filename,filetype
@@ -79,10 +37,10 @@ pro openfile,unit,filename,filetype
 
    close,unit
    case filetype of
-       'ascii' :openr,unit,filename
+       'ascii':	openr,unit,filename
        'binary':openr,unit,filename,/f77_unf
        'real4' :openr,unit,filename,/f77_unf
-       else    :print,'Openfile: unknown filetype:',filetype
+       else: 	print,'Openfile: unknown filetype:',filetype
    endcase
 end
 
@@ -95,7 +53,6 @@ pro gettype,filenames,filetypes,npictinfiles
    npictinfiles=intarr(n_elements(filenames))
    for ifile=0,n_elements(filenames)-1 do begin
       ; Obtain filetype based on the length info in the first 4 bytes
-      close,10
       openr,10,filenames(ifile)
       len=long(1)
       readu,10,len
@@ -116,32 +73,36 @@ pro gettype,filenames,filetypes,npictinfiles
       endelse
       close,10
 
-      ; Obtain file size and number of snapshots
+      ; Obtain file size
       openfile,1,filenames(ifile),ftype
       status=fstat(1)
       fsize=status.size
 
-      pointer=0
-      pictsize=1
-      npict=0
-      while pointer lt fsize do begin
-          ; Obtain size of a single snapshot
-          point_lun,1,pointer
-          gethead,1,ftype,pictsize=pictsize
-          npict=npict+1
-          pointer=pointer+pictsize
-      endwhile
+      ; Obtain size of a single snapshot
+      gethead,1,ftype,phys, $
+         headline,it,time,gencoord,ndim,neqpar,nw,nx
+      nxs=1
+      for idim=1,ndim do nxs=nxs*nx(idim-1)
+      case ftype of
+       'ascii': pictsize=1+79 + 1+7+13+9 + 1+ndim*4 + 1+neqpar*13 + 1+79 + $
+                  (18*(ndim+nw)+1)*nxs
+       'binary':pictsize=8+79 + 8+4*4+8  + 8+ndim*4 + 8+neqpar*8  + 8+79 + $
+		  8*(1+nw)+8*(ndim+nw)*nxs
+       'real4':pictsize=8+79 + 5*4+8  + 8+ndim*4 + 8+neqpar*4  + 8+79 + $
+		  8*(1+nw)+4*(ndim+nw)*nxs
+      endcase
       close,1
 
-      npictinfiles(ifile)=npict
-      filetypes(ifile)   =ftype
+      ; Calculate number of snapshots in the file
+      npictinfiles(ifile)= fsize/pictsize
+      filetypes(ifile)=ftype
    endfor
 end
 
-;=============================================================
-pro gethead,unit,filetype,headline,physics,it,time,gencoord, $
-            ndim,neqpar,nw,nx,eqpar,variables,pictsize=pictsize
-;=============================================================
+;==========================================
+pro gethead,unit,filetype,physics,headline,it,time,gencoord, $
+            ndim,neqpar,nw,nx,eqpar,variables
+;==========================================
    on_error,2
 
 ;Type definitions
@@ -151,143 +112,91 @@ pro gethead,unit,filetype,headline,physics,it,time,gencoord, $
    neqpar=long(1)
    nw=long(1)
    varname='                                                                               '
-;Remember pointer position at beginning of header
-   point_lun,-unit,pointer0
 ;Read header
    case filetype of
       'ascii': begin
                   time=double(1)
-                  readf,unit,headline
-                  readf,unit,it,time,ndim,neqpar,nw
-                  gencoord=(ndim lt 0)
-                  ndim=abs(ndim)
-                  nx=lonarr(ndim)
-                  readf,unit,nx
-                  eqpar=dblarr(neqpar)
-                  readf,unit,eqpar
-                  readf,unit,varname
-               end
+		  readf,unit,headline
+		  readf,unit,it,time,ndim,neqpar,nw
+		  gencoord=(ndim lt 0)
+		  ndim=abs(ndim)
+		  nx=lonarr(ndim)
+		  readf,unit,nx
+		  eqpar=dblarr(neqpar)
+		  readf,unit,eqpar
+		  readf,unit,varname
+	       end
       'binary':begin
                   time=double(1)
-                  readu,unit,headline
-                  readu,unit,it,time,ndim,neqpar,nw
-                  gencoord=(ndim lt 0)
-                  ndim=abs(ndim)
-                  nx=lonarr(ndim)
-                  readu,unit,nx
-                  eqpar=dblarr(neqpar)
-                  readu,unit,eqpar
-                  readu,unit,varname
+		  readu,unit,headline
+		  readu,unit,it,time,ndim,neqpar,nw
+		  gencoord=(ndim lt 0)
+		  ndim=abs(ndim)
+		  nx=lonarr(ndim)
+		  readu,unit,nx
+		  eqpar=dblarr(neqpar)
+		  readu,unit,eqpar
+		  readu,unit,varname
                end
       'real4': begin
                   time=float(1)
-                  readu,unit,headline
-                  readu,unit,it,time,ndim,neqpar,nw
-                  gencoord=(ndim lt 0)
-                  ndim=abs(ndim)
-                  nx=lonarr(ndim)
-                  readu,unit,nx
-                  eqpar=fltarr(neqpar)
-                  readu,unit,eqpar
-                  readu,unit,varname
-               end
-      else: begin
-                  print,'Gethead: unknown filetype',filetype
-                  retall
-            end
+		  readu,unit,headline
+		  readu,unit,it,time,ndim,neqpar,nw
+		  gencoord=(ndim lt 0)
+		  ndim=abs(ndim)
+		  nx=lonarr(ndim)
+		  readu,unit,nx
+		  eqpar=fltarr(neqpar)
+		  readu,unit,eqpar
+		  readu,unit,varname
+	       end
+      else: print,'Gethead: unknown filetype',filetype
    endcase
-
-   if keyword_set(pictsize) then begin
-      ; Calculate the picture size
-      ; Header length
-      point_lun,-unit,pointer1
-      headlen=pointer1-pointer0
-      ; Number of cells
-      nxs=1
-      for idim=1,ndim do nxs=nxs*nx(idim-1)
-      ; Snapshot size = header + data + recordmarks
-      case filetype of
-         'ascii' :pictsize = headlen + (18*(ndim+nw)+1)*nxs
-         'binary':pictsize = headlen + 8*(1+nw)+8*(ndim+nw)*nxs
-         'real4' :pictsize = headlen + 8*(1+nw)+4*(ndim+nw)*nxs
-      endcase
-   endif else begin
-      ; Get variables and physics
-      variables=str_sep(strtrim(strcompress(varname),2),' ')
-      tmp=str_sep(strtrim(headline,2),'_')
-      if n_elements(tmp) eq 2 then begin
-         headline=tmp(0)
-         physics=tmp(1)
-         ; work around for a bug
-         if physics eq '123' or physics eq '223' then physics='mhd23'
-      endif
-  endelse
-
+   variables=str_sep(strtrim(strcompress(varname),2),' ')
+   tmp=str_sep(strtrim(headline,2),'_')
+   if n_elements(tmp) eq 2 then begin
+      headline=tmp(0)
+      physics=tmp(1)
+   endif
 end
 
 ;==========================================
-pro getpict,unit,filetype,npict,x,w,$
-    headline,physics,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables,$
-    rBody,error
+pro getpict,unit,filetype,npict,$
+    x,w,headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables,error
 ;==========================================
-
    on_error,2
 
-   error=0
-
-   if(eof(unit))then begin
-      error=1
-      return
-   endif
-
-   ; Get current pointer position
-   point_lun,-unit,pointer
-
-   ; Skip npict-1 snapshots
    ipict=0
-   pictsize=1
-   while ipict lt npict-1 and not eof(unit) do begin
+   while ipict lt npict and not eof(unit) do begin
       ipict=ipict+1
-      gethead,unit,filetype,pictsize=pictsize
-      pointer=pointer+pictsize
-      point_lun,unit,pointer
+      case filetype of
+         'ascii': getpict_asc,unit,npict,$
+             x,w,headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
+         'binary': getpict_bin,unit,npict,$
+             x,w,headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
+         'real4': getpict_real,unit,npict,$
+             x,w,headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
+         else:     begin
+                      print,'Getpict: unknown filetype:',filetype
+		      ipict=0
+                      close,unit
+                   end
+      endcase
    endwhile
-
-   ; Backup 1 snapshot if end of file
-   if eof(unit) then begin
-       error=1
-       point_lun,unit,pointer-pictsize
-   endif
-
-   ; Read header information
-   gethead,unit,filetype,headline,physics,$
-       it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
-
-   ; set rBody if listed among the parameters
-   ;for iPar = 0, neqpar-1 do begin
-   ;    i = nDim + nW + iPar
-   ;    if variables(i) eq 'rbody' or variables(i) eq 'rBody' then $
-   ;        rBody = eqpar(iPar)
-   ;endfor
-
-   ; Read data
-   case filetype of
-   'ascii':  getpict_asc ,unit, npict, ndim, nw, nx, x, w
-   'binary': getpict_bin ,unit, npict, ndim, nw, nx, x, w
-   'real4':  getpict_real,unit, npict, ndim, nw, nx, x, w
-    else:    begin
-                print,'Getpict: unknown filetype:',filetype
-                error=1
-                close,unit
-             end
-   endcase
-
+   error=(ipict LT npict)
 end
 
 ;==========================================
-pro getpict_asc,unit,npict,ndim,nw,nx,x,w
+pro getpict_asc,unit,npict,$
+   x,w,headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
 ;==========================================
-  on_error,2
+  on_error,2                      
+  ;----------------------------------------
+  ;Read header information
+  ;----------------------------------------
+  gethead,unit,'ascii',physics,$
+     headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
+  ndim=abs(ndim)
   ;----------------------------------------
   ; Read coordinates and values row by row
   ;----------------------------------------
@@ -298,7 +207,7 @@ pro getpict_asc,unit,npict,ndim,nw,nx,x,w
   1: begin
     x=dblarr(nx(0),ndim)
     w=dblarr(nx(0),nw)
-    for x0=0L,nx(0)-1 do begin
+    for x0=0,nx(0)-1 do begin
       readf,unit,xrow,wrow
       x(x0,0:ndim-1)=xrow(0:ndim-1)
       w(x0,0:nw-1)  =wrow(0:nw-1)
@@ -308,8 +217,8 @@ pro getpict_asc,unit,npict,ndim,nw,nx,x,w
   2: begin
     x=dblarr(nx(0),nx(1),ndim)
     w=dblarr(nx(0),nx(1),nw)
-    for x1=0L,nx(1)-1 do begin
-      for x0=0L,nx(0)-1 do begin
+    for x1=0,nx(1)-1 do begin
+      for x0=0,nx(0)-1 do begin
         readf,unit,xrow,wrow
         x(x0,x1,0:ndim-1)=xrow(0:ndim-1)
         w(x0,x1,0:nw-1)  =wrow(0:nw-1)
@@ -320,13 +229,13 @@ pro getpict_asc,unit,npict,ndim,nw,nx,x,w
   3: begin
     x=dblarr(nx(0),nx(1),nx(2),ndim)
     w=dblarr(nx(0),nx(1),nx(2),nw)
-    for x2=0L,nx(2)-1 do begin
-      for x1=0L,nx(1)-1 do begin
-        for x0=0L,nx(0)-1 do begin
+    for x2=0,nx(2)-1 do begin
+      for x1=0,nx(1)-1 do begin
+        for x0=0,nx(0)-1 do begin
           readf,unit,xrow,wrow
           x(x0,x1,x2,0:ndim-1)=xrow(0:ndim-1)
           w(x0,x1,x2,0:nw-1)=wrow(0:nw-1)
-        endfor
+	endfor
       endfor
     endfor
   end
@@ -334,11 +243,17 @@ pro getpict_asc,unit,npict,ndim,nw,nx,x,w
 end
 
 ;==========================================
-pro getpict_bin,unit,npict,ndim,nw,nx,x,w
+pro getpict_bin,unit,npict,$
+   x,w,headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
 ;==========================================
-  on_error,2
+  on_error,2                      
   ;----------------------------------------
-  ; Read coordinates and values
+  ;Read header information
+  ;----------------------------------------
+  gethead,unit,'binary',physics,$
+     headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
+  ;----------------------------------------
+  ; Read coordinates and values 
   ;----------------------------------------
   case ndim of
   ;-------------- 1D ----------------------
@@ -384,11 +299,17 @@ pro getpict_bin,unit,npict,ndim,nw,nx,x,w
 end
 
 ;==========================================
-pro getpict_real,unit,npict,ndim,nw,nx,x,w
+pro getpict_real,unit,npict,$
+   x,w,headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
 ;==========================================
-  on_error,2
+  on_error,2                      
   ;----------------------------------------
-  ; Read coordinates and values
+  ;Read header information
+  ;----------------------------------------
+  gethead,unit,'real4',physics,$
+     headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
+  ;----------------------------------------
+  ; Read coordinates and values 
   ;----------------------------------------
   case ndim of
   ;-------------- 1D ----------------------
@@ -451,7 +372,7 @@ end
 ;==========================================
 pro askstr,prompt,var,doask
 ;==========================================
-   on_error,2
+   on_error,2                      
 
    if var eq '' then read,PROMPT=prompt+'? ',var $
    else begin
@@ -496,46 +417,33 @@ endelse
 
 end
 
-;==========================================
-function reform2,x
-;==========================================
-  ;Remove all degenerate dimensions from x
-
-  if n_elements(x) lt 2 then return,x
-
-  siz=size(x)
-  siz=siz(1:siz(0))
-  return,reform(x,siz(where(siz gt 1)))
-
-end
-
 ;===========================================================================
 pro readplotpar,ndim,cut,cut0,plotdim,nfunc,func,funcs,funcs1,funcs2,$
    plotmode,plotmodes,plottitle,plottitles,autorange,autoranges,doask
 ;===========================================================================
    on_error,2
 
-   ; Determine dimension of plots based on cut or ndim,
+   ; Determine dimension of plots based on cut or ndim, 
    ; calculate reduced cut0 array by eliminating degenerate dimensions
-   if keyword_set(cut) then begin
-      cut0=reform2(cut)
-      siz=size(cut0)
-      plotdim=siz(0)
-   endif else begin
+   siz=size(cut)
+   if siz(0) eq 0 then begin
       plotdim=ndim
       cut0=0
+   endif else begin
+      plotdim=0
+      for i=1,siz(0) do if siz(i) gt 1 then plotdim=plotdim+1
+      cut0=reform(cut)
+      if siz(0) eq 3 and siz(2) eq 1 then cut0=reform(cut,siz(1),siz(3))
    endelse
 
-   askstr,'func(s) (e.g. rho p ux;uz bx+by -T) ',func,doask
+   askstr,'func(s) (e.g. rho p m1;m2 r*m1 -T) ',func,doask
    if plotdim eq 1 then begin
       print,'1D plotmode: plot'
-      plotmode='plot'
+      plotmode='plot' 
    endif else begin
       if plotmode eq 'plot' then plotmode=''
-      print,'2D scalar: ',$
-            'shade/surface/contour/contlabel/contfill/contbar/tv/tvbar'
-      print,'2D polar : polar/polarlabel/polarfill/polarbar'
-      print,'2D vector: stream/stream2/vector/velovect/ovelovect'
+     print,'2D plotmodes: contour/contlabel/contfill/shade/shadeirr/surface/tv/'
+      print,'              stream/vel/velovect/ovelovect'
       askstr,'plotmode(s)                ',plotmode,doask
    endelse
    askstr,'plottitle(s) (e.g. B [G];J)',plottitle,doask
@@ -557,74 +465,40 @@ pro readplotpar,ndim,cut,cut0,plotdim,nfunc,func,funcs,funcs1,funcs2,$
 
 end
 ;===========================================================================
-pro readtransform,ndim,nx,gencoord,transform,nxreg,xreglimits,wregpad,$
+pro readtransform,ndim,nx,gencoord,transform,nxreg,wregpad,$
     physics,nvector,vectors,grid,doask
 ;===========================================================================
    on_error,2
 
    if (gencoord or transform eq 'unpolar') and ndim eq 2 then begin
       if transform eq '' then begin
-        transform='none'
-        askstr,"transform (r=regular/p=polar/u=unpolar/n=none)",transform,1
+         transform='none'
+         askstr,"transform (regular/polar/unpolar/none)",transform,1
       endif else $
-        askstr,"transform (r=regular/p=polar/u=unpolar/n=none)",transform,doask
-
-      ; Complete name
-      case transform of
-          'r': transform='regular'
-          'p': transform='polar'
-          'u': transform='unpolar'
-          'n': transform='none'
-         else:
-      endcase
-      ; Get transformation parameters and calculate grid
+         askstr,"transform (regular/polar/unpolar/none)",transform,doask
       case 1 of
         transform eq 'regular':begin
            print,'Generalized coordinates, dimensions for regular grid'
-           if n_elements(nxreg) ne 2 then nxreg=[0,0]
-           if n_elements(xreglimits) ne 4 then xreglimits=dblarr(4) $
-           else xreglimits=double(xreglimits)
            nxreg0=nxreg(0)
            nxreg1=nxreg(1)
-           asknum,'nxreg(0) (use negative sign to limit x)',nxreg0,doask
-           if nxreg0 lt 0 then begin
-               nxreg0=abs(nxreg0)
-               xmin=0 & xmax=0
-               asknum,'xreglimits(0) (xmin)',xmin,doask
-               asknum,'xreglimits(2) (xmax)',xmax,doask
-               xreglimits(0)=xmin
-               xreglimits(2)=xmax
-           endif
-           asknum,'nxreg(1) (use negative sign to limit y)',nxreg1,doask
-           if nxreg1 lt 0 then begin
-               nxreg1=abs(nxreg1)
-               ymin=0 & ymax=0
-               asknum,'xreglimits(1) (ymin)',ymin,doask
-               asknum,'xreglimits(3) (ymax)',ymax,doask
-               xreglimits(1)=ymin
-               xreglimits(3)=ymax
-           endif
+           asknum,'nxreg(0)',nxreg0,doask
+           asknum,'nxreg(1)',nxreg1,doask
            grid=lindgen(nxreg0,nxreg1)
            nxreg=[nxreg0,nxreg1]
            wregpad=0
-        end
-        transform eq 'polar' or transform eq 'unpolar':begin
-           getvectors,physics,nvector,vectors
-           grid=lindgen(nx(0),nx(1))
-        end
-        transform eq 'none':grid=lindgen(nx(0),nx(1))
-        else: print,'Unknown value for transform:',transform
+	end
+	transform eq 'polar' or transform eq 'unpolar':begin
+	   getvectors,physics,nvector,vectors
+	   grid=lindgen(nx(0),nx(1))
+	end
+	transform eq 'none':grid=lindgen(nx(0),nx(1))
+	else: print,'Unknown value for transform:',transform
       endcase
    endif else if gencoord and ndim eq 3 then begin
-      if transform eq '' then begin
-         transform="none" & askstr,"transform (s=sphere/n=none)",transform,1
+      if transform eq '' then begin 
+         transform="none" & askstr,"transform (sphere/none)",transform,1
       endif else $
-         askstr,"transform (s=sphere/n=none)",transform,doask
-      case transform of
-         's': transform='sphere'
-         'n': transform='none'
-        else:
-      endcase
+         askstr,"transform (sphere/none)",transform,doask
       if transform eq 'sphere' then getvectors,physics,nvector,vectors
       grid=lindgen(nx(0),nx(1),nx(2))
    endif else case ndim of
@@ -647,32 +521,31 @@ pro getvectors,physics,nvector,vectors
    reads,strmid(physic,strlen(physic)-1,1),ndir
    case phys of
    'rho':nvector=0
-   'flx':nvector=0
    'hd' :begin
-         nvector=1
-         vectors=1
-         end
+	 nvector=1
+	 vectors=1
+	 end
    'hdadiab':begin
-         nvector=1
-         vectors=1
-         end
+	 nvector=1
+	 vectors=1
+	 end
    'mhdiso':begin
-         nvector=2
-         vectors=[1,ndir+1]
-         end
+	 nvector=2
+	 vectors=[1,ndir+1]
+	 end
    'mhd':begin
-         nvector=2
-         vectors=[1,ndir+2]
-         end
+	 nvector=2
+	 vectors=[1,ndir+2]
+	 end
    else:begin
       if nvector eq 0 then begin
-         print,'Unrecognised physics: ',physics
-         print,'Vector variables to transform for WREG'
-         asknum,'nvector',nvector,doask
-         if nvector gt 0 then begin
-            vectors=intarr(nvector)
-            read,PROMPT='Indices of first components in w? ',vectors
-         endif
+	 print,'Unrecognised physics: ',physics
+	 print,'Vector variables to transform for WREG'
+	 asknum,'nvector',nvector,doask
+	 if nvector gt 0 then begin
+	    vectors=intarr(nvector)
+	    read,PROMPT='Indices of first components in w? ',vectors
+	 endif
       endif
       end
    endcase
@@ -683,8 +556,8 @@ pro readlimits,nfunc,funcs,autoranges,noautorange,fmax,fmin,doask
 ;===========================================================================
    on_error,2
 
-   if n_elements(fmax) ne nfunc then fmax=dblarr(nfunc) else fmax=double(fmax)
-   if n_elements(fmin) ne nfunc then fmin=dblarr(nfunc) else fmin=double(fmin)
+   if n_elements(fmax) ne nfunc then fmax=dblarr(nfunc)
+   if n_elements(fmin) ne nfunc then fmin=dblarr(nfunc)
 
    ; check if there is any function for which autorange is 'y'
    noautorange=1
@@ -706,7 +579,7 @@ end
 pro getlimits,first,nfunc,funcs,funcs1,funcs2,autoranges,fmax,fmin,doask,$
                 x,w,xreg,wreg,usereg,physics,eqpar,wnames,cut
 ;===========================================================================
-   on_error,2
+   on_error,2                      
 
    for ifunc=0,nfunc-1 do begin
       if autoranges(ifunc) eq 'n' then begin
@@ -737,129 +610,61 @@ pro getlimits,first,nfunc,funcs,funcs1,funcs2,autoranges,fmax,fmin,doask,$
    endfor
 end
 
-;==============================================================================
-; this function is only available in newer versions of IDL and 
-; it does not work very well
-;function grid_data,x,y,data,nxreg,xreglimits,triangles,wregpad
-
-;return,griddata(x,y,data,$
-;        dimension=nxreg,$
-;	start=xreglimits(0:1),$
-;	delta=[(xreglimits(2)-xreglimits(0))/(nxreg(0)-1),  $
-;               (xreglimits(3)-xreglimits(1))/(nxreg(1)-1)] ,$
-;        triangles=triangles,$
-;        method='NearestNeighbor',$
-;        method='Linear',$
-;        method='InverseDistance',$
-;       smoothing=0.5,$
-;       max_per_sector=4, $
-;        missing=wregpad $
-;        )
-;end
-
 ;===========================================================================
-pro regulargrid,x_old,nxreg_old,xreglimits_old,x,xreg,nxreg,xreglimits,$
-                w,wreg,nw,wregpad,triangles,symmtri
+pro regulargrid,x_old,nxreg_old,x,xreg,nxreg,dxreg,w,wreg,nw,wregpad,triangles
 ;
 ;    Regularize grid and interpolate "w" via triangulate and trigrid.
 ;    The original "w" data is interpolated into "wreg", for points outside
 ;    the convex hull of the irregular grid the "wregpad(nw)" array is used.
 ;
-;    If "x_old" and "x" or "nxreg_old" and "nxreg" are different
-;    a triangulization is done first and a regular coordinate array
-;    "xreg" is created. The size of the "xreg" array is in "nxreg(2)",
-;    "xreglimits(4)" gives the limits. The triangles are saved in "triangles".
-;
+;    If "x_old" and "x" or "nxreg_old" and "nxreg" are different 
+;    a triangulization is done first and a regular coordinate array 
+;    "xreg" is created. The size of the "xreg" array is in "nxreg(2)", 
+;    "dxreg(2)" is the spacing. The triangles are saved in "triangles".
+; 
 ;    "q" can be interpolated from the irregular grid to the regular one by:
 ;
-;    qreg(*,*)=trigrid(x(*,*,0),x(*,*,1),q,triangles,[0,0],xreglimits)
+;    qreg(*,*)=trigrid(x(*,*,0),x(*,*,1),q,triangles,dxreg)
 ;
 ;===========================================================================
-   on_error,2
+   on_error,2                      
 
    ;Floating underflow is not a real error, the message is suppressed
    err=check_math(1,1)
 
    xx=x(*,*,0)
    yy=x(*,*,1)
-
-   ; Test distribution. If you uncomment the next lines you can
-   ; take a look at the different "shock wave" representation
-   ; on your grid for the 0-th variable (usually rho)
-   ; for i=0L,n_elements(xx)-1 do $
-   ;   if abs(xx(i))-0.2*abs(yy(i)) gt 0.01 then $
-   ;       w(i,*,0)=2. else w(i,*,0)=1.
-
-   ; Check if nxreg==nxreg_old and xreglimits==xreglimits_old and x==x_old
+   ; Check if nxreg==nxreg_old and x==x_old
    newx=1
-   nrectan=0
-   if symmtri ne 1 and symmtri ne 2 then $
    if n_elements(nxreg_old) eq n_elements(nxreg) then $
-   if max(abs(nxreg_old-nxreg)) eq 0 then $
-   if n_elements(xreglimits) eq n_elements(xreglimits_old) then $
-   if max(abs(xreglimits-xreglimits_old)) eq 0 then $
-   if n_elements(x_old) eq n_elements(x) then $
-   if max(abs(x_old-x)) eq 0 then newx=0
-
-   if xreglimits(0) eq xreglimits(2) then begin
-      xreglimits(0)=min(xx) & xreglimits(2)=max(xx)
-   endif
-   if xreglimits(1) eq xreglimits(3) then begin
-      xreglimits(1)=min(yy) & xreglimits(3)=max(yy)
-   endif
+      if max(abs(nxreg_old-nxreg)) eq 0 then $
+         if n_elements(x_old) eq n_elements(x) then $
+            if max(abs(x_old-x)) eq 0 then newx=0
 
    if newx then begin
-      print,'Triangulating...'
       x_old=x
       nxreg_old=nxreg
-      xreglimits_old=xreglimits
-
-      triangulate,xx,yy,triangles
-
-      ; calculate conjugate triangulation and rectangles if required
-      if symmtri eq 1 or symmtri eq 2 then $
-          symm_triangles,xx,yy,triangles,$
-                         triangconj,ntriangles,rectangles,nrectan
+      dxreg=[(max(xx)-min(xx))/(nxreg(0)-1.00001), $
+             (max(yy)-min(yy))/(nxreg(1)-1.00001)]
 
       xreg=dblarr(nxreg(0),nxreg(1),2)
-      dx=(xreglimits(2)-xreglimits(0))/(nxreg(0)-1)
-      dy=(xreglimits(3)-xreglimits(1))/(nxreg(1)-1)
-      for i=0,nxreg(1)-1 do xreg(*,i,0)=dx*indgen(nxreg(0))+xreglimits(0)
-      for i=0,nxreg(0)-1 do xreg(i,*,1)=dy*indgen(nxreg(1))+xreglimits(1)
+      for i=0,nxreg(1)-1 do xreg(*,i,0)=dxreg(0)*indgen(nxreg(0))+min(xx)
+      for i=0,nxreg(0)-1 do xreg(i,*,1)=dxreg(1)*indgen(nxreg(1))+min(yy)
 
+      triangulate,xx,yy,triangles
       wreg=dblarr(nxreg(0),nxreg(1),nw)
-   endif
-   if not keyword_set(wregpad) then begin
-      wregpad=dblarr(nw)
-      for iw=0,nw-1 do begin
-         wmax=max(w(*,*,iw))
-         wmin=min(w(*,*,iw))
-         if wmax*wmin lt 0 then wregpad(iw)=0 $
-         else                   wregpad(iw)=wmin-0.1*(wmax-wmin)
-      endfor
-   endif
-
-   case 1 of
-
-   ; The grid_data is only available in newer versions of IDL and it does
-   ; not work too well
-   ;symmtri eq 3: for iw=0,nw-1 do $
-   ;   wreg(*,*,iw)=grid_data(xx,yy,reform(w(*,*,iw)),nxreg,xreglimits,$
-   ;                          triangles,wregpad(iw))
-
-   symmtri eq 0 or (symmtri lt 3 and nrectan eq 0): for iw=0,nw-1 do $
-      wreg(*,*,iw)=trigrid(xx,yy,w(*,*,iw),triangles, $
-           [0.,0.],xreglimits,nx=nxreg(0),ny=nxreg(1),missing=wregpad(iw))
-
-   symmtri eq 1 and nrectan gt 0: $
-      fit_triangles,w,wreg,wregpad,nw,xx,yy,nxreg,xreglimits,$
-           triangles,ntriangles,rectangles
-
-   symmtri eq 2 and nrectan gt 0: $
-      average_triangles,w,wreg,wregpad,nw,xx,yy,nxreg,xreglimits,$
-           triangles,triangconj
-
-   endcase
+  endif
+  if not keyword_set(wregpad) then begin
+     wregpad=dblarr(nw)
+     for iw=0,nw-1 do begin
+        wmax=max(w(*,*,iw))
+        wmin=min(w(*,*,iw))
+        if wmax*wmin lt 0 then wregpad(iw)=0 $
+        else                   wregpad(iw)=wmin-0.1*(wmax-wmin)
+     endfor
+  endif
+  for iw=0,nw-1 do $
+     wreg(*,*,iw)=trigrid(xx,yy,w(*,*,iw),triangles,dxreg,missing=wregpad(iw))
 
    err=check_math(0,0)
    ;Floating underflow is not a real error, the message is suppressed
@@ -867,193 +672,13 @@ pro regulargrid,x_old,nxreg_old,xreglimits_old,x,xreg,nxreg,xreglimits,$
 
 end
 
-;==============================================================================
-pro symm_triangles,xx,yy,triangles,$
-         triangconj,ntriangles,rectangles,nrectan
-
-   ntriangles=n_elements(triangles(0,*))
-   print,'Triangulation includes ',ntriangles, '  triangles'
-   print,'Checking triangulation ...'
-
-   npoints=n_elements(xx)
-
-   dist=dblarr(npoints-1)
-   for i=0L,npoints-2 do $
-      dist(i)=(xx(i+1)-xx(i))^2+(yy(i+1)-yy(i))^2
-   dist2=min(dist)
-   rectangles=lonarr(3,ntriangles)
-   ;Structure of the rectangles array:
-   ;If(rectangles(0,i)=1 then the Ith triangle from the triangles array
-   ;is rectangular one
-   tmp1=lonarr(3) & nrec_tri=0
-   for i=0L,ntriangles-1 do begin
-      if abs((xx(triangles(0,i))-xx(triangles(1,i)))*$
-         (xx(triangles(1,i))-xx(triangles(2,i)))+$
-         (yy(triangles(0,i))-yy(triangles(1,i)))*$
-         (yy(triangles(1,i))-yy(triangles(2,i)))) lt 0.00001*dist2 $
-      then begin
-	 rectangles(0,i)=1
-         tmp1(0)=triangles(1,i)
-         if xx(triangles(0,i)) lt xx(triangles(2,i)) then begin
-            tmp1(1)=triangles(0,i)
-            tmp1(2)=triangles(2,i)
-         endif else begin
-            tmp1(1)=triangles(2,i)
-            tmp1(2)=triangles(0,i)
-         endelse
-         for j=0,2 do triangles(j,i)=tmp1(j)
-      endif
-
-      if abs((xx(triangles(0,i))-xx(triangles(1,i)))*$
-         (xx(triangles(0,i))-xx(triangles(2,i)))+$
-         (yy(triangles(0,i))-yy(triangles(1,i)))*$
-         (yy(triangles(0,i))-yy(triangles(2,i)))) lt 0.00001*dist2 $
-      then begin
-         rectangles(0,i)=1
-         tmp1(0)=triangles(0,i)
-         if xx(triangles(1,i)) lt xx(triangles(2,i)) then begin
-            tmp1(1)=triangles(1,i)
-            tmp1(2)=triangles(2,i)
-         endif else begin
-            tmp1(1)=triangles(2,i)
-            tmp1(2)=triangles(1,i)
-         endelse
-         for j=0,2 do triangles(j,i)=tmp1(j)
-      endif
-
-      if abs((xx(triangles(0,i))-xx(triangles(2,i)))*$
-         (xx(triangles(1,i))-xx(triangles(2,i)))+$
-         (yy(triangles(0,i))-yy(triangles(2,i)))*$
-         (yy(triangles(1,i))-yy(triangles(2,i)))) lt 0.00001*dist2 $
-      then begin
-         rectangles(0,i)=1
-         tmp1(0)=triangles(2,i)
-         if xx(triangles(0,i)) lt xx(triangles(1,i)) then begin
-            tmp1(1)=triangles(0,i)
-            tmp1(2)=triangles(1,i)
-         endif else begin
-            tmp1(1)=triangles(1,i)
-            tmp1(2)=triangles(0,i)
-         endelse
-         for j=0,2 do triangles(j,i)=tmp1(j)
-      endif
-   endfor
-   ;Rectangles(1,i) is not equal to zero if the ith rectangular triandgle
-   ;has a common long side with the jth rectangular triangle. In this case
-   ;rectangles(2,i)=j
-   nrectan=0L
-   for i=0L,ntriangles-1 do begin
-     if rectangles(0,i) gt 0 then begin
-        nrec_tri=nrec_tri+1
-        if rectangles(1,i) eq 0 then begin
-        for j=i+1L,ntriangles-1 do begin
-           if rectangles(0,j) gt 0 then $
-           if triangles(1,i) eq triangles(1,j) then $
-           if triangles(2,i) eq triangles(2,j) then begin
-              nrectan=nrectan+1
-              rectangles(1,i)=1
-              rectangles(2,i)=j
-              rectangles(1,j)=1
-              rectangles(2,j)=i
-              goto,out
-           endif
-        endfor
-        out:
-        endif
-     endif
-   endfor
-
-   if nrectan ne 0  then begin
-      print,'Among    ',nrec_tri, '  rectangular triangles'
-      print,'there are',nrectan, '   pairs which have common circumcircle'
-      tmp2=lonarr(4)
-      ndiag1=0
-      ndiag2=0
-      triangconj=lonarr(3,ntriangles)
-      for i=0L,ntriangles-1 do begin
-         if rectangles(1,i) eq 1 then begin
-            if rectangles(2,i) gt i then begin
-               for j=0,2 do tmp2(j)=triangles(j,i)
-               tmp2(3)=triangles(0,rectangles(2,i))
-               if yy(tmp2(1)) lt yy(tmp2(2)) then ndiag1=ndiag1+1 else $
-                  ndiag2=ndiag2+1
-               triangconj(0,i)=tmp2(1)
-               triangconj(1,i)=tmp2(0)
-               triangconj(2,i)=tmp2(3)
-               triangconj(0,rectangles(2,i))=tmp2(2)
-               triangconj(1,rectangles(2,i))=tmp2(0)
-               triangconj(2,rectangles(2,i))=tmp2(3)
-            endif
-         endif else for j=0,2 do triangconj(j,i)=triangles(j,i)
-      endfor
-      print,' Among them ',ndiag1, ' are formed by the triangles,'
-      print,' having the common side which is oriented as /////'
-      print,' and ',ndiag2, ' have the triangles common side,'
-      print,' oriented as \\\\\'
-      print,' Calculating the conjugated triangulation ...'
-   endif
-
-end
-;==============================================================================
-
-pro fit_triangles,w,wreg,wregpad,nw,xx,yy,nxreg,xreglimits,$
-        triangles,ntriangles,rectangles
-
-   tmp2=lonarr(4)
-
-   for iw=0,nw-1 do begin
-      data=reform(w(*,*,iw))
-      print,'Calculating the fitting triangulization for iw=',iw
-      for i=0L,ntriangles-1 do begin
-         if rectangles(1,i) eq 1 then begin
-            if rectangles(2,i) gt i then begin
-               tmp2(0:2)=triangles(0:2,i)
-               tmp2(3)  =triangles(0,rectangles(2,i))
-               if abs(data(tmp2(0))-data(tmp2(3))) lt $
-                  abs(data(tmp2(1))-data(tmp2(2))) then begin
-                  triangles(0,i)=tmp2(1)
-                  triangles(1,i)=tmp2(0)
-                  triangles(2,i)=tmp2(3)
-                  triangles(0,rectangles(2,i))=tmp2(2)
-                  triangles(1,rectangles(2,i))=tmp2(0)
-                  triangles(2,rectangles(2,i))=tmp2(3)
-               endif
-            endif
-         endif
-      endfor
-      wreg(*,*,iw)=trigrid(xx,yy,data,triangles, $
-         [0.,0.],xreglimits,nx=nxreg(0),ny=nxreg(1),missing=wregpad(iw))
-   endfor
-   print,'Using fitted triangulation'
-end
-
-;==============================================================================
-pro average_triangles,w,wreg,wregpad,nw,xx,yy,nxreg,xreglimits,$
-        triangles,triangconj
-
-   wconj=dblarr(nxreg(0),nxreg(1))
-
-   for iw=0,nw-1 do begin
-      ; Calculate wreg with original triangulation
-      wreg(*,*,iw)=trigrid(xx,yy,w(*,*,iw),triangles, $
-            [0.,0.],xreglimits,nx=nxreg(0),ny=nxreg(1),missing=wregpad(iw))
-
-      ; Calculate wconj with conjugated triangulation
-      wconj       =trigrid(xx,yy,w(*,*,iw),triangconj, $
-            [0.,0.],xreglimits,nx=nxreg(0),ny=nxreg(1),missing=wregpad(iw))
-
-      wreg(*,*,iw) = 0.5*(wreg(*,*,iw) + wconj)
-   endfor
-   print,'Using averaged conjugated triangulation'
-
-end
 ;===========================================================================
 pro polargrid,nvector,vectors,x,w,xreg,wreg
 ;
 ;    Transform vector variables from x and y to radial and phi components
 ;
 ;===========================================================================
-  on_error,2
+  on_error,2                      
 
   xreg=x
   xreg(*,*,0)=sqrt(x(*,*,0)^2+x(*,*,1)^2)
@@ -1081,7 +706,7 @@ pro spheregrid,nvector,vectors,x,w,xreg,wreg
 ;    Transform vector variables from x,y,z to radial,phi,z components
 ;
 ;===========================================================================
-  on_error,2
+  on_error,2                      
 
   xreg=x
   xreg(*,*,*,0)=sqrt(x(*,*,*,0)^2+x(*,*,*,1)^2+x(*,*,*,2)^2)
@@ -1129,13 +754,10 @@ pro unpolargrid,nvector,vectors,x,w,xreg,wreg
 ;    Transform vector variables from x and y to radial and phi components
 ;
 ;===========================================================================
-  on_error,2
+  on_error,2                      
 
   xreg=x
   phi=x(*,*,1)
-
-  if max(abs(phi)) gt 20. then phi=phi*!pi/180
-
   xreg(*,*,0)=x(*,*,0)*cos(phi)
   xreg(*,*,1)=x(*,*,0)*sin(phi)
 
@@ -1149,7 +771,7 @@ pro unpolargrid,nvector,vectors,x,w,xreg,wreg
 end
 
 ;===========================================================================
-pro getaxes,ndim,x,xx,yy,zz,cut,cut0,rSlice,plotdim,variables
+pro getaxes,ndim,x,xx,yy,zz,cut,cut0,plotdim,variables
 ;===========================================================================
 on_error,2
 case ndim of
@@ -1174,16 +796,6 @@ endif
 !x.title=variables(0)
 if plotdim gt 1 then !y.title=variables(1)
 if plotdim gt 2 then !z.title=variables(2)
-
-if ndim eq 3 and plotdim eq 2 then begin
-   siz=size(cut)
-   case 1 of
-     siz(0) eq 2: rSlice=zz(0)
-     siz(1) eq 1: rSlice=xx(0)
-     siz(2) eq 1: rSlice=yy(0)
-   endcase
-   print,'Normal coordinate of 2D slice:',rSlice
-endif else        rSlice=0.0
 
 ; Cut with fixed X value?
 siz=size(cut)
@@ -1220,13 +832,13 @@ pro getfunc,f,f1,f2,func1,func2,x,w,physics,eqpar,wnames,cut
 ;===========================================================================
 on_error,2
 
-f1=funcdef(x,w,func1,physics,eqpar,wnames)
+f1=animfunc(x,w,func1,physics,eqpar,wnames)
 
 if keyword_set(cut) then f1=f1(cut)
 
 if func2 eq '' then f=f1 else begin
 
-   f2=funcdef(x,w,func2,physics,eqpar,wnames)
+   f2=animfunc(x,w,func2,physics,eqpar,wnames)
 
    if keyword_set(cut) then f2=f2(cut)
 
@@ -1237,106 +849,30 @@ endelse
 end
 
 ;===========================================================================
-pro plotfunc,x,w,xreg,wreg,usereg,ndim,physics,eqpar,rBody,$
+pro plotfunc,x,w,xreg,wreg,usereg,ndim,physics,eqpar,$
   variables,wnames,axistype,plotmodes,plottitles,$
   ax,az,contourlevel,linestyle,$
   velvector,velspeed,velseed,velpos,velx,vely,veltri,$
   cut,cut0,plotdim,$
-  nfunc,multix,multiy,fixaspect,plotix,plotiy,funcs,funcs1,funcs2,fmin,fmax,f
+  nfunc,multix,multiy,plotix,plotiy,funcs,funcs1,funcs2,fmin,fmax,f
 ;===========================================================================
    on_error,2
 
-   ; Get grid dimensions and set irr=1 if it is an irregular grid
-
-   if keyword_set(cut) then siz = size(cut)  $
-   else if usereg then      siz = size(xreg) $
-   else                     siz = size(x)
-   nx=siz(1)
-   if plotdim eq 1 then begin
-      ny=1
-      irr=0
-   endif else begin
-      ny=siz(2)
-      irr=ny eq 1
-   endelse
-
-   if irr and axistype eq 'cells' then begin
-      print,'Irregular grid, axistype must be set to coord'
-      axistype='coord'
-   endif
+   plotsizex=!d.x_size/multix
+   plotsizey=!d.y_size/multiy
+   tvsizex=plotsizex-2*!d.x_ch_size
+   tvsizey=plotsizey-4*!d.y_ch_size
 
    if axistype eq 'coord' then begin
-      if usereg then $
-         getaxes,ndim,xreg,xx,yy,zz,cut,cut0,rSlice,plotdim,variables $
-      else $
-         getaxes,ndim,x   ,xx,yy,zz,cut,cut0,rSlice,plotdim,variables
+      if usereg then getaxes,ndim,xreg,xx,yy,zz,cut,cut0,plotdim,variables $
+      else           getaxes,ndim,x   ,xx,yy,zz,cut,cut0,plotdim,variables
    endif
 
-   ; Calculate plot spacing from number of plots per page (ppp) and charsize
-   if !p.charsize eq 0.0 then !p.charsize=1.0
-   ppp   = multix*multiy
-   space = max([float(!d.y_ch_size)/float(!d.y_size),$
-                float(!d.x_ch_size)/float(!d.x_size)])*3.0*!p.charsize
-   set_space, ppp, space, sizes, nx = multix, ny = multiy
-
-   ; Store x and y titles
-   xtitle = !x.title
-   ytitle = !y.title
-
    for ifunc=0,nfunc-1 do begin
-
       !p.title=plottitles(ifunc)
       if !p.title eq 'default' then !p.title=funcs(ifunc)
 
       plotmod=plotmodes(ifunc)
-
-      i=strpos(plotmod,'grid')
-      if i ge 0 then begin
-          plotmod=strmid(plotmod,0,i)+strmid(plotmod,i+4)
-          showgrid=1
-      endif else showgrid=0
-
-      i=strpos(plotmod,'mesh')
-      if i ge 0 then begin
-          plotmod=strmid(plotmod,0,i)+strmid(plotmod,i+4)
-          showgrid=1
-          if irr then showmesh=0 else showmesh=1
-      endif else showmesh=0
-
-      i=strpos(plotmod,'body')
-      if i ge 0 then begin
-          plotmod=strmid(plotmod,0,i)+strmid(plotmod,i+4)
-          showbody=1
-      endif else showbody=0
-
-      i=strpos(plotmod,'fill')
-      if i ge 0 then begin
-          plotmod=strmid(plotmod,0,i)+strmid(plotmod,i+4)
-          fill=1
-      endif else fill=0
-
-      i=strpos(plotmod,'bar')
-      if i ge 0 then begin
-          plotmod=strmid(plotmod,0,i)+strmid(plotmod,i+3)
-          showbar=1
-          fill=1
-      endif else showbar=0
-
-      i=strpos(plotmod,'irr')
-      if i ge 0 then begin
-          plotmod=strmid(plotmod,0,i)+strmid(plotmod,i+3)
-          irr=1
-      endif
-
-      i=strpos(plotmod,'label')
-      if i ge 0 then begin
-          plotmod=strmid(plotmod,0,i)+strmid(plotmod,i+5)
-          label=1
-      endif else label=0
-
-      ; contour --> cont
-      i=strpos(plotmod,'contour')
-      if i ge 0 then plotmod=strmid(plotmod,0,i+4)+strmid(plotmod,i+7)
 
       ; Calculate the next p.multi(0) explicitly
       if !p.multi(0) gt 0 then multi0=!p.multi(0)-1 $
@@ -1344,91 +880,17 @@ pro plotfunc,x,w,xreg,wreg,usereg,ndim,physics,eqpar,rBody,$
 
       ; Calculate subplot position indices
       if !p.multi(4) then begin
-         ; columnwise
          plotix=multix-1-multi0/multiy
-         plotiy=multi0 mod multiy
+         plotiy=multi0-multiy*(multi0/multiy)
       endif else begin
-         ; rowwise
-         plotix=multix-1-(multi0 mod multix)
+         plotix=multix*(multi0/multix+1)-multi0-1
          plotiy=multi0/multix
       endelse
-
-      if plotmod ne 'shade' and plotmod ne 'surface' then begin
-
-        ; obtain position for flat plotmodes
-        set_position, sizes, plotix, multiy-1-plotiy, pos, /rect
-
-        ; shrink in X direction for a colorbar in any previous plot
-        if strpos(plotmodes(ifunc mod ppp),'bar') ge 0 then $
-          pos(2) = pos(2) - (pos(2) - pos(0))*0.15
-
-        ; shrink in X direction for the Y axis of plot
-        if plotmod eq 'plot' and multix gt 1 then $
-          pos(0) = pos(0) + (pos(2) - pos(0))*0.15
-
-        if keyword_set(fixaspect) and plotmod ne 'plot' then begin
-
-	  if plotmod eq 'polar' then $
-            aspectx=1 $
-          else begin
-            if !x.range(1) ne !x.range(0) then    $
-               width=abs(!x.range(1)-!x.range(0)) $
-            else if axistype eq 'coord' then      $
-               width=  max(xx) - min(xx)          $
-            else                                  $
-               width=  nx-1.0
-
-            if !y.range(1) ne !y.range(0) then    $
-               height=abs(!y.range(1)-!y.range(0))$
-            else if axistype eq 'coord' then      $
-               height= max(yy) - min(yy)          $
-            else                                  $
-               height= ny-1.0
-
-            aspectx = width/height
-          endelse
-
-          aspectpos = (pos(2)-pos(0))/(pos(3)-pos(1)) $
-                    *float(!d.x_size)/float(!d.y_size)
-
-          aspectratio = aspectpos/aspectx
-
-          ;print,'aspectx,pos,ratio=',aspectx,aspectpos,aspectratio
-
-          if aspectratio gt 1 then begin
-             posmid=(pos(2)+pos(0))/2.
-             posdif=(pos(2)-pos(0))/2.
-             pos(0)=posmid - posdif/aspectratio
-             pos(2)=posmid + posdif/aspectratio
-          endif else begin
-             posmid=(pos(3)+pos(1))/2.
-             posdif=(pos(3)-pos(1))/2.
-             pos(1)=posmid - posdif*aspectratio
-             pos(3)=posmid + posdif*aspectratio
-          endelse
-        endif
-
-        ; Omit X axis if unneeded
-        if (plotiy gt 0) then begin
-          !x.tickname = strarr(60)+' '
-          !x.title = ' '
-        endif
-
-        ; Omit Y axis if unneeded
-        if (plotix gt 0 and plotmod ne 'plot') then begin
-          !y.tickname = strarr(60)+' '
-          !y.title = ' '
-        endif
-
-        !p.position = pos
-
-      endif
 
       if usereg then getfunc,f,f1,f2,funcs1(ifunc),funcs2(ifunc),   $
                              xreg,wreg,physics,eqpar,wnames,cut0 $
       else           getfunc,f,f1,f2,funcs1(ifunc),funcs2(ifunc),   $
                              x,  w,   physics,eqpar,wnames,cut0
-
       f_min=fmin(ifunc)
       f_max=fmax(ifunc)
       if f_max eq f_min then begin
@@ -1436,217 +898,111 @@ pro plotfunc,x,w,xreg,wreg,usereg,ndim,physics,eqpar,rBody,$
          f_min=f_min-1
       endif
 
-      if plotmod eq 'plot' then $
-         if nfunc gt ppp                then lstyle=ifunc/ppp $
-         else if keyword_set(linestyle) then lstyle=linestyle $
-         else                                lstyle=!p.linestyle
+      if nfunc gt multix*multiy then linestyle=ifunc $
+                                else linestyle=!p.linestyle
 
-      ; Skip minimum ad maximum levels
-      if plotmod eq 'cont' or plotmod eq 'polar' then $
-         levels=(findgen(contourlevel+2)-1)/(contourlevel-1) $
-                *(f_max-f_min)+f_min
+      if strmid(plotmod,0,4) eq 'cont' then $
+         levels=findgen(contourlevel)/contourlevel*(f_max-f_min)+f_min
 
       if plotmod eq 'tv' then begin
-         ; Calculate plotting position and size
-
-         tvplotx=pos(0)*!d.x_size
-         tvploty=pos(1)*!d.y_size
-         tvsizex=(pos(2)-pos(0))*!d.x_size
-         tvsizey=(pos(3)-pos(1))*!d.y_size
-         ; recalculate f for tv mode
-         if !d.name eq 'PS' then tvf=congrid(f,200,200) $
-         else                    tvf=congrid(f,tvsizex,tvsizey)
-
-         tvf=bytscl(tvf,MIN=f_min,MAX=f_max,TOP=!D.TABLE_SIZE-3)+1
+         ; Calculate plotting position and print out title for TV plotmode
+         plotx=plotsizex*plotix
+         ploty=plotsizey*plotiy
+         xyouts,plotx+plotsizex/2,ploty+plotsizey-1.5*!d.y_ch_size,$
+            !p.title,/DEV,ALIGNMENT=0.5
+         plotx=plotx+5
+	 ploty=ploty+20
+         if !d.name eq 'PS' then f=congrid(f,200,200) $
+         else                    f=congrid(f,tvsizex,tvsizey)
+         f=bytscl(f,MIN=f_min,MAX=f_max,TOP=!D.TABLE_SIZE)
       endif
 
       case axistype of
       'cells': case plotmod of
-         'cont': contour,f>f_min,LEVELS=levels,$
-                 FILL=fill,FOLLOW=label,XSTYLE=1,YSTYLE=1,/NOERASE
-         'plot'     :plot,f,YRANGE=[f_min,f_max],XSTYLE=18,ystyle=18, $
-                                                 LINE=lstyle,/NOERASE
-         'shade'    :begin
-                        shade_surf,f>f_min,ZRANGE=[f_min,f_max],$
-                           XSTYLE=1,YSTYLE=1,ZSTYLE=18,AX=ax,AZ=az,/NOERASE
-                        if showgrid then $
-                           surface,f>f_min,ZRANGE=[f_min,f_max],$
-                           XSTYLE=1,YSTYLE=1,ZSTYLE=18,AX=ax,AZ=az,/NOERASE
-                     end
+	 'contour': contour,f>f_min,LEVELS=levels,XSTYLE=1,YSTYLE=1,/NOERASE
+	 'contlabel': contour,f>f_min,LEVELS=levels,/FOLLOW,$
+						  XSTYLE=1,YSTYLE=1,/NOERASE
+	 'contfill':contour,f>f_min,LEVELS=levels,/FILL,$
+						  XSTYLE=1,YSTYLE=1,/NOERASE
+	 'plot'     :plot,f,YRANGE=[f_min,f_max],XSTYLE=18,ystyle=18, $
+						 LINE=linestyle,/NOERASE
+	 'shade'    :shade_surf,f>f_min,ZRANGE=[f_min,f_max],$
+			XSTYLE=1,YSTYLE=1,ZSTYLE=18,AX=ax,AZ=az,/NOERASE
          'surface'  :surface,f>f_min,ZRANGE=[f_min,f_max],$
-                        XSTYLE=1,YSTYLE=1,ZSTYLE=18,AX=ax,AZ=az,/NOERASE
-         'tv'       :begin
-                        tv,tvf,tvplotx,tvploty,XSIZE=tvsizex,YSIZE=tvsizey
-                        contour,f,XSTYLE=1,YSTYLE=1,/NODATA,/NOERASE
-                     end
-         'vel'      :vector,f1,f2,NVECS=velvector,MAXVAL=f_max,$
-                        DYNAMIC=velspeed,SEED=velseed,X0=velpos,/NOERASE
-         'vector'   :vector,f1,f2,NVECS=velvector,MAXVAL=f_max,$
-                        DYNAMIC=velspeed,SEED=velseed,X0=velpos,/NOERASE
-         'stream'   :begin
-                        ; normalization
-                        eps=1.e-30
-                        v1=f1/sqrt(f1^2+f2^2+eps) & v2=f2/sqrt(f1^2+f2^2+eps)
-                        ; arrows
-                        vector,v1,v2,NVECS=velvector,MAXVAL=1.,$
-                        NSTEP=6,LENGTH=0.06,HEAD=0.1,$
-                        DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
-                        ; streamline along v1;v2
-                        vector,v1,v2,NVECS=velvector,MAXVAL=1.,$
-                        NSTEP=100,LENGTH=1.,HEAD=0.,$
-                        DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
-                        ; streamline in the other direction
-                        v1=-v1 & v2=-v2
-                        vector,v1,v2,NVECS=velvector,MAXVAL=1.,$
-                        NSTEP=100,LENGTH=1.,HEAD=0.,$
-                        DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
-                    end
-         'stream2' :begin
-                        ; normalization
-                        eps=1.e-30
-                        v1=f1/sqrt(f1^2+f2^2+eps) & v2=f2/sqrt(f1^2+f2^2+eps)
-                        ; arrows
-                        vector,v1,v2,NVECS=velvector,MAXVAL=1.,$
-                        NSTEP=6,LENGTH=0.012,HEAD=0.5,$
-                        DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
-                        ; streamline along v1;v2
-                        vector,v1,v2,NVECS=velvector,MAXVAL=1.,$
-                        NSTEP=1000,LENGTH=2.,HEAD=0.,$
-                        DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
-                        ; streamline in the other direction
-                        v1=-v1 & v2=-v2
-                        vector,v1,v2,NVECS=velvector,MAXVAL=1.,$
-                        NSTEP=1000,LENGTH=2.,HEAD=0.,$
-                        DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
-                    end
+			XSTYLE=1,YSTYLE=1,ZSTYLE=18,AX=ax,AZ=az,/NOERASE
+         'tv'       :tv,f,plotx,ploty,XSIZE=tvsizex,YSIZE=tvsizey
+         'vel'      :vel,f1,f2,NVECS=velvector,MAXVAL=f_max,$
+			DYNAMIC=velspeed,SEED=velseed,X0=velpos,/NOERASE
+	 'stream'   :begin
+			eps=1.e-30
+			v1=f1/sqrt(f1^2+f2^2+eps) & v2=f2/sqrt(f1^2+f2^2+eps)
+
+			vel,v1,v2,NVECS=velvector,MAXVAL=1.,$
+			NSTEP=6,LENGTH=0.06,HEAD=0.1,$
+			DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
+
+			vel,v1,v2,NVECS=velvector,MAXVAL=1.,$
+	                NSTEP=100,LENGTH=1.,HEAD=0.,$
+			DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
+
+			v1=-v1 & v2=-v2
+			vel,v1,v2,NVECS=velvector,MAXVAL=1.,$
+	                NSTEP=100,LENGTH=1.,HEAD=0.,$
+			DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
+		    end
          'velovect' :velovect,f1,f2,/NOERASE
          'ovelovect':velovect,f1,f2,/NOERASE,$
-            XRANGE=[0,n_elements(f1(*,0))-1],YRANGE=[0,n_elements(f1(0,*))-1]
+	    XRANGE=[0,n_elements(f1(*,0))-1],YRANGE=[0,n_elements(f1(0,*))-1]
          endcase
       'coord': case plotmod of
-         'cont'     :if irr then begin
-                       if not keyword_set(tri) then triangulate,xx,yy,tri
-                       contour,f>f_min,xx,yy,$
-                          FOLLOW=label, FILL=fill, TRIANGULATION=tri, $
-                          LEVELS=levels,XSTYLE=1,YSTYLE=1,/NOERASE
-                    endif else $
-                       contour,f>f_min,xx,yy,$
-                          FOLLOW=label, FILL=fill, $
-                          LEVELS=levels,XSTYLE=1,YSTYLE=1,/NOERASE
-	 'polar'    :polar_contour,f>f_min,yy*!pi/180,xx,$
-                          FOLLOW=label, FILL=fill, $
-                          LEVELS=levels,XSTYLE=1,YSTYLE=1,/NOERASE
-         'plot'     :plot,xx,f,YRANGE=[f_min,f_max],XSTYLE=18,YSTYLE=18,$
-                          LINE=lstyle,/NOERASE
-         'shade'    :if irr then begin
-                        shade_surf_irr,f>f_min,xx,yy,AX=ax,AZ=az
-                        shade_surf,f>f_min,xx,yy,AX=ax,AZ=az,/NODATA,/NOERASE
-                     endif else begin
-                        shade_surf,f>f_min,xx,yy,ZRANGE=[f_min,f_max],$
-                           XSTYLE=1,YSTYLE=1,ZSTYLE=18,AX=ax,AZ=az,/NOERASE
-                        if showgrid then $
-                           surface,f>f_min,xx,yy,ZRANGE=[f_min,f_max],$
-                           XSTYLE=1,YSTYLE=1,ZSTYLE=18,AX=ax,AZ=az,/NOERASE
-                     endelse
+	 'contour'  :contour,f>f_min,xx,yy,$
+			LEVELS=levels,XSTYLE=1,YSTYLE=1,/NOERASE
+	 'contlabel':contour,f>f_min,xx,yy,$
+			LEVELS=levels,/FOLLOW,XSTYLE=1,YSTYLE=1,/NOERASE
+	 'contfill' :contour,f>f_min,xx,yy, $
+			LEVELS=levels,/FILL,XSTYLE=1,YSTYLE=1,/NOERASE
+	 'plot'    :plot,xx,f,YRANGE=[f_min,f_max],XSTYLE=18,YSTYLE=18,$
+						   LINE=linestyle,/NOERASE
+	 'shade'    :shade_surf,f>f_min,xx,yy,ZRANGE=[f_min,f_max],$
+			XSTYLE=1,YSTYLE=1,ZSTYLE=18,AX=ax,AZ=az,/NOERASE
+	 'shadeirr' :begin
+			shade_surf_irr,f>f_min,xx,yy,AX=ax,AZ=az
+			shade_surf,f>f_min,xx,yy,AX=ax,AZ=az,/NODATA,/NOERASE
+		     end
          'surface'  :surface,f>f_min,xx,yy,ZRANGE=[f_min,f_max],$
-                        XSTYLE=1,YSTYLE=1,ZSTYLE=18,AX=ax,AZ=az,/NOERASE
-         'tv'       :begin
-                       tv,tvf,tvplotx,tvploty,XSIZE=tvsizex,YSIZE=tvsizey
-                       contour,f,xx,yy,XSTYLE=1,YSTYLE=1,/NODATA,/NOERASE
-                     end
-         'vel'      :vector,f1,f2,xx,yy,XXOLD=velx,YYOLD=vely,$
-                        TRIANGLES=veltri,NVECS=velvector,MAXVAL=f_max,$
+			XSTYLE=1,YSTYLE=1,ZSTYLE=18,AX=ax,AZ=az,/NOERASE
+         'tv'       :tv,f,plotx,ploty,XSIZE=tvsizex,YSIZE=tvsizey
+         'vel'      :vel,f1,f2,xx,yy,XXOLD=velx,YYOLD=vely,TRIANGLES=veltri,$
+                        NVECS=velvector,MAXVAL=f_max,$
                         DYNAMIC=velspeed,SEED=velseed,X0=velpos,/NOERASE
-         'vector'   :vector,f1,f2,xx,yy,XXOLD=velx,YYOLD=vely,$
-                        TRIANGLES=veltri,NVECS=velvector,MAXVAL=f_max,$
-                        DYNAMIC=velspeed,SEED=velseed,X0=velpos,/NOERASE
-         'stream'   :begin
-                        ; normalization
-                        eps=1.e-30
-                        v1=f1/sqrt(f1^2+f2^2+eps) & v2=f2/sqrt(f1^2+f2^2+eps)
-                        ; arrows
-                        vector,v1,v2,xx,yy,NVECS=velvector,MAXVAL=1.,$
-                        XXOLD=velx,YYOLD=vely,TRIANGLES=veltri,$
-                        NSTEP=6,LENGTH=0.06,HEAD=0.1,$
-                        DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
-                        ; streamline along v1;v2
-                        vector,v1,v2,xx,yy,NVECS=velvector,MAXVAL=1.,$
-                        XXOLD=velx,YYOLD=vely,TRIANGLES=veltri,$
-                        NSTEP=100,LENGTH=1.,HEAD=0.,$
-                        DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
-                        ; streamline in the other direction
-                        v1=-v1 & v2=-v2
-                        vector,v1,v2,xx,yy,NVECS=velvector,MAXVAL=1.,$
-                        XXOLD=velx,YYOLD=vely,TRIANGLES=veltri,$
-                        NSTEP=100,LENGTH=1.,HEAD=0.,$
-                        DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
-                    end
-         'stream2' :begin
-                        ; normalization
-                        eps=1.e-30
-                        v1=f1/sqrt(f1^2+f2^2+eps) & v2=f2/sqrt(f1^2+f2^2+eps)
-                        ; arrows
-                        vector,v1,v2,xx,yy,NVECS=velvector,MAXVAL=1.,$
-                        XXOLD=velx,YYOLD=vely,TRIANGLES=veltri,$
-                        NSTEP=6,LENGTH=0.012,HEAD=0.5,$
-                        DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
-                        ; streamline along v1;v2
-                        vector,v1,v2,xx,yy,NVECS=velvector,MAXVAL=1.,$
-                        XXOLD=velx,YYOLD=vely,TRIANGLES=veltri,$
-                        NSTEP=1000,LENGTH=2.,HEAD=0.,$
-                        DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
-                        ; streamline in the other direction
-                        v1=-v1 & v2=-v2
-                        vector,v1,v2,xx,yy,NVECS=velvector,MAXVAL=1.,$
-                        XXOLD=velx,YYOLD=vely,TRIANGLES=veltri,$
-                        NSTEP=1000,LENGTH=2.,HEAD=0.,$
-                        DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
-                    end
+	 'stream'   :begin
+			eps=1.e-30
+			v1=f1/sqrt(f1^2+f2^2+eps) & v2=f2/sqrt(f1^2+f2^2+eps)
+
+			vel,v1,v2,xx,yy,NVECS=velvector,MAXVAL=1.,$
+			XXOLD=velx,YYOLD=vely,TRIANGLES=veltri,$
+			NSTEP=6,LENGTH=0.06,HEAD=0.1,$
+			DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
+
+			vel,v1,v2,xx,yy,NVECS=velvector,MAXVAL=1.,$
+			XXOLD=velx,YYOLD=vely,TRIANGLES=veltri,$
+	                NSTEP=100,LENGTH=1.,HEAD=0.,$
+			DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
+
+			v1=-v1 & v2=-v2
+			vel,v1,v2,xx,yy,NVECS=velvector,MAXVAL=1.,$
+			XXOLD=velx,YYOLD=vely,TRIANGLES=veltri,$
+	                NSTEP=100,LENGTH=1.,HEAD=0.,$
+			DYNAMIC=0,SEED=velseed,X0=velpos,/NOERASE
+		    end
          'velovect' :velovect,f1,f2,xx(*,0),yy(0,*),/NOERASE
          'ovelovect':velovect,f1,f2,xx(*,0),yy(0,*),/NOERASE,$
-                        XRANGE=[min(xx),max(xx)],YRANGE=[min(yy),max(yy)]
+			XRANGE=[min(xx),max(xx)],YRANGE=[min(yy),max(yy)]
          endcase
       else:print,'Unknown axistype:',axistype
       endcase
-
-      if showbody and axistype eq 'coord' then $
-      if rBody gt abs(rSlice) then begin
-         theta = findgen(37)*!pi*2.0/36.0
-         rBodySlice=sqrt(rBody^2-rSlice^2)
-         polyfill, rBodySlice*cos(theta), rBodySlice*sin(theta), color = 0
-         ; redraw box in case the body is at the edge
-         plot,xx,yy,XSTYLE=1,YSTYLE=1,/NODATA,/NOERASE
-      endif
-
-      if showbar then $
-         plotct, [pos(2)+0.005, pos(1), pos(2)+0.025, pos(3)], [f_min,f_max]
-
-      if showgrid and plotdim eq 2 and plotmod ne 'surface'    $
-                                   and plotmod ne 'shade' then begin
-          if(plotmod eq 'polar')then                                       $
-            plotgrid,xx,yy*!pi/180,lines=showmesh,xstyle=1,ystyle=1,/polar $
-          else if keyword_set(cut) then                                    $
-            plotgrid,xx,yy,lines=showmesh,xstyle=1,ystyle=1                $
-          else begin
-              if !x.range[0] ne !x.range[1] then xrange=!x.range else $
-                xrange=[min(xx),max(xx)]
-              if !y.range[0] ne !y.range[1] then yrange=!y.range else $
-                yrange=[min(yy),max(yy)]
-              plotgrid,x,lines=showmesh,xstyle=1,ystyle=1,$
-                xrange=xrange,yrange=yrange
-          endelse
-      endif
-
-      !p.multi(0) = multi0
-      !p.position = 0
-      !x.title    = xtitle
-      !x.tickname = strarr(60)
-      !y.title    = ytitle
-      !y.tickname = strarr(60)
+      !p.multi(0)=multi0
    endfor
-
-   !p.position = 0
-
 end
 ;===========================================================================
 pro putbottom,multix,multiy,ix,iy,ninfo,nx,it,time
@@ -1655,33 +1011,27 @@ on_error,2
 
 if ninfo lt 1 then return
 info=''
-if ninfo gt 2 then info='nx='+string(nx,format='(i6,2(",",i4))')+' '
+if ninfo gt 2 then info='nx='+string(nx,format='(3(i4,","))')+' '
 if ninfo gt 1 then info=info+'it='+string(it,format='(i6)')+', '
-
 info=info+'time='+string(time,format='(g12.5)')
-xyouts,5+(ix*!d.x_size)/multix,8+(iy*!d.y_size)/multiy,/DEV,info
-
-;info='time ='+string(time/60,format='(i4)')+' min'
-;xyouts,!p.position[0]-0.1*(!p.position(2)-!p.position(0)),$
-;       !p.position[1]-0.1*(!p.position(3)-!p.position(1)),$
-;       info,/NORM,charsize=0.8
+xyouts,5+(ix*!d.x_size)/multix,8+(iy*!d.y_size)/multiy,/DEV,info,FONT=1
 
 end
 ;===========================================================================
 pro putheader,multix,multiy,ix,iy,ninfo,headline,nx
 
 on_error,2
-
+   
 if ninfo lt 1 then return
 info=strtrim(headline,2)
-if ninfo gt 1 then info=info+' (nx='+string(nx,format='(i6,2(i4))')+')'
-xyouts,5+(ix*!d.x_size)/multix,-12+((iy+1)*!d.y_size)/multiy,/DEV,info
+if ninfo gt 1 then info=info+' (nx='+string(nx,format='(3(i4))')+')'
+xyouts,5+(ix*!d.x_size)/multix,-12+((iy+1)*!d.y_size)/multiy,/DEV,info,FONT=1
 
 end
 ;===========================================================================
 function diff2,direction,a,x
 ;
-; Take derivative of "a" with respect to "x" in the direction "direction"
+; Take derivative of "a" with respect to "x" in the direction "direction" 
 ; using 2nd order centered differencing
 ;
 ;===========================================================================
@@ -1720,7 +1070,7 @@ end
 ;===========================================================================
 function diff4,direction,a,x
 ;
-; Take derivative of "a" with respect to "x" in the direction "direction"
+; Take derivative of "a" with respect to "x" in the direction "direction" 
 ; using 4th order centered differencing
 ;
 ;===========================================================================
@@ -1769,7 +1119,7 @@ end
 ;===========================================================================
 function diff3,direction,a,x
 ;
-; Take derivative of "a" with respect to "x" in the direction "direction"
+; Take derivative of "a" with respect to "x" in the direction "direction" 
 ; using IDL's 1D deriv() function
 ;
 ;===========================================================================
@@ -1788,68 +1138,6 @@ if direction eq 2 then for i1=0,siz(1)-1 do dadx(i1,*)=deriv(x(i1,*),a(i1,*))
 
 return,dadx
 
-end
-
-;===========================================================================
-function minmod,a,b
-;
-; Calculate minmod limited slope of a and b slopes
-
-on_error,2
-
-; get sign of a
-if a gt 0 then s=1 else s=-1
-
-; calculate limited slope
-c = s*max([0,min([abs(a),s*b])])
-
-return,c
-end
-;===========================================================================
-function symmdiff,direction,a
-;
-; Take symmetric difference of "a" with respect to a mirror plane in direction
-; "direction"
-;
-;===========================================================================
-on_error,2
-
-siz=size(a)
-dim=siz(0)
-nx=siz(1)
-
-diff=a
-
-case dim of
-1: for i=0,nx-1 do diff(i)=a(i)-a(nx-1-i)
-2: begin
-     ny=siz(2)
-     case direction of
-     1: for i=0,nx-1 do diff(i,*)=a(i,*)-a(nx-1-i,*)
-     2: for i=0,ny-1 do diff(*,i)=a(*,i)-a(*,ny-1-i)
-     endcase
-   end
-3: begin
-     ny=siz(2)
-     nz=siz(3)
-     case direction of
-     1: for i=0,nx-1 do diff(i,*,*)=a(i,*,*)-a(nx-1-i,*,*)
-     2: for i=0,ny-1 do diff(*,i,*)=a(*,i,*)-a(*,ny-1-i,*)
-     3: for i=0,nz-1 do diff(*,*,i)=a(*,*,i)-a(*,*,nz-1-i)
-     endcase
-   end
-4: begin
-     ny=siz(2)
-     nz=siz(3)
-     case direction of
-     1: for i=0,nx-1 do diff(i,*,*,*)=a(i,*,*,*)-a(nx-1-i,*,*,*)
-     2: for i=0,ny-1 do diff(*,i,*,*)=a(*,i,*,*)-a(*,ny-1-i,*,*)
-     3: for i=0,nz-1 do diff(*,*,i,*)=a(*,*,i,*)-a(*,*,nz-1-i,*)
-     endcase
-   end
-endcase
-
-return,diff
 end
 
 ;===========================================================================
@@ -1970,12 +1258,12 @@ end
 function grad,idir,f,x,y
 ;
 ; Take gradient of "f" in direction "idir" on the "x,y" structured 2D grid.
-; Gradient is the contour integral of edge_normal_idir*f_edge_averaged
+; Gradient is the contour integral of edge_normal_idir*f_edge_averaged 
 ; divided by cell_volume for each cells. The cell corners are at the
 ; averaged coordinates of the four neighboring cell centers.
 ; However there is no need for edge averaging since the contribution of
 ; the value in the cell center cancels.
-; Gradient can be calculated for inner points only, edge values are
+; Gradient can be calculated for inner points only, edge values are 
 ; copies of inner neighbors.
 ;===========================================================================
 
@@ -1997,12 +1285,12 @@ function grad_rz,idir,f,r,z
 ;
 ; Take gradient of "f" in direction "idir" on the "r,z" structured 2D grid
 ; assuming axial symmetry in the ignored direction.
-; Gradient is the contour integral of edge_normal_idir*f*R_edge_averaged
+; Gradient is the contour integral of edge_normal_idir*f*R_edge_averaged 
 ; divided by R*cell_volume - f/r for each cells. The cell corners are at the
 ; averaged coordinates of the four neighboring cell centers.
 ; However there is no need for edge averaging since the contribution of
 ; the value in the cell center cancels for idir=2, or equals +f/2R for idir=1.
-; Gradient can be calculated for inner points only, edge values are
+; Gradient can be calculated for inner points only, edge values are 
 ; copies of inner neighbors.
 ;===========================================================================
 
@@ -2023,12 +1311,12 @@ end
 function div,u,v,x,y
 ;
 ; Take divergence of "u,v" vector with respect to "x,y" on a structured 2D grid
-; Divergence is the contour integral of edge_normal.(u,v)_edge_averaged
+; Divergence is the contour integral of edge_normal.(u,v)_edge_averaged 
 ; divided by cell_volume for each cells. The cell corners are at the
 ; averaged coordinates of the four neighboring cell centers.
 ; However there is no need for edge averaging since the contribution of
 ; the value in the cell center cancels.
-; Divergence can be calculated for inner points only, edge values are
+; Divergence can be calculated for inner points only, edge values are 
 ; copies of inner neighbors.
 ;===========================================================================
 
@@ -2049,12 +1337,12 @@ function div_rz,u,v,r,z
 ;
 ; Take divergence of "u,v" vector with respect to "r,z" on a structured 2D grid
 ; assuming axial symmetry in the ignored direction.
-; Divergence is the contour integral of edge_normal.(u,v)*R_edge_averaged
+; Divergence is the contour integral of edge_normal.(u,v)*R_edge_averaged 
 ; divided by R*cell_volume for each cells. The cell corners are at the
 ; averaged coordinates of the four neighboring cell centers.
 ; However there is no need for edge averaging since the contribution of
 ; the value in the cell center is simply u/(2R).
-; Divergence can be calculated for inner points only, edge values are
+; Divergence can be calculated for inner points only, edge values are 
 ; copies of inner neighbors.
 ;===========================================================================
 
@@ -2074,7 +1362,7 @@ end
 function curl,u,v,x,y
 ;
 ; Take curl of "u,v" vector with respect to "x,y" on a structured 2D grid.
-; Curl is the contour integral of edge_vector.(u,v)_edge_averaged
+; Curl is the contour integral of edge_vector.(u,v)_edge_averaged 
 ; divided by cell_volume for each cells. See also comments for div function.
 ;
 ;===========================================================================
@@ -2096,8 +1384,8 @@ function curl_rz,u,v,r,z
 ;
 ; Take curl of "u,v" vector with respect to "r,z" on a structured 2D grid
 ; with axial symmetry in the ignored direction.
-; Curl is the contour integral of edge_vector.(u,v)*R_edge_averaged
-; divided by R*cell_volume for each cells - v/R.
+; Curl is the contour integral of edge_vector.(u,v)*R_edge_averaged 
+; divided by R*cell_volume for each cells - v/R. 
 ; See also comments for the div_rz function on edge average and edge cells.
 ;
 ;===========================================================================
@@ -2118,7 +1406,7 @@ end
 function coarse,a,boxsize
 ;
 ; Produce a coarser array from "a" by averaging out cells in a box.
-; The box size can be defined by a scalar (n long interval, n*n squarle,
+; The box size can be defined by a scalar (n long interval, n*n squarle, 
 ; or ,n*n*n cube) or as an
 ; array of the same dimension as "a" (n1*n2 rectangle or n1*n2*n3 brick)
 
@@ -2153,7 +1441,7 @@ case ndim of
    1: begin
       result=dblarr(nx(0)/n(0))
       for ix=0,(nx(0)-1)/n(0) do $
-        for i=0,n(0)-1 do $
+	for i=0,n(0)-1 do $
            result(ix)=result(ix)+a(ix*n(0)+i)
       result=result/n(0)
    end
@@ -2161,8 +1449,8 @@ case ndim of
       result=dblarr(nx(0)/n(0),nx(1)/n(1))
       for ix=0,(nx(0)-1)/n(0) do $
       for iy=0,(nx(1)-1)/n(1) do $
-        for i=0,n(0)-1 do $
-        for j=0,n(1)-1 do $
+	for i=0,n(0)-1 do $
+	for j=0,n(1)-1 do $
            result(ix,iy)=result(ix,iy)+a(ix*n(0)+i,iy*n(1)+j)
       result=result/n(0)/n(1)
    end
@@ -2171,9 +1459,9 @@ case ndim of
       for ix=0,(nx(0)-1)/n(0) do $
       for iy=0,(nx(1)-1)/n(1) do $
       for iz=0,(nx(2)-1)/n(2) do $
-        for i=0,n(0)-1 do $
-        for j=0,n(1)-1 do $
-        for k=0,n(2)-1 do $
+	for i=0,n(0)-1 do $
+	for j=0,n(1)-1 do $
+	for k=0,n(2)-1 do $
            result(ix,iy,iz)=result(ix,iy,iz)+a(ix*n(0)+i,iy*n(1)+j,iz*n(2)+k)
       result=result/n(0)/n(1)/n(2)
    end
@@ -2240,7 +1528,7 @@ function triplet,x0,x1,dx,y0,y1,dy,z0,z1,dz,w0,w1,dw
 ;        velvector=25*25  &  velpos=dblarr(velvector,2)
 ;        velpos(*,*)=x(triplet(0,99,4,0,99,4,0,1,1))
 ;
-; Note: the resulting indices are valid for an array of size
+; Note: the resulting indices are valid for an array of size 
 ;
 ;      (x1+1)*(y1+1)*(z1+1)*(w1+1)
 ;
@@ -2293,151 +1581,76 @@ pro checkdim,idim,nx,x0,x1,dx
 return
 end
 
-;===================================================================
-pro plotgrid,x,y,lines=lines,xstyle=xstyle,ystyle=ystyle,polar=polar,$
-             xrange=xrange,yrange=yrange
-;===================================================================
+;==========================================
+pro plotgrid,x
+;==========================================
 
 on_error,2
 
-if not keyword_set(x) then begin
-    print,'Usage: plotgrid, x [,y] [,/lines] [,/polar]',$
-      ' [,xstyle=3] [,ystyle=1]',$
-      '                   [,xrange=[-10,10]], [yrange=[-10,10]]'
-    retall
+s=size(x)
+if s(0) ne 3 then begin
+   print,'Error: plotgrid works for 2D grids only, like x(nx,ny,2)'
+   retall
+endif
+if s(3) ne 2 then begin
+   print,'Error: the third dimension should go from 0 to 1, like x(nx,ny,2)'
+   retall
 endif
 
-xx=reform2(x)
-sizx=size(xx)
-
-if (n_elements(polar) eq 0) then polar = 0
-
-if not keyword_set(y) then begin
-    case sizx(0) of
-        3:begin
-            if sizx(3) ne 2 then goto, ERROR1
-            yy=xx(*,*,1)
-            xx=xx(*,*,0)
-        end
-        2:begin
-            if sizx(2) ne 2 then goto, ERROR1
-            yy=xx(*,1)
-            xx=xx(*,0)
-            lines=0
-        end
-        else: goto, ERROR1
-    endcase
-endif else begin
-    yy=reform2(y)
-    sizy=size(yy)
-    if sizx(0) ne sizy(0)            then goto, ERROR2
-    if max(abs(sizx-sizy)) ne 0      then goto, ERROR2
-    if sizx(0) ne 2 and sizx(0) ne 1 then goto, ERROR2
-    if sizx(0) eq 1 then lines=0
-endelse
-
-if not keyword_set(xrange) then xrange = [0,0]
-if not keyword_set(yrange) then yrange = [0,0]
-
-if keyword_set(lines) then begin
-    plot, xx, yy, XSTYLE=xstyle, YSTYLE=ystyle, POLAR=polar, $
-      XRANGE=xrange, YRANGE=yrange, /NOERASE, /NODATA
-
-    for ix=0,sizx(1)-1 do $
-      oplot,xx(ix,*),yy(ix,*),POLAR=polar
-    for iy=0,sizx(2)-1 do $
-      oplot,xx(*,iy),yy(*,iy),POLAR=polar
-
-endif else begin
-    if polar then $
-      plot, xx, yy, PSYM=3, SYMSIZE=!p.symsize, $
-      XRANGE=xrange, YRANGE=yrange, XSTYLE=xstyle, YSTYLE=ystyle, /NOERASE,$
-      /POLAR $
-    else $
-      plot, xx, yy, PSYM=1, SYMSIZE=!p.symsize, $
-      XRANGE=xrange, YRANGE=yrange, XSTYLE=xstyle, YSTYLE=ystyle, /NOERASE
-endelse
+plot,x(*,*,0),x(*,*,1),XSTYLE=1,YSTYLE=1,/NOERASE,/NODATA
+for ix=0,s(1)-1 do begin
+   oplot,x(ix,*,0),x(ix,*,1)
+endfor
+for iy=0,s(2)-1 do begin
+   oplot,x(*,iy,0),x(*,iy,1)
+endfor
 
 return
-
-ERROR1:
-   print,'size(x)=',sizx
-   print,'Error: plotgrid,x  requires x(nx,ny,2) array'
-   retall
-
-ERROR2:
-   print,'size(x)=',sizx,' size(y)=',sizy
-   print,'Error: plotgrid,x,y requires x(nx,ny) y(nx,ny) arrays'
-   retall
-
-
 end
 
 ;==========================================
-pro compare,w0,w1,wnames
+pro compare,w1,w2
 
-; Compare all variables in w0 and w1 by calculating
+; Compare all variables in w1 and w2 by calculating 
 ; relative difference in the 1st norm.
 ;==========================================
 
 on_error,2
 
-sizew0=size(w0)
-sizew1=size(w1)
-
-if sizew0(0) ne sizew1(0) then begin
-   print,'w0 and w1 have different dimensions:',sizew0(0),' and ',sizew1(0)
-   retall
-endif
-
-ndim=sizew0(0)-1
-
+sizew=size(w1)
+ndim=sizew(0)-1
 if ndim eq 0 then begin
    ndim=1
    nw=1
 endif else $
-   nw=sizew0(ndim+1)
+   nw=sizew(ndim+1)
 
-if max(abs(sizew0(1:ndim)-sizew1(1:ndim))) gt 0 then begin
-   print,'w0 and w1 have different sizes:',sizew0(1:ndim),' /= ',sizew1(1:ndim)
-   retall
-endif
-
-if keyword_set(wnames) then $
-   print,'var max(|A-B|)/max(|A|+|B|) sum(|A-B|)/sum(|A|+|B|) max(|A|+|B|)' $
-else $
-   print,'ind max(|A-B|)/max(|A|+|B|) sum(|A-B|)/sum(|A|+|B|) max(|A|+|B|)'
+print,'iw max(|w1-w2|)/max(|w1|+|w2|) sum(|w1-w2|)/sum(|w1|+|w2|)'
 
 for iw=0,nw-1 do begin
    case ndim of
    1: begin
-      wsum=max(abs(w0(*,iw))+abs(w1(*,iw)))
-      wdif=max(abs(w0(*,iw)-w1(*,iw)))
-      wsum1=total(abs(w0(*,iw))+abs(w1(*,iw)))
-      wdif1=total(abs(w0(*,iw)-w1(*,iw)))
+      wsum=max(abs(w1(*,iw))+abs(w2(*,iw)))
+      wdif=max(abs(w1(*,iw)-w2(*,iw)))
+      wsum1=total(abs(w1(*,iw))+abs(w2(*,iw)))
+      wdif1=total(abs(w1(*,iw)-w2(*,iw)))
       end
    2: begin
-      wsum=max(abs(w0(*,*,iw))+abs(w1(*,*,iw)))
-      wdif=max(abs(w0(*,*,iw)-w1(*,*,iw)))
-      wsum1=total(abs(w0(*,*,iw))+abs(w1(*,*,iw)))
-      wdif1=total(abs(w0(*,*,iw)-w1(*,*,iw)))
+      wsum=max(abs(w1(*,*,iw))+abs(w2(*,*,iw)))
+      wdif=max(abs(w1(*,*,iw)-w2(*,*,iw)))
+      wsum1=total(abs(w1(*,*,iw))+abs(w2(*,*,iw)))
+      wdif1=total(abs(w1(*,*,iw)-w2(*,*,iw)))
       end
    3: begin
-      wsum=max(abs(w0(*,*,*,iw))+abs(w1(*,*,*,iw)))
-      wdif=max(abs(w0(*,*,*,iw)-w1(*,*,*,iw)))
-      wsum1=total(abs(w0(*,*,*,iw))+abs(w1(*,*,*,iw)))
-      wdif1=total(abs(w0(*,*,*,iw)-w1(*,*,*,iw)))
+      wsum=max(abs(w1(*,*,*,iw))+abs(w2(*,*,*,iw)))
+      wdif=max(abs(w1(*,*,*,iw)-w2(*,*,*,iw)))
+      wsum1=total(abs(w1(*,*,*,iw))+abs(w2(*,*,*,iw)))
+      wdif1=total(abs(w1(*,*,*,iw)-w2(*,*,*,iw)))
       end
    endcase
 
-   if keyword_set(wnames) then begin
-      if wsum eq 0. then print,wnames(iw),' wsum=0' $
-      else               print,wnames(iw),wdif/wsum,wdif1/wsum1,wsum
-   endif else begin
-      if wsum eq 0. then print,iw,' wsum=0' $
-      else               print,iw,wdif/wsum,wdif1/wsum1,wsum
-   endelse
-
+   if wsum eq 0. then print,iw,' wsum=0' $
+   else               print,iw,wdif/wsum,wdif1/wsum1
 endfor
 end
 
@@ -2447,352 +1660,132 @@ pro quit
 end
 ;==========================================
 
+;===========================================================================
+function interp_orth,f,x,y,z,nxreg,tri_xy
+
+; Interpolate in 3D for a grid, which is irregular in the X-Y planes but
+; all X-Y planes are identical with each other and orthogonal to the Z 
+; direction. The grid spacing in direction Z can be non-uniform.
 ;
-; set_space
-;
-; Determines the size and multiplication factors for plotting perfect circles
-; or squares. This routine is used to simply find the parameters, another
-; procedure, set_position, is used to actually find the position of the
-; circle or square.
-; This routine maxamizes the area used by the plots, determinining the best
-; positions for the number of plots that the user has selected.
-;
-; input parameters:
-; nb - number of plots on a page
-; space - amount of space in between each of the plots in normalized
-;          coordinates
-;
-; output parameters:
-; bs - box size (size of the plotting region)
-; nbx, nby - number of plots in the x and y directions
-; xoff, yoff - x and y offsets for positions
-; xf, yf - x and y multiplication factors for making perfect squares
-;
-; This has been adapted to allow the user to define how many objects
-;   are in the x and y direction on Jan 2, 1998
+; f      is the 3D function to interpolate
+; x, y   are 2D arrays for the X and Y coordinates
+; z      is a 1D array for the Z coordinate
+; nxreg  is a 3 element array containing the size for the regular grid
+; tri_xy is the 2D triangulation for any of the X-Y planes
 
-pro set_space, nb, space, sizes, nx = nx, ny = ny
+nx=nxreg(0) & ny=nxreg(1) & nz=nxreg(2)
 
-  sizes = {bs:0.0, nbx:0, nby:0, xoff:0.0, yoff:0.0, xf:0.0, yf:0.0, $
-           ppp: nb, space:space}
+freg=fltarr(nx,ny,nz)
 
-  xsi = float(!d.x_size)
-  ysi = float(!d.y_size)
+zmax=max(z) & zmin=min(z)
 
-  xs = xsi - 5.0*space*xsi
-  ys = ysi - 5.0*space*ysi
+dx=(max(x)-min(x))/(nx-1.000001)
+dy=(max(y)-min(y))/(ny-1.000001)
+dz=(zmax  -zmin  )/(nz-1.000001)
 
-  if nb eq 1 then begin
+iz=0                                  ; Initialize index for lower plane
+jz=-1                                 ; Initialize index for upper plane
+for izreg=0,nz-1 do begin
+   zreg = zmin + izreg*dz             ; Z coordinate in regular grid
 
-    sizes.nbx = 1
-    sizes.nby = 1
-    sizes.bs = 1.0 - space
+   while zreg gt z(iz+1) do iz=iz+1   ; Find elements of z enclosing zreg
 
-    if xs gt ys then begin
+   if iz gt jz-1 then begin           ; Check if iz has changed at all
+      zi=z(iz)                        ; New Lower plane: zi<=zreg
 
-       sizes.yf = 1.0
-       sizes.xf = ys/xs
-
-    endif else begin
-
-       sizes.xf = 1.0
-       sizes.yf = xs/ys
-
-     endelse
-
-  endif else begin
-
-    if (n_elements(nx) gt 0) then begin
-      sizes.nbx = nx(0)
-      if n_elements(ny) eq 0 then sizes.nby = nb/nx(0) else sizes.nby = ny(0)
-    endif else begin
-      if (n_elements(ny) gt 0) then begin
-        sizes.nby = ny(0)
-        sizes.nbx = nb/ny(0)
+      if jz eq iz then begin
+         fi=fj                        ; Old upper plane is the new lower plane
       endif else begin
-        if xs gt ys then begin
-          sizes.nbx = round(sqrt(nb))
-          sizes.nby = fix(nb/sizes.nbx)
-        endif else begin
-          sizes.nby = round(sqrt(nb))
-          sizes.nbx = fix(nb/sizes.nby)
-        endelse
+                                      ; Interpolate f in new lower plane
+         fi=trigrid(x,y,f(*,iz,*),tri_xy, [dx,dy], missing=0) 
       endelse
-    endelse
 
-    if xs gt ys then begin
+      jz=iz+1 & zj=z(jz)              ; New Upper plane: zj>=zreg
 
-      if (sizes.nbx*sizes.nby lt nb) then                               $
-        if (sizes.nbx le sizes.nby) then sizes.nbx = sizes.nbx + 1      $
-        else sizes.nby = sizes.nby + 1                                  $
-      else                                                        	$
-	if (sizes.nbx lt sizes.nby) and					$
-	   (n_elements(nx) eq 0) and					$
-	   (n_elements(ny) eq 0) then begin
-	  temp = sizes.nby
-	  sizes.nby = sizes.nbx
-	  sizes.nbx = temp
-	endif
+                                      ; Interpolate f in new upper plane
+      fj=trigrid(x,y,f(*,jz,*),tri_xy, [dx,dy], missing=0) 
+   endif
 
-      sizes.yf = 1.0
-      sizes.xf = ys/xs
-      sizes.bs = ((1.0-space*(sizes.nbx-1))/sizes.nbx )/sizes.xf
-      if sizes.nby*sizes.bs+space*(sizes.nby-1) gt 1.0 then 		$
-	sizes.bs = (1.0- space*(sizes.nby-1))/sizes.nby
+   freg(*,*,izreg)=(fi*(zj-zreg)+fj*(zreg-zi))/(zj-zi)  ; Interpolate in Z
+endfor
 
-    endif else begin
+return,freg
+end
+;===========================================================================
 
-      if (sizes.nbx*sizes.nby lt nb) then				$
-	if (sizes.nby le sizes.nbx) then sizes.nby = sizes.nby + 1	$
-	else sizes.nbx = sizes.nbx + 1					$
-      else								$
-	if (sizes.nby lt sizes.nbx) and					$
-	   (n_elements(nx) eq 0) and					$
-	   (n_elements(ny) eq 0) then begin
-	  temp = sizes.nby
-	  sizes.nby = sizes.nbx
-	  sizes.nbx = temp
-	endif
+pro PROJVOLUME, vol0, opaque0, AX=ax, AY=ay, AZ=az, $
+    WINDOW=window, XSIZE=xsize, YSIZE=ysize, $
+    XRES=xres, YRES=yres, ZRES=zres
 
-      sizes.xf = 1.0
-      sizes.yf = xs/ys
-      sizes.bs = ((1.0 - space*(sizes.nby-1))/sizes.nby)/sizes.yf
-      if sizes.nbx*sizes.bs+space*(sizes.nbx-1) gt 1.0 then 		$
-	sizes.bs = (1.0 - space*(sizes.nbx-1))/sizes.nbx
+; Default rotation angles
+if not keyword_set(ax) then ax=0
+if not keyword_set(ay) then ay=0
+if not keyword_set(az) then az=0
 
-    endelse
+; Default window parameters
+if not keyword_set(window) then window=0
+if not keyword_set(xsize) then xsize=512
+if not keyword_set(ysize) then ysize=512
 
-  endelse
+; Default resolution
+if not keyword_set(xres) then xres=64
+if not keyword_set(yres) then yres=64
+if not keyword_set(zres) then zres=64
 
-  sizes.xoff = (1.0 - sizes.xf*(sizes.bs*sizes.nbx + space*(sizes.nbx-1)))/2.0
-  sizes.yoff = (1.0 - sizes.yf*(sizes.bs*sizes.nby + space*(sizes.nby-1)))/2.0
+; Convert intensity to byte
+vol=bytscl(vol0)
+; Convert opacity to 0 to 25 range
+opaque=bytscl(opaque0,top=25b)
 
-  RETURN
+; Set up viewing angle
+s=size(vol)
+xmin=0 & ymin = 0 & zmin = 0 & xmax=s(1) & ymax=s(2) & zmax=s(3)
 
-END
+scale3,xrange=[0,xmax-1],yrange=[0,ymax-1],zrange=[0,zmax-1],ax=ax,az=az
 
-;
-; set_position
-;
-; used in conjunction with set_space. Determines the position of the current
-; plotting region, given the output parameters from set_space.
-;
-; Input parameters:
-; nb, space, bs, nbx, nby, xoff, yoff, xf, yf - Outputs from set_space
-; pos_num - the number of the plot, ranges from 0 : bs-1
-;
-; Output parameters:
-;
-; pos - the position of the plot, used in the plot command
-;
-; modified to make rectangles on Jan 2, 1998
+;!X.S = [-xmin, 1.0] / (xmax - xmin)
+;!Y.S = [-ymin, 1.0] / (ymax - ymin)
+;!Z.S = [-zmin, 1.0] / (zmax - zmin)
+;T3D, /RESET 
+;T3D, TRANSLATE=[-0.5, -0.5, -0.5] 
+;T3D, SCALE=[0.7, 0.7, 0.7] 
+;T3D, ROTATE=[ax,ay,az] 
+;T3D, TRANSLATE=[0.5, 0.5, 0.5]
 
-pro set_position, sizes, xipos, yipos, pos, rect = rect,		$
-		  xmargin = xmargin, ymargin = ymargin
+WINDOW, window, XSIZE=xsize, YSIZE=ysize
 
-  nb = sizes.ppp
-  space = sizes.space
+img = PROJECT_VOL(vol, xres, yres, zres, OPAQUE=opaque, TRANS=(!P.T))
+help,img
 
-  yf2 = sizes.yf
-  yf = sizes.yf*(1.0-space)
-  xf2 = sizes.xf
-  xf = sizes.xf*(1.0-space)
+TVSCL, img
 
-  if keyword_set(rect) then begin
+end
+;===========================================================================
 
-    if keyword_set(xmargin) then xmar = xmargin(0) 			$
-    else xmar = space/2.0
+pro  SHOWVOLUME, vol, thresh, COLOR = color, LOW = low
 
-    if keyword_set(ymargin) then ymar = ymargin(0) 			$
-    else ymar = space/2.0
+s = SIZE(vol)
 
-    xbuffer = 3.0*float(!d.x_ch_size)/float(!d.x_size) * !p.charsize +space/4.0
-    xtotal = 1.0 - (space*float(sizes.nbx-1) + xmar + xf2*space/2.0) - xbuffer
-    xbs = xtotal/(float(sizes.nbx)*xf)
+IF s[0] NE 3 THEN begin
+   print, 'Showvolume works for 3D arrays only'
+   retall
+endif
 
-    xoff = xmar - xf2*space/2.0 + xbuffer - space/4.0
+SCALE3, XRANGE=[0, S[1]], YRANGE=[0, S[2]], ZRANGE=[0, S[3]]
 
-    ybuffer = 3.0*float(!d.y_ch_size)/float(!d.y_size) * !p.charsize
-    ytotal = 1.0 - (space*float(sizes.nby-1) + ymar + yf2*space/2.0) - ybuffer
-    ybs = ytotal/(float(sizes.nby)*yf)
+IF N_ELEMENTS(low) EQ 0 THEN low = 0
 
-    yoff = space/4.0
+erase
 
-  endif else begin
-
-    xbs  = sizes.bs
-    xoff = sizes.xoff
-    ybs  = sizes.bs
-    yoff = sizes.yoff
-
-  endelse
-
-  xpos0 = float(xipos) * (xbs+space)*xf + xoff + xf2*space/2.0
-  xpos1 = float(xipos) * (xbs+space)*xf + xoff + xf2*space/2.0 + xbs*xf
-
-  xpos0 = float(xipos) * (xbs+space)*xf + xoff + xf2*space
-  xpos1 = float(xipos) * (xbs+space)*xf + xoff + xf2*space + xbs*xf
-
-  ypos0 = (1.0-yf2*space/2) - (yipos * (ybs+space)*yf + ybs*yf) - yoff
-  ypos1 = (1.0-yf2*space/2) - (yipos * (ybs+space)*yf) - yoff
-
-  pos= [xpos0,ypos0,xpos1,ypos1]
-
-  RETURN
-
-END
-
-;*****************************************************************************
-
-pro plotct, pos, maxmin
-
-;******************************************************************************
-
-    !p.title = ' '
-    !y.tickname=strarr(60)
-    !y.title = ' '
-    !x.title = ' '
-    xrange=!x.range & yrange=!y.range & !x.range=0 & !y.range=0
-
-    maxi = max(maxmin)
-    mini = min(maxmin)
-
-    array = findgen(10,256)
-    for i=0,9 do array(i,*) = findgen(256)/(256-1)*(maxi-mini) + mini
-
-    levels=(findgen(60)-1)/(58-1)*(maxi-mini)+mini
-
-    contour, array, /noerase, /cell_fill, xstyle = 5, ystyle = 5, $
-        levels = levels, pos=pos
-
-    plot, maxmin, /noerase, pos = pos, xstyle=1,ystyle=1, /nodata,$
-          xtickname = [' ',' '], xticks = 1, xminor=1  , $
-          ytickname = strarr(60) + ' ', yticklen = 0.25
-    axis, 1, ystyle=1, /nodata, yax=1, charsize=0.9*(!p.charsize > 1.)
-
-    !x.range=xrange & !y.range=yrange
-
-  return
+if(keyword_set(COLOR))then begin
+    col=color
+    SHADE_VOLUME, vol, thresh, v, p, SHADES = col, LOW = low
+    TVSCL, POLYSHADE(v,p,SHADES=col,/T3D)
+endif else begin
+    SHADE_VOLUME, vol, thresh, v, p, LOW = low
+    TVSCL, POLYSHADE(v,p,/T3D)
+endelse
 
 end
 
-function mklower, string
-
-  temp = byte(string)
-  loc = where((temp ge 65) and (temp le 90), count)
-  if count ne 0 then temp(loc) = temp(loc)+32
-  return, string(temp)
-
-end
-
-pro makect, color
-
-  common colors, r_orig, g_orig, b_orig, r_curr, g_curr, b_curr
-
-  ; Get number of colors
-  n=!d.table_size
-  if n lt 10 or n gt 256 then n=256
-
-  r = fltarr(n)
-  g = fltarr(n)
-  b = fltarr(n)
-
-  if not keyword_set(color) then begin
-
-    print,'red   - white to red'
-    print,'blue  - white to blue'
-    print,'rwb   - red white blue'
-    print,'bwr   - blue white red'
-    print,'mid   - blue green white yellow red'
-
-    color = ''
-    read,'Enter color table from list above : ', color
-
-  endif
-
-  color = mklower(color)
-
-  ; Set read, green, blue to values normalized to the 0.0 -- 1.0 range.
-
-  case color of
-    'red' : begin
-              r(*) = 1.
-              g(*) = 1. - findgen(n)/(n-1)
-              b(*) = 1. - findgen(n)/(n-1)
-            end
-
-    'blue' : begin
-               r(*) = 1. - findgen(n)/(n-1)
-               b(*) = 1.
-               g(*) = 1. - findgen(n)/(n-1)
-             end
-
-    'rwb' : begin
-              half=n/2
-              r(0:half-1) = 1.
-              g(0:half-1) = findgen(half)/(half-1)
-              b(0:half-1) = findgen(half)/(half-1)
-
-              r(half:n-1) = 1. - findgen(n-half)/(n-half-1)
-              g(half:n-1) = 1. - findgen(n-half)/(n-half-1)
-              b(half:n-1) = 1.
-            end
-
-    'bwr' : begin
-              half=n/2
-              b(0:half-1) = 1.
-              g(0:half-1) = findgen(half)/(half-1)
-              r(0:half-1) = findgen(half)/(half-1)
-
-              b(half:n-1) = 1. - findgen(n-half)/(n-half-1)
-              g(half:n-1) = 1. - findgen(n-half)/(n-half-1)
-              r(half:n-1) = 1.
-            end
-
-    'mid' : begin
-              r(0:n/3-1)     = 0.0
-              r(n/3:n/2-1)   = findgen(n/2-n/3)/(n/2-n/3-1)
-              r(n/2:n-1)     = 1.0
-
-              b(0:n/2-1)      = 1.
-              b(n/2:2*n/3-1)  = 1. - findgen(2*n/3-n/2)/(2*n/3-n/2-1)
-              b(2*n/3-1:n-1)  = 0.
-
-              g(0:n/3-1)      = findgen(n/3)/(n/3-1)
-              g(n/3:2*n/3-1)  = 1.
-              g(2*n/3:n-1)    = 1. - findgen(n-2*n/3)/(n-2*n/3-1)
-
-            end
-
-    else : begin
-             print, "Unknown value for color=",color
-             r(*) = findgen(n)
-             g(*) = findgen(n)
-             b(*) = findgen(n)
-           end
-
-  endcase
-
-  r(0) = 0.0
-  g(0) = 0.0
-  b(0) = 0.0
-
-  r(n-1) = 1.0
-  g(n-1) = 1.0
-  b(n-1) = 1.0
-
-  r=255*r
-  g=255*g
-  b=255*b
-
-  r_orig = r
-  g_orig = g
-  b_orig = b
-  r_curr = r_orig
-  g_curr = g_orig
-  b_curr = b_orig
-  tvlct,r,g,b
-
-end
-
-
+;===========================================================================

@@ -123,12 +123,10 @@ else
 endif
 divb(ixO^S)=zero
 do idim=1,ndim
-   tmp(ix^S)=w(ix^S,b0_+idim)
-   if(fourthorder)then
+   tmp(ix^S)=w(ix^S,b0_+idim)+w(ix^S,bg0_+idim)
+
       call gradient4(.false.,tmp,ixO^L,idim,tmp2)
-   else
-      call gradient(.false.,tmp,ixO^L,idim,tmp2)
-   endif
+
    divb(ixO^S)=divb(ixO^S)+tmp2(ixO^S)
 enddo
 
@@ -154,7 +152,7 @@ subroutine getflux(w,ix^L,iw,idim,f,transport)
 include 'vacdef.f'
 
 integer::          ix^L,iw,idim
-double precision:: w(ixG^T,nw),f(ixG^T)
+double precision:: w(ixG^T,nw),f(ixG^T), fb(ixG^T)
 logical::          transport
 !-----------------------------------------------------------------------------
 
@@ -164,34 +162,51 @@ if(oktest.and.iw==iwtest)write(*,*)'Getflux idim,w:',&
 
 transport=.true.
 
+     
 select case(iw)
-   ! f_i[rho]=v_i*rho
    case(rho_)
-      f(ix^S)=zero
-
-   ! f_i[m_k]=v_i*m_k-b_k*b_i [+ptotal if i==k]
+      f(ix^S)=w(ix^S,rhob_)*w(ix^S,m0_+idim)/(w(ix^S,rho_)+w(ix^S,rhob_))
+      
    {case(m^C_)
       if(idim==^C)then
-         call getptotal(w,ix^L,f)
-         f(ix^S)=f(ix^S) -w(ix^S,b^C_)*w(ix^S,b0_+idim)
+            
+          call getptotal(w,ix^L,f)
+	  call getptotal_bg(w,ix^L,fb)
+          fb(ix^S)=0.d0
+	  
+          f(ix^S)=f(ix^S)+fb(ix^S)-(w(ix^S,b^C_)*w(ix^S,bg0_+idim)+w(ix^S,b0_+idim)*w(ix^S,bg^C_))-&
+                           w(ix^S,b^C_)*w(ix^S,b0_+idim) !-w(ix^S,bg0_+idim)*w(ix^S,bg^C_)
       else
-         f(ix^S)= -w(ix^S,b^C_)*w(ix^S,b0_+idim)
+          f(ix^S)=-(w(ix^S,b^C_)*w(ix^S,bg0_+idim)+w(ix^S,b0_+idim)*w(ix^S,bg^C_))-&
+                    w(ix^S,b^C_)*w(ix^S,b0_+idim) !-w(ix^S,bg0_+idim)*w(ix^S,bg^C_)
+ 
       endif \}
 
-   ! f_i[e]=v_i*e+(m_i*ptotal-b_i*(b_k*m_k))/rho
    case(e_)
+  
       call getptotal(w,ix^L,f)
-      f(ix^S)=(w(ix^S,m0_+idim)*f(ix^S)- &
-         w(ix^S,b0_+idim)*( ^C&w(ix^S,b^C_)*w(ix^S,m^C_)+ ))/w(ix^S,rho_)
+      call getptotal_bg(w,ix^L,fb)      
+      fb(ix^S)=0.d0      
 
-   ! f_i[b_k]=v_i*b_k-m_k/rho*b_i
+      f(ix^S)=(w(ix^S,m0_+idim)*(f(ix^S)+fb(ix^S))-&
+               w(ix^S,b0_+idim)*( ^C&(w(ix^S,bg^C_))*w(ix^S,m^C_)+ )-&
+               w(ix^S,bg0_+idim)*( ^C&(w(ix^S,b^C_))*w(ix^S,m^C_)+ ))/(w(ix^S,rho_)+w(ix^S,rhob_))+&	      
+               w(ix^S,eb_)*w(ix^S,m0_+idim)/(w(ix^S,rho_)+w(ix^S,rhob_))-&
+	       w(ix^S,b0_+idim)*( ^C&(w(ix^S,b^C_))*w(ix^S,m^C_)+ )/(w(ix^S,rho_)+w(ix^S,rhob_))&
+         !      -w(ix^S,bg0_+idim)*( ^C&(w(ix^S,bg^C_))*w(ix^S,m^C_)+ )/(w(ix^S,rho_)+w(ix^S,rhob_))
+	       
+	      
+
+
    {case(b^C_)
       if(idim==^C) then
-         ! f_i[b_i] should be exactly 0, so we do not use the transport flux
-         f(ix^S)=zero
+         f(ix^S)= zero
          transport=.false.
       else
-         f(ix^S)= -w(ix^S,m^C_)/w(ix^S,rho_)*w(ix^S,b0_+idim)
+      
+         f(ix^S)= -w(ix^S,m^C_)/(w(ix^S,rho_)+w(ix^S,rhob_))*(w(ix^S,b0_+idim)+w(ix^S,bg0_+idim))+ &
+                  w(ix^S,m0_+idim)/(w(ix^S,rho_)+w(ix^S,rhob_))*w(ix^S,bg^C_)
+		  
       endif  \}
 
    case default
@@ -265,105 +280,20 @@ divb(ixO^S)=qdt*divb(ixO^S)
 do iiw=1,iws(niw_); iw=iws(iiw)
    select case(iw)
       {case(m^C_)
-         wnew(ixO^S,iw)=wnew(ixO^S,iw)-w(ixO^S,b^C_)*divb(ixO^S)
+         wnew(ixO^S,iw)=wnew(ixO^S,iw)-(w(ixO^S,b^C_)+w(ixO^S,bg^C_))*divb(ixO^S)
       }
       {case(b^C_)
-         wnew(ixO^S,iw)=wnew(ixO^S,iw)-w(ixO^S,m^C_)/w(ixO^S,rho_)*divb(ixO^S)
+         wnew(ixO^S,iw)=wnew(ixO^S,iw)-w(ixO^S,m^C_)/(w(ixO^S,rho_)+w(ixO^S,rhob_))*divb(ixO^S)
       }
       case(e_)
          wnew(ixO^S,iw)=wnew(ixO^S,iw)-&
-             (^C&w(ixO^S,m^C_)*w(ixO^S,b^C_)+)/w(ixO^S,rho_)*divb(ixO^S)
+             (^C&w(ixO^S,m^C_)*(w(ixO^S,b^C_)+w(ixO^S,bg^C_))+ )/(w(ixO^S,rho_)+w(ixO^S,rhob_))*divb(ixO^S)
    end select
 end do
 
 return
 end
 
-!=============================================================================
-subroutine addgeometry(qdt,ix^L,iws,w,wnew)
-
-! Add geometrical source terms to wnew
-
-include 'vacdef.f'
-
-integer::          ix^L,iws(niw_),ix,iiw,iw,idir
-double precision:: qdt,w(ixG^T,nw),wnew(ixG^T,nw)
-!-----------------------------------------------------------------------------
-
-oktest=index(teststr,'addgeometry')>=1
-
-select case(typeaxial)
-   case('slab','test')
-       ! No source terms in slab symmetry
-   case('nozzle')
-       call die('MHD for nozzle geometry is not implemented')
-   case('sphere')
-      do iiw=1,iws(niw_); iw=iws(iiw)
-         select case(iw)
-         ! s[mr]=ptotal*2/r+(-Bphi**2-Btheta**2+mphi**2/rho+mtheta**2/rho)/r
-         case(mr_)
-            call getptotal(w,ix^L,tmp)
-            ! This discretization maintains an exact equilibrium for p=const.
-            ! areaside=(areaCi-areaCh)/areadx
-            forall(ix= ix^LIM1:) wnew(ix,ix^SE,iw)=wnew(ix,ix^SE,iw) &
-               +qdt*tmp(ix,ix^SE)*areaside(ix)
-            tmp(ix^S)=zero
-            do idir=2,ndir
-               tmp(ix^S)=tmp(ix^S)-w(ix^S,b0_+idir)**2 &
-                   +w(ix^S,m0_+idir)**2/w(ix^S,rho_)
-            end do
-         ! s[mphi]=(-mphi*mr/rho+Bphi*Br)/radius and phi-->theta
-         {case(m^CE_)
-            tmp(ix^S)= -w(ix^S,m^CE_)*w(ix^S,mr_)/w(ix^S,rho_) &
-                      +w(ix^S,b^CE_)*w(ix^S,br_) \}
-         ! s[Bphi]=((Bphi*mr-Br*mphi)/rho)/radius and phi-->theta
-         {case(b^CE_)
-           tmp(ix^S)=(w(ix^S,b^CE_)*w(ix^S,mr_)-w(ix^S,br_)*w(ix^S,m^CE_)) &
-                  /w(ix^S,rho_) \}
-         end select
-         ! Divide by radius and add to wnew for variables other than rho and e
-         if(iw/=rho_ .and. iw/=e_)&
-            wnew(ix^S,iw)=wnew(ix^S,iw)+qdt*tmp(ix^S)/x(ix^S,r_)
-         if(oktest.and.iw==iwtest)&
-            write(*,*)'Geometrical source:',tmp(ixtest^D)
-      end do
-   case('cylinder')
-      do iiw=1,iws(niw_); iw=iws(iiw)
-         select case(iw)
-         ! s[mr]=(ptotal-Bphi**2+mphi**2/rho)/radius
-         case(mr_)
-            call getptotal(w,ix^L,tmp)
-            if(.not.gencoord)then
-               ! For nonuniform Cartesian grid this provides hydrostatic equil.
-               forall(ix= ix^LIM1:) wnew(ix,ix^SE,iw)=wnew(ix,ix^SE,iw) &
-                  +qdt*tmp(ix,ix^SE)*areaside(ix)
-               tmp(ix^S)=zero
-            endif
-{^IFPHI 
-            tmp(ix^S)=tmp(ix^S) &
-               -w(ix^S,bphi_)**2+w(ix^S,mphi_)**2/w(ix^S,rho_)
-            
-         ! s[mphi]=(-mphi*mr/rho+Bphi*Br)/radius
-         case(mphi_)
-            if(.not.angmomfix) tmp(ix^S)= &
-              -w(ix^S,mphi_)*w(ix^S,mr_)/w(ix^S,rho_)+w(ix^S,bphi_)*w(ix^S,br_)
-
-         ! s[Bphi]=((Bphi*mr-Br*mphi)/rho)/radius
-         case(bphi_)
-           tmp(ix^S)=(w(ix^S,bphi_)*w(ix^S,mr_)-w(ix^S,br_)*w(ix^S,mphi_)) &
-                  /w(ix^S,rho_)
-}
-         end select
-         ! Divide by radius and add to wnew
-         if(iw==mr_.or.(iw==mphi_.and..not.angmomfix).or.iw==bphi_) &
-            wnew(ix^S,iw)=wnew(ix^S,iw)+qdt*tmp(ix^S)/x(ix^S,r_)
-         if(oktest.and.iw==iwtest)&
-            write(*,*)'Geometrical source:',tmp(ixtest^D)
-      end do
-end select
-
-return
-end
 
 !=============================================================================
 ! end module vacphys.mhd0

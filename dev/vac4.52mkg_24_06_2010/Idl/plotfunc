@@ -1,10 +1,9 @@
-;^CFG COPYRIGHT VAC_UM
 ;===========================================================================
 ;    Written by G. Toth for the Versatile Advection Code
 ;
 ;    Use the x and w in the memory read by "animate".
 ;    plot one or more functions of w using different plotting routines. 
-;    The functions are defined in the "Idl/funcdef.pro" file.
+;    The functions are defined in the "Idl/animfunc.pro" file.
 ;
 ;    For generalized coordinates the variables are interpolated from the 
 ;    irregular grid onto a regular one.
@@ -59,12 +58,10 @@
         siz=size(multiplot)
         if siz(0) eq 0 then multiplot=[multiplot,1,1]
         print,'multiplot= ',multiplot,', axistype (coord/cells)=',axistype,$
-        ', fixaspect= ',fixaspect,$
-        FORMAT='(a,"[",i2,",",i2,",",i2,"]",a,a,a,i1)'
+        FORMAT='(a,"[",i2,",",i2,",",i2,"]",a,a)'
    endif else $
         print,'multiplot= 0 (default), axistype (coord/cells)=',axistype,$
-              ', fixaspect= ',fixaspect,$
-              FORMAT='(a,a,a,i1)'
+              FORMAT='(a,a)'
    print,'bottomline=',bottomline,', headerline=',headerline,$
         FORMAT='(a,i1,a,i1)'
 
@@ -79,7 +76,7 @@
    readplotpar,ndim,cut,cut0,plotdim,nfunc,func,funcs,funcs1,funcs2,$
       plotmode,plotmodes,plottitle,plottitles,autorange,autoranges,doask
 
-   readtransform,ndim,nx,gencoord,transform,nxreg,xreglimits,wregpad,$
+   readtransform,ndim,nx,gencoord,transform,nxreg,wregpad,$
 		physics,nvector,vectors,grid,doask
 
    usereg=(not gencoord and transform eq 'unpolar') or $
@@ -90,8 +87,8 @@
    if usereg then begin
       askstr,'dotransform (y/n)         ',dotransform,doask
       if dotransform eq 'y' then case transform of
-      'regular': regulargrid,x_old,nxreg_old,xreglimits_old,$
-                 x,xreg,nxreg,xreglimits,w,wreg,nw,wregpad,triangles,symmtri
+      'regular': regulargrid,x_old,nxreg_old,x,xreg,nxreg,dxreg,w,wreg,nw, $
+                 wregpad,triangles
       'polar':   begin
                     polargrid,nvector,vectors,x,w,xreg,wreg
                     variables(0:1)=['r','phi']
@@ -138,13 +135,12 @@
 
    if !d.name eq 'X' and !d.window ge 0 then wshow
 
-   plotfunc,x,w,xreg,wreg,usereg,ndim,physics,eqpar,rBody,$
-     variables,wnames,axistype,plotmodes,plottitles,$
-     ax,az,contourlevel,0,$
-     velvector,0,velseed,velpos,velx,vely,veltri,$
-     cut,cut0,plotdim,$
-     nfunc,multix,multiy,fixaspect,plotix,plotiy,$
-     funcs,funcs1,funcs2,fmin,fmax,f
+   plotfunc,x,w,xreg,wreg,usereg,ndim,physics,eqpar,$
+    variables,wnames,axistype,plotmodes,plottitles,$
+    ax,az,contourlevel,0,$
+    velvector,0,velseed,velpos,velx,vely,veltri,$
+    cut,cut0,plotdim,$
+    nfunc,multix,multiy,plotix,plotiy,funcs,funcs1,funcs2,fmin,fmax,f
 
    putbottom,1,1,0,0,bottomline,nx,it,time
    putheader,1,1,0,0,headerline,headline,nx

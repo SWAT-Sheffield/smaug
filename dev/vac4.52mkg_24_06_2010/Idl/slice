@@ -1,9 +1,8 @@
-;^CFG COPYRIGHT VAC_UM
 ;===========================================================================
 ;    Written by G. Toth for the Versatile Advection Code
 ;
 ;    Animate slices of 3D data read by getpict or animate.
-;    The functions are defined in the "Idl/funcdef.pro" file.
+;    The functions are defined in the "Idl/animfunc.pro" file.
 ;    "cut" should be defined in 2D, possibly using the grid2d index array.
 ;
 ;    Usage:
@@ -43,12 +42,10 @@
         siz=size(multiplot)
         if siz(0) eq 0 then multiplot=[multiplot,1,1]
         print,'multiplot= ',multiplot,', axistype (coord/cells)=',axistype,$
-              ', fixaspect= ',fixaspect,$
-              FORMAT='(a,"[",i2,",",i2,",",i2,"]",a,a,a,i1)'
+        FORMAT='(a,"[",i2,",",i2,",",i2,"]",a,a)'
    endif else $
         print,'multiplot= 0 (default), axistype (coord/cells)=',axistype,$
-              ', fixaspect= ',fixaspect,$
-              FORMAT='(a,a,a,i1)'
+              FORMAT='(a,a)'
    print,'bottomline=',bottomline,', headerline=',headerline,$
         FORMAT='(a,i1,a,i1)'
 
@@ -169,25 +166,23 @@
         1:begin
            x2d(*,*,*)=x(ix,*,*,1:2)
            w2d(*,*,*)=w(ix,*,*,*)
-           height=x(ix,0,0,0)
            info1='i'+dirname+'='+string(ix,format='(i4)')
+           info2=dirname+'='+string(x(ix,0,0,0))
         end
         2:begin
            x2d(*,*,0)=x(*,ix,*,0)
            x2d(*,*,1)=x(*,ix,*,2)
            w2d(*,*,*)=w(*,ix,*,*)
-           height=x(0,ix,0,1)
            info1='i'+dirname+'='+string(ix,format='(i4)')
-           info2=dirname+'='+string(height)
+           info2=dirname+'='+string(x(0,ix,0,1))
         end
         3:begin
            x2d(*,*,*)=x(*,*,ix,0:1)
            w2d(*,*,*)=w(*,*,ix,*)
-           height=x(0,0,ix,2)
            info1='i'+dirname+'='+string(ix,format='(i4)')
+           info2=dirname+'='+string(x(0,0,ix,2))
         end
       endcase
-      info2=dirname+'='+string(height)
       case bottomline of
       0: info=''
       1: info=info1
@@ -199,16 +194,12 @@
 
       if velrandom then velpos=0
 
-      if abs(height) ge rBody then rBodySlice=0.0 $
-      else                         rBodySlice=sqrt(rBody^2 - height^2)
-
-      plotfunc,x2d,w2d,xreg,wreg,usereg,2,physics2d,eqpar,rBodySlice,$
+      plotfunc,x2d,w2d,xreg,wreg,usereg,2,physics2d,eqpar,$
         var2d,wnames,axistype,plotmodes,plottitles,$
         ax,az,contourlevel,0,$
         velvector,0,velseed,velpos,velx,vely,veltri,$
         cut,cut0,plotdim,$
-        nfunc,multix,multiy,fixaspect,$
-        plotix,plotiy,funcs,funcs1,funcs2,fmin,fmax,f
+        nfunc,multix,multiy,plotix,plotiy,funcs,funcs1,funcs2,fmin,fmax,f
 
       xyouts,5,8,/DEV,info
       putheader,1,1,0,0,headerline,headline,nx

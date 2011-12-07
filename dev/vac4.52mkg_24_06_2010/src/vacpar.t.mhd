@@ -8,7 +8,9 @@ CHARACTER*9,PARAMETER:: eqparname='gamma eta'    ! Equation parameter names
 
 INTEGER,PARAMETER:: rho_=1,m0_=rho_,m^C_=m0_+^C,e_=m^NC_+1! flow variables
 INTEGER,PARAMETER:: ee_=e_, b0_=e_,b^C_=b0_+^C            ! flow variables
-INTEGER,PARAMETER:: nw=b^NC_                              ! No. flow variables
+INTEGER,PARAMETER:: eb_=b^NC_+1, rhob_=eb_+1
+INTEGER,PARAMETER:: bg0_=rhob_, bg^C_=bg0_+^C
+INTEGER,PARAMETER:: nw=bg^NC_                              ! No. flow variables
 
 INTEGER,PARAMETER:: v0_=m0_, v^C_=m^C_, p_=e_, pp_=ee_    ! Primitive variables
 

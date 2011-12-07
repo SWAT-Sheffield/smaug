@@ -18,7 +18,7 @@ include 'vacpar.f'
 
 INTEGER,PARAMETER:: ixGlo^D=1
 ! The next line is edited by SETVAC
-INTEGER,PARAMETER:: ixGhi1=260,ixGhi2=260,ixGhimin=260,ixGhimax=260
+INTEGER,PARAMETER:: ixGhi1=128,ixGhi2=128,ixGhi3=128,ixGhimin=128,ixGhimax=128
 INTEGER,PARAMETER:: ndim=^ND, ndir=^NC
 
 INTEGER,PARAMETER:: dixBlo=2,dixBhi=2
@@ -173,6 +173,8 @@ COMMON, INTEGER::             snapshotini,snapshotout,isaveout
 COMMON, CHARACTER*^LENNAME :: teststr
 COMMON, INTEGER:: ixtest1,ixtest2,ixtest3,iwtest,idimtest,ipetest^IFMPI
 LOGICAL:: oktest    !This is a local variable for all subroutines and functions
+
+COMMON, DOUBLE PRECISION:: maxviscoef
 
 ! end include vacdef
 !##############################################################################

@@ -76,7 +76,7 @@ current(ix^S,idirmin0:3)=zero
 
 do idir=idirmin0,3; do jdir=1,ndim; do kdir=1,ndir
    if(lvc(idir,jdir,kdir)/=0)then
-      tmp(ixI^S)=w(ixI^S,b0_+kdir)
+      tmp(ixI^S)=(w(ixI^S,b0_+kdir)+w(ixI^S,bg0_+kdir))
       call gradient(.true.,tmp,ix^L,jdir,tmp2)
       if(lvc(idir,jdir,kdir)==1)then
          current(ix^S,idir)=current(ix^S,idir)+tmp2(ix^S)
@@ -134,7 +134,7 @@ do idir=1,ndir
 
    ! Put B_idir into tmp2 and eta*Laplace B_idir into tmp
    tmp(ix^S)=zero
-   tmp2(ixG^S)=w(ixG^S,b0_+idir)
+   tmp2(ixG^S)=(w(ixG^S,b0_+idir)+w(ixG^S,bg0_+idir))
    if(gencoord)then 
       ! Use contour integral of Grad(B_idir) along cell edges
       !!! Assumes that connected cell centers are orthogonal to interfaces
@@ -171,24 +171,11 @@ do idir=1,ndir
             tmp(ix^S)=tmp(ix^S)+&
               (tmp2(jx^S)-2*tmp2(ix^S)+tmp2(hx^S))/dx(ix^S,idim)**2 
 
-            {^IFPHI
-            ! For polar grid 
-            if(polargrid)then
-               ! To (Laplace B)_r   add -2/r**2*(dB_phi/dphi) where dx=dphi*r
-               if(idir==r_)tmp(ix^S)=tmp(ix^S)&
-                  -(w(jx^S,bphi_)-w(hx^S,bphi_))/dx(ix^S,idim)/x(ix^S,r_)
-               ! To (Laplace B)_phi add +2/r**2*(dB_r/dphi)   where dx=dphi*r
-               if(idir==phi_)tmp(ix^S)=tmp(ix^S)&
-                  +(w(jx^S,br_)-w(hx^S,br_))/dx(ix^S,idim)/x(ix^S,r_)
-            endif
-            }
+
             !SHIFT END
          endif
       enddo
    endif
-   ! Axial symmetry : Add -B_r/r**2 or -B_phi/r**2
-   if(typeaxial=='cylinder'.and.(idir==r_.or.idir==phi_))&
-      tmp(ix^S)=tmp(ix^S)-tmp2(ix^S)/x(ix^S,r_)**2
 
    ! Multiply by eta
    tmp(ix^S)=tmp(ix^S)*eta(ix^S)
@@ -213,7 +200,7 @@ do idir=1,ndir
          wnew(ix^S,iw)=wnew(ix^S,iw)+qdt*tmp(ix^S)
       else if(iw==e_)then
          ! de/dt+=B.tmp
-         wnew(ix^S,iw)=wnew(ix^S,iw)+qdt*tmp(ix^S)*w(ix^S,b0_+idir)
+         wnew(ix^S,iw)=wnew(ix^S,iw)+qdt*tmp(ix^S)*(w(ix^S,b0_+idir)+w(ix^S,bg0_+idir))
       endif
    end do  ! iiw
 enddo ! idir
@@ -294,7 +281,7 @@ do iiw=1,iws(niw_); iw=iws(iiw)
       ! de/dt+= div(B x Jeta), thus e-= dt*eps_ijk d_i B_j Jeta_k
       do idir=1,ndim; do jdir=1,ndir; do kdir=idirmin,3
          if(lvc(idir,jdir,kdir)/=0)then
-            tmp(ix^S)=w(ix^S,b0_+jdir)*current(ix^S,kdir)*eta(ix^S)*qdt
+            tmp(ix^S)=(w(ix^S,b0_+jdir)+w(ix^S,bg0_+jdir))*current(ix^S,kdir)*eta(ix^S)*qdt
             call gradient(.false.,tmp,ixO^L,idir,tmp2)
             if(lvc(idir,jdir,kdir)==1)then
                wnew(ixO^S,ee_)=wnew(ixO^S,ee_)+tmp2(ixO^S)
@@ -313,3 +300,18 @@ end
 ! end module vacphys.mhdres
 !##############################################################################
 
+
+subroutine gradient(bebe,q,ix^L,idim,gradq)
+include 'vacdef.f'
+integer:: ix^L,idim
+double precision:: q(ixG^T),gradq(ixG^T)
+integer:: hx^L,kx^L
+logical:: bebe
+!-----------------------------------------------------------------------------
+
+hx^L=ix^L-kr(idim,^D);
+kx^L=ix^L+kr(idim,^D);
+gradq(ix^S)=-(q(kx^S)-q(hx^S))/dx(ix^S,idim)/two
+
+return
+end

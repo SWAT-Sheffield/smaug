@@ -35,34 +35,29 @@ nothing	:
 ##### Nag F95 compiler (on a Linux box) #########################
 
 #F77=f95
-#F77=/usr/mpi/pgi/mvapich2-1.2p1/bin/mpif77
-#F77=pgf77
-F77=g77
-#F77FLG=-132 -dusty -Mnobounds
-F77FLG= -ffixed-line-length-none
-
+#F77=/usr/local/mpich-gm2_PGI/bin/mpif77
+#F77=/usr/local/pgi/linux86-64/2010/mpi/mpich/bin/mpif77
+F77=pgf77
+#F77FLG=-132 -dusty -Mnobounds -I /usr/local/pgi/linux86-64/2010/mpi/mpich/include -L /usr/local/pgi/linux86-64/2010/mpi/mpich/lib
+F77FLG=-132 -dusty -Mnobounds  -mcmodel=medium
 #F90=f95
-#F90=pgf90
-F90=gfortran
-#F77=/usr/mpi/pgi/mvapich2-1.2p1/bin/mpif90
-#F90FLG=-Mfreeform -Mnobounds
-F90FLG=-ffree-form
-#F90FLG= 
-
+#F90=/usr/local/pgi/linux86-64/2010/mpi/mpich/bin/mpif90
+F90=pgf90
+#F90FLG=-Mfreeform -Mnobounds -I /usr/local/pgi/linux86-64/2010/mpi/mpich/include -L /usr/local/pgi/linux86-64/2010/mpi/mpich/lib
+F90FLG=-Mfreeform -Mnobounds -mcmodel=medium
 #
 # Select one:
 #
-#F77FLAGS= $(F77FLG) -O4 -w=all #        final compile
+F77FLAGS= $(F77FLG) -O4 -w=all #        final compile
 #F77FLAGS= $(F77FLG) -O1 -C -w=all #    developing
-F77FLAGS= $(F77FLG) -g -C #            debugging
+#F77FLAGS= $(F77FLG) -g -C #            debugging
 
 #
 # Select one:
 #
-#F90FLAGS= $(F90FLG) -O4 -w=all #        optimized
+F90FLAGS= $(F90FLG) -O4 -w=all #        optimized
 #F90FLAGS= $(F90FLG) -O1 -C -w=all #    develop
 #F90FLAGS= $(F90FLG) -O0 -gline -C #            debugging
-F90FLAGS= $(F90FLG) -O0 -C #            debugging
 
 ##### GNU Fortran compiler: g77 (e.g. for Linux) ######
 #
@@ -310,15 +305,15 @@ F90FLAGS= $(F90FLG) -O0 -C #            debugging
 #
 # Select these if your default compiler for making VAC and VACINI is F90:
 #
-#FOR=$(F90)
-#FORFLG=$(F90FLAGS)
-#PREFOR=$(F90TOF90)
+FOR=$(F90)
+FORFLG=$(F90FLAGS)
+PREFOR=$(F90TOF90)
 
 # Select these if your default compiler for making VAC and VACINI is F77:
 #
- FOR=$(F77)
- FORFLG=$(F77FLAGS)
- PREFOR=$(F90TOF77)
+# FOR=$(F77)
+# FORFLG=$(F77FLAGS)
+# PREFOR=$(F90TOF77)
 
 # Select these if your default compiler for making VAC and VACINI is GCC:
 # (Assumes that an F2C translator has been used!)
@@ -390,7 +385,7 @@ F90TOF90 = #				No
 
 ############ Maximum line length for Fortran 77 compiler ###################
 
-F90TOF77= | ./f90tof77
+F90TOF77= | f90tof77
 #F90TOF77= | f90tof77 -maxlen=72 
 
 ##################### HPF Preprocessor ##############################
@@ -521,8 +516,8 @@ VAC_OBJ = vac$O vacio$O vacgrid$O vacphys0$O vacphys$O vacusr$O
 # The VACCD, VACMC, VACFCT, VACTVDLF, VACTVD, VACIMPL, VACPOISSON, VACMPI 
 # modules are removed or added in the following two lines by "setvac". 
 # DO NOT TOUCH THESE TWO LINES:
-VACFOR = $(VAC_FOR) vaccd$F vactvdlf$F vactvd$F vacpoisson$F
-VACOBJ = $(VAC_OBJ) vaccd$O vactvdlf$O vactvd$O vacpoisson$O
+VACFOR = $(VAC_FOR) vaccd$F
+VACOBJ = $(VAC_OBJ) vaccd$O
 
 # The VACMPI module is removed or added the following two lines by "setvac".
 # DO NOT TOUCH THESE TWO LINES:
@@ -533,7 +528,7 @@ ROEOBJ = roetest$O vacphys0$O vacphys$O
 
 ################### Translation and dependency rules #######################
 
-PREPROC= $(VACPP_) forall2do ./f90tof77 f90tohpf
+PREPROC= $(VACPP_) forall2do f90tof77 f90tohpf
 
 .SUFFIXES:
 .SUFFIXES: .t $F  $O
@@ -565,11 +560,10 @@ tridiag$O:	tridiag$(F7)
 
 ########### Extra dependencies for some files with "INCLUDE:" statements
 
-vacphys$F: vacphys.t vacproc.positive.t vacphys.mhd0.t vacphys.mhdres.t \
-           vacproc.projectb.t vacproc.constrainb.t 
+vacphys$F: vacphys.t vacphys.mhd0.t vacphys.mhdres.t 
 	$(VACPP) $< $(PREFOR) > $@
 
-vacgrid$F: vacgrid.t vacgrid.setnozzle.t vacgrid.rotate3.t vacgrid.gencoord.t
+vacgrid$F: vacgrid.t
 	$(VACPP) $< $(PREFOR) > $@
 
 ################# Makefile targets #########################################

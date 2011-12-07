@@ -50,18 +50,24 @@ do iiw=1,iws(niw_); iw=iws(iiw)
       idim=iw-m0_
       if(abs(eqpar(grav0_+idim))>smalldouble) &
           wnew(ixO^S,m0_+idim)=wnew(ixO^S,m0_+idim)+ &
-              qdt*eqpar(grav0_+idim)*w(ixO^S,rho_)
+              qdt*eqpar(grav0_+idim)*(w(ixO^S,rho_))
+
+!          wnew(ixO^S,m0_+idim)=wnew(ixO^S,m0_+idim)+ &
+!              qdt*eqpar(grav0_+idim)*(w(ixO^S,rho_)+w(ixO^S,rhob_))
 
       !!! ! For a spatially varying gravity use instead of the above lines
       !!! wnew(ixO^S,m0_+idim)=wnew(ixO^S,m0_+idim)+ &
-      !!!    qdt*grav(ixO^S,idim)*w(ixO^S,rho_)
+      !!!    qdt*grav(ixO^S,idim)*(w(ixO^S,rho_)+w(ixO^S,rhob_))
 
    case(e_)
       ! de/dt= +g_i*m_i
       do idim=1,ndim
          if(abs(eqpar(grav0_+idim))>smalldouble) &
             wnew(ixO^S,ee_)=wnew(ixO^S,ee_)+ &
-               qdt*eqpar(grav0_+idim)*w(ixO^S,m0_+idim)
+               qdt*eqpar(grav0_+idim)*w(ixO^S,rho_)*w(ixO^S,m0_+idim)/(w(ixO^S,rho_)+w(ixO^S,rhob_))
+
+!            wnew(ixO^S,ee_)=wnew(ixO^S,ee_)+ &
+!               qdt*eqpar(grav0_+idim)*w(ixO^S,m0_+idim)
 
          !!! ! For a spatially varying gravity use instead of the above lines
          !!! wnew(ixO^S,ee_)=wnew(ixO^S,ee_)+ &

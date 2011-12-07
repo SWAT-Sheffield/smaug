@@ -1,0 +1,48 @@
+&testlist /
+
+&filelist
+	filenameini='/home/mikeg/proj/vac4.52_sac_feb2011/zero1_3d.ini',
+	typefileini='binary'
+	filename=   '/home/mikeg/proj/vac4.52_sac_feb2011/zero_sodov.log',
+		    '/home/mikeg/proj/vac4.52_sac_feb2011/zero_sodov.out'
+	typefileout='binary'
+        fullgridout= T
+        fullgridini= T
+ /
+
+&savelist
+ditsave(1)=10
+ditsave(2)=10
+
+ /
+
+ &stoplist
+	itmax=50
+ /
+
+ &methodlist
+
+	wnames=		'h 	m1  	 m2  	m3	e	b1	b2	b3	eb	rhob	bg1	bg2	bg3'
+	typefull=	8*'cd4',5*'nul'
+        typeadvance=    'onestep'
+	typefilter=	13*'nul'
+	dimsplit=	F
+	sourcesplit=	F
+	divBfix=	F
+ /
+
+ &boundlist
+	typeB='contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4'
+              'contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4'
+              'contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4'
+              'contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4'
+              'contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4'
+              'contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4','contCD4'
+		
+ /
+
+ &paramlist
+	courantpar=0.2
+        dtpar=5.0d10
+        dtcantgrow=T
+ /

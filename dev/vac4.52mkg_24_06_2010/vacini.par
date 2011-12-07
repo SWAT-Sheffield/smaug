@@ -1,0 +1,16 @@
+/home/mikeg/data/vac_nn/2_6Mnzx1976400.ini
+grav2_mhd22
+x y h m1 m2 e b1 b2 eb rhob bg1 bg2
+typefileout
+binary
+typefileini
+binary
+domain
+1976,400					-ixmax
+46023.012,0.d0			 		-min coordinates
+3997999.0,4.0d6           	         	-max coordinates
+eqpar
+1.6666667 0.0 1.0 -274.0 0.0 0.0  gamma eta gg g0 g1 g2 nu 
+special
+./Atmosphere/VALMc_rho_1976.dat
+save

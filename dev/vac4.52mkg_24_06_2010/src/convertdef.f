@@ -17,7 +17,8 @@ C
 C VERBOSE determines the amount of info printed. Possible values: 0, 1, 2
 
       INTEGER worksize,npictmax,verbose
-      PARAMETER (worksize=8000000,npictmax=1000,verbose=2)
+C      PARAMETER (worksize=9484846,npictmax=1000,verbose=2)
+      PARAMETER (worksize=49795200,npictmax=1000,verbose=2)
 
       REAL*8 work(worksize)
       COMMON /WORK/ work

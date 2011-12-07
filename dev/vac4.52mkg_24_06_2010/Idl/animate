@@ -1,10 +1,9 @@
-;^CFG COPYRIGHT VAC_UM
 ;===========================================================================
 ;    Written by G. Toth for the Versatile Advection Code.
 ;
 ;    Read pictures from one or more ascii or binary ini or out file and 
 ;    plot or animate one or more functions of w using different plotting 
-;    routines. The functions are defined in the "Idl/funcdef.pro" file.
+;    routines. The functions are defined in the "Idl/animfunc.pro" file.
 ;
 ;    For generalized coordinates the variables can be interpolated from the 
 ;    irregular grid onto a regular one, or to polar coordinates.
@@ -30,14 +29,12 @@
         siz=size(multiplot)
         if siz(0) eq 0 then multiplot=[multiplot,1,1]
         print,'multiplot= ',multiplot,', axistype (coord/cells)=',axistype,$
-              ', fixaspect= ',fixaspect,$
-              FORMAT='(a,"[",i2,",",i2,",",i2,"]",a,a,a,i1)'
+        FORMAT='(a,"[",i2,",",i2,",",i2,"]",a,a)'
    endif else $
         print,'multiplot= 0 (default), axistype (coord/cells)=',axistype,$
-              ', fixaspect= ',fixaspect,$
-              FORMAT='(a,a,a,i1)'
+              FORMAT='(a,a)'
    print,'bottomline=',bottomline,', headerline=',headerline,$
-              FORMAT='(a,i1,a,i1)'
+        FORMAT='(a,i1,a,i1)'
 
    if keyword_set(cut) then help,cut
    if keyword_set(wsubtract) then help,wsubtract
@@ -65,10 +62,10 @@
    physics=''
    anygencoord=0
    for ifile=0,nfile-1 do begin
-      openfile,10,filenames(ifile),filetypes(ifile)
+      openfile,1,filenames(ifile),filetypes(ifile)
       phys=physicss(ifile)
-      gethead,10,filetypes(ifile), $
-         headline,phys,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
+      gethead,1,filetypes(ifile),phys, $
+         headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables
       anygencoord=anygencoord or gencoord
       print,         'headline                  =',strtrim(headline,2)
       print,FORMAT='("variables                 =",100(a," "),$)',variables
@@ -82,7 +79,7 @@
    readplotpar,ndim,cut,cut0,plotdim,nfunc,func,funcs,funcs1,funcs2,$
       plotmode,plotmodes,plottitle,plottitles,autorange,autoranges,doask
 
-   readtransform,ndim,nx,anygencoord,transform,nxreg,xreglimits,wregpad,$
+   readtransform,ndim,nx,anygencoord,transform,nxreg,wregpad,$
                  physicss(nfile-1),nvector,vectors,grid,doask
 
    print,'======= DETERMINE PLOTTING RANGES ==================='
@@ -96,16 +93,13 @@
    endif else begin
       npict=0
       for ifile=0,nfile-1 do $
-         openfile,ifile+10,filenames(ifile),filetypes(ifile)
+         openfile,ifile+1,filenames(ifile),filetypes(ifile)
       error=0
       while npict lt npictmax and not error do begin
-
          if npict eq 0 then nextpict=firstpict else nextpict=dpict
          for ifile=0,nfile-1 do begin
-            getpict,ifile+10,filetypes(ifile),nextpict,x,w,$
-                headline, phys, it, time, gencoord, ndim, neqpar, nw, nx,$
-                eqpar, variables, rBody, err
-
+            getpict,ifile+1,filetypes(ifile),nextpict,x,w,$
+               headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables,err 
             if keyword_set(wsubtract) then w=w-wsubtract
             wnames=variables(ndim:ndim+nw-1)
             usereg=(not gencoord and transform eq 'unpolar') or $
@@ -113,12 +107,10 @@
                               or transform eq 'sphere'))
             error=err or error
 
-
             if not error then begin
                if usereg then case transform of
-	          'regular':regulargrid,x_old,nxreg_old,xreglimits_old,$
-                            x,xreg,nxreg,xreglimits, $
-                            w,wreg,nw,w(0,0,*),triangles,symmtri
+	          'regular':regulargrid,x_old,nxreg_old,x,xreg,nxreg,dxreg, $
+                                     w,wreg,nw,w(0,0,*),triangles
 		  'polar'  :polargrid  ,nvector,vectors,x,w,xreg,wreg
 		  'sphere' :spheregrid  ,nvector,vectors,x,w,xreg,wreg
 		  'unpolar':unpolargrid,nvector,vectors,x,w,xreg,wreg
@@ -187,7 +179,7 @@
    ipict=0
    ipict1=0
    iplot=0
-   for ifile=0,nfile-1 do openfile,ifile+10,filenames(ifile),filetypes(ifile)
+   for ifile=0,nfile-1 do openfile,ifile+1,filenames(ifile),filetypes(ifile)
    error=0
    while ipict lt npict and not error do begin
       if ipict1 eq 0 then begin
@@ -204,27 +196,20 @@
       for ifile=0,nfile-1 do begin
 
          if npict gt 1 or nfile gt 1 or noautorange then begin
-            getpict,ifile+10,filetypes(ifile),nextpict,x,w,$
-               headline,phys,it,time,gencoord,ndim,neqpar,nw,nx,$
-               eqpar, variables, rBody, err
-
+            getpict,ifile+1,filetypes(ifile),nextpict,x,w,$
+               headline,it,time,gencoord,ndim,neqpar,nw,nx,eqpar,variables,err
+            if keyword_set(wsubtract) then w=w-wsubtract
+            wnames=variables(ndim:ndim+nw-1)
+            usereg=(not gencoord and transform eq 'unpolar') or $
+               (gencoord and (transform eq 'polar' or transform eq 'regular' $
+                              or transform eq 'sphere'))
             error=error or err
          endif
 
          if not error then begin
-
-            if keyword_set(wsubtract) then w=w-wsubtract
-
-            wnames=variables(ndim:ndim+nw-1)
-
-            usereg=(not gencoord and transform eq 'unpolar') or $
-               (gencoord and (transform eq 'polar' or transform eq 'regular' $
-                              or transform eq 'sphere'))
-
             if usereg then case transform of
-		'regular':regulargrid,x_old,nxreg_old,xreglimits_old,$
-                                x,xreg,nxreg,xreglimits, $
-				w,wreg,nw,wregpad,triangles,symmtri
+		'regular':regulargrid,x_old,nxreg_old,x,xreg,nxreg,dxreg, $
+				w,wreg,nw,wregpad,triangles
 		'polar'  :begin
                             polargrid,nvector,vectors,x,w,xreg,wreg
                             variables(0:1)=['r','phi']
@@ -242,13 +227,12 @@
 	    linestyle=0
             if multix*multiy lt nfunc*nfile then linestyle=ifile
 
-            plotfunc,x,w,xreg,wreg,usereg,ndim,physicss(ifile),eqpar,rBody,$
+            plotfunc,x,w,xreg,wreg,usereg,ndim,physicss(ifile),eqpar,$
               variables,wnames,axistype,plotmodes,plottitles,$
               ax,az,contourlevel,linestyle,$
 	      velvector,velspeed,velseed,velpos,velx,vely,veltri,$
               cut,cut0,plotdim,$
-              nfunc,multix,multiy,fixaspect,plotix,plotiy,$
-              funcs,funcs1,funcs2,fmin,fmax,f
+              nfunc,multix,multiy,plotix,plotiy,funcs,funcs1,funcs2,fmin,fmax,f
 
             if npict1 le 1 then begin
                putbottom,multix,multiy,ifile,0,bottomline,nx,it,time
@@ -283,7 +267,7 @@
 
    endwhile
 
-   for ifile=0,nfile-1 do close,ifile+10
+   for ifile=1,nfile do close,ifile
    print
    !p.multi=0
    !p.title=''

@@ -13,10 +13,10 @@
 #        vacpp.pl -O file.t > file.f           # Optimize !SHIFT regions
 #############################################################################
 
-$ndim=2; $ndir=2; 
+$ndim=3; $ndir=3; 
 $phi=-9; $z=-8;
-$if_cd=1; $if_mc=0; $if_fct=0; $if_tvdlf=1; $if_tvd=1; 
-$if_impl=0; $if_poisson=1; $if_ct=0; $if_gencoord=0; $if_resist=1; $if_rk=0;
+$if_cd=1; $if_mc=0; $if_fct=0; $if_tvdlf=0; $if_tvd=0; 
+$if_impl=0; $if_poisson=0; $if_ct=0; $if_gencoord=0; $if_resist=0; $if_rk=1;
 $if_mpi=0;
 
 # SETVAC READS UP TO THIS POINT
@@ -106,6 +106,9 @@ sub definepatterns{
    $nsubdefault=$ndim;
    # Define number of substitutes and subtitute strings for patterns
    # E.g. ^D -> 1,2 is defined by &patdef('D',2,'1','2','3')
+   &patdef('LM'	,$ndim	,'ixGlo1:ixGhi1+2'	,'ixGlo2:ixGhi2+2','ixGlo3:ixGhi3+2'	);
+   &patdef('SIDEADD'	,1	,'ixGlo^D:ixGhi^D+2'	);
+   &patdef('SIDEADO'	,1	,'ixGlo^D:ixGhi^D+1'	);   
    &patdef('ND'	,1	,$ndim			);
    &patdef('NC'	,1	,$ndir			);
    &patdef('PHI',1	,$phi			);

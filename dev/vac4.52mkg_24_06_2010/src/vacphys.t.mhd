@@ -4,7 +4,6 @@
 INCLUDE:vacphys.mhd0.t
 
 !=============================================================================
-INCLUDE:vacproc.positive.t
 
 subroutine keeppositive(ix^L,w)
 
@@ -17,21 +16,18 @@ double precision:: w(ixG^T,nw)
 logical:: toosmallp
 !-----------------------------------------------------------------------------
 
-if(vacuumrho<zero)then
-   ! Keep density positive
-   call keeppositive_rho(ix^L,w)
-else
+
    ! Where rho is small use vacuum state: rho=vacuumrho, v=0, p=smallp, same B
-   where(w(ix^S,rho_)<smallrho)
+   where((w(ix^S,rho_)+w(ix^S,rhob_))<smallrho)
       ^C&w(ix^S,m^C_)=zero;
 !!!      ^C&w(ix^S,m^C_)=w(ix^S,m^C_)/w(ix^S,rho_)*vacuumrho;
-      w(ix^S,rho_)=vacuumrho
-      w(ix^S,e_)=smallp/(eqpar(gamma_)-one)+half*(^C&w(ix^S,b^C_)**2+)
+      w(ix^S,rho_)=vacuumrho-w(ix^S,rhob_)
+      w(ix^S,e_)=smallp/(eqpar(gamma_)-one)+half*(^C&w(ix^S,b^C_)**2+)-w(ix^S,eb_)
    endwhere
-endif
+
 
 ! Calculate pressure without clipping toosmall values (.false.)
-call getpthermal(.false.,w,ix^L,tmp)
+call getpthermal(w,ix^L,tmp)
 
 toosmallp=any(tmp(ix^S)<max(zero,smallp))
 
@@ -46,7 +42,7 @@ if(toosmallp)then
    endif
    if(smallp>zero)&
       w(ix^S,e_)=max(tmp(ix^S),smallp)/(eqpar(gamma_)-1)+&
-         half*((^C&w(ix^S,m^C_)**2+)/w(ix^S,rho_)+(^C&w(ix^S,b^C_)**2+))
+         half*((^C&w(ix^S,m^C_)**2+)/w(ix^S,rho_)+(^C&w(ix^S,b^C_)**2+))-w(ix^S,eb_)
 endif
 
 return
