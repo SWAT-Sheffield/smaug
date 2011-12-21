@@ -105,8 +105,7 @@ int ni=p->n[0];
 	//if no initial config read
 
 	    for(int f=0; f<NVAR; f++)
-            { 
-		         
+            { 		         
                           for(ord=0;ord<(2+3*(p->rkon==1));ord++)
                               wmod[fencode3_i(p,ii,f)+ord*NVAR*dimp]=0;
 	    }
@@ -171,9 +170,11 @@ int ni=p->n[0];
 	{
         for(int f=rho; f<NVAR; f++)
         {               
-                  wmod[fencode3_i(p,ii,f)]=w[fencode3_i(p,ii,f)];
-                  wmod[  (((3*(1+(p->rkon)))-1)*NVAR*dimp)+fencode3_i(p,ii,f)]=w[fencode3_i(p,ii,f)];              
+                  //wmod[fencode3_i(p,ii,f)]=w[fencode3_i(p,ii,f)];
+                  //wmod[  (((3*(1+(p->rkon)))-1)*NVAR*dimp)+fencode3_i(p,ii,f)]=w[fencode3_i(p,ii,f)];              
                   dwn1[fencode3_i(p,ii,f)]=0;
+                  for(ord=0;ord<(2+3*(p->rkon==1));ord++)
+                              wmod[fencode3_i(p,ii,f)+ord*NVAR*dimp]=w[fencode3_i(p,ii,f)];
                             
         }
 

@@ -199,11 +199,11 @@ cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&
   cucopywtompiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod, 0);
 #endif
 
-  cuboundary(&p,&d_p,&d_state,&d_w, 0);
+ // cuboundary(&p,&d_p,&d_state,&d_w, 0);
 #ifdef USE_MPI
    mpibound(NVAR, d_w ,d_p);
 #endif
-  cuboundary(&p,&d_p,&d_state,&d_wmod, 0);
+//  cuboundary(&p,&d_p,&d_state,&d_wmod, 0);
 #ifdef USE_MPI
    mpibound(NVAR, d_wmod ,d_p);
    cucopywfrommpiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod,0);
@@ -301,7 +301,7 @@ if((p->rkon)==0)
                //cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dir);
 
               // printf("cmax=%10.12f\n",p->cmax);  
-  for(int f=rho; f<=(mom1+NDIM-1); f++) 
+  for(int f=rho; f<=(mom1+NDIM-1); f++)
       cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
 
  
@@ -310,8 +310,11 @@ if((p->rkon)==0)
    for(int f=energy; f<=(b1+NDIM-1); f++)
    {
      if(f==energy)
+     {
+         cucomputevels(&p,&d_p,&d_wmod, &d_wd,order,dir);
          cucomputepbg(&p,&d_p,&d_wmod, &d_wd,order,dir);
-
+         cucomputept(&p,&d_p,&d_wmod, &d_wd,order,dir);
+     }
     
       cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
    }
@@ -322,7 +325,7 @@ if((p->rkon)==0)
  
 
 
-  // cuboundary(&p,&d_p,&d_wmod, ordero);
+   //cuboundary(&p,&d_p,&d_wmod, ordero);
    if(p->divbon==1)
 	       cudivb(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
    if(p->hyperdifmom==1)
@@ -491,7 +494,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	   cucopywfrommpiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod,order);
 	   
 	#endif
-   cuboundary(&p,&d_p,&d_state,&d_wmod, ordero);
+  // cuboundary(&p,&d_p,&d_state,&d_wmod, ordero);
 
 }
 

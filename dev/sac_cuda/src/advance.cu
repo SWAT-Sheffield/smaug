@@ -108,7 +108,7 @@ int shift=order*NVAR*dimp;
                   //wmod[fencode3_adv(p,iia,f)]=((w[fencode3_adv(p,i+1,j,f)]+w[fencode3_adv(p,i-1,j,f)]+w[fencode3_adv(p,iia+1,f)]+w[fencode3_adv(p,iia-1,f)])/4.0)+(dt)*(dwn1[fencode3_adv(p,iia,f)]);
                    }
                   
-                   if(isnan(wmod[fencode3_adv(p,iia,f)])) wmod[fencode3_adv(p,iia,f)]=w[fencode3_adv(p,iia,f)];
+                  /* if(isnan(wmod[fencode3_adv(p,iia,f)])) wmod[fencode3_adv(p,iia,f)]=w[fencode3_adv(p,iia,f)];
                    if(wmod[fencode3_adv(p,iia,f)]>big)
                            wmod[fencode3_adv(p,iia,f)]=w[fencode3_adv(p,iia,f)];
                    if(wmod[fencode3_adv(p,iia,f)]<-big)
@@ -116,7 +116,7 @@ int shift=order*NVAR*dimp;
 
                      if(f==rho)
                             if(wmod[fencode3_adv(p,iia,f)]<0)
-                               wmod[fencode3_adv(p,iia,f)]=1.00;
+                               wmod[fencode3_adv(p,iia,f)]=1.00;*/
                }
 
 

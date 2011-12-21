@@ -1215,8 +1215,7 @@ __global__ void computec_parallel(struct params *p,   real *wmod, real *wd, int 
   //if(i>1 && j >1 && i<((p->n[0])-2) && j<((p->n[1])-2))
 	{
  //determin cmax
-               //computecsq3_cdf(wmod+(order*dimp*NVAR),wd,p,ii,dir);
-               computecsq3_cdf(wmod+(order*dimp*NVAR),wd,p,ii,dir);
+               computec3_cdf(wmod+(order*dimp*NVAR),wd,p,ii,dir);
                //p->cmax=0.0;
         }
 
@@ -1467,7 +1466,7 @@ int cucomputemaxc(struct params **p,  struct params **d_p, real **d_wmod,  real 
 cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
 cudaMemcpy(*d_wtemp, ((*wd)+(cfast*dimp)), dimp*sizeof(real), cudaMemcpyHostToDevice);
    
-myreduction0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp);
+   myreduction0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp);
 //cudaThreadSynchronize();
 //reduction0computemaxcfast_parallel<<<numBlocks, numThreadsPerBlock,smemSize>>>(*d_p, *d_wmod,  *d_wd, order, dir);
 //myreduction0computemaxcfast_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd,*d_wtemp, order, dir);

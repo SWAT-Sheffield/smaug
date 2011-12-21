@@ -28,8 +28,8 @@ ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
 
-real xmax=1591959.8;
-real xmin=24120.603;
+real xmax=1599999.941;
+real xmin=36641.221;
 real dx = (xmax-xmin)/(ni);
 //#endif
 
@@ -44,8 +44,8 @@ int nj=124;  //BW test
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
-real ymax=2000000.0;
-real ymin=0.0;
+real ymax=2007812.5;
+real ymin=7812.5;
 //real dx = xmax/(ni-4);
 real dy = (ymax-ymin)/(nj);  
 //nj=41;
@@ -59,11 +59,13 @@ int nk;
 nk=124;    //BW tests
 
 nk=nk+2*ngk;
-real zmax=2000000.0;
-real zmin=0.0;
+real zmax=2007812.5;
+real zmin=7812.5;
 //real dx = xmax/(ni-4);
 real dz = (zmax-zmin)/(nk);
-#endif     
+#endif  
+
+//printf("dx %f %f %f\n",dx,dy,dz);   
 real *x=(real *)calloc(ni,sizeof(real));
 for(i=0;i<ni;i++)
 		x[i]=i*dx;
@@ -81,11 +83,12 @@ int steeringenabled=1;
 int finishsteering=0;
 char configfile[300];
 //char *cfgfile="zero1.ini";
-char *cfgfile="3D_tube_128_128_128_asc.ini";
+//char *cfgfile="3D_128_128_128_asc_50.ini";
+char *cfgfile="3D_tubeact_128_128_128_asc_50.ini";
 //char *cfgfile="zero1_BW_bin.ini";
-char *cfgout="3D_tube_128_128_128";
-
-
+//char *cfgout="3D_tube_128_128_128";
+//char *cfgout="/fastdata/cs1mkg/sac_cuda/out_ndriver_nohyp_npgft/3D_tube_128_128_128";
+char *cfgout="/fastdata/cs1mkg/sac_cuda/out_driver_hyp_tube/3D_atube_128_128_128";
 struct params *d_p;
 struct params *p=(struct params *)malloc(sizeof(struct params));
 
@@ -99,7 +102,8 @@ dt=2.0;  //bach test
 
 #ifdef USE_SAC_3D
 //dt=2.0;  //BACH3D
-dt=0.13;  //BACH3D
+//dt=0.13;  //BACH3D
+dt=0.07;  //BACH3D
 #endif
 
 
@@ -120,7 +124,7 @@ int nt=(int)((tmax)/dt);
 //nt=3000;
 //nt=5000;
 //nt=200000;
-nt=50000;
+nt=50020;
 //nt=100;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
@@ -171,6 +175,7 @@ p->gamma=1.66666667;
 p->mu=1.0;
 p->eta=0.0;
 p->g[0]=-274.0;
+//p->g[0]=0.0;
 p->g[1]=0.0;
 p->g[2]=0.0;
 #ifdef USE_SAC_3D
@@ -186,7 +191,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=1.0;
 p->readini=1.0;
-p->cfgsavefrequency=25;
+p->cfgsavefrequency=20;
 
 
 p->xmax[0]=xmax;
@@ -249,7 +254,7 @@ meta meta;
 for(int ii=0; ii<NVAR; ii++)
 for(int idir=0; idir<NDIM; idir++)
 {
-   (p->boundtype[ii][idir])=4;  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
+   (p->boundtype[ii][idir])=5;  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
 }
 
 
