@@ -24,7 +24,7 @@ int divflux1(real *dw, real *wd, real *w, struct params *p,int *ii,int field,int
 
 dw[fencode3_cd1(p,ii,field)]+= grad3d_cd1(wd,p,ii,flux,dir); 
 //dw[fencode3_cd1(p,ii,field)]=0.0;
- switch(field)
+ /*switch(field)
   {
 
      case mom1:
@@ -42,7 +42,7 @@ dw[fencode3_cd1(p,ii,field)]+= grad3d_cd1(wd,p,ii,flux,dir);
      ;// dw[fencode3_cd1(p,ii,field)]+= ix/800;
       break;
 
-  }    
+  } */   
  // dw[fencode3_cd1(p,ii,field)]= gradd0_cd1(wd,p,ii,f1,0)+gradd1_cd1(wd,p,ii,f2,1);    
   return ( status);
 }
@@ -123,13 +123,7 @@ int computefluxmom3 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
   int status=0;
 
 #ifdef USE_SAC_3D
-
-
-    		wd[fencode3_cd1(p,ii,flux)]= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom1(dw,wd,w,p,ii,field,direction);
-                //wd[fencode3_cd1(p,ii,flux)]=(  w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]))+fluxmom1(dw,wd,w,p,ii,field,direction);
-
-               //if(direction==1)
-               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
+               wd[fencode3_cd1(p,ii,flux)]=0.0;
  
  
                if(direction==2)
@@ -148,6 +142,12 @@ int computefluxmom3 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
                }
  
 
+    		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom1(dw,wd,w,p,ii,field,direction);
+                //wd[fencode3_cd1(p,ii,flux)]=(  w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]))+fluxmom1(dw,wd,w,p,ii,field,direction);
+
+               //if(direction==1)
+               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
+
 #endif
 
   return ( status);
@@ -161,20 +161,8 @@ int computefluxmom2 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
  
   int status=0;
 
+               wd[fencode3_cd1(p,ii,flux)]=0.0;
 
-        #ifdef USE_SAC
-    		wd[fencode3_cd1(p,ii,flux)]= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom1(dw,wd,w,p,ii,field,direction);
-               //if(direction==1)
-               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
- 
-        #endif
-        #ifdef USE_SAC_3D
-    		wd[fencode3_cd1(p,ii,flux)]= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom1(dw,wd,w,p,ii,field,direction);
-               // wd[fencode3_cd1(p,ii,flux)]=(  w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]))+fluxmom1(dw,wd,w,p,ii,field,direction);
-               //if(direction==1)
-               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
- 
-        #endif
                if(direction==1)
                {
                 //computept_cd1(w,wd,p,ii);
@@ -203,7 +191,19 @@ int computefluxmom2 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
         #endif
 
                }
-
+        #ifdef USE_SAC
+    		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom1(dw,wd,w,p,ii,field,direction);
+               //if(direction==1)
+               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
+ 
+        #endif
+        #ifdef USE_SAC_3D
+    		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom1(dw,wd,w,p,ii,field,direction);
+               // wd[fencode3_cd1(p,ii,flux)]=(  w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]))+fluxmom1(dw,wd,w,p,ii,field,direction);
+               //if(direction==1)
+               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
+ 
+        #endif
 
   return ( status);
 }
@@ -216,22 +216,7 @@ int computefluxmom1 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
  
   int status=0;
 
-        #ifdef ADIABHYDRO
-     		wd[fencode3_cd1(p,ii,flux)]= transportflux(dw,wd,w,p,ii,field,direction);
-        #endif
-        #ifdef USE_SAC
-    		wd[fencode3_cd1(p,ii,flux)]= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom1(dw,wd,w,p,ii,field,direction);
-               //if(direction==0)
-               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
- 
-        #endif
-        #ifdef USE_SAC_3D
-    		wd[fencode3_cd1(p,ii,flux)]=  transportflux(dw,wd,w,p,ii,field,direction)+fluxmom1(dw,wd,w,p,ii,field,direction);
- //wd[fencode3_cd1(p,ii,flux)]=(  w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]))+fluxmom1(dw,wd,w,p,ii,field,direction);
-               //if(direction==0)
-               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
- 
-        #endif
+               wd[fencode3_cd1(p,ii,flux)]=0.0;
                if(direction==0)
                {
 
@@ -261,7 +246,22 @@ int computefluxmom1 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
        #endif
                }
 
-
+        #ifdef ADIABHYDRO
+     		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction);
+        #endif
+        #ifdef USE_SAC
+    		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom1(dw,wd,w,p,ii,field,direction);
+               //if(direction==0)
+               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
+ 
+        #endif
+        #ifdef USE_SAC_3D
+    		wd[fencode3_cd1(p,ii,flux)]=  transportflux(dw,wd,w,p,ii,field,direction)+fluxmom1(dw,wd,w,p,ii,field,direction);
+ //wd[fencode3_cd1(p,ii,flux)]=(  w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]))+fluxmom1(dw,wd,w,p,ii,field,direction);
+               //if(direction==0)
+               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
+ 
+        #endif
         
   return ( status);
 }
@@ -926,6 +926,7 @@ int cucentdiff1(struct params **p, struct params **d_p,struct state **d_s, real 
  //  cudaMemcpy(*w, *d_w, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
  // if(order==0)
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
+    //printf("gamma %g\n", (*p)->gamma);
      centdiff1init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
      //prop_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
 	    //printf("called prop\n"); 
@@ -941,14 +942,14 @@ int cucentdiff1(struct params **p, struct params **d_p,struct state **d_s, real 
      centdiff1af_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
      cudaThreadSynchronize();
      
-     centdiff1binit_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
-     cudaThreadSynchronize();
+    // centdiff1binit_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
+    // cudaThreadSynchronize();
      
-     centdiff1b_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
-     cudaThreadSynchronize();
+   //  centdiff1b_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
+   //  cudaThreadSynchronize();
      
-     centdiff1bf_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
-     cudaThreadSynchronize();
+   //  centdiff1bf_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w,*d_wmod, *d_dwn1,  *d_wd, order, ordero,dt,field,dir);
+   //  cudaThreadSynchronize();
      
 }
 

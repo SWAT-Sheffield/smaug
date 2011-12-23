@@ -124,8 +124,8 @@ int nt=(int)((tmax)/dt);
 //nt=3000;
 //nt=5000;
 //nt=200000;
-nt=50020;
-//nt=100;
+//nt=50020;
+nt=200;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
 //t = [0:dt:tdomain];
@@ -189,9 +189,9 @@ p->sodifon=0.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=1.0;
+p->hyperdifmom=0.0;
 p->readini=1.0;
-p->cfgsavefrequency=20;
+p->cfgsavefrequency=5;
 
 
 p->xmax[0]=xmax;

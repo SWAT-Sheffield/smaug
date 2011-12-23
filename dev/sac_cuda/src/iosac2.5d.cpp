@@ -295,16 +295,20 @@ if((p->rkon)==0)
  for(int dir=0;dir<NDIM; dir++)
  {
 
-  cucomputevels(&p,&d_p,&d_wmod, &d_wd,order,dir);
-  cucomputept(&p,&d_p,&d_wmod, &d_wd,order,dir);
+
               //cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dir);
                //cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dir);
 
               // printf("cmax=%10.12f\n",p->cmax);  
   for(int f=rho; f<=(mom1+NDIM-1); f++)
+  { 
+      if(f!=rho)
+       cucomputept(&p,&d_p,&d_wmod, &d_wd,order,dir);
       cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
+  }
 
- 
+   //cucomputevels(&p,&d_p,&d_wmod, &d_wd,order,dir);
+
 
 #ifndef ADIABHYDRO
    for(int f=energy; f<=(b1+NDIM-1); f++)
@@ -323,7 +327,7 @@ if((p->rkon)==0)
   }
    
  
-
+        cugrav(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt);
 
    //cuboundary(&p,&d_p,&d_wmod, ordero);
    if(p->divbon==1)
@@ -487,6 +491,9 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 
 
    }
+   
+           cusource(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt);
+
    //cuadvance(&p,&d_p,&d_wmod,&d_w, order);
 	#ifdef USE_MPI
 	   cucopywtompiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod, order);

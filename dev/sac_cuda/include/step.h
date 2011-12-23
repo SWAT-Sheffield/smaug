@@ -16,6 +16,10 @@ int cuupdate(struct params **p, real **w, real **wmod,real **wtemp2,  struct sta
 
 int cucentdiff1(struct params **p, struct params **d_p, struct state **d_s,real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt, int field, int dir);
 int cucentdiff2(struct params **p, struct params **d_p, struct state **d_s, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real dt, int field,int dir);
+
+int cugrav(struct params **p, struct params **d_p, struct state **d_s, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real dt);
+int cusource(struct params **p, struct params **d_p, struct state **d_s, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real dt);
+
 //int cucentdiff1a(struct params **p, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt, int field, int dir);
 //int cucentdiff2a(struct params **p, real **w, struct params **d_p, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order,int ordero, real dt, int field,int dir);
 //int cuderivsource(struct params **p, real **w,  struct params **d_p, real **d_w,   real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt);

@@ -164,7 +164,55 @@ __global__ void computept_parallel(struct params *p,   real *wmod, real *wd, int
 
 
 
+     ii[0]=ip;
+     ii[1]=jp;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp;
+     #endif
 
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
+	{		               
+
+                        switch(dir)
+                        {
+                         case 0:
+                          #ifdef USE_SAC_3D
+       				if(ii[0]<p->n[0] && ii[1]>1 && ii[1]<(p->n[1]-2) && ii[2]>1 && ii[2]<(p->n[2]-2))
+     			  #else
+       				if(ii[0]<p->n[0] && ii[1]>1 && ii[1]<(p->n[1]-2))
+     			  #endif
+                         //if(i<(ni)  && j >1 &&  j<(nj-1))
+                                           
+                           computept3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
+                         break;
+                         case 1:
+                          #ifdef USE_SAC_3D
+       				if(ii[1]<p->n[1] && ii[0]>1 && ii[0]<(p->n[0]-2) && ii[2]>1 && ii[2]<(p->n[2]-2))
+     			  #else
+       				if(ii[1]<p->n[1] && ii[0]>1 && ii[0]<(p->n[0]-2))
+     			  #endif
+                         //if(i>1 &&  i<(ni-1) && j<(nj))
+                                           
+                            computept3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
+                         break;
+                          #ifdef USE_SAC_3D
+                         case 2:
+
+       				if(ii[2]<p->n[2] && ii[0]>1 && ii[0]<(p->n[0]-2) && ii[1]>1 && ii[1]<(p->n[1]-2))
+
+                         //if(i>1 &&  i<(ni-1) && j<(nj))
+                                          
+                                computept3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
+                         break;
+                         #endif
+                        }
+
+
+         }
 
 
 
@@ -173,7 +221,7 @@ __global__ void computept_parallel(struct params *p,   real *wmod, real *wd, int
 
 
 
-     ii[0]=ip;
+  /*   ii[0]=ip;
      ii[1]=jp;
      #ifdef USE_SAC_3D
 	   ii[2]=kp;
@@ -192,7 +240,7 @@ __global__ void computept_parallel(struct params *p,   real *wmod, real *wd, int
 	     #else
 	       
 	       computept3_cdf(wmod+(order*dimp*NVAR),wd,p,ii);
-	     #endif         
+	     #endif */        
               /* switch(dir)
                         {
                          case 0:
@@ -242,7 +290,7 @@ __global__ void computept_parallel(struct params *p,   real *wmod, real *wd, int
                         }*/
 
 
-         }
+        /* }*/
 
 
               __syncthreads();

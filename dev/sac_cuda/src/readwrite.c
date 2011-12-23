@@ -166,17 +166,17 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
 
       //set the input filename corresponding to proc id
       if(p.ipe>99)
-        sprintf(configfile,"out/%s_%d_%d.%s",tcfg,st.it,p.ipe,ext);
+        sprintf(configfile,"%s_%d_%d.%s",tcfg,st.it,p.ipe,ext);
       else if(p.ipe>9)
-        sprintf(configfile,"out/%s_%d_0%d.%s",tcfg,st.it,p.ipe,ext);
+        sprintf(configfile,"%s_%d_0%d.%s",tcfg,st.it,p.ipe,ext);
       else
-        sprintf(configfile,"out/%s_%d_00%d.%s",tcfg,st.it,p.ipe,ext);
+        sprintf(configfile,"%s_%d_00%d.%s",tcfg,st.it,p.ipe,ext);
    //printf("here2 %s %d %d %s \n",tcfg,st.it,p.ipe,ext); 
     
    #else
    
          //save file containing current data
-      sprintf(configfile,"out/%s_%d.out",name,st.it);
+      sprintf(configfile,"%s_%d.out",name,st.it);
   #endif
    
 
