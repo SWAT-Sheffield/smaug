@@ -308,6 +308,87 @@ __global__ void computept_parallel(struct params *p,   real *wmod, real *wd, int
   
 }
 
+
+__global__ void computeptzero_parallel(struct params *p,   real *wmod, real *wd, int order, int dir)
+{
+
+
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+  real dt=p->dt;
+  real dy=p->dx[1];
+  real dx=p->dx[0];
+//  real g=p->g;
+ //  dt=1.0;
+//dt=0.05;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+
+  int ii[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
+
+
+
+     ii[0]=ip;
+     ii[1]=jp;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp;
+     #endif
+
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
+	{		               
+
+                        wd[fencode3_cdf(p,ii,pressuret)]=0.0;
+                        
+
+
+         }
+
+
+
+
+  
+
+
+              __syncthreads();
+
+
+
+
+
+
+
+
+
+
+
+  
+}
+
+
+
 __global__ void computepk_parallel(struct params *p,   real *wmod, real *wd, int order, int dir)
 {
 
@@ -1608,7 +1689,9 @@ int cucomputept(struct params **p,  struct params **d_p, real **d_wmod,  real **
    // dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
    int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
 
+    computeptzero_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
 
+     cudaThreadSynchronize();
      computept_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
 
      cudaThreadSynchronize();

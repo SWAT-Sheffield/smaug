@@ -302,7 +302,7 @@ if((p->rkon)==0)
               // printf("cmax=%10.12f\n",p->cmax);  
   for(int f=rho; f<=(mom1+NDIM-1); f++)
   { 
-      if(f!=rho)
+      if((f==mom1 && dir==0)  ||  (f==mom2 && dir==1)  || (f==mom2 && dir==2) )
        cucomputept(&p,&d_p,&d_wmod, &d_wd,order,dir);
       cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
   }

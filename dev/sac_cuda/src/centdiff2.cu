@@ -283,7 +283,7 @@ int computefluxe(real *dw, real *wd, real *w, struct params *p,int *ii,int direc
   int status=0;
 
          #if defined USE_SAC  || defined USE_SAC_3D
-	     wd[fencode3_cd2(p,ii,flux)]= transportflux_cd2(dw,wd,w,p,ii,energy,direction)+fluxe1(dw,wd,w,p,ii,direction);
+	     wd[fencode3_cd2(p,ii,flux)]=0.0;// transportflux_cd2(dw,wd,w,p,ii,energy,direction)+fluxe1(dw,wd,w,p,ii,direction);
          #endif
 
         
@@ -1001,7 +1001,7 @@ __global__ void centdiff2_parallel(struct params *p, struct state *s, real *w, r
        				if(ii[0]<p->n[0] && ii[1]>1 && ii[1]<(p->n[1]-2))
      			  #endif
                          //if(i<(ni)  && j >1 &&  j<(nj-1))
-                            computeflux_cd2(dwn1,wd,wmod+order*NVAR*dimp,p,ii,f,dir); 
+                            computeflux_cd2(dwn1,wd,wmod+order*NVAR*dimp,p,ii,f,0); 
                          break;
                          case 1:
                           #ifdef USE_SAC_3D
@@ -1010,7 +1010,7 @@ __global__ void centdiff2_parallel(struct params *p, struct state *s, real *w, r
        				if(ii[1]<p->n[1] && ii[0]>1 && ii[0]<(p->n[0]-2))
      			  #endif
                          //if(i>1 &&  i<(ni-1) && j<(nj))
-                            computeflux_cd2(dwn1,wd,wmod+order*NVAR*dimp,p,ii,f,dir); 
+                            computeflux_cd2(dwn1,wd,wmod+order*NVAR*dimp,p,ii,f,1); 
                          break;
                           #ifdef USE_SAC_3D
                          case 2:
@@ -1018,7 +1018,7 @@ __global__ void centdiff2_parallel(struct params *p, struct state *s, real *w, r
        				if(ii[2]<p->n[2] && ii[0]>1 && ii[0]<(p->n[0]-2) && ii[1]>1 && ii[1]<(p->n[1]-2))
 
                          //if(i>1 &&  i<(ni-1) && j<(nj))
-                            computeflux_cd2(dwn1,wd,wmod+order*NVAR*dimp,p,ii,f,dir); 
+                            computeflux_cd2(dwn1,wd,wmod+order*NVAR*dimp,p,ii,f,2); 
                          break;
                          #endif
                         }
