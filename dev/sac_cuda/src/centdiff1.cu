@@ -158,30 +158,10 @@ int computefluxmom3 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
 
 #ifdef USE_SAC_3D
                wd[fencode3_cd1(p,ii,flux)]=0.0;
-                 if(direction==2)
-               {
-                //computept_cd1(w,wd,p,ii);
-                //commented out to compare with vac
-                ;// wd[fencode3_cd1(p,ii,flux)]+=wd[fencode3_cd1(p,ii,pressuret)];
 
-
-                //  wd[fencode3_cd1(p,ii,flux)]+=wd[fencode3_cd1(p,ii,ptb)];
-//wd[fencode3_cd1(p,ii,flux)]-=((p->gamma)-2.0)*((w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1b)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2b)]+w[fencode3_cd1(p,ii,b3)]*w[fencode3_cd1(p,ii,b3b)])+0.5*(w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2)]+w[fencode3_cd1(p,ii,b3)]*w[fencode3_cd1(p,ii,b3)]));
-
-
-//wd[fencode3_cd1(p,ii,flux)]+=((p->gamma)-1.0)*( -0.5*(w[fencode3_cd1(p,ii,mom1)]*w[fencode3_cd1(p,ii,mom1)]+w[fencode3_cd1(p,ii,mom2)]*w[fencode3_cd1(p,ii,mom2)]+w[fencode3_cd1(p,ii,mom3)]*w[fencode3_cd1(p,ii,mom3)])/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]));
-
-
-                ;// wd[fencode3_cd1(p,ii,flux)]+=( w[fencode3_cd1(p,ii,energy)]);
-
-               }
- 
 
     		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom12(dw,wd,w,p,ii,field,direction);
-                //wd[fencode3_cd1(p,ii,flux)]=(  w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]))+fluxmom1(dw,wd,w,p,ii,field,direction);
-
-               //if(direction==1)
-               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
+               
 
 #endif
 
@@ -198,45 +178,15 @@ int computefluxmom2 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
   int status=0;
 
                wd[fencode3_cd1(p,ii,flux)]=0.0;
-               if(direction==1)
-               {
-                //computept_cd1(w,wd,p,ii);
-                //commented out to compare with vac
-                ;//wd[fencode3_cd1(p,ii,flux)]+=wd[fencode3_cd1(p,ii,pressuret)];
-
-//wd[fencode3_cd1(p,ii,flux)]-=((p->gamma)-2.0)*((w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1b)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2b)]+w[fencode3_cd1(p,ii,b3)]*w[fencode3_cd1(p,ii,b3b)])+0.5*(w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2)]+w[fencode3_cd1(p,ii,b3)]*w[fencode3_cd1(p,ii,b3)]));
-
-
-
-//wd[fencode3_cd1(p,ii,flux)]+=((p->gamma)-1.0)*( -0.5*(w[fencode3_cd1(p,ii,mom1)]*w[fencode3_cd1(p,ii,mom1)]+w[fencode3_cd1(p,ii,mom2)]*w[fencode3_cd1(p,ii,mom2)]+w[fencode3_cd1(p,ii,mom3)]*w[fencode3_cd1(p,ii,mom3)])/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]));
-
-
-//commented out to check pressure contribution
-                // wd[fencode3_cd1(p,ii,flux)]+=( w[fencode3_cd1(p,ii,energy)]);
-
-//wd[fencode3_cd1(p,ii,flux)]-=(((p->gamma)-2.0)*((w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1b)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2b)])+0.5*(w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2)])));
-
+ 
         #ifdef USE_SAC
+    		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom11(dw,wd,w,p,ii,field,direction);
 
-               //   wd[fencode3_cd1(p,ii,flux)]+=wd[fencode3_cd1(p,ii,ptb)];
-        #endif
-        #ifdef USE_SAC_3D
-
-               //   wd[fencode3_cd1(p,ii,flux)]+=wd[fencode3_cd1(p,ii,ptb)];
-        #endif
-
-               }
-        #ifdef USE_SAC
-    		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom1(dw,wd,w,p,ii,field,direction);
-               //if(direction==1)
-               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
  
         #endif
         #ifdef USE_SAC_3D
     		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom11(dw,wd,w,p,ii,field,direction);
-               // wd[fencode3_cd1(p,ii,flux)]=(  w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]))+fluxmom1(dw,wd,w,p,ii,field,direction);
-               //if(direction==1)
-               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
+ 
  
         #endif
 
@@ -257,53 +207,17 @@ int computefluxmom1 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
 
                wd[fencode3_cd1(p,ii,flux)]=0.0;
 
-               if(direction==0)
-               {
 
-                // computept_cd1(w,wd,p,ii);
-                 //commented out to compare with vac 
-                ;// wd[fencode3_cd1(p,ii,flux)]+=wd[fencode3_cd1(p,ii,pressuret)];
-
-
-//wd[fencode3_cd1(p,ii,flux)]-=((p->gamma)-2.0)*((w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1b)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2b)]+w[fencode3_cd1(p,ii,b3)]*w[fencode3_cd1(p,ii,b3b)])+0.5*(w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2)]+w[fencode3_cd1(p,ii,b3)]*w[fencode3_cd1(p,ii,b3)]));
-
-
-
-//wd[fencode3_cd1(p,ii,flux)]+=((p->gamma)-1.0)*( -0.5*(w[fencode3_cd1(p,ii,mom1)]*w[fencode3_cd1(p,ii,mom1)]+w[fencode3_cd1(p,ii,mom2)]*w[fencode3_cd1(p,ii,mom2)]+w[fencode3_cd1(p,ii,mom3)]*w[fencode3_cd1(p,ii,mom3)])/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]));
-
-
-//commented out to check pressure contribution
-              //   wd[fencode3_cd1(p,ii,flux)]+=(((p->gamma)-1.0)*( w[fencode3_cd1(p,ii,energy)]-0.5*(w[fencode3_cd1(p,ii,mom1)]*w[fencode3_cd1(p,ii,mom1)]+w[fencode3_cd1(p,ii,mom2)]*w[fencode3_cd1(p,ii,mom2)]+w[fencode3_cd1(p,ii,mom3)]*w[fencode3_cd1(p,ii,mom3)])/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)])));
-
-//wd[fencode3_cd1(p,ii,flux)]-=(((p->gamma)-2.0)*((w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1b)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2b)]+w[fencode3_cd1(p,ii,b3)]*w[fencode3_cd1(p,ii,b3b)])+0.5*(w[fencode3_cd1(p,ii,b1)]*w[fencode3_cd1(p,ii,b1)]+w[fencode3_cd1(p,ii,b2)]*w[fencode3_cd1(p,ii,b2)]+w[fencode3_cd1(p,ii,b3)]*w[fencode3_cd1(p,ii,b3)])));
-
-
-                // wd[fencode3_cd1(p,ii,flux)]+=(w[fencode3_cd1(p,ii,energy)]);
-
-        #ifdef USE_SAC
-
-                //  wd[fencode3_cd1(p,ii,flux)]+=wd[fencode3_cd1(p,ii,ptb)];
-       #endif
-        #ifdef USE_SAC_3D
-
-                //  wd[fencode3_cd1(p,ii,flux)]+=wd[fencode3_cd1(p,ii,ptb)];
-       #endif
-               }
 
         #ifdef ADIABHYDRO
      		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction);
         #endif
         #ifdef USE_SAC
-    		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom1(dw,wd,w,p,ii,field,direction);
-               //if(direction==0)
-               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
+    		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom10(dw,wd,w,p,ii,field,direction);
  
         #endif
         #ifdef USE_SAC_3D
     		wd[fencode3_cd1(p,ii,flux)]=  transportflux(dw,wd,w,p,ii,field,direction)+fluxmom10(dw,wd,w,p,ii,field,direction);
- //wd[fencode3_cd1(p,ii,flux)]=(  w[fencode3_cd1(p,ii,mom1+direction)]*w[fencode3_cd1(p,ii,field)]/(w[fencode3_cd1(p,ii,rho)]+w[fencode3_cd1(p,ii,rhob)]))+fluxmom1(dw,wd,w,p,ii,field,direction);
-               //if(direction==0)
-               //   wd[fencode3_cd1(p,ii,f1)]+=wd[fencode3_cd1(p,ii,ptb)];
  
         #endif
         

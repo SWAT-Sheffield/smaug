@@ -283,7 +283,7 @@ int computefluxe(real *dw, real *wd, real *w, struct params *p,int *ii,int direc
   int status=0;
 
          #if defined USE_SAC  || defined USE_SAC_3D
-	     wd[fencode3_cd2(p,ii,flux)]=0.0;// transportflux_cd2(dw,wd,w,p,ii,energy,direction)+fluxe1(dw,wd,w,p,ii,direction);
+	     wd[fencode3_cd2(p,ii,flux)]= transportflux_cd2(dw,wd,w,p,ii,energy,direction)+fluxe1(dw,wd,w,p,ii,direction);
          #endif
 
         
