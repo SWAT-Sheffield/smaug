@@ -1050,7 +1050,7 @@ __syncthreads();
 
 
 
-__global__ void myreduction0computemaxc_parallel(struct params *p,   real *wmod, real *wd, int order, int dir, real *temp)
+__global__ void myreduction0computemaxc_parallel(struct params *p,   real *wmod, real *wd, int order, int dir, real *temp,int ndimp,int s)
 {
 
 
@@ -1095,42 +1095,36 @@ int numBlocks = (dimp+tnumThreadsPerBlock-1) / tnumThreadsPerBlock;
      #ifdef USE_SAC_3D
 	   ii[2]=kp;
      #endif
-    int s=1;
-
- 
+    //int s=1;
 
 
-         //if(iindex<dimp)
-         //           temp[iindex]=wd[fencode3_cdf(p,ii,cfast)];
-
-            //  __syncthreads();
-
-
-    // do reduction in shared mem
-    //for(unsigned int s=1; s < blockDim.x; s *= 2) {
    
-    while(((s*=2)<=((dimp/2)-1)) && ((index+s)<dimp)) {
+    //while(((s*=2)<=((ndimp/2)-1)) && ((iindex+s)<ndimp)) {
+    if((iindex+s)<ndimp)
             if(temp[iindex+s]>temp[iindex])
                  temp[iindex]=temp[iindex + s];
             
-        }
-        // strided indexing using sequential addressing is better!
-        /*int tindex=2*s*tid;
-        if (tindex<blockDim.x) {
-            if(sdata[tid+s]>sdata[tid])
-                 sdata[tid]=sdata[tid + s];
-        }
-        __syncthreads();*/
-         __syncthreads();
+       // }
+
+       //  __syncthreads();
     
 
-    __syncthreads();
+   // __syncthreads();
 
    if(iindex==0)
       p->cmax=temp[0];
 
 
  
+}
+
+__global__ void zeropadmaxc_parallel(struct params *p,   real *wmod, real *wd, int order, int dir, real *temp, int ndimp)
+{
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+ 
+  if(iindex<ndimp)
+      temp[iindex]=0.0;
+
 }
 
 
@@ -1576,12 +1570,29 @@ int cucomputevels(struct params **p,  struct params **d_p, real **d_wmod,  real 
 int cucomputemaxc(struct params **p,  struct params **d_p, real **d_wmod,  real **d_wd, int order, int dir, real **wd, real **d_wtemp)
 {
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
+  
+  real fn,fractn,in;
+  int ndimp;
 ////cudaSetDevice(selectedDevice);
    int nit=100;
  #ifdef USE_SAC_3D
    
   dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
 #endif 
+
+    fn=log(dimp)/log(2.0);
+    fractn=modf(fn,&in);
+    
+    if(fractn>0)
+    {
+       fn+=1;
+       ndimp=(int)pow(2,fn);
+     }
+     else
+       ndimp=dimp;
+       
+
+
    (*p)->cmax=0.0;
     int smemSize = numThreadsPerBlock * sizeof(real);
   cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
@@ -1591,12 +1602,18 @@ int cucomputemaxc(struct params **p,  struct params **d_p, real **d_wmod,  real 
    int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
 
 
+
+
 //cudaMemcpy(*d_wtemp, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+   zeropadmaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp);
 cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
 cudaMemcpy(*d_wtemp, ((*wd)+(cfast*dimp)), dimp*sizeof(real), cudaMemcpyHostToDevice);
-   
-   myreduction0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp);
-//cudaThreadSynchronize();
+int s=1;
+while(((s*=2)<=((ndimp/2)-1)) ) 
+{
+   myreduction0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp,s);
+   cudaThreadSynchronize();
+}
 //reduction0computemaxcfast_parallel<<<numBlocks, numThreadsPerBlock,smemSize>>>(*d_p, *d_wmod,  *d_wd, order, dir);
 //myreduction0computemaxcfast_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd,*d_wtemp, order, dir);
 
