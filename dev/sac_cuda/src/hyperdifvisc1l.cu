@@ -296,9 +296,9 @@ int shift=order*NVAR*dimp;
      #endif
 
      #ifdef USE_SAC_3D
-       if(i>1 && i<((p->n[0])-2) && j>1 && j<((p->n[1])-2) && k>1 && k<((p->n[2])-2))
+       if(i>1 && i<((p->n[0])-1) && j>1 && j<((p->n[1])-1) && k>1 && k<((p->n[2])-1))
      #else
-       if(i>1 && i<((p->n[0])-2) && j>1 && j<((p->n[1])-2))
+       if(i>1 && i<((p->n[0])-1) && j>1 && j<((p->n[1])-1))
      #endif
    //if(i>1 && i<((p->n[0])-2) && j>1 && j<((p->n[1])-2))
    {
@@ -319,7 +319,29 @@ int shift=order*NVAR*dimp;
      else
         wd[encode3_hdv1l(p,i,j,k,hdnul)]=0;
 
+/*  switch(field)
+        {
+            case 0:
+             wd[encode3_hdv1l(p,i,j,k,hdnul)]=6.744e-6;
+            break;
+            case 3:
+             wd[encode3_hdv1l(p,i,j,k,hdnul)]=1.8e-6;
+            break;
+            case 1:
+             wd[encode3_hdv1l(p,i,j,k,hdnul)]=1.9e-6;
+            break;
+            case 2:
+             wd[encode3_hdv1l(p,i,j,k,hdnul)]=1.9e-6;
+            break;
+            case 5:
+             wd[encode3_hdv1l(p,i,j,k,hdnul)]=9.4e-8;
+            break;
+            case 4:
+             wd[encode3_hdv1l(p,i,j,k,hdnul)]=3.8e-7;
+            break;
+          
 
+         }*/
         
 
 

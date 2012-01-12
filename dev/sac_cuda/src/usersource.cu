@@ -13,7 +13,7 @@ int addsourceterms2_MODID(real *dw, real *wd, real *w, struct params *p, struct 
    real s_period;
    real tdep;
 
-   real vx,vy;
+   real vx,vy,vz;
 
    real exp_x,exp_y,exp_z,exp_xyz;
 
@@ -64,13 +64,8 @@ int addsourceterms2_MODID(real *dw, real *wd, real *w, struct params *p, struct 
         vx=(aa*yp/yymax)*exp_xyz*tdep;    
         vy=-(aa*xp/xxmax)*exp_xyz*tdep;
 
-        if(i==9 && j==63 && k==63) 
-	{
-                p->test=(w[fencode3_MODID(p,ii,rho)]);
-                p->chyp[0]=vx;
-                p->chyp[1]=(w[fencode3_MODID(p,ii,mom1)]);
-                p->chyp[2]=(w[fencode3_MODID(p,ii,energy)]);
-	}
+
+
  
 
                            w[fencode3_MODID(p,ii,mom2)]+=(p->dt)*vx*(w[fencode3_MODID(p,ii,rho)]+w[fencode3_MODID(p,ii,rhob)]);
@@ -79,6 +74,13 @@ int addsourceterms2_MODID(real *dw, real *wd, real *w, struct params *p, struct 
 
                           w[fencode3_MODID(p,ii,energy)]+=(p->dt)*(vx*vx+vy*vy)*(w[fencode3_MODID(p,ii,rho)]+w[fencode3_MODID(p,ii,rhob)])/2.0;
 
+        /*if(i==4 && j==63 && k==54) 
+	{
+                p->test=(w[fencode3_MODID(p,ii,energy)]);
+                p->chyp[0]=(w[fencode3_MODID(p,ii,mom2)]);
+                p->chyp[1]=(w[fencode3_MODID(p,ii,mom3)]);
+                
+	}*/
 
   return ( status);
 }

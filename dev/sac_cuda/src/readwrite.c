@@ -441,11 +441,11 @@ nk=p.n[2];
         #endif
       {
 	      if(n<=9)
-                 sprintf(configfile,"vtk/%s%ss00%d.vtk",labels[i/4],name,n);
+                 sprintf(configfile,"%s%ss00%d.vtk",name,labels[i/4],n);
               else if(n<=99)
-                 sprintf(configfile,"vtk/%s%ss0%d.vtk",labels[i/4],name,n);
+                 sprintf(configfile,"%s%ss0%d.vtk",name,labels[i/4],n);
               else
-                 sprintf(configfile,"vtk/%s%ss%d.vtk",labels[i/4],name,n);
+                 sprintf(configfile,"%s%ss%d.vtk",name,labels[i/4],n);
 
 	      //printf("check dims %s %s %d %d \n",configfile,labels[i/4],ni,nj);
 	      FILE *fdt=fopen(configfile,"w");

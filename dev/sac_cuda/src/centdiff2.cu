@@ -864,7 +864,7 @@ __global__ void source_parallel(struct params *p, struct state *s, real *w, real
      #endif
 
                      #ifdef USE_USERSOURCE
-                                addsourceterms2_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
+                               addsourceterms2_cd2(dwn1,wd,wmod+ordero*NVAR*dimp,p,s,ii,f,dir); 
                      #endif
 
 
@@ -1254,8 +1254,8 @@ int cusource(struct params **p, struct params **d_p, struct state **d_s, real **
      cudaThreadSynchronize();
 
 
-    //cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
-    //printf("source params %G %f %f %G\n",(*p)->test, (*p)->chyp[0] , (*p)->chyp[1] , (*p)->chyp[2]);
+    cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+    //printf("vx vy e %8.16G %8.16G %8.16G\n", (*p)->chyp[0] , (*p)->chyp[1] ,(*p)->test);
 
 
 

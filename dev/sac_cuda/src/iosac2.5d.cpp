@@ -273,11 +273,12 @@ for( n=1;n<=nt;n++)
     {
       //writeconfig(name,n,*p, meta , w);
 #ifndef USE_MPI
-      writevtkconfig(name,n,*p, meta , w);
+      writevtkconfig(configfile,n,*p, meta , w);
 #endif
       //writeasciivacconfig(cfgout,*p, meta , w,hlines,*state);
 
       writevacconfig(configfile,n,*p, meta , w,*state);
+       
     }
    order=0;
    t1=second();
@@ -482,8 +483,8 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 
                   if(mm==dim)
                      cuhyperdifbsource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
-                   else
-                    cuhyperdifbsourcene1(&p,&d_p,&d_w, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
+                  else
+                     cuhyperdifbsourcene1(&p,&d_p,&d_w, &d_dwn1, &d_wd,order,ordero,&d_wtemp,f,dim,jj,ii0,mm,sb,dt);
  
 
                 }

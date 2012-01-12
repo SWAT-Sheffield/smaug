@@ -168,13 +168,20 @@ int ni=p->n[0];
        if(ii[0]<p->n[0] && ii[1]<p->n[1])
      #endif
 	{
+        /*for(int f=energyb; f<NVAR; f++)
+             if(f != rhob)
+                      w[fencode3_i(p,ii,f)]=0.0;*/
+        //w[fencode3_i(p,ii,b2b)]=w[fencode3_i(p,ii,b3b)];
         for(int f=rho; f<NVAR; f++)
         {               
                   //wmod[fencode3_i(p,ii,f)]=w[fencode3_i(p,ii,f)];
                   //wmod[  (((3*(1+(p->rkon)))-1)*NVAR*dimp)+fencode3_i(p,ii,f)]=w[fencode3_i(p,ii,f)];              
                   dwn1[fencode3_i(p,ii,f)]=0;
                   for(ord=0;ord<(2+3*(p->rkon==1));ord++)
+                  {
                               wmod[fencode3_i(p,ii,f)+ord*NVAR*dimp]=w[fencode3_i(p,ii,f)];
+                              //wmod[fencode3_i(p,ii,b2b)+ord*NVAR*dimp]=w[fencode3_i(p,ii,b3b)];
+                  }
                             
         }
 

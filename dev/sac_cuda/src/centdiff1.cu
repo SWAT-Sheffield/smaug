@@ -160,7 +160,7 @@ int computefluxmom3 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
                wd[fencode3_cd1(p,ii,flux)]=0.0;
 
 
-    		wd[fencode3_cd1(p,ii,flux)]+= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom12(dw,wd,w,p,ii,field,direction);
+    		wd[fencode3_cd1(p,ii,flux)]+=transportflux(dw,wd,w,p,ii,field,direction)+fluxmom12(dw,wd,w,p,ii,field,direction);
                
 
 #endif
@@ -217,7 +217,7 @@ int computefluxmom1 (real *dw, real *wd, real *w, struct params *p,int *ii, int 
  
         #endif
         #ifdef USE_SAC_3D
-    		wd[fencode3_cd1(p,ii,flux)]=  transportflux(dw,wd,w,p,ii,field,direction)+fluxmom10(dw,wd,w,p,ii,field,direction);
+    		wd[fencode3_cd1(p,ii,flux)]= transportflux(dw,wd,w,p,ii,field,direction)+fluxmom10(dw,wd,w,p,ii,field,direction);
  
         #endif
         
