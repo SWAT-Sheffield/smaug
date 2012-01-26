@@ -395,6 +395,8 @@ if((p->rkon)==0)
      {
               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
+
+              // printf("field %d dim %d cmax %20.16g\n",0,dim,p->cmax);
           #ifdef USE_MPI
               mpiallreduce(&(p->cmax), MPI_MAX);
           #endif
@@ -423,6 +425,7 @@ if((p->rkon)==0)
      {
               cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
+           //   printf("field %d dim %d cmax %20.16g\n",3,dim,p->cmax);
           #ifdef USE_MPI
               mpiallreduce(&(p->cmax), MPI_MAX);
           #endif
@@ -448,6 +451,8 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
+
+             //printf("field %d dim %d cmax %20.16g\n",1+f,dim,p->cmax);
           #ifdef USE_MPI
               mpiallreduce(&(p->cmax), MPI_MAX);
           #endif
@@ -494,6 +499,8 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	     {
                cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
                cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
+
+              // printf("field %d dim %d cmax %20.16g\n",4+f,dim,p->cmax);
           #ifdef USE_MPI
               mpiallreduce(&(p->cmax), MPI_MAX);
           #endif
