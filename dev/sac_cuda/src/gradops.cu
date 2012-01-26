@@ -626,6 +626,9 @@ int encode3p1_MODID (struct params *dp,int ix, int iy, int iz, int field) {
   #endif
 }
 
+
+
+
 __device__ __host__
 int encode3p2_MODID (struct params *dp,int ix, int iy, int iz, int field) {
 
@@ -636,6 +639,13 @@ int encode3p2_MODID (struct params *dp,int ix, int iy, int iz, int field) {
     return ( (iy * (((dp)->n[0])+2) + ix)+(field*(((dp)->n[0])+2)*(((dp)->n[1])+2)));
   #endif
 }
+
+__device__ __host__
+int fencode3p2_MODID (struct params *dp,int *ii, int field) {
+
+  return(encode3p2_MODID(dp,ii[0],ii[1],ii[2],field));
+}
+
 
 __device__ __host__
 int encode3_MODID (struct params *dp,int ix, int iy, int iz, int field) {
@@ -784,7 +794,7 @@ if( ii[2] >1 &&  ii[2]<((p->n[2])-2))
 __device__ __host__
 real grad1l3_MODID(real *wmod,struct params *p,int *ii,int field,int dir)
 {
- real grad;
+ real grad=0;
    int i,j,k;
    i=ii[0];
    j=ii[1];
@@ -847,7 +857,7 @@ real grad1l3_MODID(real *wmod,struct params *p,int *ii,int field,int dir)
 __device__ __host__
 real grad1r3_MODID(real *wmod,struct params *p,int *ii,int field,int dir)
 {
-  real grad;
+  real grad=0;
    int i,j,k;
    i=ii[0];
    j=ii[1];
@@ -969,6 +979,335 @@ real grad13_MODID(real *wmod,struct params *p,int *ii,int field,int dir)
   #endif
  return grad;
 }
+
+
+
+
+/*****************************************************/
+
+
+
+
+__device__ __host__
+real grad3dn_MODID(real *wmod, real *wd,struct params *p,int *ii,int field,int dir)
+{
+
+ //real valgrad_MODID;
+ real grad=0;
+
+ //wd[fencode3_MODID(p,ii,delx1)]=p->dx[0];
+ //wd[fencode3_MODID(p,ii,delx2)]=p->dx[1];
+
+ 
+
+ switch(dir)
+ {
+   case 0:
+ 
+#ifdef USE_SAC_3D
+  #ifdef USE_DORDER3
+ if(ii[0]>2 && ii[0]<((p->n[0])-3) )
+  grad=(  ( ((3*wmod[encode3_MODID(p,ii[0]+1,ii[1],ii[2],field)]-3*wmod[encode3_MODID(p,ii[0]-1,ii[1],ii[2],field)]+3.0*(wmod[encode3_MODID(p,ii[0]-2,ii[1],ii[2],field)]-wmod[encode3_MODID(p,ii[0]+2,ii[1],ii[2],field)])/5.0-(wmod[encode3_MODID(p,ii[0]-3,ii[1],ii[2],field)]-wmod[encode3_MODID(p,ii[0]+3,ii[1],ii[2],field)])/15.0)/2.0))/(2.0*(wd[fencode3_MODID(p,ii,delx1)]))    );
+ else 
+  #endif
+if(ii[0]>1 && ii[0]<((p->n[0])-2) )
+ grad=(  ( ((8*wmod[encode3_MODID(p,ii[0]+1,ii[1],ii[2],field)]-8*wmod[encode3_MODID(p,ii[0]-1,ii[1],ii[2],field)]+wmod[encode3_MODID(p,ii[0]-2,ii[1],ii[2],field)]-wmod[encode3_MODID(p,ii[0]+2,ii[1],ii[2],field)])/6.0))/(2.0*(wd[fencode3_MODID(p,ii,delx1)]))    );
+
+   if((ii[0]==(p->n[0])-3) || (ii[0]==(p->n[0])-4)  && ii[1]>1   && ii[1]<(p->n[1])-2 && ii[2]>1   && ii[2]<(p->n[2])-2  )
+       grad=0;
+   else if(ii[0]==2 || ii[0]==3  && ii[1]>1   && ii[1]<(p->n[1])-2 && ii[2]>1   && ii[2]<(p->n[2])-2  )
+       grad=0;
+#else
+
+  #ifdef USE_DORDER3
+if(ii[0]>2 && ii[0]<((p->n[0])-3) )
+ grad=(  ( ((3*wmod[encode3_MODID(p,ii[0]+1,ii[1],0,field)]-3*wmod[encode3_MODID(p,ii[0]-1,ii[1],0,field)]+3.0*(wmod[encode3_MODID(p,ii[0]-2,ii[1],0,field)]-wmod[encode3_MODID(p,ii[0]+2,ii[1],0,field)])/5.0-(wmod[encode3_MODID(p,ii[0]-3,ii[1],0,field)]-wmod[encode3_MODID(p,ii[0]+3,ii[1],0,field)])/15.0)/2.0))/(2.0*(wd[fencode3_MODID(p,ii,delx1)]))    );
+ else 
+  #endif
+if(ii[0]>1 && ii[0]<((p->n[0])-2) )
+ grad=(  ( ((8*wmod[encode3_MODID(p,ii[0]+1,ii[1],0,field)]-8*wmod[encode3_MODID(p,ii[0]-1,ii[1],0,field)]+wmod[encode3_MODID(p,ii[0]-2,ii[1],0,field)]-wmod[encode3_MODID(p,ii[0]+2,ii[1],0,field)])/6.0))/(2.0*(wd[fencode3_MODID(p,ii,delx1)]))    );
+
+   if((ii[0]==(p->n[0])-3) || (ii[0]==(p->n[0])-4)  && ii[1]>1   && ii[1]<(p->n[1])-2  )
+       grad=0;
+   else if(ii[0]==2 || ii[0]==3  && ii[1]>1   && ii[1]<(p->n[1])-2  )
+       grad=0;
+#endif
+
+
+
+   break;
+
+   case 1:
+
+#ifdef USE_SAC_3D
+
+  #ifdef USE_DORDER3
+ if(ii[1]>2 && ii[1]<((p->n[1])-3) )
+  grad=(  ( ((3*wmod[encode3_MODID(p,ii[0],ii[1]+1,ii[2],field)]-3*wmod[encode3_MODID(p,ii[0],ii[1]-1,ii[2],field)]+3.0*(wmod[encode3_MODID(p,ii[0],ii[1]-2,ii[2],field)]-wmod[encode3_MODID(p,ii[0],ii[1]+2,ii[2],field)])/5.0-(wmod[encode3_MODID(p,ii[0],ii[1]-3,ii[2],field)]-wmod[encode3_MODID(p,ii[0],ii[1]+3,ii[2],field)])/15.0)/2.0))/(2.0*(wd[fencode3_MODID(p,ii,delx2)]))    );
+ else 
+#endif
+if( ii[1] >1 &&  ii[1]<((p->n[1])-2))
+	grad=(  ( ((8*wmod[encode3_MODID(p,ii[0],ii[1]+1,ii[2],field)]-8*wmod[encode3_MODID(p,ii[0],ii[1]-1,ii[2],field)]+wmod[encode3_MODID(p,ii[0],ii[1]-2,ii[2],field)]-wmod[encode3_MODID(p,ii[0],ii[1]+2,ii[2],field)])/6.0))/(2.0*(wd[fencode3_MODID(p,ii,delx2)]))    );
+
+   if((ii[1]==(p->n[1])-3) || (ii[1]==(p->n[1])-4)  && ii[0]>1   && ii[0]<(p->n[0])-2  && ii[2]>1   && ii[2]<(p->n[2])-2  )
+       grad=0;
+   else if(ii[1]==2 || ii[1]==3  && ii[0]>1   && ii[0]<(p->n[0])-2  && ii[2]>1   && ii[2]<(p->n[2])-2  )
+       grad=0;
+#else
+
+  #ifdef USE_DORDER3
+if(ii[1]>2 && ii[1]<((p->n[1])-3) )
+ grad=(  ( ((3*wmod[encode3_MODID(p,ii[0],ii[1]+1,0,field)]-3*wmod[encode3_MODID(p,ii[0],ii[1]-1,0,field)]+3.0*(wmod[encode3_MODID(p,ii[0],ii[1]-2,0,field)]-wmod[encode3_MODID(p,ii[0],ii[1]+2,0,field)])/5.0-(wmod[encode3_MODID(p,ii[0],ii[1]-3,0,field)]-wmod[encode3_MODID(p,ii[0],ii[1]+3,0,field)])/15.0)/2.0))/(2.0*(wd[fencode3_MODID(p,ii,delx2)]))    );
+else  
+#endif
+if( ii[1] >1 &&  ii[1]<((p->n[1])-2))
+	grad=(  ( ((8*wmod[encode3_MODID(p,ii[0],ii[1]+1,0,field)]-8*wmod[encode3_MODID(p,ii[0],ii[1]-1,0,field)]+wmod[encode3_MODID(p,ii[0],ii[1]-2,0,field)]-wmod[encode3_MODID(p,ii[0],ii[1]+2,0,field)])/6.0))/(2.0*(wd[fencode3_MODID(p,ii,delx2)]))    );
+
+   if((ii[1]==(p->n[1])-3) || (ii[1]==(p->n[1])-4)  && ii[0]>1   && ii[0]<(p->n[0])-2  )
+       grad=0;
+   else if(ii[1]==2 || ii[1]==3  && ii[0]>1   && ii[0]<(p->n[0])-2  )
+       grad=0;
+#endif
+   break;
+
+
+   case 2:
+
+#ifdef USE_SAC_3D
+  #ifdef USE_DORDER3
+ if(ii[2]>2 && ii[2]<((p->n[2])-3) )
+  grad=(  ( ((3*wmod[encode3_MODID(p,ii[0],ii[1],ii[2]+1,field)]-3*wmod[encode3_MODID(p,ii[0],ii[1],ii[2]-1,field)]+3.0*(wmod[encode3_MODID(p,ii[0],ii[1],ii[2]-2,field)]-wmod[encode3_MODID(p,ii[0],ii[1],ii[2]+2,field)])/5.0-(wmod[encode3_MODID(p,ii[0],ii[1],ii[2]-3,field)]-wmod[encode3_MODID(p,ii[0],ii[1],ii[2]+3,field)])/15.0)/2.0))/(2.0*(wd[fencode3_MODID(p,ii,delx3)]))    );
+ else 
+#endif
+if( ii[2] >1 &&  ii[2]<((p->n[2])-2))
+	grad=(  ( ((8*wmod[encode3_MODID(p,ii[0],ii[1],ii[2]+1,field)]-8*wmod[encode3_MODID(p,ii[0],ii[1],ii[2]-1,field)]+wmod[encode3_MODID(p,ii[0],ii[1],ii[2]-2,field)]-wmod[encode3_MODID(p,ii[0],ii[1],ii[2]+2,field)])/6.0))/(2.0*(wd[fencode3_MODID(p,ii,delx3)]))    );
+
+   if((ii[2]==(p->n[2])-3) || (ii[2]==(p->n[2])-4)  && ii[0]>1   && ii[0]<(p->n[0])-2 && ii[1]>1   && ii[1]<(p->n[1])-2  )
+       grad=0;
+   else if(ii[2]==2 || ii[2]==3  && ii[0]>1   && ii[0]<(p->n[0])-2 && ii[1]>1   && ii[1]<(p->n[1])-2  )
+       grad=0;
+#endif
+   break;
+
+}
+
+
+
+ return grad;
+
+
+}
+
+
+
+
+__device__ __host__
+real grad1l3n_MODID(real *wmod, real *wd,struct params *p,int *ii,int field,int dir)
+{
+ real grad=0;
+   int i,j,k;
+   i=ii[0];
+   j=ii[1];
+   k=0;
+   #ifdef USE_SAC_3D
+    k=ii[2];
+   #endif
+
+
+ if((dir == 0) && i>0 && i<((p->n[0])))
+ {
+    grad=(  ( wmod[encode3_MODID(p,i,j,k,field)]-wmod[encode3_MODID(p,i-1,j,k,field)]) /((wd[fencode3_MODID(p,ii,delx1)]))    );
+
+   #ifdef USE_SAC_3D
+	   if((i==(p->n[0])-2) || (i==(p->n[0])-3)  && j>0   && j<(p->n[1])-1 && k>1   && k<(p->n[2])-1 )
+	       grad=0;
+	   else if(i==1 || i==2  && j>0   && j<(p->n[1])-1 && k>0   && k<(p->n[2])-1 )
+	       grad=0;
+   #else
+	   if((i==(p->n[0])-2) || (i==(p->n[0])-3)  && j>0   && j<(p->n[1])-1  )
+	       grad=0;
+	   else if(i==1 || i==2  && j>0   && j<(p->n[1])-1  )
+	       grad=0;
+   #endif
+ }
+ else if((dir == 1)    && j>0 && j<((p->n[1])))
+ {
+    grad=(  ( wmod[encode3_MODID(p,i,j,k,field)]-wmod[encode3_MODID(p,i,j-1,k,field)])/((wd[fencode3_MODID(p,ii,delx2)]))    );
+   #ifdef USE_SAC_3D
+	   if((j==(p->n[1])-2) || (j==(p->n[1])-3)  && i>0   && i<(p->n[0])-1 && k>0   && k<(p->n[2])-1 )
+	       grad=0;
+	   else if(j==1 || j==2  && i>0   && i<(p->n[0])-1 && k>0   && k<(p->n[2])-1 )
+	       grad=0;
+   #else
+	   if((j==(p->n[1])-2) || (j==(p->n[1])-3)  && i>0   && i<(p->n[0])-1  )
+	       grad=0;
+	   else if(j==1 || j==2  && i>0   && i<(p->n[0])-1  )
+	       grad=0;
+   #endif
+
+
+  }
+   #ifdef USE_SAC_3D
+ else if((dir == 2)    && k>0 && k<((p->n[2])))
+ {
+    grad=(  ( wmod[encode3_MODID(p,i,j,k,field)]-wmod[encode3_MODID(p,i,j,k-1,field)])/((wd[fencode3_MODID(p,ii,delx3)]))    );
+
+   if((k==(p->n[2])-2) || (k==(p->n[2])-3)  && i>0   && i<(p->n[0])-1  && j>0   && j<(p->n[1])-1 )
+       grad=0;
+   else if(k==1 || k==2  && i>0   && i<(p->n[0])-1  && j>0   && j<(p->n[1])-1 )
+       grad=0;
+
+
+  }
+  #endif
+ return grad;
+
+}
+
+__device__ __host__
+real grad1r3n_MODID(real *wmod, real *wd,struct params *p,int *ii,int field,int dir)
+{
+  real grad=0;
+   int i,j,k;
+   i=ii[0];
+   j=ii[1];
+   k=0;
+   #ifdef USE_SAC_3D
+    k=ii[2];
+   #endif
+
+
+ if((dir == 0) && /*i>0 &&*/ i<((p->n[0])-1))
+ {
+    grad=(  ( wmod[encode3_MODID(p,i+1,j,k,field)]-wmod[encode3_MODID(p,i,j,k,field)]) /((wd[fencode3_MODID(p,ii,delx1)]))    );
+
+   #ifdef USE_SAC_3D
+	   if((i==(p->n[0])-2) || (i==(p->n[0])-3)  && j>0   && j<(p->n[1])-1 && k>0   && k<(p->n[2])-1 )
+	       grad=0;
+	   else if(i==1 || i==2  && j>0   && j<(p->n[1])-1 && k>0   && k<(p->n[2])-1 )
+	       grad=0;
+   #else
+	   if((i==(p->n[0])-2) || (i==(p->n[0])-3)  && j>0   && j<(p->n[1])-1  )
+	       grad=0;
+	   else if(i==1 || i==2  && j>0   && j<(p->n[1])-1  )
+	       grad=0;
+   #endif
+ }
+ else if((dir == 1)    /*&& j>0*/ && j<((p->n[1])-1))
+ {
+    grad=(  ( wmod[encode3_MODID(p,i,j+1,k,field)]-wmod[encode3_MODID(p,i,j,k,field)])/((wd[fencode3_MODID(p,ii,delx2)]))    );
+   #ifdef USE_SAC_3D
+	   if((j==(p->n[1])-2) || (j==(p->n[1])-3)  && i>0   && i<(p->n[0])-1 && k>0   && k<(p->n[2])-1 )
+	       grad=0;
+	   else if(j==1 || j==2  && i>0   && i<(p->n[0])-1 && k>0   && k<(p->n[2])-1 )
+	       grad=0;
+   #else
+	   if((j==(p->n[1])-2) || (j==(p->n[1])-3)  && i>0   && i<(p->n[0])-1  )
+	       grad=0;
+	   else if(j==1 || j==2  && i>0   && i<(p->n[0])-1  )
+	       grad=0;
+   #endif
+
+
+  }
+   #ifdef USE_SAC_3D
+ else if((dir == 2)    /*&& k>0*/ && k<((p->n[2])-1))
+ {
+    grad=(  ( wmod[encode3_MODID(p,i,j,k+1,field)]-wmod[encode3_MODID(p,i,j,k,field)])/((wd[fencode3_MODID(p,ii,delx3)]))    );
+
+   if((k==(p->n[2])-2) || (k==(p->n[2])-3)  && i>0   && i<(p->n[0])-1  && j>0   && j<(p->n[1])-1 )
+       grad=0;
+   else if(k==1 || k==2  && i>0   && i<(p->n[0])-1  && j>0   && j<(p->n[1])-1 )
+       grad=0;
+
+
+  }
+  #endif
+ return grad;
+}
+
+
+
+__device__ __host__
+real grad13n_MODID(real *wmod, real *wd,struct params *p,int *ii,int field,int dir)
+{
+  real grad=0;
+   int i,j,k;
+   i=ii[0];
+   j=ii[1];
+   k=0;
+   #ifdef USE_SAC_3D
+    k=ii[2];
+   #endif
+
+
+ if((dir == 0) && i>0 && i<((p->n[0])-1))
+ {
+    grad=(  ( wmod[encode3_MODID(p,i+1,j,k,field)]-wmod[encode3_MODID(p,i-1,j,k,field)]) /((wd[fencode3_MODID(p,ii,delx1)]))/2.0    );
+
+   #ifdef USE_SAC_3D
+	   if((i==(p->n[0])-2) || (i==(p->n[0])-3)  && j>0   && j<(p->n[1])-1 && k>0   && k<(p->n[2])-1 )
+	       grad=0;
+	   else if(i==1 || i==2  && j>0   && j<(p->n[1])-1 && k>0   && k<(p->n[2])-1 )
+	       grad=0;
+   #else
+	   if((i==(p->n[0])-2) || (i==(p->n[0])-3)  && j>0   && j<(p->n[1])-1  )
+	       grad=0;
+	   else if(i==1 || i==2  && j>0   && j<(p->n[1])-1  )
+	       grad=0;
+   #endif
+ }
+ else if((dir == 1)    && j>0 && j<((p->n[1])-1))
+ {
+    grad=(  ( wmod[encode3_MODID(p,i,j+1,k,field)]-wmod[encode3_MODID(p,i,j-1,k,field)])/((wd[fencode3_MODID(p,ii,delx2)]))/2.0    );
+   #ifdef USE_SAC_3D
+	   if((j==(p->n[1])-2) || (j==(p->n[1])-3)  && i>0   && i<(p->n[0])-1 && k>0   && k<(p->n[2])-1 )
+	       grad=0;
+	   else if(j==1 || j==2  && i>0   && i<(p->n[0])-1 && k>0   && k<(p->n[2])-1 )
+	       grad=0;
+   #else
+	   if((j==(p->n[1])-2) || (j==(p->n[1])-3)  && i>0   && i<(p->n[0])-1  )
+	       grad=0;
+	   else if(j==1 || j==2  && i>0   && i<(p->n[0])-1  )
+	       grad=0;
+   #endif
+
+
+  }
+   #ifdef USE_SAC_3D
+ else if((dir == 2)    && k>0 && k<((p->n[2])-1))
+ {
+    grad=(  ( wmod[encode3_MODID(p,i,j,k+1,field)]-wmod[encode3_MODID(p,i,j,k-1,field)])/((wd[fencode3_MODID(p,ii,delx3)]))/2.0    );
+
+   if((k==(p->n[2])-2) || (k==(p->n[2])-3)  && i>0   && i<(p->n[0])-1  && j>0   && j<(p->n[1])-1 )
+       grad=0;
+   else if(k==1 || k==2  && i>0   && i<(p->n[0])-1  && j>1   && j<(p->n[1])-1 )
+       grad=0;
+
+
+  }
+  #endif
+ return grad;
+}
+
+
+
+
+
+/********************************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1766,6 +2105,6 @@ k=0;
 
 __device__ __host__
 real sacdabs_MODID(real val) {
-   //return(fabs(val));
-   return sqrt(val*val);
+   return(abs(val));
+   //return sqrt(val*val);
 }

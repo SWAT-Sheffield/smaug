@@ -1118,6 +1118,79 @@ int numBlocks = (dimp+tnumThreadsPerBlock-1) / tnumThreadsPerBlock;
  
 }
 
+
+
+__global__ void myreduction0computemaxcourant_parallel(struct params *p,   real *wmod, real *wd, int order, int dir, real *temp,int ndimp,int s)
+{
+
+
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  unsigned int tid = threadIdx.x;
+  int i,j;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+
+  int ii[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   int ip,jp;
+//        extern __shared__ real sdata[];
+ 
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif
+
+int tnumThreadsPerBlock = 128;
+    
+int numBlocks = (dimp+tnumThreadsPerBlock-1) / tnumThreadsPerBlock;
+  //real temp[dimp];
+    // perform first level of reduction,
+    // reading from global memory, writing to shared memory
+   //sdata[tid]=0.0;
+   // if(iindex<1024)
+    //  temp[iindex]=0.0;
+
+     ii[0]=ip;
+     ii[1]=jp;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp;
+     #endif
+    //int s=1;
+
+
+   
+    //while(((s*=2)<=((ndimp/2)-1)) && ((iindex+s)<ndimp)) {
+    if((iindex+s)<ndimp)
+            if(temp[iindex+s]>temp[iindex])
+                 temp[iindex]=temp[iindex + s];
+            
+       // }
+
+       //  __syncthreads();
+    
+
+   // __syncthreads();
+
+   if(iindex==0  && (p->maxcourant<temp[0]))
+      p->maxcourant=temp[0];
+
+
+ 
+}
+
+
+
+
 __global__ void zeropadmaxc_parallel(struct params *p,   real *wmod, real *wd, int order, int dir, real *temp, int ndimp)
 {
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1127,7 +1200,68 @@ __global__ void zeropadmaxc_parallel(struct params *p,   real *wmod, real *wd, i
 
 }
 
+__global__ void zeropadmaxcourant_parallel(struct params *p,   real *wmod, real *wd, int order, int dir, real *temp, int ndimp)
+{
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+ 
+  //if(iindex<ndimp)
+  //    temp[iindex]=0.0;
 
+  unsigned int tid = threadIdx.x;
+  int i,j;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+
+  int ii[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   int ip,jp;
+//        extern __shared__ real sdata[];
+ 
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif
+
+    
+//int numBlocks = (dimp+tnumThreadsPerBlock-1) / tnumThreadsPerBlock;
+  //real temp[dimp];
+    // perform first level of reduction,
+    // reading from global memory, writing to shared memory
+   //sdata[tid]=0.0;
+   // if(iindex<1024)
+    //  temp[iindex]=0.0;
+
+     ii[0]=ip;
+     ii[1]=jp;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp;
+     #endif
+    //int s=1;
+
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
+             temp[iindex]=temp[iindex]/(wd[fencode3_cdf(p,ii,delx1+dir)]);
+
+
+
+
+
+
+
+}
 
 __global__ void reduction0computemaxcfast_parallel(struct params *p,   real *wmod, real *wd, int order, int dir)
 {
@@ -1414,18 +1548,15 @@ if(order == 0)
        if(ii[0]<p->n[0] && ii[1]<p->n[1])
      #endif
 	{		
-              #ifdef ADIABHYDRO
-              for(int f=vel1; f<NDERV; f++)
-             #else 
+
                for(int f=vel1; f<=pkb; f++)
-             #endif
                         wd[fencode3_cdf(p,ii,f)]=0; 
 		#ifdef USE_SAC_3D
-		  for(int f=rho; f<b3; f++)
+		  for(int f=rho; f<=b3; f++)
                   	wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]=wmod[fencode3_cdf(p,ii,f)]; 
 
 		#else
-		  for(int f=rho; f<b2; f++)
+		  for(int f=rho; f<=b2; f++)
                   	wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]=wmod[fencode3_cdf(p,ii,f)]; 
 		#endif               
 
@@ -1605,13 +1736,110 @@ int cucomputemaxc(struct params **p,  struct params **d_p, real **d_wmod,  real 
 
 
 //cudaMemcpy(*d_wtemp, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
-   zeropadmaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp);
+
 cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
 cudaMemcpy(*d_wtemp, ((*wd)+(cfast*dimp)), dimp*sizeof(real), cudaMemcpyHostToDevice);
+   zeropadmaxcourant_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp);
+
 int s=1;
 while(((s*=2)<=((ndimp/2)-1)) ) 
 {
    myreduction0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp,s);
+   cudaThreadSynchronize();
+}
+
+
+//reduction0computemaxcfast_parallel<<<numBlocks, numThreadsPerBlock,smemSize>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+//myreduction0computemaxcfast_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd,*d_wtemp, order, dir);
+
+ //reductiona0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+  // computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+    // fastcomputemaxc_parallel<<<numBlocks, numThreadsPerBlock,smemSize>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+cudaThreadSynchronize();
+
+//(*p)->cmax=2.0;
+//cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
+cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+
+//printf("cmax on device %.8f\n",(*p)->cmax);
+//(*p)->cmax=0.0;
+//cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+/*for(int i=0; i<dimp;i++)
+{
+
+if(((*wd)[i+(cfast*dimp)])>((*p)->cmax))
+                    (*p)->cmax=(*wd)[i+(cfast*dimp)];
+}
+printf("cmax on cpu %.8f\n",(*p)->cmax);*/
+//cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
+ /*for(int i=0; i<nit;i++)
+{
+ reduction0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+   // computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir);
+     cudaThreadSynchronize();
+}*/
+
+
+
+//    cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+
+  // cudaFree(*d_ttemp);
+  //checkErrors("copy data from device");
+
+
+ 
+
+
+}
+
+
+
+int cucomputemaxcourant(struct params **p,  struct params **d_p, real **d_wmod,  real **d_wd, int order, int dir, real **wd, real **d_wtemp)
+{
+  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
+  
+  real fn,fractn,in;
+  int ndimp;
+////cudaSetDevice(selectedDevice);
+   int nit=100;
+ #ifdef USE_SAC_3D
+   
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif 
+
+    fn=log(dimp)/log(2.0);
+    fractn=modf(fn,&in);
+    
+    if(fractn>0)
+    {
+       fn+=1;
+       ndimp=(int)pow(2,fn);
+     }
+     else
+       ndimp=dimp;
+       
+
+
+   //(*p)->maxcourant=0.0;
+    int smemSize = numThreadsPerBlock * sizeof(real);
+  cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
+ //dim3 dimBlock(dimblock, 1);
+    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+   // dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
+
+
+
+
+//cudaMemcpy(*d_wtemp, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+  zeropadmaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp);
+cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+cudaMemcpy(*d_wtemp, ((*wd)+(cfast*dimp)), dimp*sizeof(real), cudaMemcpyHostToDevice);
+ zeropadmaxcourant_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp);
+int s=1;
+while(((s*=2)<=((ndimp/2)-1)) ) 
+{
+   myreduction0computemaxcourant_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp,s);
    cudaThreadSynchronize();
 }
 //reduction0computemaxcfast_parallel<<<numBlocks, numThreadsPerBlock,smemSize>>>(*d_p, *d_wmod,  *d_wd, order, dir);
@@ -1656,6 +1884,8 @@ printf("cmax on cpu %.8f\n",(*p)->cmax);*/
 
 
 }
+
+
 
 
 int cucomputec(struct params **p,  struct params **d_p, real **d_wmod,  real **d_wd, int order, int dir)

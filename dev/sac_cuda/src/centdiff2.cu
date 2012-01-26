@@ -33,23 +33,29 @@ real fluxe2(real *dw, real *wd, real *w, real *wmod, struct params *p,int *ii, i
 
 
 
-      		fluxt= +wd[fencode3_cd2(p,ii,ptb)]*grad3d_cd2(wd,p,ii,vel1+dir,dir);
+      		fluxt= +wd[fencode3_cd2(p,ii,ptb)]*grad3dn_cd2(wd,wd,p,ii,vel1+dir,dir);
+
+                //fluxt= +wd[fencode3_cd2(p,ii,ptb)]*grad3d_cd2(wd,p,ii,vel1+dir,dir);
+
                 //fluxt= +(((p->gamma)-1)*w[fencode3_cd2(p,ii,energyb)]- 0.5*((p->gamma)-2)*(w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b)]+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b2b)]))*grad3d_cd2(wd,p,ii,vel1+dir,dir);
 
 
                //flux= -(((p->gamma)-1)*w[fencode3_cd2(p,ii,energyb)]- 0.5*((p->gamma)-2)*(w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b)]+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b2b)]))*grad3d_cd2(wd,p,ii,vel1+dir,dir);
-               fluxt += +w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3d_cd2(wd,p,ii,vel1,0)+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3d_cd2(wd,p,ii,vel1+1,1);
+               
+
+	fluxt += +w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3dn_cd2(wd,wd,p,ii,vel1,0)+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3dn_cd2(wd,wd,p,ii,vel1+1,1);
+          //fluxt += +w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3d_cd2(wd,p,ii,vel1,0)+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3d_cd2(wd,p,ii,vel1+1,1);
          #endif
 
 
         #ifdef USE_SAC_3D
-      		fluxt= +wd[fencode3_cd2(p,ii,ptb)]*grad3d_cd2(wd,p,ii,vel1+dir,dir);
+      		fluxt= +wd[fencode3_cd2(p,ii,ptb)]*grad3dn_cd2(wd,wd,p,ii,vel1+dir,dir);
 
 		//fluxt= +(((p->gamma)-1)*w[fencode3_cd2(p,ii,energyb)]- 0.5*((p->gamma)-2)*(w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b)]+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b2b)]+w[fencode3_cd2(p,ii,b3b)]*w[fencode3_cd2(p,ii,b3b)]))*grad3d_cd2(wd,p,ii,vel1+dir,dir);
 
 
                //flux= -(((p->gamma)-1)*w[fencode3_cd2(p,ii,energyb)]- 0.5*((p->gamma)-2)*(w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b)]+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b2b)]+w[fencode3_cd2(p,ii,b3b)]*w[fencode3_cd2(p,ii,b3b)]))*grad3d_cd2(wd,p,ii,vel1+dir,dir);
-               fluxt += +w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3d_cd2(wd,p,ii,vel1,0)+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3d_cd2(wd,p,ii,vel1+1,1)+w[fencode3_cd2(p,ii,b3b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3d_cd2(wd,p,ii,vel1+2,2);
+               fluxt += +w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3dn_cd2(wd,wd,p,ii,vel1,0)+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3dn_cd2(wd,wd,p,ii,vel1+1,1)+w[fencode3_cd2(p,ii,b3b)]*w[fencode3_cd2(p,ii,b1b+dir)]*grad3dn_cd2(wd,wd,p,ii,vel1+2,2);
         #endif
 
   return fluxt;
@@ -66,7 +72,11 @@ int divflux_cd2(real *dw, real *wd, real *w, struct params *p,int *ii,int field,
   int direction;
   int status=0;
   real divflux=0;
-  dw[fencode3_cd2(p,ii,field)]= grad3d_cd2(wd,p,ii,flux,dir);//+grad_cd2(wd,p,ii,f2,1); 
+
+
+
+  dw[fencode3_cd2(p,ii,field)]= grad3dn_cd2(wd,wd,p,ii,flux,dir);//+gradn_cd2(wd,wd,p,ii,f2,1); 
+  //dw[fencode3_cd2(p,ii,field)]= grad3d_cd2(wd,p,ii,flux,dir);//+gradn_cd2(wd,wd,p,ii,f2,1); 
 
  
  #ifdef USE_SAC
@@ -102,10 +112,12 @@ int addenergyterms_cd2(real *dw, real *wd, real *w, real *wmod, struct params *p
      
 
         
-              		wmod[fencode3_cd2(p,ii,field)]-= +(p->dt)*wd[fencode3_cd2(p,ii,ptb)]*grad3d_cd2(wd,p,ii,vel1+dir,dir);
+              		wmod[fencode3_cd2(p,ii,field)]-= +(p->dt)*wd[fencode3_cd2(p,ii,ptb)]*grad3dn_cd2(wd,wd,p,ii,vel1+dir,dir);
+                      //wmod[fencode3_cd2(p,ii,field)]-= +(p->dt)*wd[fencode3_cd2(p,ii,ptb)]*grad3d_cd2(wd,p,ii,vel1+dir,dir);
 
                     for(int idim=0;idim<NDIM;idim++)
-                         wmod[fencode3_cd2(p,ii,field)]+=(p->dt)*wmod[fencode3_cd2(p,ii,b1b+idim)]*wmod[fencode3_cd2(p,ii,b1b+dir)]*grad3d_cd2(wd,p,ii,vel1+idim,idim);
+                         wmod[fencode3_cd2(p,ii,field)]+=(p->dt)*wmod[fencode3_cd2(p,ii,b1b+idim)]*wmod[fencode3_cd2(p,ii,b1b+dir)]*grad3dn_cd2(wd,wd,p,ii,vel1+idim,idim);
+                        //wmod[fencode3_cd2(p,ii,field)]+=(p->dt)*wmod[fencode3_cd2(p,ii,b1b+idim)]*wmod[fencode3_cd2(p,ii,b1b+dir)]*grad3d_cd2(wd,p,ii,vel1+idim,idim);
 
 		//fluxt= +(((p->gamma)-1)*w[fencode3_cd2(p,ii,energyb)]- 0.5*((p->gamma)-2)*(w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b)]+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b2b)]+w[fencode3_cd2(p,ii,b3b)]*w[fencode3_cd2(p,ii,b3b)]))*grad3d_cd2(wd,p,ii,vel1+dir,dir);
 
@@ -281,7 +293,7 @@ int computefluxe(real *dw, real *wd, real *w, struct params *p,int *ii,int direc
 
   int field;//, direction;
   int status=0;
-
+wd[fencode3_cd2(p,ii,flux)]=0.0;
          #if defined USE_SAC  || defined USE_SAC_3D
 	     wd[fencode3_cd2(p,ii,flux)]= transportflux_cd2(dw,wd,w,p,ii,energy,direction)+fluxe1(dw,wd,w,p,ii,direction);
          #endif
@@ -295,7 +307,7 @@ int computefluxb1 (real *dw, real *wd, real *w, struct params *p,int *ii, int fi
 
 
   int status=0;
-
+wd[fencode3_cd2(p,ii,flux)]=0.0;
         
       if(direction==0)
 wd[fencode3_cd2(p,ii,flux)]= 0.0;
@@ -313,14 +325,22 @@ int computefluxb2 (real *dw, real *wd, real *w, struct params *p,int *ii, int fi
 
 
   int status=0;
-         
+   wd[fencode3_cd2(p,ii,flux)]=0.0;      
       if(direction==1)
 wd[fencode3_cd2(p,ii,flux)]= 0.0;
 else
 #if defined USE_SAC  || defined USE_SAC_3D 
+
+
 wd[fencode3_cd2(p,ii,flux)]= transportflux_cd2(dw,wd,w,p,ii,field,direction)-(w[fencode3_cd2(p,ii,b1+direction)]+w[fencode3_cd2(p,ii,b1b+direction)])*w[fencode3_cd2(p,ii,mom2)]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)])+ (w[fencode3_cd2(p,ii,b2b)])*w[fencode3_cd2(p,ii,mom1+direction)]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);//+fluxb1(dw,wd,w,p,ii,field,direction);
 
          #endif
+//w[fencode3_cd2(p,ii,mom1+direction)]*w[fencode3_cd2(p,ii,field)]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)])
+/*if(ii[0]==63 & ii[1]==127 )
+{
+  p->test=w[fencode3_cd2(p,ii,b2)];
+  p->chyp3=w[fencode3_cd2(p,ii,mom1+direction)]/(w[fencode3_cd2(p,ii,rho)]+w[fencode3_cd2(p,ii,rhob)]);
+}*/
 
   return ( status);
 }
@@ -329,7 +349,7 @@ wd[fencode3_cd2(p,ii,flux)]= transportflux_cd2(dw,wd,w,p,ii,field,direction)-(w[
 __device__ __host__
 int computefluxb3 (real *dw, real *wd, real *w, struct params *p,int *ii, int field,int direction) {
 
-
+wd[fencode3_cd2(p,ii,flux)]=0.0;
   int status=0;
  #ifdef USE_SAC_3D
  
@@ -366,6 +386,9 @@ void computeflux_cd2 (real *dw, real *wd, real *w, struct params *p,int *ii, int
      break;
      case b2:
        computefluxb2(dw,wd,w,p,ii,field,dir);
+
+
+
      break;
 #ifdef USE_SAC_3D
      case b3:
@@ -488,6 +511,17 @@ __global__ void centdiff2b_parallel(struct params *p, struct state *s, real *w, 
 	   ii[2]=kp;
      #endif
   real del;
+
+
+
+/*if(ii[0]==63 & ii[1]==127 && f==b2)
+{
+  p->test=wmod[fencode3_cd2(p,ii,b2)+(ordero*NVAR*dimp)];
+  p->chyp3=dwn1[fencode3_cd2(p,ii,f)];
+  dwn1[fencode3_cd2(p,ii,f)]=0.0;
+}*/
+
+
                         switch(dir)
                         {
                          case 0:
@@ -1156,11 +1190,17 @@ int cucentdiff2(struct params **p, struct params **d_p, struct state **d_s, real
      centdiff2_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_s,*d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt,field,dir);
      cudaThreadSynchronize();
 
+
+
      centdiff2a_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt,field,dir);
      cudaThreadSynchronize();
 
      centdiff2b_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt,field,dir);
      cudaThreadSynchronize();
+
+    /*cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+    if(field==b2)
+      printf("dim=%d b2=%20.16E flux=%20.16E\n",dir,(*p)->test,(*p)->chyp3);*/
 
      centdiff2ci_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt,field,dir);
      cudaThreadSynchronize();
@@ -1171,8 +1211,8 @@ int cucentdiff2(struct params **p, struct params **d_p, struct state **d_s, real
 
 
     //cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
-    //printf("source params %G %f %f %G\n",(*p)->test, (*p)->chyp[0] , (*p)->chyp[1] , (*p)->chyp[2]);
-
+    //printf("source params %G %f %f\n",(*p)->test, (*p)->chyp[0] , (*p)->chyp[1]);
+    //printf("source params %G \n",(*p)->test);
 
 
      //centdiff2d_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_w, *d_wmod, *d_dwn1,  *d_wd, order,ordero,dt,field,dir);

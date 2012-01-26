@@ -25,6 +25,80 @@ __global__ void hyperdifmomsourcene6_parallel(struct params *p,  real *wmod,
   int ni=p->n[0];
   int nj=p->n[1];
   //real dt=p->dt;
+   int ip,jp;
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif  
+
+int shift=order*NVAR*dimp;
+
+
+
+
+
+     iia[0]=ip;
+     iia[1]=jp;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp;
+           k=iia[2];
+     #endif
+
+     #ifdef USE_SAC_3D
+      if(i<((p->n[0])) && j<((p->n[1])) && k<((p->n[2])))
+     #else
+      if(i<((p->n[0])) && j<((p->n[1])))
+     #endif
+
+                        //if(i<((p->n[0])) && j<((p->n[1])))
+                         {
+
+                             wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdmne1(p,iia,mom1+ii0)];
+
+ 
+                           //  wmod[fencode3_hdmne1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdmne1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdmne1(p,iia,energy)];
+
+
+                         }
+              //  }	
+
+  //__syncthreads();
+
+
+  
+
+
+
+}
+
+
+__global__ void hyperdifmomsourcene6a_parallel(struct params *p,  real *wmod, 
+    real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim, int ii, int ii0, real dt)
+{
+
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int ii1;
+  real fip,fim1;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+  //real dt=p->dt;
   real dy=p->dx[1];
   real dx=p->dx[0];
    int ip,jp;
@@ -71,7 +145,7 @@ int shift=order*NVAR*dimp;
                         //if(i<((p->n[0])) && j<((p->n[1])))
                          {
 
-                             wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdmne1(p,iia,mom1+ii0)];
+                           //  wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdmne1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdmne1(p,iia,mom1+ii0)];
 
  
                              wmod[fencode3_hdmne1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdmne1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdmne1(p,iia,energy)];
@@ -88,6 +162,9 @@ int shift=order*NVAR*dimp;
 
 
 }
+
+
+
 
 
 
@@ -148,12 +225,63 @@ int shift=order*NVAR*dimp;
 
 {
  
-    dwn1[fencode3_hdmne1(p,iia,mom1+ii0)]=(grad13_hdmne1(wtemp,p,iia,tmp7,ii));
+    dwn1[fencode3_hdmne1(p,iia,mom1+ii0)]=(grad13n_hdmne1(wtemp,wd,p,iia,tmp7,ii));
 
 
   }
 
  //__syncthreads();
+
+
+  
+  
+
+
+
+}
+
+
+
+__global__ void hyperdifmomsourcene5a_parallel(struct params *p,  real *wmod, 
+    real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim, int ii, int ii0, real dt)
+{
+
+
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int ii1;
+  real fip,fim1;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+  //real dt=p->dt;
+  real dy=p->dx[1];
+  real dx=p->dx[0];
+   int ip,jp;
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif  
+
+int shift=order*NVAR*dimp;
+
+
+
+
+ 
 
 
      iia[0]=ip;
@@ -172,7 +300,7 @@ int shift=order*NVAR*dimp;
       if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
      #endif
 
-     dwn1[fencode3_hdmne1(p,iia,energy)]=(grad13_hdmne1(wtemp,p,iia,tmp8,ii));
+     dwn1[fencode3_hdmne1(p,iia,energy)]=(grad13n_hdmne1(wtemp,wd,p,iia,tmp8,ii));
 
 
 
@@ -408,7 +536,7 @@ int shift=order*NVAR*dimp;
        if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
      #endif
   //if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
-      wtemp[fencode3_hdmne1(p,iia,tmp5)]=(grad13_hdmne1(wtemp,p,iia,tmp4,dim));
+      wtemp[fencode3_hdmne1(p,iia,tmp5)]=(grad13n_hdmne1(wtemp,wd,p,iia,tmp4,dim));
       
 
 
@@ -582,8 +710,13 @@ int cuhyperdifmomsourcene1(struct params **p, struct params **d_p, real **d_wmod
      hyperdifmomsourcene6_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
      cudaThreadSynchronize();
 
+     hyperdifmomsourcene5a_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
+     cudaThreadSynchronize();
+     hyperdifmomsourcene6a_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
+     cudaThreadSynchronize();
+
 cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
-//printf("test %g\n",(*p)->test);
+////printf("test %g\n",(*p)->test);
 
 }
 

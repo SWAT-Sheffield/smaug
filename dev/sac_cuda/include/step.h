@@ -5,7 +5,9 @@
 
 
 
-int cuinit(struct params **p, real **w, real **wnew,   struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
+int cuinit(struct params **p, real **w, real **wnew, real **wd,  struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
+int initgrid(struct params **p, real **w, real **wnew,   struct state **state, real **wd, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
+
 int cufinish(struct params **p, real **w, real **wnew,   struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
 //int cuprop(struct params **p, real **w, real **wnew, real **b,struct params **d_p, real **d_w, real **d_wnew, real **d_b);
 //int cufinish(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd);
@@ -27,6 +29,7 @@ int cuadvance(struct params **p, struct params **d_p,    real **d_wmod, real **d
 int cucomputedervfields(struct params **p, struct params **d_p,  real **d_wmod, real **d_wd, int order);
 int cucomputevels(struct params **p, struct params **d_p,  real **d_wmod, real **d_wd, int order,int dir);
 int cucomputemaxc(struct params **p, struct params **d_p,  real **d_wmod, real **d_wd, int order,int dir, real **wd, real **d_wtemp);
+int cucomputemaxcourant(struct params **p, struct params **d_p,  real **d_wmod, real **d_wd, int order,int dir, real **wd, real **d_wtemp);
 int cucomputec(struct params **p, struct params **d_p,  real **d_wmod, real **d_wd, int order,int dir);
 int cucomputept(struct params **p, struct params **d_p,  real **d_wmod, real **d_wd, int order,int dir);
 int cucomputepk(struct params **p, struct params **d_p,  real **d_wmod, real **d_wd, int order,int dir);

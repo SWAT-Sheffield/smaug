@@ -22,7 +22,8 @@ int divflux1(real *dw, real *wd, real *w, struct params *p,int *ii,int field,int
   int status=0;
   real divflux=0;
 
-dw[fencode3_cd1(p,ii,field)]+= grad3d_cd1(wd,p,ii,flux,dir); 
+dw[fencode3_cd1(p,ii,field)]+= grad3dn_cd1(wd,wd,p,ii,flux,dir); 
+//dw[fencode3_cd1(p,ii,field)]+= grad3d_cd1(wd,p,ii,flux,dir); 
 //dw[fencode3_cd1(p,ii,field)]=0.0;
  /*switch(field)
   {
@@ -138,7 +139,7 @@ int computefluxrho (real *dw, real *wd, real *w, struct params *p,int *ii,int di
 
   int field;
   int status=0;
-
+      wd[fencode3_cd1(p,ii,flux)]=0.0;
   // for(direction=0;direction<2;direction++)
          #if defined USE_SAC || defined USE_SAC_3D
 	      wd[fencode3_cd1(p,ii,flux)]= transportflux(dw,wd,w,p,ii,rho,direction)+(w[fencode3_cd1(p,ii,rhob)]*w[fencode3_cd1(p,ii,mom1+direction)])/(w[fencode3_cd1(p,ii,rhob)]+w[fencode3_cd1(p,ii,rho)]);

@@ -59,11 +59,6 @@ __global__ void hyperdifrhosource2_parallel(struct params *p,  real *wmod,
 
 int shift=order*NVAR*dimp;  
    
-     #ifdef USE_SAC_3D
-	  rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1)+(p->dx[2])*(dim==2));
-	#else
-	  rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1));
-	#endif
   
 
      ii[0]=ip;
@@ -77,6 +72,14 @@ int shift=order*NVAR*dimp;
      #endif
 
      #ifdef USE_SAC_3D
+	  rdx=(((wd[encode3_hdr1(p,i,j,k,delx1)])*(dim==0))+(wd[encode3_hdr1(p,i,j,k,delx2)])*(dim==1)+(wd[encode3_hdr1(p,i,j,k,delx3)])*(dim==2));
+	#else
+	  rdx=(((wd[encode3_hdr1(p,i,j,k,delx1)])*(dim==0))+(wd[encode3_hdr1(p,i,j,k,delx2)])*(dim==1));
+	#endif
+
+
+
+     #ifdef USE_SAC_3D
        if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
      #else
        if(i<((p->n[0])) && j<((p->n[1])))
@@ -86,9 +89,10 @@ int shift=order*NVAR*dimp;
 
 
 
-dwn1[fencode3_hdr1(p,ii,field)]=( (wd[fencode3_hdr1(p,ii,hdnur)]+wd[fencode3_hdr1(p,ii,nushk1+dim)]) * wtemp[fencode3_hdr1(p,ii,tmp1)] - (wd[fencode3_hdr1(p,ii,hdnul)]+wd[fencode3_hdr1(p,ii,nushk1+dim)]) *wtemp[fencode3_hdr1(p,ii,tmp2)]            )/rdx;
+//dwn1[fencode3_hdr1(p,ii,field)]=( (wd[fencode3_hdr1(p,ii,hdnur)]+wd[fencode3_hdr1(p,ii,nushk1+dim)]) * wtemp[fencode3_hdr1(p,ii,tmp1)] - (wd[fencode3_hdr1(p,ii,hdnul)]+wd[fencode3_hdr1(p,ii,nushk1+dim)]) *wtemp[fencode3_hdr1(p,ii,tmp2)]            )/rdx;
 
-                              wmod[fencode3_hdr1(p,ii,field)+(ordero*NVAR*dimp)]=wmod[fencode3_hdr1(p,ii,field)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdr1(p,ii,field)]; 
+                             // wmod[fencode3_hdr1(p,ii,field)+(ordero*NVAR*dimp)]=wmod[fencode3_hdr1(p,ii,field)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdr1(p,ii,field)]; 
+wmod[fencode3_hdr1(p,ii,field)+(ordero*NVAR*dimp)]=wmod[fencode3_hdr1(p,ii,field)+(ordero*NVAR*dimp)]+dt*( (wd[fencode3_hdr1(p,ii,hdnur)]+wd[fencode3_hdr1(p,ii,nushk1+dim)]) * wtemp[fencode3_hdr1(p,ii,tmp1)] - (wd[fencode3_hdr1(p,ii,hdnul)]+wd[fencode3_hdr1(p,ii,nushk1+dim)]) *wtemp[fencode3_hdr1(p,ii,tmp2)]            )/rdx; 
   }
 
 //__syncthreads();
@@ -178,11 +182,11 @@ int shift=order*NVAR*dimp;
 
  //__syncthreads();
 
-     #ifdef USE_SAC_3D
+/*     #ifdef USE_SAC_3D
 	  rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1)+(p->dx[2])*(dim==2));
 	#else
 	  rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1));
-	#endif
+	#endif   */
 
  
 
@@ -207,8 +211,8 @@ int shift=order*NVAR*dimp;
   {
      
 
-    wtemp[fencode3_hdr1(p,ii,tmp1)]=grad1r3_hdr1(wmod+shift,p,ii,rho,dim);
-    wtemp[fencode3_hdr1(p,ii,tmp2)]=grad1l3_hdr1(wmod+shift,p,ii,rho,dim);
+    wtemp[fencode3_hdr1(p,ii,tmp1)]=grad1r3n_hdr1(wmod+shift,wd,p,ii,rho,dim);
+    wtemp[fencode3_hdr1(p,ii,tmp2)]=grad1l3n_hdr1(wmod+shift,wd,p,ii,rho,dim);
   }
 
 //__syncthreads();

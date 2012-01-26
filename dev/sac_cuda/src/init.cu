@@ -120,7 +120,17 @@ int ni=p->n[0];
 	 __syncthreads();
 
 
+    /* #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
+     
+               for(int f=vel1; f<NDERV; f++)
+                    wd[fencode3_i(p,ii,f)]=0.0;
+     
 
+ __syncthreads(); */
 
 
 
@@ -146,6 +156,14 @@ int ni=p->n[0];
                    // init_ozttest (real *w, struct params *p,int i, int j)
                    // init_ozttest(w,p,i,j);
                    // init_bwtest(w,p,i,j);
+
+	           //default values for positions these may be updated by the initialisation routines
+                 //  wd[fencode3_i(p,ii,pos1)]=(p->xmin[0])+ii[0]*(p->dx[0]);
+		  // wd[fencode3_i(p,ii,pos2)]=(p->xmin[1])+ii[1]*(p->dx[1]);
+          /*       #ifdef USE_SAC_3D
+		   wd[fencode3_i(p,ii,pos3)]=(p->xmin[2])+ii[2]*(p->dx[2]);
+                 #endif*/
+
                    init_user_i(w,p,ii);
            #endif
 
@@ -194,18 +212,398 @@ int ni=p->n[0];
  __syncthreads();
 
 
+
+}
+
+
+
+ //initialise grid on the gpu
+ //we currently don't do this to avoid use of additional memory on GPU
+//set up a temporary grid
+
+__global__ void gridsetup_parallel(struct params *p, real *w, real *wnew, real *wmod, 
+    real *dwn1, real *wd, real *wtemp, real *wtemp1, real *wtemp2, int dir)
+{
+  // compute the global index in the vector from
+  // the number of the current block, blockIdx,
+  // the number of threads per block, blockDim,
+  // and the number of the current thread within the block, threadIdx
+  // int i = blockIdx.x * blockDim.x + threadIdx.x;
+  // int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+ int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+ // int index,k;
+int ni=p->n[0];
+  int nj=p->n[1];
+#ifdef USE_SAC_3D
+  int nk=p->n[2];
+#endif
+
+
+// Block index
+    int bx = blockIdx.x;
+   // int by = blockIdx.y;
+    // Thread index
+    int tx = threadIdx.x;
+   // int ty = threadIdx.y;
+    
+  real *u,  *v,  *h;
+
+   int ord;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+
+
+  int i,j;
+  int ip,jp,kp;
+  int ii[NDIM];
+   int dimp=((p->n[0]))*((p->n[1]));
+   kp=0;
+   
+ #ifdef USE_SAC_3D
+ 
+  dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+/*   int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#else
+    jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif */ 
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
+   
+
+     ii[0]=ip;
+     ii[1]=jp;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp;
+     #endif
+
+
+     #ifdef USE_SAC_3D
+       if(ii[0]>0 && ii[0]<(p->n[0]-1) && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
+     {
+
+
+        switch(dir)
+        {
+
+    case 0:
+           wtemp2[encode3p2_i(p,ip+1,jp+1,kp+1,tmpnui)]=wd[fencode3_i(p,ii,pos1)];
+    break;
+    case 1:
+           wtemp2[encode3p2_i(p,ip+1,jp+1,kp+1,tmpnui1)]=wd[fencode3_i(p,ii,pos2)];
+    break;
+    #ifdef USE_SAC_3D
+           case 2:
+                        wtemp2[encode3p2_i(p,ip+1,jp+1,kp+1,tmpnui2)]=wd[fencode3_i(p,ii,pos3)];
+           break;
+     #endif
+           }
+     }
+
+
+        	
+	 __syncthreads();
+
+
+
+
+       
+
+
+
+
+
+}
+
+
+
+
+ //initialise grid on the gpu
+ //we currently don't do this to avoid use of additional memory on GPU
+//calculate the dx values
+
+__global__ void setupdx_parallel(struct params *p, real *w, real *wnew, real *wmod, 
+    real *dwn1, real *wd, real *wtemp, real *wtemp1, real *wtemp2, int dir)
+{
+  // compute the global index in the vector from
+  // the number of the current block, blockIdx,
+  // the number of threads per block, blockDim,
+  // and the number of the current thread within the block, threadIdx
+  // int i = blockIdx.x * blockDim.x + threadIdx.x;
+  // int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+ int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+ // int index,k;
+int ni=p->n[0];
+  int nj=p->n[1];
+#ifdef USE_SAC_3D
+  int nk=p->n[2];
+#endif
+
+
+// Block index
+    int bx = blockIdx.x;
+   // int by = blockIdx.y;
+    // Thread index
+    int tx = threadIdx.x;
+   // int ty = threadIdx.y;
+    
+  real *u,  *v,  *h;
+
+   int ord;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+
+
+  int i,j;
+  int ip,jp,kp;
+  int ii[NDIM];
+   int dimp=((p->n[0]))*((p->n[1]));
+
+   
+ #ifdef USE_SAC_3D
+   int kp;
+  dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+/*   int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#else
+    jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif */ 
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
+   
+
+     ii[0]=ip;
+     ii[1]=jp;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp;
+     #endif
+
+   //calculate the dx values
+
+
+	    switch(dir)
+	    {
+		     case 0:
+		     #ifdef USE_SAC_3D
+		       if( ii[0]>0 && ii[0]<(p->n[0])+1 && ii[1]>0 &&  ii[1]<(p->n[1])+1 && ii[2]>0 &&  ii[2]<(p->n[2])+1)
+		     #else
+		       if( ii[0]>0 && ii[0]<(p->n[0])+1  && ii[1]>0 && ii[1]<(p->n[1])+1)
+		     #endif
+	                wd[fencode3_i(p,ii,delx1)]=0.5*(wtemp2[encode3p2_i(p,ip+1,jp,kp,tmpnui)]-wtemp2[encode3p2_i(p,ip-1,jp,kp,tmpnui)]);
+		     break;
+	
+		     case 1:
+		     #ifdef USE_SAC_3D
+		       if(ii[0]>0 && ii[0]<(p->n[0])+1 && ii[1]>0 &&  ii[1]<(p->n[1])+1 && ii[2]>0 &&  ii[2]<(p->n[2])+1)
+		     #else
+		       if(ii[0]>0 && ii[0]<(p->n[0])+1 && ii[1]>0 && ii[1]<(p->n[1])+1)
+		     #endif
+			wd[fencode3_i(p,ii,delx2)]=0.5*(wtemp2[encode3p2_i(p,ip,jp+1,kp,tmpnui)]-wtemp2[encode3p2_i(p,ip,jp-1,kp,tmpnui)]);
+		     break;
+		         
+		     #ifdef USE_SAC_3D
+		     case 2:
+
+		       if(ii[0]>0 && ii[0]<(p->n[0])+1 && ii[1]>0 && ii[1]<(p->n[1])+1 && ii[2]>0 && ii[2]<(p->n[2])+1)
+			wd[fencode3_i(p,ii,delx3)]=0.5*(wtemp2[encode3p2_i(p,ip,jp,kp+1,tmpnui)]-wtemp2[encode3p2_i(p,ip,jp,kp-1,tmpnui)]);
+		     break;			
+		     #endif
+	     }
+     
+        	
+	 __syncthreads();
+
+
+
+
+
+
+
+       
+
+
+
+
+
+}
+
+ //initialise grid on the gpu
+ //we currently don't do this to avoid use of additional memory on GPU
+//intialise temporrary matrix needs t be completed
+__global__ void zerotempv_parallel(struct params *p, real *w, real *wnew, real *wmod, 
+real *dwn1,  real *wd, real *wtemp, real *wtemp1, real *wtemp2,  int dir)
+{
+
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  const int blockdim=blockDim.x;
+  const int SZWT=blockdim;
+  const int SZWM=blockdim*NVAR;
+  int tid=threadIdx.x;
+  real maxt=0,max3=0, max1=0;
+  int i,j,iv;
+  int is,js;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+  real dt=p->dt;
+  real dy=p->dx[1];
+  real dx=p->dx[0];
+
+
+  
+   int ip,jp;
+
+
+
+  int ii[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif  
+
+int bfac1,bfac2,bfac3;
+//int bfac1=(field==rho || field>mom2)+(field>rho && field<energy);
+//int bfac2= (field==rho || field>mom2);
+//int bfac3=(field>rho && field<energy);
+//int shift=order*NVAR*dimp;
+
+
+
+
+//init temp1 and temp2 to zero 
+//the compute element initialising n[0] or n[1] element must do +1 and +2
+//this is because we fit the problem geometrically to nixnj elements 
+
+     ii[0]=ip;
+     ii[1]=jp;
+     i=ii[0];
+     j=ii[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp;
+           k=ii[2];
+     #endif
+
      #ifdef USE_SAC_3D
        if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
      #else
        if(ii[0]<p->n[0] && ii[1]<p->n[1])
      #endif
-     
-               for(int f=vel1; f<NDERV; f++)
-                    wd[fencode3_i(p,ii,f)]=0.0;
-     
+    //set viscosities
+   //if(i<((p->n[0])) && j<((p->n[1])))
+   {
 
- __syncthreads(); 
+
+        for(int f=d1; f<=d3; f++)
+     #ifdef USE_SAC_3D
+                 wtemp2[encode3p2_i(p,ii[0],ii[1],ii[2],tmpnui)]=0;
+     #else
+                 wtemp2[encode3p2_i(p,ii[0],ii[1],k,tmpnui)]=0;
+     #endif
+
+      if(i==((p->n[0])-1))
+      {
+        wtemp2[encode3p2_i(p,i+1,j,k,tmpnui)]=0;
+        wtemp2[encode3p2_i(p,i+2,j,k,tmpnui)]=0;
+      }
+      if(j==((p->n[1])-1))
+      {
+          wtemp2[encode3p2_i(p,i,j+1,k,tmpnui)]=0;
+          wtemp2[encode3p2_i(p,i,j+2,k,tmpnui)]=0;
+      }
+
+     #ifdef USE_SAC_3D
+      if(k==((p->n[2])-1))
+      {
+          wtemp2[encode3p2_i(p,i,j,k+1,tmpnui)]=0;
+          wtemp2[encode3p2_i(p,i,j,k+2,tmpnui)]=0;
+      }
+
+     #endif
+      if(j==((p->n[1])-1)  && i==((p->n[0])-1))
+      {
+          for(int di=0; di<2; di++)
+             for(int dj=0; dj<2; dj++)
+                   wtemp2[encode3p2_i(p,i+1+di,j+1+dj,k,tmpnui)]=0;
+      }
+     #ifdef USE_SAC_3D
+      if(i==((p->n[0])-1)  && k==((p->n[2])-1))
+      {
+          for(int di=0; di<2; di++)
+             for(int dk=0; dk<2; dk++)
+                   wtemp2[encode3p2_i(p,i+1+di,j,k+1+dk,tmpnui)]=0;
+      }
+      #endif
+
+    
+
+     #ifdef USE_SAC_3D
+      if(j==((p->n[1])-1)  && k==((p->n[2])-1))
+      {
+          for(int dk=0; dk<2; dk++)
+             for(int dj=0; dj<2; dj++)
+                   wtemp2[encode3p2_i(p,i,j+1+dj,k+1+dk,tmpnui)]=0;
+      }
+      #endif
+
+     #ifdef USE_SAC_3D
+      if(i==((p->n[0])-1) && j==((p->n[1])-1)  && k==((p->n[2])-1))
+      {
+          for(int dk=0; dk<2; dk++)
+             for(int dj=0; dj<2; dj++)
+               for(int di=0; di<2; di++)
+                   wtemp2[encode3p2_i(p,i+1+di,j+1+dj,k+1+dk,tmpnui)]=0;
+      }
+      #endif
+
+   }
+
 }
+
+
 
 __device__ __host__
 int encodempiw (struct params *p,int ix, int iy, int iz, int field,int bound,int dim) {
@@ -768,7 +1166,7 @@ void checkErrors_i(char *label)
 
 
 
-int cuinit(struct params **p, real **w, real **wnew, struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
+int cuinit(struct params **p, real **w, real **wnew, real **wd, struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
 {
 
 
@@ -779,6 +1177,7 @@ int cuinit(struct params **p, real **w, real **wnew, struct state **state, struc
   //     - set device
   /////////////////////////////////////
   int deviceCount;
+  int dir;
   cudaGetDeviceCount(&deviceCount);
    
  // if (deviceCount == 0)
@@ -848,6 +1247,8 @@ printf("ni is %d\n",(*p)->n[1]);
      
 printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
     cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
+    cudaMemcpy(*d_wd, *wd, NDERV*dimp*sizeof(real), cudaMemcpyHostToDevice);
+
    // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
     printf("here\n");
     cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
@@ -865,6 +1266,27 @@ printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
     // init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_b);
      init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd, *d_wtemp, *d_wtemp1, *d_wtemp2);
      cudaThreadSynchronize();
+     
+     //copy data back to cpu so we can compute and update the grid (on the cpu)
+    cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+    //setup the grid and dx values here
+
+
+    cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
+
+
+ //initialise grid on the gpu
+ //we currently don't do this to avoid use of additional memory on GPU
+ /*for(dir=0; dir<NDIM; dir++)
+ {
+     zerotempv_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd, *d_wtemp, *d_wtemp1, *d_wtemp2,dir);
+     cudaThreadSynchronize();     
+     gridsetup_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd, *d_wtemp, *d_wtemp1, *d_wtemp2,dir);
+     cudaThreadSynchronize();
+     setupdx_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd, *d_wtemp, *d_wtemp1, *d_wtemp2,dir);
+     cudaThreadSynchronize();
+  }*/
+
 	    printf("called initialiser\n");
 	cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
 
@@ -883,8 +1305,475 @@ printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
 
 }
 
+/*! Cartesian or polar grid. Determine x at the boundaries.
+! Determine often needed combinations of x, such as dx or dvolume.
+! Determine variables for axial symmetry
+!
+! ixe          - edge coordinate of the grid touching the boundary region
+! ixf          - coordinate inside of ixe
+! qx           - x with an extended index range for calculation of dx   */
+
+int initgrid(struct params **p, real **w, real **wnew,   struct state **state, real **wd, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
+{
+    real *ttemp2;
+    int ii[NDIM];
+    int ii1[3],ii2[3],ix;
+    int ip,jp,kp,kpo;
+    int dir,dir1,dir2;
+    int ixmin,ixmax,ixe,ixf;
+    real *wda=*wd;
+ int dimp=(((*p)->n[0]))*(((*p)->n[1]));
+ #ifdef USE_SAC_3D
+ 
+   dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif      
+    kp=0;
+    printf("called initgrid\n");
+    
+
+    for(int i=0;i<3;i++)
+    {
+       ii1[i]=0;
+       ii2[i]=0;
+    }
+    #ifdef USE_SAC
+    ttemp2=(real *) malloc( (NTEMP2+2)*(((*p)->n[0])+2)* (((*p)->n[1])+2)*sizeof(real));
+    #endif
+    #ifdef USE_SAC_3D
+    ttemp2=(real *)malloc((NTEMP2+2)*(((*p)->n[0])+2)* (((*p)->n[1])+2)* (((*p)->n[2])+2)*sizeof(real));
+    #endif
+    
+   	cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+     for(dir=0;dir<NDIM;dir++)
+     for(ii[0]=0; ii[0]<((*p)->n[0])+2; ii[0]++)
+     for(ii[1]=0; ii[1]<((*p)->n[1])+2; ii[1]++)
+     		     #ifdef USE_SAC_3D
+                   for(ii[2]=0; ii[2]<((*p)->n[2])+2; ii[2]++)
+                 #endif
+                 {
+                        ip=ii[0];
+                        jp=ii[1];
+         		     #ifdef USE_SAC_3D
+                       kp=ii[2];
+                     #endif                   
+                       
+	    switch(dir)
+	    {
+		     case 0:
+	                ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui)]= 0;
+		     break;
+	
+		     case 1:
+			 ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui1)]= 0;
+		     break;
+		         
+		     #ifdef USE_SAC_3D
+		     case 2:
+			 ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui2)]= 0;
+		     break;			
+		     #endif
+	     }
+      }	
+ 
+
+     kp=1;
+     kpo=0;
+     for(dir=0;dir<NDIM;dir++)
+        for(ii[0]=1; ii[0]<((*p)->n[0])+1; ii[0]++)
+           for(ii[1]=1; ii[1]<((*p)->n[1])+1; ii[1]++)
+		#ifdef USE_SAC_3D
+		   for(ii[2]=1; ii[2]<((*p)->n[2])+1; ii[2]++)
+		#endif
+                {
+                        ip=ii[0];
+                        jp=ii[1];
+         		     #ifdef USE_SAC_3D
+                       kp=ii[2];
+                       kpo=kp;
+                     #endif                   
+                       
+	    switch(dir)
+	    {
+		     case 0:
+	                ttemp2[encode3p2_i(*p,ip,jp,kpo,tmpnui)]= (wda[encode3_i(*p,ip-1,jp-1,kp-1,pos1)]);
+		     break;
+	
+		     case 1:
+			 ttemp2[encode3p2_i(*p,ip,jp,kpo,tmpnui1)]= (wda[(encode3_i(*p,ip-1,jp-1,kp-1,pos2))]);
+		     break;
+		         
+		     #ifdef USE_SAC_3D
+		     case 2:
+			 ttemp2[encode3p2_i(*p,ip,jp,kpo,tmpnui2)]= (wda[(encode3_i(*p,ip-1,jp-1,kp-1,pos3))]);
+		     break;			
+		     #endif
+	     }
+      }	
 
 
+  	
+   	//update grid edges
+     kp=0;
+     for(dir=0;dir<NDIM;dir++)
+     {
+                
+                       
+	    switch(dir)
+	    {
+		     case 0:
+                       ixmax=((*p)->n[0])+1;//ixGmax1+1; 
+                       ixmin=((*p)->n[0])+1;//ixmin1=ixGmax1+1                      
+                       ixe=ixmin-1; 
+                       ixf=ixe-1;
+
+
+                       //upper layers
+			     for(dir1=0;dir1<NDIM;dir1++)
+			     {
+				     for(ii[0]=ixmin; ii[0]<=ixmax; ii[0]++)
+				     for(ii[1]=0; ii[1]<((*p)->n[1])+2; ii[1]++)
+				     		 #ifdef USE_SAC_3D
+						   for(ii[2]=0; ii[2]<((*p)->n[2])+2; ii[2]++)
+						 #endif
+						 {
+				                        ix=ii[0];
+                                                        ip=ii[0];
+							jp=ii[1];
+					 		     #ifdef USE_SAC_3D
+						       kp=ii[2];
+						     #endif  
+                                                       for(dir2=0;dir2<NDIM;dir2++)
+                                                       {
+                                                         ii1[dir2]=ii[dir2];
+                                                         ii2[dir2]=ii[dir2];
+                                                       }
+                                                       ii1[0]=ixe;
+                                                       ii2[0]=ixf; 
+                                                       ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))])-(abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
+						      //ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (wda[fencode3_i(*p,ii1,pos1+dir1)]);
+						  }
+
+				}
+
+
+
+                      //lower layers
+
+                       ixmin=0;//ixmin1=ixGmin1-1;
+                       ixmax=0;//ixmax1=ixGmin1-1                   
+                       ixe=ixmax+1; 
+                       ixf=ixe+1;
+
+			     for(dir1=0;dir1<NDIM;dir1++)
+			     {
+				     for(ii[0]=ixmin; ii[0]<=ixmax; ii[0]++)
+				     for(ii[1]=0; ii[1]<((*p)->n[1])+2; ii[1]++)
+				     		 #ifdef USE_SAC_3D
+						   for(ii[2]=0; ii[2]<((*p)->n[2])+2; ii[2]++)
+						 #endif
+						 {
+							ix=ip=ii[0];
+							jp=ii[1];
+					 		     #ifdef USE_SAC_3D
+						       kp=ii[2];
+						     #endif  
+                                                       for(dir2=0;dir2<NDIM;dir2++)
+                                                       {
+                                                         ii1[dir2]=ii[dir2];
+                                                         ii2[dir2]=ii[dir2];
+                                                       }
+                                                       ii1[0]=ixe;
+                                                       ii2[0]=ixf; 
+    ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))])-(abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
+// ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]= (ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))])+ (ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
+   // qx(ix,ixmin2:ixmax2,jdim)=(1+abs(ixe-ix))*qx(ixe,ixmin2:ixmax2,jdim)- abs(ixe-ix) *qx(ixf,ixmin2:ixmax2,jdim)
+
+						  }
+
+				}
+		     break;
+	
+		     case 1:
+
+
+                       ixmax=((*p)->n[1])+1;//ixGmax1+1; 
+                       ixmin=((*p)->n[1])+1;//ixGmax1+1;                      
+                       ixe=ixmin-1; 
+                       ixf=ixe-1;
+
+
+                       //upper layers
+			     for(dir1=0;dir1<NDIM;dir1++)
+			     {
+                 for(ii[0]=0; ii[0]<((*p)->n[0])+2; ii[0]++)
+				     for(ii[1]=ixmin; ii[1]<=ixmax; ii[1]++)
+				     
+				     		 #ifdef USE_SAC_3D
+						   for(ii[2]=0; ii[2]<((*p)->n[2])+2; ii[2]++)
+						 #endif
+						 {
+							ip=ii[0];
+							ix=jp=ii[1];
+					 		     #ifdef USE_SAC_3D
+						       kp=ii[2];
+						     #endif  
+                                                       for(dir2=0;dir2<NDIM;dir2++)
+                                                       {
+                                                         ii1[dir2]=ii[dir2];
+                                                         ii2[dir2]=ii[dir2];
+                                                       }
+                                                       ii1[1]=ixe;
+                                                       ii2[1]=ixf; 
+						       ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))])-(abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
+						      //ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (wda[fencode3_i(*p,ii1,pos1+dir1)]);
+						  }
+
+				}
+
+
+
+                      //lower layers
+
+                       ixmin=0;//ixmin1=ixGmin1-1;
+                       ixmax=0;//ixmax1=ixGmin1-1                    
+                       ixe=ixmax+1; 
+                       ixf=ixe+1;
+
+			     for(dir1=0;dir1<NDIM;dir1++)
+			     {
+			         for(ii[0]=0; ii[0]<((*p)->n[0])+2; ii[0]++)	
+				     for(ii[1]=ixmin; ii[1]<=ixmax; ii[1]++)
+				     		 #ifdef USE_SAC_3D
+						   for(ii[2]=0; ii[2]<((*p)->n[2])+2; ii[2]++)
+						 #endif
+						 {
+							ip=ii[0];
+							ix=jp=ii[1];
+					 		     #ifdef USE_SAC_3D
+						       kp=ii[2];
+						     #endif  
+                                                       for(dir2=0;dir2<NDIM;dir2++)
+                                                       {
+                                                         ii1[dir2]=ii[dir2];
+                                                         ii2[dir2]=ii[dir2];
+                                                       }
+                                                       ii1[1]=ixe;
+                                                       ii2[1]=ixf; 
+						       ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))])-(abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
+						  }
+
+				}
+
+
+
+
+		     break;
+		         
+		     #ifdef USE_SAC_3D
+		     case 2:
+
+
+                       ixmax=((*p)->n[2])+1;//ixGmax1+1; 
+                       ixmin=((*p)->n[2])+1;//ixGmax1+1;                      
+                       ixe=ixmin-1; 
+                       ixf=ixe-1;
+
+
+                       //upper layers
+			     for(dir1=0;dir1<NDIM;dir1++)
+			     {
+                 for(ii[0]=0; ii[0]<((*p)->n[0])+2; ii[0]++)
+                 for(ii[1]=0; ii[1]<((*p)->n[1])+2; ii[1]++)
+				     
+				     		 #ifdef USE_SAC_3D
+						  
+			        for(ii[2]=ixmin; ii[2]<=ixmax; ii[2]++)
+						 #endif
+						 {
+							ip=ii[0];
+							jp=ii[1];
+					 		     #ifdef USE_SAC_3D
+						       ix=kp=ii[2];
+						     #endif  
+                                                       for(dir2=0;dir2<NDIM;dir2++)
+                                                       {
+                                                         ii1[dir2]=ii[dir2];
+                                                         ii2[dir2]=ii[dir2];
+                                                       }
+                                                       ii1[2]=ixe;
+                                                       ii2[2]=ixf; 
+						       ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))])-(abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
+						      //ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (wda[fencode3_i(*p,ii1,pos1+dir1)]);
+						  }
+
+				}
+
+
+
+                      //lower layers
+
+                       ixmin=0;//ixmin1=ixGmin1-1;
+                       ixmax=0;//ixmax1=ixGmin1-1                    
+                       ixe=ixmax+1; 
+                       ixf=ixe+1;
+
+			     for(dir1=0;dir1<NDIM;dir1++)
+			     {
+			         for(ii[0]=0; ii[0]<((*p)->n[0])+2; ii[0]++)
+                     for(ii[1]=0; ii[1]<((*p)->n[1])+2; ii[1]++)	
+				     
+				     		 #ifdef USE_SAC_3D
+						   
+						    for(ii[2]=ixmin; ii[2]<=ixmax; ii[2]++)
+						 #endif
+						 {
+							ip=ii[0];
+							jp=ii[1];
+					 		     #ifdef USE_SAC_3D
+						       ix=kp=ii[2];
+						     #endif  
+                                                       for(dir2=0;dir2<NDIM;dir2++)
+                                                       {
+                                                         ii1[dir2]=ii[dir2];
+                                                         ii2[dir2]=ii[dir2];
+                                                       }
+                                                       ii1[2]=ixe;
+                                                       ii2[2]=ixf; 
+						       ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))])-(abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
+						  }
+
+				}
+
+
+
+		     break;			
+		     #endif
+	     }
+      }	
+
+
+
+
+
+
+   	//calculate dx
+  kp=0;
+  kpo=0;
+
+                   for(dir=0;dir<NDIM;dir++)
+                 {
+
+  for(ii[0]=1; ii[0]<((*p)->n[0])+1; ii[0]++)
+     for(ii[1]=1; ii[1]<((*p)->n[1])+1; ii[1]++)
+  //for(ii[0]=0; ii[0]<((*p)->n[0]); ii[0]++)
+  //   for(ii[1]=0; ii[1]<((*p)->n[1]); ii[1]++)
+
+     		     #ifdef USE_SAC_3D
+                   for(ii[2]=1; ii[2]<((*p)->n[2])+1; ii[2]++)
+                 #endif
+{
+
+                        ip=ii[0];
+                        jp=ii[1];
+         		     #ifdef USE_SAC_3D
+                       
+                       kp=ii[2];
+                        kpo=kp-1;
+                     #endif                   
+                       
+	    switch(dir)
+	    {
+		     case 0:
+	               // (wda[(encode3_i(*p,ip-1,jp-1,kpo,delx1))])=/*(*p)->dx[0];//*/0.5*(ttemp2[encode3p2_i(*p,ip+1,jp,kp,tmpnui)]-ttemp2[encode3p2_i(*p,ip-1,jp,kp,tmpnui)]);
+                  (wda[(encode3_i(*p,ip-1,jp-1,kpo,delx1))])=/*(*p)->dx[0];//*/0.5*(ttemp2[encode3p2_i(*p,ip+1,jp,kp,tmpnui)]-ttemp2[encode3p2_i(*p,ip-1,jp,kp,tmpnui)]);
+	                //if(ip==1)
+                       // printf("delx 0 %d %d %16.20f  %16.20f \n",ii[0]-1,ii[1]-1,wda[(encode3_i(*p,ip-1,jp-1,kp,delx1))],wda[(encode3_i(*p,ip-1,jp-1,kp,delx2))]);
+		     break;
+	
+		     case 1:
+			(wda[(encode3_i(*p,ip-1,jp-1,kpo,delx2))])=/*(*p)->dx[1];//*/0.5*(ttemp2[encode3p2_i(*p,ip,jp+1,kp,tmpnui1)]-ttemp2[encode3p2_i(*p,ip,jp-1,kp,tmpnui1)]);
+	                //if(ip==1)
+                       // printf("delx 1 %d %d %16.20f  %16.20f \n",ii[0]-1,ii[1]-1,wda[(encode3_i(*p,ip-1,jp-1,kp,delx1))],wda[(encode3_i(*p,ip-1,jp-1,kp,delx2))]);
+
+		        //printf("delx2 %d %d %g ",ii[0],ii[1],wda[(fencode3_i(*p,ii,delx2))]);
+		     break;
+		         
+		     #ifdef USE_SAC_3D
+		     case 2:
+			(wda[(encode3_i(*p,ip-1,jp-1,kpo,delx3))])=0.5*(ttemp2[encode3p2_i(*p,ip,jp,kp+1,tmpnui2)]-ttemp2[encode3p2_i(*p,ip,jp,kp-1,tmpnui2)]);
+
+		     break;			
+		     #endif
+	     }
+      }
+  printf("\n");
+}
+
+
+printf("dx=%g dy=%g\n",(*p)->dx[0], (*p)->dx[1] );
+
+
+kp=0;
+
+     for(dir=0;dir<NDIM;dir++)
+        for(ii[0]=0; ii[0]<((*p)->n[0]); ii[0]++)
+           for(ii[1]=0; ii[1]<((*p)->n[1]); ii[1]++)
+		#ifdef USE_SAC_3D
+		   for(ii[2]=0; ii[2]<((*p)->n[2]); ii[2]++)
+		#endif
+                {
+                        ip=ii[0]+1;
+                        jp=ii[1]+1;
+         		     #ifdef USE_SAC_3D
+                       kp=ii[2]+1;
+                     #endif                   
+                       
+	    switch(dir)
+	    {
+		     case 0:
+	                 (wda[fencode3_i(*p,ii,pos1)])=ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui)];
+                      //  if(ip==1)
+                      //  printf("delx 0 %d %d %16.20f  %16.20f \n",ii[0],ii[1],wda[(encode3_i(*p,ip-1,jp-1,kp,delx1))],wda[(encode3_i(*p,ip-1,jp-1,kp,delx2))]);
+		     break;
+	
+		     case 1:
+			  (wda[(fencode3_i(*p,ii,pos2))])=ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui1)];
+//if(ip==1)
+                 //       printf("delx 1 %d %d %16.20f  %16.20f \n",ii[0],ii[1],wda[(encode3_i(*p,ip-1,jp-1,kp,delx1))],wda[(encode3_i(*p,ip-1,jp-1,kp,delx2))]);
+
+		     break;
+		         
+		     #ifdef USE_SAC_3D
+		     case 2:
+			  (wda[(fencode3_i(*p,ii,pos3))])=ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui2)];
+		     break;			
+		     #endif
+	     }
+      }	
+
+     kp=0;
+     //for(dir=0;dir<NDIM;dir++)
+       /* for(ii[0]=0; ii[0]<((*p)->n[0])+2; ii[0]++)
+           for(ii[1]=0; ii[1]<((*p)->n[1])+2; ii[1]++)
+             {
+
+                        ip=ii[0];
+                        jp=ii[1];
+                if(ii[0]==0)
+                printf("delx 0 %d %d %16.20f  %16.20f \n",ii[0],ii[1],ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui)],ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui1)]);
+
+              }*/
+
+    cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
+    cudaMemcpy(*d_wd, *wd, NDERV*dimp*sizeof(real), cudaMemcpyHostToDevice);
+  
+
+    free(ttemp2);
+  return 0;
+
+
+
+}
 
 
 #ifdef USE_MPI

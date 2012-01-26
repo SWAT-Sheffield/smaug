@@ -228,6 +228,10 @@ int shift=order*NVAR*dimp;
  // if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
 	{		               
 
+//wtemp[fencode3_hdb1(p,iia,tmp4)]=grad1l3n_hdb1(wtemp,wd,p,iia,tmp1,dim);
+//wtemp[fencode3_hdb1(p,iia,tmp5)]=grad1r3n_hdb1(wtemp,wd,p,iia,tmp1,dim);
+
+
 wtemp[fencode3_hdb1(p,iia,tmp4)]=grad1l3_hdb1(wtemp,p,iia,tmp1,dim);
 wtemp[fencode3_hdb1(p,iia,tmp5)]=grad1r3_hdb1(wtemp,p,iia,tmp1,dim);
 

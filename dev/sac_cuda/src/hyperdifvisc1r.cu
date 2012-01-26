@@ -293,7 +293,7 @@ int shift=order*NVAR*dimp;
 	   ii[2]=kp;
            k=ii[2];
      #endif
-
+      
      #ifdef USE_SAC_3D
        if(i>1 && i<((p->n[0])-1) && j>1 && j<((p->n[1])-1) && k>1 && k<((p->n[2])-1))
      #else
@@ -306,9 +306,9 @@ int shift=order*NVAR*dimp;
 {
 //p->cmax=1.0;
      #ifdef USE_SAC_3D
-	wd[encode3_hdv1r(p,i,j,k,hdnur)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1])+(dim==2)*(p->dx[2]))*(p->cmax)*(p->chyp[field])*wtemp[encode3_hdv1r(p,i,j,k,tmp4)]/wtemp[encode3_hdv1r(p,i,j,k,tmp5)];
+	wd[encode3_hdv1r(p,i,j,k,hdnur)]=((dim==0)*(wd[encode3_hdv1r(p,i,j,k,delx1)])+(dim==1)*(wd[encode3_hdv1r(p,i,j,k,delx2)])+(dim==2)*(wd[encode3_hdv1r(p,i,j,k,delx3)]))*(p->cmax)*(p->chyp[field])*wtemp[encode3_hdv1r(p,i,j,k,tmp4)]/wtemp[encode3_hdv1r(p,i,j,k,tmp5)];
      #else
-	wd[encode3_hdv1r(p,i,j,k,hdnur)]=((dim==0)*(p->dx[0])+(dim==1)*(p->dx[1]))*(p->cmax)*(p->chyp[field])*wtemp[encode3_hdv1r(p,i,j,k,tmp4)]/wtemp[encode3_hdv1r(p,i,j,k,tmp5)];
+	wd[encode3_hdv1r(p,i,j,k,hdnur)]=((dim==0)*(wd[encode3_hdv1r(p,i,j,k,delx1)])+(dim==1)*(wd[encode3_hdv1r(p,i,j,k,delx2)]))*(p->cmax)*(p->chyp[field])*wtemp[encode3_hdv1r(p,i,j,k,tmp4)]/wtemp[encode3_hdv1r(p,i,j,k,tmp5)];
      #endif
         //wd[encode3_hdv1r(p,i,j,k,hdnur)]=1.0e-1; 
           //wd[encode3_hdv1r(p,i,j,hdnur)]=wtemp[encode3_hdv1r(p,i,j,tmp4)];

@@ -52,12 +52,9 @@ __global__ void hyperdifesource4_parallel(struct params *p,  real *wmod,
 
 int shift=order*NVAR*dimp;
 
-#ifdef USE_SAC_3D
-  rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1)+(p->dx[2])*(dim==2));
-#else
-  rdx=(((p->dx[0])*(dim==0))+  (p->dx[1])*(dim==1)  );
-#endif
+
 real del;
+
 
      ii[0]=ip;
      ii[1]=jp;
@@ -69,6 +66,11 @@ real del;
            k=ii[2];
      #endif
 
+#ifdef USE_SAC_3D
+  rdx=(((wd[encode3_hde1(p,i,j,k,delx1)])*(dim==0))+(wd[encode3_hde1(p,i,j,k,delx2)])*(dim==1)+(wd[encode3_hde1(p,i,j,k,delx3)])*(dim==2));
+#else
+  rdx=(((wd[encode3_hde1(p,i,j,k,delx1)])*(dim==0))+  (wd[encode3_hde1(p,i,j,k,delx2)])*(dim==1)  );
+#endif
      #ifdef USE_SAC_3D
        if(i<((p->n[0])) && j<((p->n[1])) && k<((p->n[2])))
      #else
@@ -79,10 +81,13 @@ real del;
 
 //dwn1[fencode3_hde1(p,ii,field)]=( wtemp[fencode3_hde1(p,ii,hdnur)] *wtemp[fencode3_hde1(p,ii,tmp3)] - wtemp[fencode3_hde1(p,ii,hdnul)] *wtemp[fencode3_hde1(p,ii,tmp2)])/rdx;
 
-    wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]=wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hde1(p,ii,field)]; 
+   // wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]=wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hde1(p,ii,field)]; 
    //del=wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hde1(p,ii,field)]; 
   // if(del<0.011 && del>0.009)
    //          wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]=del;
+
+   wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]=wmod[fencode3_hde1(p,ii,field)+(ordero*NVAR*dimp)]+dt*( (wd[fencode3_hde1(p,ii,hdnur)]+wd[fencode3_hde1(p,ii,nushk1+dim)]) *wtemp[fencode3_hde1(p,ii,tmp3)] - (wd[fencode3_hde1(p,ii,hdnul)]+wd[fencode3_hde1(p,ii,nushk1+dim)]) *wtemp[fencode3_hde1(p,ii,tmp2)])/rdx;
+
   }
 
 //__syncthreads();
@@ -151,12 +156,14 @@ __global__ void hyperdifesource3_parallel(struct params *p,  real *wmod,
 
 int shift=order*NVAR*dimp;
 
+
 #ifdef USE_SAC_3D
-  rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1)+(p->dx[2])*(dim==2));
+  rdx=(((wd[encode3_hde1(p,i,j,k,delx1)])*(dim==0))+(wd[encode3_hde1(p,i,j,k,delx2)])*(dim==1)+(wd[encode3_hde1(p,i,j,k,delx3)])*(dim==2));
 #else
-  rdx=(((p->dx[0])*(dim==0))+  (p->dx[1])*(dim==1)  );
+  rdx=(((wd[encode3_hde1(p,i,j,k,delx1)])*(dim==0))+  (wd[encode3_hde1(p,i,j,k,delx2)])*(dim==1)  );
 #endif
- 
+
+
 
 
 
@@ -274,12 +281,6 @@ __global__ void hyperdifesource2_parallel(struct params *p,  real *wmod,
 
 int shift=order*NVAR*dimp;
 
-#ifdef USE_SAC_3D
-  rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1)+(p->dx[2])*(dim==2));
-#else
-  rdx=(((p->dx[0])*(dim==0))+  (p->dx[1])*(dim==1)  );
-#endif
-   
 
      ii[0]=ip;
      ii[1]=jp;
@@ -298,8 +299,8 @@ int shift=order*NVAR*dimp;
      #endif  
   //if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
   {
-	wtemp[fencode3_hde1(p,ii,tmp2)]= grad1l3_hde1(wtemp,p,ii,tmp1,dim) ;
-	wtemp[fencode3_hde1(p,ii,tmp3)]= grad1r3_hde1(wtemp,p,ii,tmp1,dim) ;
+	wtemp[fencode3_hde1(p,ii,tmp2)]= grad1l3n_hde1(wtemp,wd,p,ii,tmp1,dim) ;
+	wtemp[fencode3_hde1(p,ii,tmp3)]= grad1r3n_hde1(wtemp,wd,p,ii,tmp1,dim) ;
 	//wtemp[fencode3_hde1(p,ii,tmp2)]= -0.0007 ;
 	//wtemp[fencode3_hde1(p,ii,tmp3)]= -0.00005 ;
 	//wtemp[fencode3_hde1(p,ii,tmp2)]= (  ( wtemp[encode3_hde1(p,i,j,k,rho)]-wtemp[encode3_hde1(p,i-(dim==0),j-(dim==1),k,rho)]) /((p->dx[0]))    ) ;
@@ -530,8 +531,8 @@ int cuhyperdifesource1(struct params **p,  struct params **d_p,   real **d_wmod,
      hyperdifesource2_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim);
       cudaThreadSynchronize();
 
-     hyperdifesource3_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim);
-      cudaThreadSynchronize();
+     //hyperdifesource3_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim);
+    //  cudaThreadSynchronize();
 
      hyperdifesource4_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,dt);
       cudaThreadSynchronize();

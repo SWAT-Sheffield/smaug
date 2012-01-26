@@ -49,11 +49,11 @@ __global__ void hyperdifmomsource3_parallel(struct params *p,  real *wmod,
 
 int shift=order*NVAR*dimp;
 
-#ifdef USE_SAC_3D
-  rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1)+(p->dx[2])*(dim==2));
-#else
-  rdx=(((p->dx[0])*(dim==0))+  (p->dx[1])*(dim==1)  );
-#endif
+
+
+
+
+
 
 
      iia[0]=ip;
@@ -66,6 +66,13 @@ int shift=order*NVAR*dimp;
            k=iia[2];
      #endif
 
+#ifdef USE_SAC_3D
+  rdx=(((wd[encode3_hdm1(p,i,j,k,delx1)])*(dim==0))+(wd[encode3_hdm1(p,i,j,k,delx2)])*(dim==1)+(wd[encode3_hdm1(p,i,j,k,delx3)])*(dim==2));
+#else
+  rdx=(((wd[encode3_hdm1(p,i,j,k,delx1)])*(dim==0))+  (wd[encode3_hdm1(p,i,j,k,delx2)])*(dim==1)  );
+#endif
+
+
      #ifdef USE_SAC_3D
       if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
      #else
@@ -75,17 +82,18 @@ int shift=order*NVAR*dimp;
   //if(i<((p->n[0])) && j<((p->n[1])))
 	{		               
 
-dwn1[fencode3_hdm1(p,iia,energy)]=(wtemp[fencode3_hdm1(p,iia,tmp6)]*(wd[fencode3_hdm1(p,iia,hdnur)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp5)]*(wd[fencode3_hdm1(p,iia,hdnul)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2;
+;//dwn1[fencode3_hdm1(p,iia,energy)]=(wtemp[fencode3_hdm1(p,iia,tmp6)]*(wd[fencode3_hdm1(p,iia,hdnur)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp5)]*(wd[fencode3_hdm1(p,iia,hdnul)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2;
 
 dwn1[fencode3_hdm1(p,iia,mom1+ii0)]=(wtemp[fencode3_hdm1(p,iia,tmp3)]*(wd[fencode3_hdm1(p,iia,hdnur)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp2)]*(wd[fencode3_hdm1(p,iia,hdnul)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2;
 
                               wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,mom1+ii0)];
+                             //wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*((wtemp[fencode3_hdm1(p,iia,tmp3)]*(wd[fencode3_hdm1(p,iia,hdnur)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp2)]*(wd[fencode3_hdm1(p,iia,hdnul)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2);
 
    //del=wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,energy)]; 
    //if(del<0.011 && del>0.009)
            //  wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]=del; 
-                            wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,energy)]; 
-
+                            ;//wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,energy)]; 
+                               
                              // wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*((wtemp[fencode3_hdm1(p,iia,tmp3)]*wd[fencode3_hdm1(p,iia,hdnur)]*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp2)]*wd[fencode3_hdm1(p,iia,hdnul)]*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2); 
 
                             // wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*((wtemp[fencode3_hdm1(p,iia,tmp6)]*wd[fencode3_hdm1(p,iia,hdnur)]*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp5)]*wd[fencode3_hdm1(p,iia,hdnul)]*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2); 
@@ -109,7 +117,104 @@ dwn1[fencode3_hdm1(p,iia,mom1+ii0)]=(wtemp[fencode3_hdm1(p,iia,tmp3)]*(wd[fencod
 
 
 
+__global__ void hyperdifmomsource3a_parallel(struct params *p,  real *wmod, 
+    real *dwn1, real *wd, int order, int ordero, real *wtemp, int field, int dim, int ii, int ii0, real dt)
+{
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int ii1;
+  real fip,fim1,tmpc;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+  //real dt=p->dt;
+  real dy=p->dx[1];
+  real dx=p->dx[0];
+  real rdx;
+   int ip,jp;
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
 
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif  
+
+int shift=order*NVAR*dimp;
+
+
+
+
+
+
+
+     iia[0]=ip;
+     iia[1]=jp;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp;
+           k=iia[2];
+     #endif
+
+
+#ifdef USE_SAC_3D
+  rdx=(((wd[encode3_hdm1(p,i,j,k,delx1)])*(dim==0))+(wd[encode3_hdm1(p,i,j,k,delx2)])*(dim==1)+(wd[encode3_hdm1(p,i,j,k,delx3)])*(dim==2));
+#else
+  rdx=(((wd[encode3_hdm1(p,i,j,k,delx1)])*(dim==0))+  (wd[encode3_hdm1(p,i,j,k,delx2)])*(dim==1)  );
+#endif
+
+     #ifdef USE_SAC_3D
+      if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
+     #else
+       if(i<((p->n[0])) && j<((p->n[1])))
+     #endif
+
+  //if(i<((p->n[0])) && j<((p->n[1])))
+	{		               
+
+dwn1[fencode3_hdm1(p,iia,energy)]=(wtemp[fencode3_hdm1(p,iia,tmp6)]*(wd[fencode3_hdm1(p,iia,hdnur)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp5)]*(wd[fencode3_hdm1(p,iia,hdnul)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2;
+
+;//dwn1[fencode3_hdm1(p,iia,mom1+ii0)]=(wtemp[fencode3_hdm1(p,iia,tmp3)]*(wd[fencode3_hdm1(p,iia,hdnur)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp2)]*(wd[fencode3_hdm1(p,iia,hdnul)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2;
+
+                             ;// wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,mom1+ii0)];
+
+   //del=wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,energy)]; 
+   //if(del<0.011 && del>0.009)
+           //  wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]=del; 
+                            wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*dwn1[fencode3_hdm1(p,iia,energy)]; 
+                              // wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*((wtemp[fencode3_hdm1(p,iia,tmp6)]*(wd[fencode3_hdm1(p,iia,hdnur)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp5)]*(wd[fencode3_hdm1(p,iia,hdnul)]+wd[fencode3_hdm1(p,iia,nushk1+dim)])*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2); 
+                             // wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,mom1+ii0)+(ordero*NVAR*dimp)]+dt*((wtemp[fencode3_hdm1(p,iia,tmp3)]*wd[fencode3_hdm1(p,iia,hdnur)]*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp2)]*wd[fencode3_hdm1(p,iia,hdnul)]*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2); 
+
+                            // wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]=wmod[fencode3_hdm1(p,iia,energy)+(ordero*NVAR*dimp)]+dt*((wtemp[fencode3_hdm1(p,iia,tmp6)]*wd[fencode3_hdm1(p,iia,hdnur)]*wtemp[fencode3_hdm1(p,iia,tmp8)]-wtemp[fencode3_hdm1(p,iia,tmp5)]*wd[fencode3_hdm1(p,iia,hdnul)]*wtemp[fencode3_hdm1(p,iia,tmp7)])/(rdx)/2); 
+
+
+   }
+
+ //__syncthreads();
+
+
+
+
+
+
+   
+
+
+
+  
+}
 
 
 __global__ void hyperdifmomsource2_parallel(struct params *p,  real *wmod, 
@@ -150,11 +255,11 @@ __global__ void hyperdifmomsource2_parallel(struct params *p,  real *wmod,
 
 int shift=order*NVAR*dimp;
 
-#ifdef USE_SAC_3D
+/*#ifdef USE_SAC_3D
   rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1)+(p->dx[2])*(dim==2));
 #else
   rdx=(((p->dx[0])*(dim==0))+  (p->dx[1])*(dim==1)  );
-#endif
+#endif*/
 
  
 
@@ -176,8 +281,8 @@ int shift=order*NVAR*dimp;
 //if(i>0 && j >0 && i<((p->n[0])-1) && j<((p->n[1])-1))
   {
 
-     wtemp[fencode3_hdm1(p,iia,tmp8)]=grad1r3_hdm1(wtemp,p,iia,tmp4,dim);
-     wtemp[fencode3_hdm1(p,iia,tmp7)]=grad1l3_hdm1(wtemp,p,iia,tmp4,dim);
+     wtemp[fencode3_hdm1(p,iia,tmp8)]=grad1r3n_hdm1(wtemp,wd,p,iia,tmp4,dim);
+     wtemp[fencode3_hdm1(p,iia,tmp7)]=grad1l3n_hdm1(wtemp,wd,p,iia,tmp4,dim);
 
    }
 
@@ -188,6 +293,8 @@ int shift=order*NVAR*dimp;
 
   
 }
+
+
 
 
 __global__ void hyperdifmomsource1_parallel(struct params *p,  real *wmod, 
@@ -225,11 +332,11 @@ __global__ void hyperdifmomsource1_parallel(struct params *p,  real *wmod,
 
 int shift=order*NVAR*dimp;
 
-#ifdef USE_SAC_3D
+/*#ifdef USE_SAC_3D
   rdx=(((p->dx[0])*(dim==0))+(p->dx[1])*(dim==1)+(p->dx[2])*(dim==2));
 #else
   rdx=(((p->dx[0])*(dim==0))+  (p->dx[1])*(dim==1)  );
-#endif
+#endif*/
 
 
 
@@ -416,9 +523,13 @@ int cuhyperdifmomsource1(struct params **p,  struct params **d_p,   real **d_wmo
 
      hyperdifmomsource1_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
      cudaThreadSynchronize();
+
      hyperdifmomsource2_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
      cudaThreadSynchronize();
+
      hyperdifmomsource3_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
+     cudaThreadSynchronize();
+     hyperdifmomsource3a_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod, *d_dwn1,  *d_wd, order,ordero,*d_wtemp, field, dim,ii,ii0,dt);
      cudaThreadSynchronize();
 
 }

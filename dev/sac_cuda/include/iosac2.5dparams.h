@@ -1,6 +1,7 @@
 
 
 
+
 real g  = 9.81;
 real u0 = 0;                               
 real v0 = 0;
@@ -18,54 +19,92 @@ int ngk=2;
 
 //Domain definition
 // Define the x domain
+//adiab hydro
+#ifdef ADIABHYDRO
+int ni = 106;
 
+ni=ni+2*ngi;
+real xmax = 1.0;  
+real dx = 0.55*xmax/(ni-4);
+#endif
 
-//#ifdef USE_SAC
+#ifdef USE_SAC
+//vac ozt
 int ni;
-ni=124; //BW tests
-//ni=252;//2d model
+ni=252;    //OZT tests
+//ni=796; //BW tests
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
+real xmax=1.0;
+//real dx = xmax/(ni-4);
+real dx = xmax/(ni);
+#endif
+#ifdef USE_SAC_3D
+//vac ozt
+int ni;
+ni=28;    //BACH3D tests
 
-real xmax=1599999.941;
-real xmin=36641.221;
+ni=ni+2*ngi;
+//ni=512;
+//real xmax = 6.2831853;  
+real xmax=14.19e18;
+real xmin=-14.19e18;
+//real dx = xmax/(ni-4);
 real dx = (xmax-xmin)/(ni);
-//#endif
-
+#endif
 
 
 // Define the y domain
+//adiab hydro
+#ifdef ADIABHYDRO
+int nj = 106;
+nj=196;
+nj=nj+2*ngj;
+real ymax = 1.0;  
+real dy = 0.55*ymax/(nj-4);
+#endif
 
-
-
-int nj=124;  //BW test
-//nj=252;//2d model
+#ifdef USE_SAC
+//vac ozt
+int nj = 252;  //OZT tests
+//int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
-real ymax=2007812.5;
-real ymin=7812.5;
-//real dx = xmax/(ni-4);
-real dy = (ymax-ymin)/(nj);  
+real ymax = 1.0;   
+//real dy = ymax/(nj-4);
+real dy = ymax/(nj);    
 //nj=41;
-
-
-               
+#endif
 
 #ifdef USE_SAC_3D
+//vac bach3d
+int nj;
+nj=28;    //BACH3D tests
 
+nj=nj+2*ngj;
+//ni=512;
+//real xmax = 6.2831853;  
+real ymax=14.19e18;
+real ymin=-14.19e18;
+//real dx = xmax/(ni-4);
+real dy = (ymax-ymin)/(nj);
+#endif                   
+
+#ifdef USE_SAC_3D
+//vac bach3d
 int nk;
-nk=124;    //BW tests
+nk=28;    //BACH3D tests
 
 nk=nk+2*ngk;
-real zmax=2007812.5;
-real zmin=7812.5;
+//ni=512;
+//real xmax = 6.2831853;  
+real zmax=14.19e18;
+real zmin=-14.19e18;
 //real dx = xmax/(ni-4);
 real dz = (zmax-zmin)/(nk);
-#endif  
-
-//printf("dx %f %f %f\n",dx,dy,dz);   
+#endif     
 real *x=(real *)calloc(ni,sizeof(real));
 for(i=0;i<ni;i++)
 		x[i]=i*dx;
@@ -83,49 +122,48 @@ int steeringenabled=1;
 int finishsteering=0;
 char configfile[300];
 //char *cfgfile="zero1.ini";
-//char *cfgfile="3D_128_128_128_asc_50.ini";
-char *cfgfile="3D_tubeact2_128_128_128_asc_50.ini";
+
+//char *cfgfile="zero1_np020203.ini";
+//char *cfgfile="zero1_np0201.ini";
+char *cfgfile="zero1_ot_asc.ini";
 //char *cfgfile="zero1_BW_bin.ini";
-//char *cfgout="3D_tube_128_128_128";
-//char *cfgout="/fastdata/cs1mkg/sac_cuda/out_ndriver_nohyp_npgft/3D_tube_128_128_128";
-char *cfgout="/fastdata/cs1mkg/sac_cuda/out_driver_hyp_tube/3D_atube_128_128_128";
+//char *cfgout="zero1_np010203."
+char *cfgout="out/zeroOT";
+//char *cfgout="zero1_np0201.out";
+
+
 struct params *d_p;
 struct params *p=(struct params *)malloc(sizeof(struct params));
 
 struct state *d_state;
 struct state *state=(struct state *)malloc(sizeof(struct state));
 
+
+#ifdef ADIABHYDRO
+dt=0.0002985;  //ADIABHYDRO
+#endif
+//dt=0.15
+
 #ifdef USE_SAC
-dt=2.0;  //bach test
-
-#endif
-
-#ifdef USE_SAC_3D
-//dt=2.0;  //BACH3D
-//dt=0.13;  //BACH3D
-dt=0.07;  //BACH3D
-#endif
-
-
-/*//dt=0.15;
-
-//#ifdef USE_SAC
-//dt=0.00065;  //OZT test
+dt=0.0002;  //OZT test
+//dt=.2;  //OZT test
 //dt=6.5/10000000.0; //BW test
 //dt=0.00000065;  //BW tests
-dt=0.000000493;  //BW tests
+//dt=0.000000493;  //BW tests
 //dt=0.005;
 //dt=0.000139;
 //dt=3.0/10000000.0; //BW test
-//#endif*/
+#endif
 
-
+#ifdef USE_SAC_3D
+dt=3.5e24;;  //BACH3D
+#endif
 int nt=(int)((tmax)/dt);
 //nt=3000;
 //nt=5000;
 //nt=200000;
-nt=10010;
-//nt=100;
+//nt=150000;
+nt=1700;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
 //t = [0:dt:tdomain];
@@ -138,14 +176,12 @@ p->n[0]=ni;
 p->n[1]=nj;
 p->ng[0]=ngi;
 p->ng[1]=ngj;
-
+#ifdef ADIABHYDRO
 p->npgp[0]=1;
 p->npgp[1]=1;
-
-#ifdef USE_SAC_3D
-p->n[2]=nk;
-p->ng[2]=ngk;
-p->npgp[2]=1;
+#else
+p->npgp[0]=1;
+p->npgp[1]=1;
 #endif
 
 p->dt=dt;
@@ -164,18 +200,26 @@ p->dx[2]=dz;
 p->gamma=2.0;
 p->adiab=0.5;
 */
+#ifdef ADIABHYDRO
+p->gamma=2.0;
+p->adiab=1.0;
+#else
 
-p->gamma=1.66666667;
+//ozt test
+p->gamma=1.66667;  //OZ test
+//p->gamma=2.0;  //BW test
+//p->gamma=5.0/3.0;  //BACH3D
+//alfven test
+//p->gamma=1.4;
 
-
+#endif
 
 
 
 
 p->mu=1.0;
 p->eta=0.0;
-p->g[0]=-274.0;
-//p->g[0]=0.0;
+p->g[0]=0.0;
 p->g[1]=0.0;
 p->g[2]=0.0;
 #ifdef USE_SAC_3D
@@ -183,9 +227,9 @@ p->g[2]=0.0;
 #endif
 //p->cmax=1.0;
 p->cmax=0.02;
-
+p->courant=0.2;
 p->rkon=0.0;
-p->sodifon=0.0;
+p->sodifon=1.0;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
@@ -195,14 +239,8 @@ p->cfgsavefrequency=10;
 
 
 p->xmax[0]=xmax;
-p->xmax[1]=ymax;
-p->xmin[0]=xmin;
-p->xmin[1]=ymin;
-#ifdef USE_SAC_3D
-p->xmax[2]=zmax;
-p->xmin[2]=zmin;
-#endif
 
+p->xmax[1]=ymax;
 p->nt=nt;
 p->tmax=tmax;
 
@@ -239,23 +277,28 @@ p->chyp[b1]=0.02;
 p->chyp[b2]=0.02;
 p->chyp[mom1]=0.4;
 p->chyp[mom2]=0.4;
-#ifdef USE_SAC_3D
-p->chyp[mom3]=0.4;
-p->chyp[b3]=0.02;
-#endif
 
+
+#ifdef USE_MPI
+//number of procs in each dim mpi only
+p->pnpe[0]=2;
+p->pnpe[1]=1;
+p->pnpe[2]=1;
+#endif
 
 
 iome elist;
 meta meta;
 
-
 //set boundary types
 for(int ii=0; ii<NVAR; ii++)
 for(int idir=0; idir<NDIM; idir++)
 {
-   (p->boundtype[ii][idir])=5;  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
+   (p->boundtype[ii][idir])=0;  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
 }
+
+
+
 
 
 

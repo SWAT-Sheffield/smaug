@@ -152,17 +152,22 @@ printf("allocating w and wnew\n");
  w=(real *)calloc(ni*nj*nk*NVAR,sizeof(real ));
 wd=(real *)calloc(ni*nj*nk*NDERV,sizeof(real ));
  wnew=(real *)calloc(ni*nj*nk*NVAR,sizeof(real ));
-
+for(i=0;i<ni*nj*nk*NDERV;i++)
+    wd[i]=0.0;
  #else
  w=(real *)calloc(ni*nj*NVAR,sizeof(real ));
 wd=(real *)calloc(ni*nj*NDERV,sizeof(real ));
  wnew=(real *)calloc(ni*nj*NVAR,sizeof(real ));
+ for(i=0;i<ni*nj*NDERV;i++)
+    wd[i]=0.0;
 #endif
+
+
 
 if((p->readini)==0)
  initconfig(p, &meta, w);
 else
- readasciivacconfig(cfgfile,*p,meta,w,hlines);
+ readasciivacconfig(cfgfile,*p,meta,w,wd,hlines);
 
 printf("after read\n");
 p->it=0;
@@ -186,8 +191,8 @@ p->it=0;
   u=w+(ni)*(nj)*mom1;
   v=w+(ni)*(nj)*mom2;
 
-cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
-
+cuinit(&p,&w,&wnew,&wd,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 
 #ifdef USE_MPI
 
@@ -199,11 +204,11 @@ cuinit(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&
   cucopywtompiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod, 0);
 #endif
 
- // cuboundary(&p,&d_p,&d_state,&d_w, 0);
+  cuboundary(&p,&d_p,&d_state,&d_w, 0);
 #ifdef USE_MPI
    mpibound(NVAR, d_w ,d_p);
 #endif
-//  cuboundary(&p,&d_p,&d_state,&d_wmod, 0);
+  cuboundary(&p,&d_p,&d_state,&d_wmod, 0);
 #ifdef USE_MPI
    mpibound(NVAR, d_wmod ,d_p);
    cucopywfrommpiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod,0);
@@ -273,16 +278,59 @@ for( n=1;n<=nt;n++)
     {
       //writeconfig(name,n,*p, meta , w);
 #ifndef USE_MPI
-      writevtkconfig(configfile,n,*p, meta , w);
+     // writevtkconfig(configfile,n,*p, meta , w);
 #endif
       //writeasciivacconfig(cfgout,*p, meta , w,hlines,*state);
 
-      writevacconfig(configfile,n,*p, meta , w,*state);
+      writevacconfig(configfile,n,*p, meta , w,wd,*state);
        
     }
    order=0;
    t1=second();
 
+   if(p->moddton==1.0)
+   {
+        //printf(" courant is %f \n",p->courant);
+        //p->courant=0.1;
+        p->maxcourant=0.0;
+        for(int dim=0; dim<=(NDIM-1); dim++)
+        {
+        cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
+        cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
+        cucomputemaxcourant(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
+        printf("maxcourant %16.10g",p->maxcourant);
+        }
+        
+        /*courantmax=0.0;
+        for(int dim=0; dim<=(NDIM-1); dim++)
+        {
+           if((cmax[dim]/(p->dx[dim]))>(p->maxcourant))
+             courantmax=cmax[dim]/(p->dx[dim]);
+             
+             printf("cmax %g ",cmax[dim]);
+        }
+        printf("old dt is %g ",p->dt);*/
+        //if(courantmax>smalldouble) dt=min(dt,courantpar/courantmax)
+
+        if(((p->maxcourant)>1.0e-8) && (p->dt)>(((p->courant)/(p->maxcourant))   ))
+               p->dt=(p->courant)/(p->maxcourant);
+        printf("new dt is %g \n",(p->courant)/(p->maxcourant));
+
+
+   ;//     cugetdtvisc1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
+          #ifdef USE_MPI
+              mpiallreduce(&(p->maxviscoef), MPI_MAX);
+          #endif
+        /*for(int dim=0; dim<=(NDIM-1); dim++)
+        {
+        dtdiffvisc=0.25/(p->maxviscoef/((p->dx[dim])*(p->dx[dim])));
+        if(dtdiffvisc>1.0e-8 && (p->dt)>dtdiffvisc )
+                                      p->dt=dtdiffvisc;
+        }*/
+        //cugetdtvisc1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
+        printf(" modified dt is %g \n",p->dt);
+
+   } 
 
 
 if((p->rkon)==0)
@@ -306,13 +354,15 @@ if((p->rkon)==0)
       if((f==mom1 && dir==0)  ||  (f==mom2 && dir==1)  || (f==mom2 && dir==2) )
        cucomputept(&p,&d_p,&d_wmod, &d_wd,order,dir);
       cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
+
+     
   }
 
    //cucomputevels(&p,&d_p,&d_wmod, &d_wd,order,dir);
 
 
 #ifndef ADIABHYDRO
-   for(int f=energy; f<=(b1+NDIM-1); f++)
+   for(int f=energy; f<=(b2); f++)
    {
      if(f==energy)
      {
@@ -320,7 +370,7 @@ if((p->rkon)==0)
          cucomputepbg(&p,&d_p,&d_wmod, &d_wd,order,dir);
          cucomputept(&p,&d_p,&d_wmod, &d_wd,order,dir);
      }
-    
+      
       cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
    }
 
@@ -502,7 +552,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	   cucopywfrommpiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod,order);
 	   
 	#endif
-  // cuboundary(&p,&d_p,&d_state,&d_wmod, ordero);
+   cuboundary(&p,&d_p,&d_state,&d_wmod, ordero);
 
 }
 
@@ -707,35 +757,6 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	   
 
    }
-   if(p->moddton==1.0)
-   {
-        //printf(" courant is %f \n",p->courant);
-        //p->courant=0.1;
-        courantmax=0.0;
-        for(int dim=0; dim<=(NDIM-1); dim++)
-        {
-           if((cmax[dim]/(p->dx[dim]))>courantmax)
-             courantmax=cmax[dim]/(p->dx[dim]);
-        }
-        printf("old dt is %g ",p->dt);
-        if((((p->courant)/courantmax)>1.0e-8) && dt>(((p->courant)/courantmax)   ))
-               p->dt=(p->courant)/courantmax;
-
-
-        cugetdtvisc1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
-          #ifdef USE_MPI
-              mpiallreduce(&(p->maxviscoef), MPI_MAX);
-          #endif
-        /*for(int dim=0; dim<=(NDIM-1); dim++)
-        {
-        dtdiffvisc=0.25/(p->maxviscoef/((p->dx[dim])*(p->dx[dim])));
-        if(dtdiffvisc>1.0e-8 && (p->dt)>dtdiffvisc )
-                                      p->dt=dtdiffvisc;
-        }*/
-        //cugetdtvisc1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
-        printf(" modified dt is %g \n",p->dt);
-
-   } 
 
    p->it=n+1;
    

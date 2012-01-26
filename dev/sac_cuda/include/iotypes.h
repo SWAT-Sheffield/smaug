@@ -23,7 +23,7 @@ DEFINE_PRECISION(double)
    //#define NVAR 13
    #define NVAR 10
    //#define NDERV 19
-   #define NDERV 17
+   #define NDERV 19
    #define NTEMP 8
    #define NTEMP1 2
    #define NTEMP2 1
@@ -33,7 +33,7 @@ DEFINE_PRECISION(double)
 #ifdef USE_SAC_3D
    #define NVAR 13
    //#define NVAR 10
-   #define NDERV 20
+   #define NDERV 23
    //#define NDERV 15
    #define NTEMP 8
    #define NTEMP1 2
@@ -108,6 +108,7 @@ struct params {
         real boundl[NDIM][NVAR];
 
         real cmax;
+        real maxcourant;
         int steeringenabled;
         int finishsteering;     
 	real dt;
@@ -212,13 +213,12 @@ struct hydrovars{
 #endif
 
 #ifdef USE_SAC
+	typedef enum dvars {vel1,vel2,flux,hdnur,hdnul,nushk1,nushk2,soundspeed,pressuret,pressurek,bdotv,divb,cfast,ptb,pkb,pos1,pos2,delx1,delx2} DEV;
 
-	typedef enum dvars {vel1,vel2,flux,hdnur,hdnul,nushk1,nushk2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,ptb,pkb} DEV;
 //typedef enum dvars {vel1,vel2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
 #endif
 #ifdef USE_SAC_3D
-
-	typedef enum dvars {vel1,vel2,vel3,flux,hdnur,hdnul,nushk1,nushk2,nushk3,soundspeed,pressuret,pressurek,current1,current2,current3,bdotv,divb,cfast,ptb,pkb} DEV;
+	typedef enum dvars {vel1,vel2,vel3,flux,hdnur,hdnul,nushk1,nushk2,nushk3,soundspeed,pressuret,pressurek,bdotv,divb,cfast,ptb,pkb,pos1,pos2,pos3,delx1,delx2,delx3} DEV;
 //typedef enum dvars {vel1,vel2,soundspeed,pressuret,pressurek,current1,current2,bdotv,divb,cfast,hdnur,hdnul,ptb,pkb} DEV;
 #endif
 #ifdef ADIABHYDRO
@@ -230,7 +230,7 @@ struct hydrovars{
 //typedef enum tempvars {tmp1, tmp2, tmp3,tmp4,tmp5,tmp6, tmprhol, tmprhor } TEV;
 typedef enum tempvars {tmp1, tmp2, tmp3,tmp4,tmp5,tmp6,tmp7,tmp8 } TEV;
 typedef enum temp1vars {d1,d3 } TEV1;
-typedef enum temp2vars {tmpnui } TEV2;
+typedef enum temp2vars {tmpnui,tmpnui1,tmpnui2 } TEV2; //note tmpnui1 and tmpnui2 not used on GPU
 
 
 

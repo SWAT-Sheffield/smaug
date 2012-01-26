@@ -133,7 +133,7 @@ fprintf(fdt,"%d %d %f %f %f %f %f %f %f %f\n",i1,j1,w[(j1*ni+i1)+(ni*nj*rho)],w[
 
 
 
-int writevacconfig(char *name,int n,params p, meta md, real *w, state st)
+int writevacconfig(char *name,int n,params p, meta md, real *w, real *wd, state st)
 {
   int status=0;
   int i1,j1,k1,ifield;
@@ -278,12 +278,19 @@ for( j1=0;j1<nj;j1++)
       {
    
                if(ifield==0)
-               dbuffer[0]=(p.xmin[0])+i1*p.dx[0];
+               dbuffer[0]=wd[(j1*ni+i1)+(ni*nj*(pos1))];
                else if(ifield==1)
-               dbuffer[0]=(p.xmin[1])+j1*p.dx[1];
+               dbuffer[0]=wd[(j1*ni+i1)+(ni*nj*(pos2))];
     #ifdef USE_SAC_3D
+               if(ifield==0)
+               dbuffer[0]=wd[(k1*ni*nj+j1*ni+i1)+(ni*nj*nk*(pos1))];
+               else if(ifield==1)
+               dbuffer[0]=wd[(k1*ni*nj+j1*ni+i1)+(ni*nj*nk*(pos2))];
                else if(ifield==2)
-               dbuffer[0]=(p.xmin[2])+k1*p.dx[2];
+               dbuffer[0]=wd[(k1*ni*nj+j1*ni+i1)+(ni*nj*nk*(pos3))];
+               
+    #else
+    
     #endif
                else
     #ifdef USE_SAC_3D
@@ -611,7 +618,7 @@ int readconfig(char *cfgfile, params p, meta md, real *w)
 }
 
 
-int readasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines)
+int readasciivacconfig(char *cfgfile, params p, meta md, real *w, real *wd, char **hlines)
 {
   int status=0;
   int i;
@@ -678,11 +685,11 @@ for( i1=0;i1<(ni);i1++)
 
 #ifdef USE_SAC_3D
                          shift=(k1*ni*nj+j1*ni+i1);
-                         fscanf(fdt,"%lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG\n",&x,&y,&z, &w[shift],&w[shift+(ni*nj*nk)],&w[shift+(ni*nj*nk*2)],&w[shift+(ni*nj*nk*3)],&w[shift+(ni*nj*nk*4)],&w[shift+(ni*nj*nk*5)],&w[shift+(ni*nj*nk*6)],&w[shift+(ni*nj*nk*7)],&w[shift+(ni*nj*nk*8)],&w[shift+(ni*nj*nk*9)],&w[shift+(ni*nj*nk*10)],&w[shift+(ni*nj*nk*11)],&w[shift+(ni*nj*nk*12)]);
+                         fscanf(fdt,"%lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG\n",&wd[shift+(ni*nj*nk*pos1)],&wd[shift+(ni*nj*nk*pos2)],&wd[shift+(ni*nj*nk*pos3)], &w[shift],&w[shift+(ni*nj*nk)],&w[shift+(ni*nj*nk*2)],&w[shift+(ni*nj*nk*3)],&w[shift+(ni*nj*nk*4)],&w[shift+(ni*nj*nk*5)],&w[shift+(ni*nj*nk*6)],&w[shift+(ni*nj*nk*7)],&w[shift+(ni*nj*nk*8)],&w[shift+(ni*nj*nk*9)],&w[shift+(ni*nj*nk*10)],&w[shift+(ni*nj*nk*11)],&w[shift+(ni*nj*nk*12)]);
 //printf("density %lG %lG %lG %lG \n",x,y,z,w[shift]);
 #else
                          shift=(j1*ni+i1);
-                         fscanf(fdt,"%lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG\n",&x,&y,&w[shift],&w[shift+(ni*nj)],&w[shift+(ni*nj*2)],&w[shift+(ni*nj*3)],&w[shift+(ni*nj*4)],&w[shift+(ni*nj*5)],&w[shift+(ni*nj*6)],&w[shift+(ni*nj*7)],&w[shift+(ni*nj*8)],&w[shift+(ni*nj*9)]);
+                         fscanf(fdt,"%lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG\n",&wd[shift+(ni*nj*pos1)],&wd[shift+(ni*nj*pos2)],&w[shift],&w[shift+(ni*nj)],&w[shift+(ni*nj*2)],&w[shift+(ni*nj*3)],&w[shift+(ni*nj*4)],&w[shift+(ni*nj*5)],&w[shift+(ni*nj*6)],&w[shift+(ni*nj*7)],&w[shift+(ni*nj*8)],&w[shift+(ni*nj*9)]);
 #endif
 
                          //freadl(fdt, &line);
@@ -703,7 +710,7 @@ for( i1=0;i1<(ni);i1++)
   return status;
 }
 
-int writeasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines, state st)
+int writeasciivacconfig(char *cfgfile, params p, meta md, real *w,real *wd, char **hlines, state st)
 {
   int status=0;
   int i;
@@ -743,7 +750,7 @@ int writeasciivacconfig(char *cfgfile, params p, meta md, real *w, char **hlines
                          x=(1+i1)*(p.dx[0]);
                          y=(1+j1)*(p.dx[1]);
                          shift=(j1*ni+i1);
-                         fprintf(fdt,"%lE %lE %lE %lE %lE %lE %lE %lE %lE %lE %lE %lE\n",x,y,w[shift],w[shift+(ni*nj)],w[shift+(ni*nj*2)],w[shift+(ni*nj*3)],w[shift+(ni*nj*4)],w[shift+(ni*nj*5)],w[shift+(ni*nj*6)],w[shift+(ni*nj*7)],w[shift+(ni*nj*8)],w[shift+(ni*nj*9)]);
+                         fprintf(fdt,"%lE %lE %lE %lE %lE %lE %lE %lE %lE %lE %lE %lE\n",wd[shift+ni*nj*pos1],wd[shift+ni*nj*pos2],w[shift],w[shift+(ni*nj)],w[shift+(ni*nj*2)],w[shift+(ni*nj*3)],w[shift+(ni*nj*4)],w[shift+(ni*nj*5)],w[shift+(ni*nj*6)],w[shift+(ni*nj*7)],w[shift+(ni*nj*8)],w[shift+(ni*nj*9)]);
 
               }
 

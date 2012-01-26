@@ -120,6 +120,7 @@ wd[fencode_MODID(p,i,j,pressuret)]=  ((p->gamma)-1.0)*wmod[fencode_MODID(p,i,j,e
 
  // return ( status);
 }
+
 __device__ __host__
 void computepk_MODID(real *wmod,real *wd,struct params *p,int i,int j)
 {

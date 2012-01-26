@@ -36,6 +36,12 @@ fluxtube1:
 	cp ../models/usersource.cu.fluxtube1 ../src/usersource.cu
 
 
+spiculejet1:
+	cp ../models/iosac2.5d_params.h.spiculejet1 ../include/iosac2.5dparams.h
+	cp ../models/init_user.cu.spiculejet1 ../src/init_user.cu
+	cp ../models/boundary.cu.spiculejet1 ../src/boundary.cu
+	cp ../models/usersource.cu.spiculejet1 ../src/usersource.cu
+
 sedov:
 	cp ../models/iosac2.5d_params.h.sedov ../include/iosac2.5dparams.h
 	cp ../models/init_user.cu.sedov ../src/init_user.cu
