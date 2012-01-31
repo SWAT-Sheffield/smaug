@@ -661,16 +661,16 @@ int encode3_MODID (struct params *dp,int ix, int iy, int iz, int field) {
 __device__ __host__
 int encodefixed13_MODID (struct params *dp,int ix, int iy, int iz, int field) {
   #ifdef USE_SAC_3D
-    return ( (ix*((dp)->ng[2])*((dp)->n[1])  + iy * ((dp)->ng[2]) + iz)+(field*4*((dp)->n[1])*((dp)->n[2])));
+    return ( (ix*((dp)->n[1])*((dp)->n[1])  + iy * ((dp)->n[2]) + iz)+(field*4*((dp)->n[1])*((dp)->n[2])));
   #else
-    return ( (ix * ((dp)->ng[1]) + iy)+(field*4*((dp)->n[1])));
+    return ( (ix * ((dp)->n[1]) + iy)+(field*4*((dp)->n[1])));
   #endif
 }
 
 __device__ __host__
 int encodefixed23_MODID (struct params *dp,int ix, int iy, int iz, int field) {
   #ifdef USE_SAC_3D
-    return ( (iy*((dp)->n[0])*((dp)->ng[2])  + ix * ((dp)->n[0]) + iz)+(4*field*((dp)->n[0])*((dp)->n[2])));
+    return ( (iy*((dp)->n[0])*((dp)->n[2])  + ix * ((dp)->n[0]) + iz)+(4*field*((dp)->n[0])*((dp)->n[2])));
   #else
     return ( (  iy * ((dp)->n[0]) + ix)+(4*field*((dp)->n[0])));
   #endif

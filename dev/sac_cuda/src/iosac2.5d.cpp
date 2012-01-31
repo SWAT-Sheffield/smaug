@@ -61,6 +61,7 @@ char *formfile=(char *)calloc(500,sizeof(char));
 #include "../include/defs.h"
 #include "../include/iosac2.5dparams.h"
 
+
 FILE *portf;
 
 #ifdef USE_IOME
@@ -203,6 +204,24 @@ initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_s
 
   cucopywtompiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod, 0);
 #endif
+
+int bsetfixed=0;
+
+/*p->it=-1;
+for(int ii=0; ii<NVAR; ii++)
+for(int idir=0; idir<NDIM; idir++)
+{
+   if((p->boundtype[ii][idir])==5  && bsetfixed==0)  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
+   {
+             if(bsetfixed==0)
+             {  
+             ;//  cuboundary(&p,&d_p,&d_state,&d_w, 0);
+               bsetfixed=1;
+             }
+   }
+}*/
+
+p->it=0;  
 
   cuboundary(&p,&d_p,&d_state,&d_w, 0);
 #ifdef USE_MPI
@@ -362,7 +381,7 @@ if((p->rkon)==0)
 
 
 #ifndef ADIABHYDRO
-   for(int f=energy; f<=(b2); f++)
+   for(int f=energy; f<=(b1+(NDIM-1)); f++)
    {
      if(f==energy)
      {

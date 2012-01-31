@@ -116,7 +116,7 @@ int addenergyterms_cd2(real *dw, real *wd, real *w, real *wmod, struct params *p
                       //wmod[fencode3_cd2(p,ii,field)]-= +(p->dt)*wd[fencode3_cd2(p,ii,ptb)]*grad3d_cd2(wd,p,ii,vel1+dir,dir);
 
                     for(int idim=0;idim<NDIM;idim++)
-                         wmod[fencode3_cd2(p,ii,field)]+=(p->dt)*wmod[fencode3_cd2(p,ii,b1b+idim)]*wmod[fencode3_cd2(p,ii,b1b+dir)]*grad3dn_cd2(wd,wd,p,ii,vel1+idim,idim);
+                         wmod[fencode3_cd2(p,ii,field)]+=(p->dt)*wmod[fencode3_cd2(p,ii,b1b+idim)]*wmod[fencode3_cd2(p,ii,b1b+dir)]*grad3dn_cd2(wd,wd,p,ii,vel1+dir,idim);
                         //wmod[fencode3_cd2(p,ii,field)]+=(p->dt)*wmod[fencode3_cd2(p,ii,b1b+idim)]*wmod[fencode3_cd2(p,ii,b1b+dir)]*grad3d_cd2(wd,p,ii,vel1+idim,idim);
 
 		//fluxt= +(((p->gamma)-1)*w[fencode3_cd2(p,ii,energyb)]- 0.5*((p->gamma)-2)*(w[fencode3_cd2(p,ii,b1b)]*w[fencode3_cd2(p,ii,b1b)]+w[fencode3_cd2(p,ii,b2b)]*w[fencode3_cd2(p,ii,b2b)]+w[fencode3_cd2(p,ii,b3b)]*w[fencode3_cd2(p,ii,b3b)]))*grad3d_cd2(wd,p,ii,vel1+dir,dir);
