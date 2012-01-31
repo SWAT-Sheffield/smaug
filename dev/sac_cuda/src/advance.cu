@@ -1,6 +1,6 @@
 #include "../include/cudapars.h"
 #include "../include/iotypes.h"
-
+#include "../include/iobparams.h"
 /////////////////////////////////////
 // standard imports
 /////////////////////////////////////

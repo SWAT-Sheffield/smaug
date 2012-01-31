@@ -71,7 +71,7 @@ if(iindex==0)
      #endif
  // #endif
 	{              
-             tmpdt=(p->maxviscoef)+wd[encode3_nshk(p,ii[0],ii[1],ii[2],nushk1+dim)];
+           ;//  tmpdt=(p->maxviscoef)+wd[encode3_nshk(p,ii[0],ii[1],ii[2],nushk1+dim)];
 
               if(tmpdt>maxtmpdt)
                     maxtmpdt=tmpdt;
@@ -174,10 +174,10 @@ real cshk=0.5;
    //if(i>1 && j>1 && i<((p->n[0])) && j<((p->n[1])))       
    { 
 
-    wd[encode3_nshk(p,i,j,k,nushk1+dim)]=cshk*(p->dx[dim])*(p->dx[dim])*wtemp[encode3_nshk(p,i,j,k,tmp3)];
-    if(wtemp[encode3_nshk(p,i,j,k,tmp3)]>=0.0)
-        wd[encode3_nshk(p,i,j,k,nushk1+dim)]=0.0;
-    wd[encode3_nshk(p,i,j,k,nushk1+dim)]=fabs(wd[encode3_nshk(p,i,j,k,nushk1+dim)]);
+  ;//  wd[encode3_nshk(p,i,j,k,nushk1+dim)]=cshk*(p->dx[dim])*(p->dx[dim])*wtemp[encode3_nshk(p,i,j,k,tmp3)];
+  ;//  if(wtemp[encode3_nshk(p,i,j,k,tmp3)]>=0.0)
+  ;//      wd[encode3_nshk(p,i,j,k,nushk1+dim)]=0.0;
+  ;//  wd[encode3_nshk(p,i,j,k,nushk1+dim)]=fabs(wd[encode3_nshk(p,i,j,k,nushk1+dim)]);
    }
 
    __syncthreads();
@@ -395,7 +395,7 @@ int shift=order*NVAR*dimp;
 
 
 		wtemp[fencode3_nshk(p,ii,tmp1)]=wmod[fencode3_nshk(p,ii,mom1+dim)+shift]/(((wmod[fencode3_nshk(p,ii,rho)+shift] +wmod[fencode3_nshk(p,ii,rhob)+shift])));
-         wd[fencode3_nshk(p,ii,nushk1+dim)]=0;       
+      ;//   wd[fencode3_nshk(p,ii,nushk1+dim)]=0;       
         //wtemp2[encode3_nshk(p,i+1,j+1,k,tmpnui)]=wtemp[fencode3_nshk(p,ii,tmp6)];
 
 

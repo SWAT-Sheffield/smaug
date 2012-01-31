@@ -216,7 +216,7 @@ cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
 }
 
 
-int cufinish(struct params **p, real **w, real **wnew, struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
+int cufinish(struct params **p, real **w, real **wnew, struct state **state, struct params **d_p,struct bparams **d_bp, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
 {
   
 
@@ -228,6 +228,7 @@ int cufinish(struct params **p, real **w, real **wnew, struct state **state, str
 
 
   cudaFree(*d_p);
+  cudaFree(*d_bp);
 //  cudaFree(*d_state);
 
   cudaFree(*d_w);

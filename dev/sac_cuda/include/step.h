@@ -1,18 +1,18 @@
 
 #include "iotypes.h"
+#include "iobparams.h"
 
 
 
 
-
-int cuinit(struct params **p, real **w, real **wnew, real **wd,  struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
+int cuinit(struct params **p, struct bparams **bp,real **w, real **wnew, real **wd, struct state **state, struct params **d_p, struct bparams **d_bp,real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
 int initgrid(struct params **p, real **w, real **wnew,   struct state **state, real **wd, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
 
-int cufinish(struct params **p, real **w, real **wnew,   struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
+int cufinish(struct params **p, real **w, real **wnew,   struct state **state, struct params **d_p, struct bparams **d_bp,real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2);
 //int cuprop(struct params **p, real **w, real **wnew, real **b,struct params **d_p, real **d_w, real **d_wnew, real **d_b);
 //int cufinish(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd);
 //int cuprop(struct params **p, real **w, real **wnew, struct params **d_p, real **d_w, real **d_wnew,  real **d_wmod, real **d_dwn1, real **d_wd);
-int cuboundary(struct params **p, struct params **d_p, struct state **d_s,  real **d_wmod,  int order);
+int cuboundary(struct params **p, struct bparams **bp,struct params **d_p, struct bparams **d_bp,struct state **d_s,  real **d_wmod,  int order,int idir,int field);
 //int cuupdate(struct params **p, real **w, real **wmod, real **wd, real **temp2, struct state **state,struct params **d_p, real **d_w,  real **d_wmod, real **d_wtemp2, struct state **d_state,int step);
 int cuupdate(struct params **p, real **w, real **wmod,real **wtemp2,  struct state **state,struct params **d_p, real **d_w,  real **d_wmod,  real **d_wtemp2,  struct state **d_state,int step);
 

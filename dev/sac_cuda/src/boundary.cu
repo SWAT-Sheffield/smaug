@@ -13,7 +13,7 @@
 /////////////////////////////////////
 #include "../include/gradops_b.cuh"
 
-__global__ void boundary_parallel(struct params *p,  struct state *s,  real *wmod, int order, int dir)
+__global__ void boundary_parallel(struct params *p, struct bparams *bp, struct state *s,  real *wmod, int order, int dir, int field)
 {
 
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -91,10 +91,8 @@ int shift=order*NVAR*dimp;
                 
 
                 //  bc3_fixed_b(wmod+order*NVAR*dimp,p,iia,f,0.0);
-               if(p->it==-1)
-		  bc3_setfixed_dir_b(wmod+order*NVAR*dimp,p,iia,f,dir);
-               else
-                  bc3_fixed_dir_b(wmod+order*NVAR*dimp,p,iia,f,dir);
+
+                  bc3_fixed_dir_b(wmod+order*NVAR*dimp,p,bp,iia,f,dir);
 
 	}
 
@@ -102,11 +100,49 @@ int shift=order*NVAR*dimp;
 }
  __syncthreads();
  
-/*
-#ifdef ADIABHYDRO
-;
-#else
-  //This second call makes sure corners are set correctly
+
+}
+
+
+
+__global__ void setboundary_parallel(struct params *p, struct bparams *bp, struct state *s,  real *wmod, int order, int dir, int field)
+{
+
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int index,k;
+  int f;
+
+  int ni=p->n[0];
+  int nj=p->n[1];
+  real dt=p->dt;
+  real dy=p->dx[0];
+  real dx=p->dx[1];
+                real val=0;
+  
+   int ip,jp,ipg,jpg;
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp,kpg;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#endif
+ #if defined USE_SAC || defined ADIABHYDRO
+    jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif  
+
+
+int shift=order*NVAR*dimp;
+
    for(ipg=0;ipg<(p->npgp[0]);ipg++)
    for(jpg=0;jpg<(p->npgp[1]);jpg++)
    #ifdef USE_SAC_3D
@@ -122,43 +158,73 @@ int shift=order*NVAR*dimp;
      #ifdef USE_SAC_3D
 	   iia[2]=kp*(p->npgp[2])+kpg;
            k=iia[2];
-           for( f=rho; f<=b3; f++)
-     #else
-           for( f=rho; f<=b2; f++)
      #endif
              {  
          #ifdef USE_SAC_3D
       if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
      #else
        if(i<((p->n[0])) && j<((p->n[1])))
-     #endif    
+     #endif           
+	{
 
-                  bc3_periodic2_b(wmod+order*NVAR*dimp,p,iia,f);
+ 
+
+              // bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
+              
+     #ifdef USE_SAC_3D
+         ;//if((f!=mom1 || f !=mom2 || f != mom3) && (p->it)>0)      
+      #else
+         ;//if(f!=mom1 || f !=mom2 )
+      #endif             
+
+		  bc3_setfixed_dir_b(wmod+order*NVAR*dimp,p,bp,iia,f,dir);
 
 
-   } 
+	}
+
+               }
 }
  __syncthreads();
-#endif
-*/
+ 
 
-
-
-  
 }
 
-int cuboundary(struct params **p, struct params **d_p,  struct state **d_s,  real **d_wmod,  int order)
+
+
+
+
+int cuboundary(struct params **p, struct bparams **bp,struct params **d_p, struct bparams **d_bp, struct state **d_s,  real **d_wmod,  int order,int idir,int field)
 {
 
 
  dim3 dimBlock(dimblock, 1);
 
 int numBlocks = ((dimproduct_b(*p)+numThreadsPerBlock-1)) / numThreadsPerBlock;
+  
 
-    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_wmod, order,0);
+if(((*p)->it)==-1)
+    setboundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_bp,*d_s, *d_wmod, order,idir,field);
+else
+{
+    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_bp,*d_s, *d_wmod, order,0,field);
 
     cudaThreadSynchronize();
-    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_s, *d_wmod, order,1);
+    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_bp,*d_s, *d_wmod, order,1,field);
     cudaThreadSynchronize();
+#ifdef USE_SAC_3D
+    boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_bp,*d_s, *d_wmod, order,2,field);
+    cudaThreadSynchronize();
+#endif
+}
+    
+
 
 }
+
+
+
+
+
+
+
+

@@ -1,6 +1,6 @@
 #include "../include/cudapars.h"
 #include "../include/iotypes.h"
-
+#include "../include/iobparams.h"
 /////////////////////////////////////
 // standard imports
 /////////////////////////////////////
@@ -1166,7 +1166,7 @@ void checkErrors_i(char *label)
 
 
 
-int cuinit(struct params **p, real **w, real **wnew, real **wd, struct state **state, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
+int cuinit(struct params **p, struct bparams **bp,real **w, real **wnew, real **wd, struct state **state, struct params **d_p, struct bparams **d_bp,real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
 {
 
 
@@ -1200,8 +1200,9 @@ int cuinit(struct params **p, real **w, real **wnew, real **wd, struct state **s
  // real *adb;
   real *adw, *adwnew;
   struct params *adp;
+  struct bparams *adbp;
   struct state *ads;
-
+ 
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
    
@@ -1231,7 +1232,8 @@ else
 
   cudaMalloc((void**)&adw, NVAR*dimp*sizeof(real));
   cudaMalloc((void**)&adwnew, NVAR*dimp*sizeof(real));
-  
+
+  cudaMalloc((void**)&adbp, sizeof(struct bparams));
   cudaMalloc((void**)&adp, sizeof(struct params));
   cudaMalloc((void**)&ads, sizeof(struct state));
   checkErrors_i("memory allocation");
@@ -1239,6 +1241,7 @@ else
 printf("ni is %d\n",(*p)->n[1]);
 
    // *d_b=adb;
+    *d_bp=adbp;
     *d_p=adp;
     *d_w=adw;
     *d_wnew=adwnew;

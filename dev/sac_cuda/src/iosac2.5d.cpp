@@ -4,7 +4,7 @@
 
 #include "../include/iosac2.5d.h"
 #include "../include/step.h"
-
+#include "../include/iobparams.h"
 /*----------------------*/ 
 real second()
 {
@@ -60,6 +60,10 @@ char *formfile=(char *)calloc(500,sizeof(char));
 
 #include "../include/defs.h"
 #include "../include/iosac2.5dparams.h"
+
+
+struct bparams *d_bp;
+struct bparams *bp=(struct bparams *)malloc(sizeof(struct bparams));
 
 
 FILE *portf;
@@ -192,7 +196,7 @@ p->it=0;
   u=w+(ni)*(nj)*mom1;
   v=w+(ni)*(nj)*mom2;
 
-cuinit(&p,&w,&wnew,&wd,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+cuinit(&p,&bp,&w,&wnew,&wd,&state,&d_p,&d_bp,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 
 #ifdef USE_MPI
@@ -205,29 +209,27 @@ initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_s
   cucopywtompiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod, 0);
 #endif
 
-int bsetfixed=0;
 
-/*p->it=-1;
+
+p->it=-1;
 for(int ii=0; ii<NVAR; ii++)
 for(int idir=0; idir<NDIM; idir++)
 {
-   if((p->boundtype[ii][idir])==5  && bsetfixed==0)  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
+   if((p->boundtype[ii][idir])==5)  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
    {
-             if(bsetfixed==0)
-             {  
-             ;//  cuboundary(&p,&d_p,&d_state,&d_w, 0);
-               bsetfixed=1;
-             }
+
+               cuboundary(&p, &bp, &d_p, &d_bp, &d_state, &d_w, 0,idir,ii);
+ 
    }
-}*/
+}
 
 p->it=0;  
 
-  cuboundary(&p,&d_p,&d_state,&d_w, 0);
+  cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_w, 0,0,0);
 #ifdef USE_MPI
    mpibound(NVAR, d_w ,d_p);
 #endif
-  cuboundary(&p,&d_p,&d_state,&d_wmod, 0);
+  cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, 0,0,0);
 #ifdef USE_MPI
    mpibound(NVAR, d_wmod ,d_p);
    cucopywfrommpiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod,0);
@@ -578,7 +580,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	   cucopywfrommpiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod,order);
 	   
 	#endif
-   cuboundary(&p,&d_p,&d_state,&d_wmod, ordero);
+   cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, ordero,0,0);
 
 }
 
@@ -779,7 +781,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	   cucopywfrommpiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod,order);
 	   
 	#endif
-           cuboundary(&p,&d_p,&d_state,&d_wmod, orderb);
+        ;//   cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, orderb,0,0);
 	   
 
    }
@@ -888,7 +890,7 @@ printf("\n");
 //}//disp('while finsish steering');
 //}//end //while finishsteering loop
 //cufinish(&p,&w,&wnew,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd);
-cufinish(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+cufinish(&p,&w,&wnew,&state,&d_p,&d_bp,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 
 #ifdef USE_MPI
      mpifinalize(p);
@@ -896,6 +898,7 @@ cufinish(&p,&w,&wnew,&state,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state
 #endif
 free(hlines);
 free(p);
+free(bp);
 free(sdir);
 free(name);
 free(outfile);

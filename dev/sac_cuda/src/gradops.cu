@@ -1681,7 +1681,7 @@ k=0;
 
 
 __device__ __host__
-void bc3_setfixed_dir_MODID(real *wt, struct params *p,int *ii, int f,int dir) {
+void bc3_setfixed_dir_MODID(real *wt, struct params *p,struct bparams *bp,int *ii, int f,int dir) {
 
 
 int i,j,k;
@@ -1696,25 +1696,25 @@ k=0;
 
           if((p->boundtype[f][dir])==5)   
                 if(i==0 || i==1  && dir==0)                
-                  p->fixed1[encodefixed13_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];                
+                  bp->fixed1[encodefixed13_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];                
                 else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)) && dir==0 )                
-                  p->fixed1[encodefixed13_MODID(p,1+(p->n[0])-i,j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];                
+                  bp->fixed1[encodefixed13_MODID(p,1+(p->n[0])-i,j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];                
                 else if(j==0 || j==1  && dir==1 )                
-                  p->fixed2[encodefixed23_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];                
+                  bp->fixed2[encodefixed23_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];                
                 else if((j==((p->n[1])-1)) || (j==((p->n[1])-2))  && dir==1)                
-                  p->fixed2[encodefixed23_MODID(p,i,1+(p->n[1])-j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];
+                  bp->fixed2[encodefixed23_MODID(p,i,1+(p->n[1])-j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];
            #ifdef USE_SAC_3D
                 else if(k==0 || k==1 && dir==2)                
-                  p->fixed3[encodefixed33_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];                
+                  bp->fixed3[encodefixed33_MODID(p,i,j,k,f)]=wt[encode3_MODID(p,i,j,k,f)];                
                 else if((k==((p->n[2])-1)) || (k==((p->n[2])-2))  && dir==2)                
-                  p->fixed3[encodefixed33_MODID(p,i,j,1+(p->n[2])-k,f)]=wt[encode3_MODID(p,i,j,k,f)];
+                  bp->fixed3[encodefixed33_MODID(p,i,j,1+(p->n[2])-k,f)]=wt[encode3_MODID(p,i,j,k,f)];
            #endif
 
 }
 
 
 __device__ __host__
-void bc3_fixed_dir_MODID(real *wt, struct params *p,int *ii, int f,int dir) {
+void bc3_fixed_dir_MODID(real *wt, struct params *p, struct bparams *bp,int *ii, int f,int dir) {
 
 
 int i,j,k;
@@ -1729,18 +1729,18 @@ k=0;
 
      if((p->boundtype[f][dir])==5)         
                 if(i==0 || i==1  && dir==0)                
-                  wt[encode3_MODID(p,i,j,k,f)]=p->fixed1[encodefixed13_MODID(p,i,j,k,f)];                
+                  wt[encode3_MODID(p,i,j,k,f)]=bp->fixed1[encodefixed13_MODID(p,i,j,k,f)];                
                 else if((i==((p->n[0])-1)) || (i==((p->n[0])-2)) && dir==0 )                
-                  wt[encode3_MODID(p,i,j,k,f)]=p->fixed1[encodefixed13_MODID(p,1+(p->n[0])-i,j,k,f)];                
+                  wt[encode3_MODID(p,i,j,k,f)]=bp->fixed1[encodefixed13_MODID(p,1+(p->n[0])-i,j,k,f)];                
                 else if(j==0 || j==1  && dir==1 )                
-                  wt[encode3_MODID(p,i,j,k,f)]=p->fixed2[encodefixed23_MODID(p,i,j,k,f)];                
+                  wt[encode3_MODID(p,i,j,k,f)]=bp->fixed2[encodefixed23_MODID(p,i,j,k,f)];                
                 else if((j==((p->n[1])-1)) || (j==((p->n[1])-2))  && dir==1)                
-                  wt[encode3_MODID(p,i,j,k,f)]=p->fixed2[encodefixed23_MODID(p,i,1+(p->n[1])-j,k,f)];
+                  wt[encode3_MODID(p,i,j,k,f)]=bp->fixed2[encodefixed23_MODID(p,i,1+(p->n[1])-j,k,f)];
            #ifdef USE_SAC_3D
                 else if(k==0 || k==1 && dir==2)                
-                  wt[encode3_MODID(p,i,j,k,f)]=p->fixed3[encodefixed33_MODID(p,i,j,k,f)];                
+                  wt[encode3_MODID(p,i,j,k,f)]=bp->fixed3[encodefixed33_MODID(p,i,j,k,f)];                
                 else if((k==((p->n[2])-1)) || (k==((p->n[2])-2))  && dir==2)                
-                  wt[encode3_MODID(p,i,j,k,f)]=p->fixed3[encodefixed33_MODID(p,i,j,1+(p->n[2])-k,f)];
+                  wt[encode3_MODID(p,i,j,k,f)]=bp->fixed3[encodefixed33_MODID(p,i,j,1+(p->n[2])-k,f)];
            #endif
                
 
