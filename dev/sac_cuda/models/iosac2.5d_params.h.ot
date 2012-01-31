@@ -128,7 +128,7 @@ char configfile[300];
 char *cfgfile="zero1_ot_asc.ini";
 //char *cfgfile="zero1_BW_bin.ini";
 //char *cfgout="zero1_np010203."
-char *cfgout="zeroOT";
+char *cfgout="out/zeroOT";
 //char *cfgout="zero1_np0201.out";
 
 
@@ -162,7 +162,7 @@ int nt=(int)((tmax)/dt);
 //nt=5000;
 //nt=200000;
 //nt=150000;
-nt=10;
+nt=100;
 real *t=(real *)calloc(nt,sizeof(real));
 printf("runsim 1%d \n",nt);
 //t = [0:dt:tdomain];
