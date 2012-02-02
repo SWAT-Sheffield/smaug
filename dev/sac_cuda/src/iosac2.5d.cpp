@@ -167,7 +167,11 @@ wd=(real *)calloc(ni*nj*NDERV,sizeof(real ));
     wd[i]=0.0;
 #endif
 
-
+//set initial time step to a large value
+if(p->moddton==1.0)
+{
+	p->dt=1.0e50;
+}
 
 if((p->readini)==0)
  initconfig(p, &meta, w);
@@ -289,11 +293,7 @@ real dtdiffvisc;
 ttot=0;
 real time=0.0;
 
-//set initial time step to a large value
-if(p->moddton==1.0e50)
-{
-	p->dt=1.0;
-}
+
 
    state->it=0;
    state->t=0;
@@ -349,20 +349,25 @@ for( n=1;n<=nt;n++)
 
 
  
-        ;//cugetdtvisc1(&p,&d_p,&d_wmod, &wd,&d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
+        cugetdtvisc1(&p,&d_p,&d_wmod, &wd,&d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
           #ifdef USE_MPI
               mpiallreduce(&(p->maxviscoef), MPI_MAX);
           #endif
-        for(int dim=0; dim<=(NDIM-1); dim++)
+       /* for(int dim=0; dim<=(NDIM-1); dim++)
         {
         dtdiffvisc=0.25/(p->maxviscoef/((p->dx[dim])*(p->dx[dim])));
-        //printf("dim %d dtdiffvisc %20.10g  %20.10g %20.10g\n",dim,p->maxviscoef,dtdiffvisc,p->dx[dim]);
+        printf("dim %d dtdiffvisc %20.10g  %20.10g %20.10g\n",dim,p->maxviscoef,dtdiffvisc,p->dx[dim]);
         if(dtdiffvisc>1.0e-8 && (p->dt)>dtdiffvisc )
          //   if( (p->dt)>dtdiffvisc )
                                       p->dt=dtdiffvisc;
-        }
+        }*/
+
+         // printf("dtdiffvisc %20.10g  %20.10g\n",p->maxviscoef,p->dtdiffvisc);
+         if(p->dtdiffvisc>1.0e-8 && (p->dt)>p->dtdiffvisc )
+         //   if( (p->dt)>dtdiffvisc )
+                                      p->dt=p->dtdiffvisc;
         //cugetdtvisc1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
-        //printf(" modified dt is %20.10g \n",p->dt);
+        printf(" modified dt is %20.10g \n",p->dt);
 
    } 
 
