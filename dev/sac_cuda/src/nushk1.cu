@@ -13,6 +13,141 @@
 /////////////////////////////////////
 #include "../include/gradops_nshk.cuh"
 
+
+__global__ void zeropadmaxdtvisc_parallel(struct params *p,   real *wmod, real *wd, int order, int dir, real *temp, int ndimp)
+{
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+ 
+  //if(iindex<ndimp)
+  //    temp[iindex]=0.0;
+
+  unsigned int tid = threadIdx.x;
+  int i,j;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+
+  int ii[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   int ip,jp;
+//        extern __shared__ real sdata[];
+ 
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif
+
+    
+//int numBlocks = (dimp+tnumThreadsPerBlock-1) / tnumThreadsPerBlock;
+  //real temp[dimp];
+    // perform first level of reduction,
+    // reading from global memory, writing to shared memory
+   //sdata[tid]=0.0;
+   // if(iindex<1024)
+    //  temp[iindex]=0.0;
+
+     ii[0]=ip;
+     ii[1]=jp;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp;
+     #endif
+    //int s=1;
+
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
+             temp[iindex]=(   (p->maxviscoef)+wd[encode3_nshk(p,ii[0],ii[1],ii[2],nushk1+dir)]     )/((wd[encode3_nshk(p,ii[0],ii[1],ii[2],delx1+dir)])*(wd[encode3_nshk(p,ii[0],ii[1],ii[2],delx1+dir)]));//temp[iindex]/(wd[fencode3_cdf(p,ii,delx1+dir)]);
+
+//p->dtdiffvisc=0.25/((maxtmpdt)/((wd[encode3_nshk(p,ii[0],ii[1],ii[2],delx1+dim)])*(wd[encode3_nshk(p,ii[0],ii[1],ii[2],delx1+dim)])));
+}
+
+
+
+
+
+__global__ void myreduction0computemaxdtvisc_parallel(struct params *p,   real *wmod, real *wd, int order, int dir, real *temp,int ndimp,int s)
+{
+
+
+  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  unsigned int tid = threadIdx.x;
+  int i,j;
+  int index,k;
+  int ni=p->n[0];
+  int nj=p->n[1];
+
+  int ii[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   int ip,jp;
+//        extern __shared__ real sdata[];
+ 
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif
+
+int tnumThreadsPerBlock = 128;
+    
+int numBlocks = (dimp+tnumThreadsPerBlock-1) / tnumThreadsPerBlock;
+  //real temp[dimp];
+    // perform first level of reduction,
+    // reading from global memory, writing to shared memory
+   //sdata[tid]=0.0;
+   // if(iindex<1024)
+    //  temp[iindex]=0.0;
+
+     ii[0]=ip;
+     ii[1]=jp;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp;
+     #endif
+    //int s=1;
+
+
+   
+    //while(((s*=2)<=((ndimp/2)-1)) && ((iindex+s)<ndimp)) {
+    if((iindex+s)<ndimp)
+            if(temp[iindex+s]>temp[iindex])
+                 temp[iindex]=temp[iindex + s];
+            
+       // }
+
+       //  __syncthreads();
+    
+
+   // __syncthreads();
+
+   if(iindex==0  && (p->dtdiffvisc<temp[0]))
+      p->dtdiffvisc=0.25/temp[0];
+
+
+
+
+ 
+}
+
+
+
 __global__ void getdtvisc_parallel(struct params *p,real *wmod, 
      real *wd, int order, real *wtemp, real *wtemp1, real *wtemp2, int dim)
 {
@@ -75,11 +210,12 @@ if(iindex==0)
 
               if(tmpdt>maxtmpdt)
                     maxtmpdt=tmpdt;
-
+              p->dtdiffvisc=0.25/((maxtmpdt)/((wd[encode3_nshk(p,ii[0],ii[1],ii[2],delx1+dim)])*(wd[encode3_nshk(p,ii[0],ii[1],ii[2],delx1+dim)])));
 	}
 
-    p->dtdiffvisc=0.25/((maxtmpdt)/((p->dx[dim])*(p->dx[dim])));                 
-
+    //p->dtdiffvisc=0.25/((maxtmpdt)/((p->dx[dim])*(p->dx[dim])));                 
+//wd[encode3_nshk(p,i,j,k,nushk1+dim)]
+   
 
 
  //  }
@@ -486,16 +622,32 @@ int cunushk1(struct params **p,  struct params **d_p,   real **d_wmod,  real **d
 
 }
 
-int cugetdtvisc1(struct params **p,  struct params **d_p,   real **d_wmod,  real **d_wd, int order, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
+int cugetdtvisc1(struct params **p,  struct params **d_p,   real **d_wmod,  real **wd, real **d_wd, int order, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
 {
 
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
-   
+     real fn,fractn,in;
+  int ndimp;
+////cudaSetDevice(selectedDevice);
+   int nit=100;
  #ifdef USE_SAC_3D
    
   dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
 #endif 
+
+
+    fn=log(dimp)/log(2.0);
+    fractn=modf(fn,&in);
+    
+    if(fractn>0)
+    {
+       fn+=1;
+       ndimp=(int)pow(2,fn);
+     }
+     else
+       ndimp=dimp;
+
 
 // dim3 dimBlock(dimblock, 1);
  
@@ -513,7 +665,25 @@ int cugetdtvisc1(struct params **p,  struct params **d_p,   real **d_wmod,  real
 
      for(int dir=0;dir<NDIM;dir++)
      {
-         getdtvisc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, dir);
+
+
+     zeropadmaxdtvisc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp);
+      cudaThreadSynchronize();
+	cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+	cudaMemcpy(*d_wtemp, ((*wd)+(hdnur*dimp)), dimp*sizeof(real), cudaMemcpyHostToDevice);
+ 
+	int s=1;
+	while(((s*=2)<=((ndimp/2)-1)) ) 
+	{
+	   myreduction0computemaxdtvisc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp,s);
+	   cudaThreadSynchronize();
+	}
+
+
+
+
+
+         //getdtvisc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, dir);
          cudaThreadSynchronize();
          cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
          if(((*p)->dtdiffvisc)>1.0e-8 && ((*p)->dt)>((*p)->dtdiffvisc) )

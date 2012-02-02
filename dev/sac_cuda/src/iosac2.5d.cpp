@@ -211,10 +211,12 @@ initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_s
 
 
 
-p->it=-1;
+
 for(int ii=0; ii<NVAR; ii++)
 for(int idir=0; idir<NDIM; idir++)
 {
+   p->it=-1;  //initialise fixed boundaries
+   //printf("btype %d %d %d\n",idir,ii,p->boundtype[ii][idir]);
    if((p->boundtype[ii][idir])==5)  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
    {
 
@@ -286,6 +288,13 @@ int ii,ii0,ii1;
 real dtdiffvisc;
 ttot=0;
 real time=0.0;
+
+//set initial time step to a large value
+if(p->moddton==1.0e50)
+{
+	p->dt=1.0;
+}
+
    state->it=0;
    state->t=0;
    state->dt=p->dt;
@@ -319,7 +328,7 @@ for( n=1;n<=nt;n++)
         cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
         cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
         cucomputemaxcourant(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
-        printf("maxcourant %16.10g",p->maxcourant);
+        //printf("maxcourant %d %16.10g  %16.10g\n",dim,p->maxcourant,p->cmax);
         }
         
         /*courantmax=0.0;
@@ -333,23 +342,27 @@ for( n=1;n<=nt;n++)
         printf("old dt is %g ",p->dt);*/
         //if(courantmax>smalldouble) dt=min(dt,courantpar/courantmax)
 
-        if(((p->maxcourant)>1.0e-8) && (p->dt)>(((p->courant)/(p->maxcourant))   ))
+        //if(((p->maxcourant)>1.0e-8) && (p->dt)>(((p->courant)/(p->maxcourant))   ))
+        if( (p->dt)>1.0e-8 && (p->dt)>  ((  (p->courant)/(p->maxcourant)  ))   )
                p->dt=(p->courant)/(p->maxcourant);
-        printf("new dt is %g \n",(p->courant)/(p->maxcourant));
+        //printf("new dt is %g %g\n",(p->courant)/(p->maxcourant),p->dt);
 
 
-   ;//     cugetdtvisc1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
+ 
+        ;//cugetdtvisc1(&p,&d_p,&d_wmod, &wd,&d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
           #ifdef USE_MPI
               mpiallreduce(&(p->maxviscoef), MPI_MAX);
           #endif
-        /*for(int dim=0; dim<=(NDIM-1); dim++)
+        for(int dim=0; dim<=(NDIM-1); dim++)
         {
         dtdiffvisc=0.25/(p->maxviscoef/((p->dx[dim])*(p->dx[dim])));
+        //printf("dim %d dtdiffvisc %20.10g  %20.10g %20.10g\n",dim,p->maxviscoef,dtdiffvisc,p->dx[dim]);
         if(dtdiffvisc>1.0e-8 && (p->dt)>dtdiffvisc )
+         //   if( (p->dt)>dtdiffvisc )
                                       p->dt=dtdiffvisc;
-        }*/
+        }
         //cugetdtvisc1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
-        printf(" modified dt is %g \n",p->dt);
+        //printf(" modified dt is %20.10g \n",p->dt);
 
    } 
 
@@ -432,8 +445,8 @@ if((p->rkon)==0)
           mpivisc(dim,p,temp2);
           cucopyfrommpivisc(&p,&temp2, &gmpivisc,  &d_p,&d_wtemp2,    &d_gmpivisc);
        #endif
-       cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim);
-       cuhyperdifvisc1l(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim);
+       cuhyperdifvisc1r(&p,&d_p,&d_wmod, &wd, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim);
+       cuhyperdifvisc1l(&p,&d_p,&d_wmod,&wd,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim);
 
 
 
@@ -459,8 +472,8 @@ if((p->rkon)==0)
           mpivisc(dim,p,temp2);
           cucopyfrommpivisc(&p,&temp2, &gmpivisc,  &d_p,&d_wtemp2,    &d_gmpivisc);
        #endif
-      cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim);
-      cuhyperdifvisc1l(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim);
+      cuhyperdifvisc1r(&p,&d_p,&d_wmod,&wd,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim);
+      cuhyperdifvisc1l(&p,&d_p,&d_wmod, &wd, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim);
        
        cuhyperdifesource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim,dt);
    
@@ -488,8 +501,8 @@ for(int dim=0; dim<=(NDIM-1); dim++)
           cucopyfrommpivisc(&p,&temp2, &gmpivisc,  &d_p,&d_wtemp2,    &d_gmpivisc);
 
        #endif
-               cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim);
-               cuhyperdifvisc1l(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim);
+               cuhyperdifvisc1r(&p,&d_p,&d_wmod,&wd,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim);
+               cuhyperdifvisc1l(&p,&d_p,&d_wmod,&wd,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim);
 
                 for(ii1=0;ii1<=1;ii1++)
                 {
@@ -536,8 +549,8 @@ for(int dim=0; dim<=(NDIM-1); dim++)
           cucopyfrommpivisc(&p,&temp2, &gmpivisc,  &d_p,&d_wtemp2,    &d_gmpivisc);
          
        #endif
-               cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim);
-               cuhyperdifvisc1l(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim);
+               cuhyperdifvisc1r(&p,&d_p,&d_wmod, &wd, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim);
+               cuhyperdifvisc1l(&p,&d_p,&d_wmod, &wd, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim);
 
 
                 for(ii1=0;ii1<=1;ii1++)
@@ -647,8 +660,8 @@ for(int dim=0; dim<=(NDIM-1); dim++)
           mpivisc(dim,p,temp2);
           cucopyfrommpivisc(&p,&temp2, &gmpivisc,  &d_p,&d_wtemp2,    &d_gmpivisc);
        #endif
-	       cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim);
-	       cuhyperdifvisc1l(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim);
+	       cuhyperdifvisc1r(&p,&d_p,&d_wmod, &wd, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim);
+	       cuhyperdifvisc1l(&p,&d_p,&d_wmod, &wd, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim);
 
  
 
@@ -671,8 +684,8 @@ for(int dim=0; dim<=(NDIM-1); dim++)
           mpivisc(dim,p,temp2);
           cucopyfrommpivisc(&p,&temp2, &gmpivisc,  &d_p,&d_wtemp2,    &d_gmpivisc);
        #endif
-       cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim);
-      cuhyperdifvisc1l(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim);
+       cuhyperdifvisc1r(&p,&d_p,&d_wmod, &wd, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim);
+      cuhyperdifvisc1l(&p,&d_p,&d_wmod, &wd, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,energy,dim);
 
 
        cuhyperdifesource1(&p,&d_p,&d_wmod, &d_dwn1, &d_wd,order,ordero,&d_wtemp,energy,dim,dt);
@@ -696,8 +709,8 @@ for(int dim=0; dim<=(NDIM-1); dim++)
           cucopyfrommpivisc(&p,&temp2, &gmpivisc,  &d_p,&d_wtemp2,    &d_gmpivisc);
 
        #endif
-               cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim);
-               cuhyperdifvisc1l(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim);
+               cuhyperdifvisc1r(&p,&d_p,&d_wmod, &wd, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim);
+               cuhyperdifvisc1l(&p,&d_p,&d_wmod,&wd,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,mom1+f,dim);
 
                 for(ii1=0;ii1<=1;ii1++)
                 {
@@ -740,8 +753,8 @@ for(int dim=0; dim<=(NDIM-1); dim++)
           cucopyfrommpivisc(&p,&temp2, &gmpivisc,  &d_p,&d_wtemp2,    &d_gmpivisc);
 
        #endif
-               cuhyperdifvisc1r(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim);
-               cuhyperdifvisc1l(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim);
+               cuhyperdifvisc1r(&p,&d_p,&d_wmod, &wd, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim);
+               cuhyperdifvisc1l(&p,&d_p,&d_wmod, &wd, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,b1+f,dim);
 
 
                 for(ii1=0;ii1<=1;ii1++)
@@ -781,7 +794,7 @@ for(int dim=0; dim<=(NDIM-1); dim++)
 	   cucopywfrommpiw(&p,&w, &wmod,    &gmpiw, &gmpiwmod, &d_p,  &d_w, &d_wmod,   &d_gmpiw, &d_gmpiwmod,order);
 	   
 	#endif
-        ;//   cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, orderb,0,0);
+           cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, orderb,0,0);
 	   
 
    }
