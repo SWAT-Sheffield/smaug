@@ -1157,6 +1157,7 @@ int cuhyperdifvisc1l(struct params **p,  struct params **d_p,   real **d_wmod, r
      hyperdifvisc4l_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
      cudaThreadSynchronize();
 
+    real maxviscoef;
 
     //compute max hyperviscosity (only used by dt modifier)
      if(((*p)->moddton)==1 )
@@ -1164,7 +1165,7 @@ int cuhyperdifvisc1l(struct params **p,  struct params **d_p,   real **d_wmod, r
      // hyperdifvisc5l_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
     // cudaThreadSynchronize();
 
-
+     maxviscoef=(*p)->maxviscoef;
      zeropadmaxviscl_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dim, *d_wtemp,ndimp);
       cudaThreadSynchronize();
 	cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
@@ -1176,6 +1177,8 @@ int cuhyperdifvisc1l(struct params **p,  struct params **d_p,   real **d_wmod, r
 	   myreduction0computemaxviscl_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dim, *d_wtemp,ndimp,s);
 	   cudaThreadSynchronize();
 	}
+       if((*p)->maxviscoef<maxviscoef)
+              (*p)->maxviscoef=maxviscoef;
     }
 
     cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);

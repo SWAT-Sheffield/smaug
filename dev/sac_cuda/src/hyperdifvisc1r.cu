@@ -1162,7 +1162,7 @@ int cuhyperdifvisc1r(struct params **p,  struct params **d_p,   real **d_wmod,re
      // hyperdifvisc5r_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,   *d_wd, order, *d_wtemp,*d_wtemp1,*d_wtemp2, field, dim);
     // cudaThreadSynchronize();
 
-
+     
      zeropadmaxviscr_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dim, *d_wtemp,ndimp);
       cudaThreadSynchronize();
 	cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);

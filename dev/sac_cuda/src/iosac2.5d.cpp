@@ -323,23 +323,25 @@ for( n=1;n<=nt;n++)
         //printf(" courant is %f \n",p->courant);
         //p->courant=0.1;
         p->maxcourant=0.0;
+        courantmax=0.0;
         for(int dim=0; dim<=(NDIM-1); dim++)
         {
         cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
         cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
         cucomputemaxcourant(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
-        //printf("maxcourant %d %16.10g  %16.10g\n",dim,p->maxcourant,p->cmax);
+        //printf("maxcourant %d %16.10g  %16.10g  %16.10g\n",dim,p->maxcourant,p->cmax,p->dx[dim]);
         }
         
-        /*courantmax=0.0;
-        for(int dim=0; dim<=(NDIM-1); dim++)
+        //courantmax=0.0;
+        /*for(int dim=0; dim<=(NDIM-1); dim++)
         {
            if((cmax[dim]/(p->dx[dim]))>(p->maxcourant))
              courantmax=cmax[dim]/(p->dx[dim]);
-             
-             printf("cmax %g ",cmax[dim]);
-        }
-        printf("old dt is %g ",p->dt);*/
+             printf("%d %16.10g\n",dim,courantmax);
+           //  printf("cmax %g ",cmax[dim]);
+        }*/
+        
+        //printf("old dt is %g ",p->dt);
         //if(courantmax>smalldouble) dt=min(dt,courantpar/courantmax)
 
         //if(((p->maxcourant)>1.0e-8) && (p->dt)>(((p->courant)/(p->maxcourant))   ))
@@ -363,11 +365,14 @@ for( n=1;n<=nt;n++)
         }*/
 
          // printf("dtdiffvisc %20.10g  %20.10g\n",p->maxviscoef,p->dtdiffvisc);
-         if(p->dtdiffvisc>1.0e-8 && (p->dt)>p->dtdiffvisc )
+         if(1/(p->dtdiffvisc)>1.0e-8 && (p->dt)>(1/(p->dtdiffvisc)) )
          //   if( (p->dt)>dtdiffvisc )
-                                      p->dt=p->dtdiffvisc;
+                                      p->dt=(1/p->dtdiffvisc);
         //cugetdtvisc1(&p,&d_p,&d_wmod, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
         printf(" modified dt is %20.10g \n",p->dt);
+
+        //include gravitational modification
+        
 
    } 
 
