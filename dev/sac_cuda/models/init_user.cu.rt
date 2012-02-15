@@ -93,22 +93,25 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
 
                     //if(j<=((p->n[1])/2))
 	#ifdef USE_SAC_3D
-                    if(j<=((p->n[1])/2)*(sin(PI*k*(p->dx[2])/lz)*sin(PI*i*(p->dx[0])/lx)))
+                    if(j<=((p->n[1])/2)*(sin(2*PI*k*(p->dx[2])/lz)*sin(2*PI*i*(p->dx[0])/lx)))
         #else
-                    if(j<=((p->n[1])/2)*(sin(PI*i*(p->dx[0])/lx)))
+                    if(j<=(8*(p->n[1])/10)*(1-0.05*sin(2*PI*i*(p->dx[0])/ly)))
+                   //if(i<=((p->n[0])/2))
         #endif
-			rrho=2.0;
+			rrho=0.2;
                     else
-                        rrho=0.2;
+                        rrho=2.0;
 
                     ptot=2.5-rrho*(p->g[1])*j*(p->dx[1]);
+                    //ptot=rrho*i*(p->dx[1]);
 		    //w[fencode3_i(p,ii,rhob)]=25.0/(36.0*PI);
                     w[fencode3_i(p,ii,rhob)]=rrho;
                     //w[fencode3_i(p,ii,rhob)]=25.0/9.0;
 
                     rgamm1=1.0/((p->gamma)-1);
 		    
-		    w[fencode3_i(p,ii,b1)]=0.25;//*sqrt(4.0*PI);
+		    //w[fencode3_i(p,ii,b1)]=0.25;//*sqrt(4.0*PI);
+                    w[fencode3_i(p,ii,b1)]=0.0;
 		    w[fencode3_i(p,ii,b2)]=0.0;
 		    //w[fencode3_i(p,ii,b2)]=-b0*sin((1.0*p->dx[1])*j);
 		    //w[fencode3_i(p,ii,b1)]=b0*sin(2.0*(p->dx[0])*i);
@@ -117,10 +120,11 @@ void init_user_MODID (real *w, struct params *p,int *ii) {
                     //vy=sin(2pi x)
 		    //w[fencode3_i(p,ii,mom1)]=-w[fencode3_i(p,ii,rhob)]*sin(2.0*PI*j*(p->dx[1]));
                     //w[fencode3_i(p,ii,mom2)]=w[fencode3_i(p,ii,rhob)]*sin(2.0*PI*j*(p->dx[0]));
-                    w[fencode3_i(p,ii,mom2)]=0.1*w[fencode3_i(p,ii,rhob)]*(1+sin(PI*x/lx))*(1+sin(PI*y/ly))/4.0;
+                   // w[fencode3_i(p,ii,mom1)]=0.01*w[fencode3_i(p,ii,rhob)]*(1+sin(PI*x/lx))*(1+sin(PI*y/ly))/4.0;
+                   w[fencode3_i(p,ii,mom1)]=0.0;
 		   // w[fencode3_i(p,ii,mom2)]=-w[fencode3_i(p,ii,rhob)]*sin(2.0*PI*i*(p->dx[0]));
                     //w[fencode3_i(p,ii,mom1)]=w[fencode3_i(p,ii,rhob)]*sin(2.0*PI*j*(p->dx[1]));
-		    w[fencode3_i(p,ii,mom1)]=0;
+		    w[fencode3_i(p,ii,mom2)]=0;
 
                    //if(j<=((p->n[1])/2))
 		//	w[fencode3_i(p,ii,mom2)]=0;

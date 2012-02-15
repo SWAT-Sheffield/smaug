@@ -66,9 +66,9 @@ int shift=order*NVAR*dimp;
      #ifdef USE_SAC_3D
 	   iia[2]=kp*(p->npgp[2])+kpg;
            k=iia[2];
-           f=rho;
+           for( f=rho; f<=b3; f++)
      #else
-           f=rho;
+           for( f=rho; f<=b2; f++)
      #endif
              {  
          #ifdef USE_SAC_3D
@@ -79,111 +79,11 @@ int shift=order*NVAR*dimp;
 	{
 
  
-#ifdef USE_SAC_3D
-               bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,2);  //periodic in z-direction  for OZT
+#ifdef ADIABHYDRO
+                  bc3_cont_b(wmod+order*NVAR*dimp,p,iia,f);
 #else
-               bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,0);  //periodic in x-direction  for OZT
-               //bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,1);  //periodic in x-direction  for OZT
-               bc3_symm_dir_b(wmod+order*NVAR*dimp,p,iia,f,1); //continuous in y-direction
-
-//               bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
-               //  bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
-#endif                
-
-                //  bc3_fixed_b(wmod+order*NVAR*dimp,p,iia,f,0.0);
-
-	}
-
-               }
-}
- __syncthreads();
-
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
-
-     iia[0]=ip*(p->npgp[0])+ipg;
-     iia[1]=jp*(p->npgp[1])+jpg;
-     i=iia[0];
-     j=iia[1];
-     k=0;
-     #ifdef USE_SAC_3D
-	   iia[2]=kp*(p->npgp[2])+kpg;
-           k=iia[2];
-           for( f=mom1; f<=mom3; f++)
-           
-     #else
-           for( f=mom1; f<=mom2; f++)
-           
-     #endif
-             {  
-         #ifdef USE_SAC_3D
-      if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
-     #else
-       if(i<((p->n[0])) && j<((p->n[1])))
-     #endif           
-	{
-
- 
-#ifdef USE_SAC_3D
-               bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,2);  //periodic in z-direction  for OZT
-#else
-               bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,0);  //periodic in x-direction  for OZT
-               //bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,1);  //periodic in x-direction  for OZT
-               bc3_asymm_dir_b(wmod+order*NVAR*dimp,p,iia,f,1); //continuous in y-direction
-
-//               bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
-               //  bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
-#endif                
-
-                //  bc3_fixed_b(wmod+order*NVAR*dimp,p,iia,f,0.0);
-
-	}
-
-               }
-}
- __syncthreads();
-
-   for(ipg=0;ipg<(p->npgp[0]);ipg++)
-   for(jpg=0;jpg<(p->npgp[1]);jpg++)
-   #ifdef USE_SAC_3D
-     for(kpg=0;kpg<(p->npgp[2]);kpg++)
-   #endif
-   {
-
-     iia[0]=ip*(p->npgp[0])+ipg;
-     iia[1]=jp*(p->npgp[1])+jpg;
-     i=iia[0];
-     j=iia[1];
-     k=0;
-     #ifdef USE_SAC_3D
-	   iia[2]=kp*(p->npgp[2])+kpg;
-           k=iia[2];
-           for( f=energy; f<=b3; f++)
-     #else
-           for( f=energy; f<=b2; f++)
-     #endif
-             {  
-         #ifdef USE_SAC_3D
-      if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
-     #else
-       if(i<((p->n[0])) && j<((p->n[1])))
-     #endif           
-	{
-
- 
-#ifdef USE_SAC_3D
-               bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,2);  //periodic in z-direction  for OZT
-#else
-               bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,0);  //periodic in x-direction  for OZT
-               //bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,1);  //periodic in x-direction  for OZT
-               bc3_symm_dir_b(wmod+order*NVAR*dimp,p,iia,f,1); //continuous in y-direction
-
-//               bc3_periodic1_b(wmod+order*NVAR*dimp,p,iia,f);  //for OZT
-               //  bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f);  //for BW
+               bc3_periodic1_dir_b(wmod+order*NVAR*dimp,p,iia,f,0);  //for OZT
+               bc3_cont_cd4_b(wmod+order*NVAR*dimp,p,iia,f,1);  //for BW
 #endif                
 
                 //  bc3_fixed_b(wmod+order*NVAR*dimp,p,iia,f,0.0);
@@ -248,5 +148,6 @@ int numBlocks = ((dimproduct_b(*p)+numThreadsPerBlock-1)) / numThreadsPerBlock;
     boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_bp,*d_s, *d_wmod, order,0,field);
 
     cudaThreadSynchronize();
-
+    //boundary_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_bp,*d_s, *d_wmod, order,1,field);
+    //cudaThreadSynchronize();
 }

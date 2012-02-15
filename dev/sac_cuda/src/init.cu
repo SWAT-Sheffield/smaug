@@ -158,11 +158,14 @@ int ni=p->n[0];
                    // init_bwtest(w,p,i,j);
 
 	           //default values for positions these may be updated by the initialisation routines
-                 //  wd[fencode3_i(p,ii,pos1)]=(p->xmin[0])+ii[0]*(p->dx[0]);
-		  // wd[fencode3_i(p,ii,pos2)]=(p->xmin[1])+ii[1]*(p->dx[1]);
-          /*       #ifdef USE_SAC_3D
+                   wd[fencode3_i(p,ii,delx1)]=(p->dx[0]);
+		   wd[fencode3_i(p,ii,delx2)]=(p->dx[1]);
+                   wd[fencode3_i(p,ii,pos1)]=(p->xmin[0])+ii[0]*(p->dx[0]);
+		   wd[fencode3_i(p,ii,pos2)]=(p->xmin[1])+ii[1]*(p->dx[1]);
+                 #ifdef USE_SAC_3D
 		   wd[fencode3_i(p,ii,pos3)]=(p->xmin[2])+ii[2]*(p->dx[2]);
-                 #endif*/
+                   wd[fencode3_i(p,ii,delx3)]=(p->dx[2]);
+                 #endif
 
                    init_user_i(w,p,ii);
            #endif

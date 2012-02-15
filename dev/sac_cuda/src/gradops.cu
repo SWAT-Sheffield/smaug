@@ -1008,24 +1008,25 @@ real grad3dn_MODID(real *wmod, real *wd,struct params *p,int *ii,int field,int d
   #ifdef USE_DORDER3
  if(ii[0]>2 && ii[0]<((p->n[0])-3) )
   grad=(  ( ((3*wmod[encode3_MODID(p,ii[0]+1,ii[1],ii[2],field)]-3*wmod[encode3_MODID(p,ii[0]-1,ii[1],ii[2],field)]+3.0*(wmod[encode3_MODID(p,ii[0]-2,ii[1],ii[2],field)]-wmod[encode3_MODID(p,ii[0]+2,ii[1],ii[2],field)])/5.0-(wmod[encode3_MODID(p,ii[0]-3,ii[1],ii[2],field)]-wmod[encode3_MODID(p,ii[0]+3,ii[1],ii[2],field)])/15.0)/2.0))/(2.0*(wd[fencode3_MODID(p,ii,delx1)]))    );
- else 
-  #endif
+// else 
+  #else
 if(ii[0]>1 && ii[0]<((p->n[0])-2) )
  grad=(  ( ((8*wmod[encode3_MODID(p,ii[0]+1,ii[1],ii[2],field)]-8*wmod[encode3_MODID(p,ii[0]-1,ii[1],ii[2],field)]+wmod[encode3_MODID(p,ii[0]-2,ii[1],ii[2],field)]-wmod[encode3_MODID(p,ii[0]+2,ii[1],ii[2],field)])/6.0))/(2.0*(wd[fencode3_MODID(p,ii,delx1)]))    );
-
+ #endif
    if((ii[0]==(p->n[0])-3) || (ii[0]==(p->n[0])-4)  && ii[1]>1   && ii[1]<(p->n[1])-2 && ii[2]>1   && ii[2]<(p->n[2])-2  )
        grad=0;
    else if(ii[0]==2 || ii[0]==3  && ii[1]>1   && ii[1]<(p->n[1])-2 && ii[2]>1   && ii[2]<(p->n[2])-2  )
        grad=0;
-#else
+#else  
 
   #ifdef USE_DORDER3
 if(ii[0]>2 && ii[0]<((p->n[0])-3) )
  grad=(  ( ((3*wmod[encode3_MODID(p,ii[0]+1,ii[1],0,field)]-3*wmod[encode3_MODID(p,ii[0]-1,ii[1],0,field)]+3.0*(wmod[encode3_MODID(p,ii[0]-2,ii[1],0,field)]-wmod[encode3_MODID(p,ii[0]+2,ii[1],0,field)])/5.0-(wmod[encode3_MODID(p,ii[0]-3,ii[1],0,field)]-wmod[encode3_MODID(p,ii[0]+3,ii[1],0,field)])/15.0)/2.0))/(2.0*(wd[fencode3_MODID(p,ii,delx1)]))    );
- else 
-  #endif
+// else 
+  #else
 if(ii[0]>1 && ii[0]<((p->n[0])-2) )
  grad=(  ( ((8*wmod[encode3_MODID(p,ii[0]+1,ii[1],0,field)]-8*wmod[encode3_MODID(p,ii[0]-1,ii[1],0,field)]+wmod[encode3_MODID(p,ii[0]-2,ii[1],0,field)]-wmod[encode3_MODID(p,ii[0]+2,ii[1],0,field)])/6.0))/(2.0*(wd[fencode3_MODID(p,ii,delx1)]))    );
+ #endif
 
    if((ii[0]==(p->n[0])-3) || (ii[0]==(p->n[0])-4)  && ii[1]>1   && ii[1]<(p->n[1])-2  )
        grad=0;
@@ -1044,11 +1045,11 @@ if(ii[0]>1 && ii[0]<((p->n[0])-2) )
   #ifdef USE_DORDER3
  if(ii[1]>2 && ii[1]<((p->n[1])-3) )
   grad=(  ( ((3*wmod[encode3_MODID(p,ii[0],ii[1]+1,ii[2],field)]-3*wmod[encode3_MODID(p,ii[0],ii[1]-1,ii[2],field)]+3.0*(wmod[encode3_MODID(p,ii[0],ii[1]-2,ii[2],field)]-wmod[encode3_MODID(p,ii[0],ii[1]+2,ii[2],field)])/5.0-(wmod[encode3_MODID(p,ii[0],ii[1]-3,ii[2],field)]-wmod[encode3_MODID(p,ii[0],ii[1]+3,ii[2],field)])/15.0)/2.0))/(2.0*(wd[fencode3_MODID(p,ii,delx2)]))    );
- else 
-#endif
+// else 
+#else
 if( ii[1] >1 &&  ii[1]<((p->n[1])-2))
 	grad=(  ( ((8*wmod[encode3_MODID(p,ii[0],ii[1]+1,ii[2],field)]-8*wmod[encode3_MODID(p,ii[0],ii[1]-1,ii[2],field)]+wmod[encode3_MODID(p,ii[0],ii[1]-2,ii[2],field)]-wmod[encode3_MODID(p,ii[0],ii[1]+2,ii[2],field)])/6.0))/(2.0*(wd[fencode3_MODID(p,ii,delx2)]))    );
-
+ #endif
    if((ii[1]==(p->n[1])-3) || (ii[1]==(p->n[1])-4)  && ii[0]>1   && ii[0]<(p->n[0])-2  && ii[2]>1   && ii[2]<(p->n[2])-2  )
        grad=0;
    else if(ii[1]==2 || ii[1]==3  && ii[0]>1   && ii[0]<(p->n[0])-2  && ii[2]>1   && ii[2]<(p->n[2])-2  )
@@ -1058,7 +1059,7 @@ if( ii[1] >1 &&  ii[1]<((p->n[1])-2))
   #ifdef USE_DORDER3
 if(ii[1]>2 && ii[1]<((p->n[1])-3) )
  grad=(  ( ((3*wmod[encode3_MODID(p,ii[0],ii[1]+1,0,field)]-3*wmod[encode3_MODID(p,ii[0],ii[1]-1,0,field)]+3.0*(wmod[encode3_MODID(p,ii[0],ii[1]-2,0,field)]-wmod[encode3_MODID(p,ii[0],ii[1]+2,0,field)])/5.0-(wmod[encode3_MODID(p,ii[0],ii[1]-3,0,field)]-wmod[encode3_MODID(p,ii[0],ii[1]+3,0,field)])/15.0)/2.0))/(2.0*(wd[fencode3_MODID(p,ii,delx2)]))    );
-else  
+//else  
 #endif
 if( ii[1] >1 &&  ii[1]<((p->n[1])-2))
 	grad=(  ( ((8*wmod[encode3_MODID(p,ii[0],ii[1]+1,0,field)]-8*wmod[encode3_MODID(p,ii[0],ii[1]-1,0,field)]+wmod[encode3_MODID(p,ii[0],ii[1]-2,0,field)]-wmod[encode3_MODID(p,ii[0],ii[1]+2,0,field)])/6.0))/(2.0*(wd[fencode3_MODID(p,ii,delx2)]))    );
@@ -1077,11 +1078,11 @@ if( ii[1] >1 &&  ii[1]<((p->n[1])-2))
   #ifdef USE_DORDER3
  if(ii[2]>2 && ii[2]<((p->n[2])-3) )
   grad=(  ( ((3*wmod[encode3_MODID(p,ii[0],ii[1],ii[2]+1,field)]-3*wmod[encode3_MODID(p,ii[0],ii[1],ii[2]-1,field)]+3.0*(wmod[encode3_MODID(p,ii[0],ii[1],ii[2]-2,field)]-wmod[encode3_MODID(p,ii[0],ii[1],ii[2]+2,field)])/5.0-(wmod[encode3_MODID(p,ii[0],ii[1],ii[2]-3,field)]-wmod[encode3_MODID(p,ii[0],ii[1],ii[2]+3,field)])/15.0)/2.0))/(2.0*(wd[fencode3_MODID(p,ii,delx3)]))    );
- else 
-#endif
+// else 
+#else
 if( ii[2] >1 &&  ii[2]<((p->n[2])-2))
 	grad=(  ( ((8*wmod[encode3_MODID(p,ii[0],ii[1],ii[2]+1,field)]-8*wmod[encode3_MODID(p,ii[0],ii[1],ii[2]-1,field)]+wmod[encode3_MODID(p,ii[0],ii[1],ii[2]-2,field)]-wmod[encode3_MODID(p,ii[0],ii[1],ii[2]+2,field)])/6.0))/(2.0*(wd[fencode3_MODID(p,ii,delx3)]))    );
-
+#endif
    if((ii[2]==(p->n[2])-3) || (ii[2]==(p->n[2])-4)  && ii[0]>1   && ii[0]<(p->n[0])-2 && ii[1]>1   && ii[1]<(p->n[1])-2  )
        grad=0;
    else if(ii[2]==2 || ii[2]==3  && ii[0]>1   && ii[0]<(p->n[0])-2 && ii[1]>1   && ii[1]<(p->n[1])-2  )
