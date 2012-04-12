@@ -32,47 +32,33 @@ double precision:: vx,vz,bx,bz
 
 !-----------------------------------------------------------------------------
 
-p1=5.d0/12.d0/Pi
-rho1=25.d0/36.d0/Pi
+p1=1.0d0
+rho1=1.d0
 
-vx=1.d0
-vz=1.d0
+vx=0.d0
+vz=0.d0
 
-bx=1.d0/2.0/sqrt(Pi)
-bz=1.d0/2.0/sqrt(Pi)
+bx=0.d0
+bz=0.1d0
 
   w(ix^S,rho_)=0.d0
   w(ix^S,rhob_)=rho1
   
-  w(ix^S,m2_)=-vx*rho1*sin(2.d0*Pi*x(ix^S,1)/x(ixmax1,10,1))
+  w(ix^S,m2_)=-vx*rho1
   
-  w(ix^S,m1_)=vz*rho1*sin(2.d0*Pi*x(ix^S,2)/x(10,ixmax2,2))
+  w(ix^S,m1_)=vz*rho1
   
-  w(ix^S,b2_)=-bx*sin(2.d0*Pi*x(ix^S,1)/x(ixmax1,10,1))
-  w(ix^S,b1_)=bz*sin(4.d0*Pi*x(ix^S,2)/x(10,ixmax2,2))
+  w(ix^S,b2_)=-bx
+  w(ix^S,b1_)=bz
   
   w(ix^S,e_)=0.d0 
   w(ix^S,eb_)=p1/(eqpar(gamma_)-1.d0)
 
-
-!  w(ix^S,e_)=half*(^C&w(ix^S,m^C_)**2.d0+)/(w(ix^S,rho_)+w(ix^S,rhob_))
-
   w(ix^S,eb_)=w(ix^S,eb_)+half*((^C&w(ix^S,b^C_)**2.d0+))+half*(^C&w(ix^S,m^C_)**2.d0+)/(w(ix^S,rho_)+w(ix^S,rhob_))
-
-
-  w(ix^S,rho_)=w(ix^S,rhob_)
-  w(ix^S,rhob_)=0.d0
-
-  w(ix^S,e_)=w(ix^S,eb_)
-  w(ix^S,eb_)=0.d0 
 
   w(ix^S,bg2_)=0.d0
   w(ix^S,bg1_)=0.d0
-  
-!  w(ix^S,bg2_)=w(ix^S,b2_)
-!  w(ix^S,b2_)=0.d0           
-!  w(ix^S,bg1_)=w(ix^S,b1_)
-!  w(ix^S,b1_)=0.d0
+
 
 
 return
@@ -94,6 +80,8 @@ double precision:: tau(ixG^T),ine(ixG^T)
 
 double precision:: preg(ixG^T),pret(ixG^T)
 
+double precision:: r1, r2, s_rad1, s_rad2, s_period, vvv, vvrho
+
 integer:: rix_1,i,j
 double precision:: mol_0, rrr_
 
@@ -101,17 +89,6 @@ double precision:: fsokr,avgflux
 
 integer:: iw,iiw,iix_1
 
-
-
-!point rast source**********
-double precision:: rad,sigma1,sigma2,Q0,qt0,xc1,xc2,zzs,qmin,qra
-double precision:: rfc,tdep,sdep
-double precision:: xs(100),zs(100),ts(100),qs(100)
-double precision:: tlast,rn
-integer:: ns
-!logical:: filexist
-integer:: singl
-!***************
 
 integer:: ix_1,ix_2,idim, ix^L
 
@@ -133,6 +110,40 @@ if(abs(eqpar(nu_))>smalldouble)&
  
 !call addsource_grav(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
 
+ 
+do ix_1=ixOmin1,ixOmax1
+ do ix_2=ixOmin2,ixOmax2
+
+
+xc2=0.0d0  !m --x
+xc1=-1.0d0 !m  --z
+
+! single driver
+     r1=(x(ix_1,ix_2,1)-xc1)**2.d0
+     r2=(x(ix_1,ix_2,2)-xc2)**2.d0
+
+
+!************ begin flow mz
+ 
+ s_rad1=0.1d0 !m --z
+ s_rad2=0.02d0 !m --x
+ 
+
+s_period=100.d0
+
+tdep=1.d0    
+    
+      vvv=1.0d0*tdep*exp(-r1/s_rad1**2.d0-r2/s_rad2**2.d0)
+
+      w(ix_1,ix_2,e_)=w(ix_1,ix_2,e_)+(vvv**2.d0)*qdt/2.d0*(w(ix_1,ix_2,rho_)+w(ix_1,ix_2,rhob_))
+
+      w(ix_1,ix_2,m1_)=w(ix_1,ix_2,m1_)+vvv*(w(ix_1,ix_2,rho_)+w(ix_1,ix_2,rhob_))*qdt
+     
+
+!************ end flow mz
+    
+ enddo
+enddo
 
 write(*,*) '***time=',qt
 

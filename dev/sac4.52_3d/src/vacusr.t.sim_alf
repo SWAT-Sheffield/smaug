@@ -9,6 +9,7 @@ INCLUDE:vacusr.gravity.t
 !INCLUDE:vacnul.specialio.t
 INCLUDE:vacusr.viscosity.t
 !INCLUDE:vacusr.diffusion.t
+
 !=============================================================================
 subroutine specialini(ix^L,w)
 
@@ -27,52 +28,57 @@ integer:: iii_,iix_1,info,i,j
 double precision:: pi,comi,eneu,sum,mode,bmax,l
 character*79 atmfilename
 
-double precision:: p1,p2,rho1,rho2,v1,v2,T1,T2, b1_1,b1_2,b2_1,b2_2
-double precision:: vx,vz,bx,bz
+double precision:: p1,p2,rho1,rho2,v1,v2,T1,T2,b1,b2
+double precision:: width,seg1,seg2,seg3,seg4,m2max
 
 !-----------------------------------------------------------------------------
 
-p1=5.d0/12.d0/Pi
-rho1=25.d0/36.d0/Pi
-
-vx=1.d0
-vz=1.d0
-
-bx=1.d0/2.0/sqrt(Pi)
-bz=1.d0/2.0/sqrt(Pi)
-
-  w(ix^S,rho_)=0.d0
-  w(ix^S,rhob_)=rho1
-  
-  w(ix^S,m2_)=-vx*rho1*sin(2.d0*Pi*x(ix^S,1)/x(ixmax1,10,1))
-  
-  w(ix^S,m1_)=vz*rho1*sin(2.d0*Pi*x(ix^S,2)/x(10,ixmax2,2))
-  
-  w(ix^S,b2_)=-bx*sin(2.d0*Pi*x(ix^S,1)/x(ixmax1,10,1))
-  w(ix^S,b1_)=bz*sin(4.d0*Pi*x(ix^S,2)/x(10,ixmax2,2))
-  
-  w(ix^S,e_)=0.d0 
-  w(ix^S,eb_)=p1/(eqpar(gamma_)-1.d0)
+p1=1.d0
+p2=0.1d0
+b1=1.d0
+b2=0.0d0
+rho1=1.d0
+rho2=0.125d0
+v1=0.d0
+v2=0.d0
+m2max=0.001
+width=341
 
 
-!  w(ix^S,e_)=half*(^C&w(ix^S,m^C_)**2.d0+)/(w(ix^S,rho_)+w(ix^S,rhob_))
+seg1=(ixGhi1-width)/2
+seg2=(ixGhi1+width)/2;
+seg3=(2*(ixGhi1)/3)-1
+seg4=ixGhi1-seg1
 
-  w(ix^S,eb_)=w(ix^S,eb_)+half*((^C&w(ix^S,b^C_)**2.d0+))+half*(^C&w(ix^S,m^C_)**2.d0+)/(w(ix^S,rho_)+w(ix^S,rhob_))
 
+
+
+do ix_1=ixGlo1,ixGhi1
+ do ix_2=ixGlo2,ixGhi2
+   w(ix_1,ix_2,rhob_)=rho1
+   w(ix_1,ix_2,b1_)=b1
+   w(ix_1,ix_2,b2_)=b2
+   w(ix_1,ix_2,eb_)=0.01
+   w(ix_1,ix_2,m1_)=0.d0
+   w(ix_1,ix_2,m2_)=0.d0
+
+
+if (ix_1 .gt. seg1.and. ix_1 .lt. seg2) then
+  w(ix_1,ix_2,m2_)=m2max
+endif
+
+
+ enddo
+enddo
 
   w(ix^S,rho_)=w(ix^S,rhob_)
-  w(ix^S,rhob_)=0.d0
-
   w(ix^S,e_)=w(ix^S,eb_)
-  w(ix^S,eb_)=0.d0 
-
-  w(ix^S,bg2_)=0.d0
-  w(ix^S,bg1_)=0.d0
-  
-!  w(ix^S,bg2_)=w(ix^S,b2_)
-!  w(ix^S,b2_)=0.d0           
+  w(ix^S,rhob_)=0.d0
+  w(ix^S,eb_)=0.d0
 !  w(ix^S,bg1_)=w(ix^S,b1_)
-!  w(ix^S,b1_)=0.d0
+!  w(ix^S,bg2_)=w(ix^S,b2_)
+  w(ix^S,bg1_)=0.d0
+  w(ix^S,bg2_)=0.d0
 
 
 return
@@ -182,7 +188,6 @@ integer:: ix^L
 if(abs(eqpar(nu_))>smalldouble)&
    call getdt_visc(w,ix^L)
 
-!call getdt_res(w,ix^L)
 
 !call getdt_grav(w,ix^L)
 
@@ -199,6 +204,5 @@ integer:: ix^L,idirmin
 !-----------------------------------------------------------------------------
  
 stop 'specialeta is not defined'
-
 end
 

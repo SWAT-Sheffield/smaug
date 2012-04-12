@@ -275,7 +275,7 @@ c_tot=maxval(cmax(ix^S))
 
 
 
-c_hyp=0.4d0 ! 1.4d0 ! 0.6
+c_hyp=0.4d0 ! 0.6
 
 !if (iw.eq.b^D_|.or.) c_hyp=0.02d0
 

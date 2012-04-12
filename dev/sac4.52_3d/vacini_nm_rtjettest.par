@@ -1,14 +1,14 @@
-/data/cs1mkg/VAC_NN_tests/zero1_ot_asc.ini
+/data/ap1vf/2D/spicule/test_jet.ini
 opozmf_mhd22
 x y h m1 m2 e b1 b2 eb rhob bg1 bg2
 typefileout
-ascii
+binary
 typefileini
-ascii
+binary
 domain
-256,256		-ixmax
-0,0			 		-min coordinates
-1.d0,1.d0           		-max coordinates
+300,300		-ixmax
+-1.0d0,-1.0d0			 		-min coordinates
+1.0d0,1.0d0           		-max coordinates
 eqpar
 1.66666667 0.0 1.0 0.0 0.0 0.0   gamma eta g0 g1 g2 g3 nu 
 special

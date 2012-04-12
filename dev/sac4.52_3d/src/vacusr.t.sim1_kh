@@ -28,52 +28,133 @@ double precision:: pi,comi,eneu,sum,mode,bmax,l
 character*79 atmfilename
 
 double precision:: p1,p2,rho1,rho2,v1,v2,T1,T2, b1_1,b1_2,b2_1,b2_2
-double precision:: vx,vz,bx,bz
+double precision:: vx,vz,bx,bz, tdep, v_max, v_min, xc1, xc2, rho_min, rho_max, smooth_r
 
 !-----------------------------------------------------------------------------
 
-p1=5.d0/12.d0/Pi
-rho1=25.d0/36.d0/Pi
+p1=2.5d0
 
-vx=1.d0
-vz=1.d0
 
-bx=1.d0/2.0/sqrt(Pi)
-bz=1.d0/2.0/sqrt(Pi)
+rho1=1.0d0
+rho2=2.0d0
 
-  w(ix^S,rho_)=0.d0
-  w(ix^S,rhob_)=rho1
+v_max=0.5d0
+v_min=-0.5d0
+
+v2=0.01d0
+v1=0.02d0
+
+
+
+!do ix_1=ixmin1,ixmax1
+! do ix_2=ixmin2,ixmax2
+
+!if ((x(ix_1,ix_2,1) .ge. -0.25) .and. (x(ix_1,ix_2,1) .le. 0.25)) then
+!  w(ix_1,ix_2,rho_)=rho2
+!  w(ix_1,ix_2,m1_)=0.d0
+!  w(ix_1,ix_2,m2_)=v_max*w(ix_1,ix_2,rho_)
+!endif
+
+!if ((x(ix_1,ix_2,1) .le. -0.25) .or. (x(ix_1,ix_2,1) .ge. 0.25)) then
+!   w(ix_1,ix_2,rho_)=rho1
+!   w(ix_1,ix_2,m1_)=0.d0
+!   w(ix_1,ix_2,m2_)=v_min*w(ix_1,ix_2,rho_)
+!endif
+
+!!if (ix_1 .ge.110) then
+!!   w(ix_1,ix_2,m1_)=0.d0
+!!   w(ix_1,ix_2,m2_)=v_max*w(ix_1,ix_2,rho_)
+!!endif
+
+
+! enddo
+!enddo
+
+! ********************** smooth  edges for rho ***************
+smooth_r=200.0d0
+
+xc1=-0.25
+
+
+  do ix_1=ixmin1,ixmax1
+   do ix_2=ixmin2,ixmax2
+
+      tmp(ix_1,ix_2)=((atan((x(ix_1,ix_2,1)-xc1)/x(ixmax1,ix_2,1)*smooth_r))+Pi/2.d0)/Pi
+
+   enddo
+  enddo
+
+rho_max=maxval(tmp(ix^S))
+rho_min=minval(tmp(ix^S))
+
+    tmp(ix^S)=(tmp(ix^S)-rho_min)/rho_max
+       
+xc2=0.25
+
+
+  do ix_1=ixmin1,ixmax1
+   do ix_2=ixmin2,ixmax2
+
+      w(ix_1,ix_2,rho_)=((atan((x(ix_1,ix_2,1)-xc2)/x(ixmax1,ix_2,1)*smooth_r))+Pi/2.d0)/Pi
+
+   enddo
+  enddo
+
+rho_max=maxval(w(ix^S,rho_))
+rho_min=minval(w(ix^S,rho_))
+
+
+    tmp(ix^S)=(tmp(ix^S)-(w(ix^S,rho_)-rho_min)/rho_max)   
+    w(ix^S,rho_)=rho1+rho1*tmp(ix^S)
+    
+    
+    
+! **************************************************************
+
+
+
+! ********************** smooth  edges for mx ***************
+
+
+  w(ix^S,m2_)=(tmp(ix^S)-0.5d0)*w(ix^S,rho_)
+
+! **************************************************************
+
+    
+!    w(ix^S,v2_)=(w(ix^S,v2_)-w(ixmin1,10,v2_))*(v_max*w(ix^S,rho_)-v_min*w(ix^S,rho_))
+!    w(ix^S,v2_)=w(ix^S,v2_)/(w(ixmax1,10,v2_)-w(ixmin1,10,v2_)) !+v_min*w(ix^S,rho_)
+
+
+do ix_1=ixmin1,ixmax1
+ do ix_2=ixmin2,ixmax2
+
+if ((x(ix_1,ix_2,1) .gt. -0.23) .and. (x(ix_1,ix_2,1) .lt. 0.27)) then
+   w(ix_1,ix_2,m1_)=v2*cos(2.0d0*Pi*(x(ix_1,ix_2,2)))*w(ix_1,ix_2,rho_)
+   
+endif   
+
+ enddo
+enddo
+
+bx=0.d0 !1.d0/2.0/sqrt(Pi)
+bz=0.d0 !1.d0/2.0/sqrt(Pi)
+
+
+  w(ix^S,b2_)=0.0d0
+  w(ix^S,b1_)=0.0d0
   
-  w(ix^S,m2_)=-vx*rho1*sin(2.d0*Pi*x(ix^S,1)/x(ixmax1,10,1))
+  w(ix^S,e_)=p1/(eqpar(gamma_)-1.d0)
+
+  w(ix^S,e_)=w(ix^S,e_)+half*((^C&w(ix^S,b^C_)**2.d0+))+half*(^C&w(ix^S,m^C_)**2.d0+)/(w(ix^S,rho_)+w(ix^S,rhob_))
+
+ ! w(ix^S,eb_)=w(ix^S,e_)
+  w(ix^S,eb_)=0.d0
   
-  w(ix^S,m1_)=vz*rho1*sin(2.d0*Pi*x(ix^S,2)/x(10,ixmax2,2))
-  
-  w(ix^S,b2_)=-bx*sin(2.d0*Pi*x(ix^S,1)/x(ixmax1,10,1))
-  w(ix^S,b1_)=bz*sin(4.d0*Pi*x(ix^S,2)/x(10,ixmax2,2))
-  
-  w(ix^S,e_)=0.d0 
-  w(ix^S,eb_)=p1/(eqpar(gamma_)-1.d0)
-
-
-!  w(ix^S,e_)=half*(^C&w(ix^S,m^C_)**2.d0+)/(w(ix^S,rho_)+w(ix^S,rhob_))
-
-  w(ix^S,eb_)=w(ix^S,eb_)+half*((^C&w(ix^S,b^C_)**2.d0+))+half*(^C&w(ix^S,m^C_)**2.d0+)/(w(ix^S,rho_)+w(ix^S,rhob_))
-
-
-  w(ix^S,rho_)=w(ix^S,rhob_)
+!  w(ix^S,rhob_)=w(ix^S,rho_)
   w(ix^S,rhob_)=0.d0
-
-  w(ix^S,e_)=w(ix^S,eb_)
-  w(ix^S,eb_)=0.d0 
-
+  
   w(ix^S,bg2_)=0.d0
   w(ix^S,bg1_)=0.d0
-  
-!  w(ix^S,bg2_)=w(ix^S,b2_)
-!  w(ix^S,b2_)=0.d0           
-!  w(ix^S,bg1_)=w(ix^S,b1_)
-!  w(ix^S,b1_)=0.d0
-
 
 return
 end
@@ -117,6 +198,7 @@ integer:: ix_1,ix_2,idim, ix^L
 
 !*****************
 double precision:: t01,t02,a1,a2,s1,s2,sf,xc1,xc2,rad,rfc,sdep,tdep,sigma2
+double precision:: vx,vz,bx,bz, tdep, v_max, v_min, xc, qq, wx,wy, v2
 
 
 !-----------------------------------------------------------------------------
@@ -135,7 +217,50 @@ if(abs(eqpar(nu_))>smalldouble)&
 
 
 write(*,*) '***time=',qt
+!v_max=1.0d0
+!v_min=-1.0d0
 
+!v2=0.5d0
+
+!print*,ixGlo1,ixGhi1 
+
+!if (qt .le.1.d0) then
+
+!do ix_1=ixGlo1,ixGhi1
+! do ix_2=ixGlo2,ixGhi2
+
+!if (ix_1 .ge. 100) then
+!  wx=v_max*qt
+!endif
+
+!if (ix_1 .le.100) then
+!   wx=v_min*qt
+!endif
+
+!if (ix_1 .ge.120) then
+!   wx=v_max*qt
+!endif
+
+!w(ix_1,ix_2,m2_)=w(ix_1,ix_2,m2_)+wx*(w(ix_1,ix_2,rho_)+w(ix_1,ix_2,rhob_))*qdt
+!w(ix_1,ix_2,e_)=w(ix_1,ix_2,e_)+(w(ix_1,ix_2,rho_)+w(ix_1,ix_2,rhob_))*(wx**2.d0)*qdt/2.d0
+
+
+!if ((ix_1 .ge. 77).and.(ix_1 .le.123)) then
+!   wy = v2*cos(2.d0*Pi*(x(ix_1,ix_2,2)))*qt
+!else 
+!   wy=0.d0
+!endif
+
+!w(ix_1,ix_2,m1_)=w(ix_1,ix_2,m1_)+wy*(w(ix_1,ix_2,rho_)+w(ix_1,ix_2,rhob_))*qdt
+!w(ix_1,ix_2,e_)=w(ix_1,ix_2,e_)+(w(ix_1,ix_2,rho_)+w(ix_1,ix_2,rhob_))*(wy**2.d0)*qdt/2.d0
+
+
+!  enddo
+!enddo
+
+!endif
+
+!print*, w(10,10,m2_), w(10,10,rho_),w(10,10,rhob_), ww
 
 
 end
@@ -177,6 +302,9 @@ integer:: ix^L
 !-----------------------------------------------------------------------------
 
 !call getdt_diff(w,ix^L)
+
+eqpar(nu_)=1.d0
+!eqpar(nu_)=0.d0
 
 
 if(abs(eqpar(nu_))>smalldouble)&

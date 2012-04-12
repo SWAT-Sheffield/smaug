@@ -1010,12 +1010,6 @@ include 'vacdef.f'
 integer:: qunit,ix^L,idim,iw,ndimout
 double precision:: w(ixG^T,nw)
 logical:: fileopen
-
-!**************** slice
-integer:: s_ixmax^D, prom_ixmax^D, s_ixmin^D, prom_ixmin^D  
-!**************** endslice
-
-
 !-----------------------------------------------------------------------------
 
 inquire(qunit,opened=fileopen)
@@ -1042,47 +1036,6 @@ do iw=1,nw
 end do
 
 call flushunit(qunit)
-
-
-!**************** slice *********************************
-
-!inquire(qunit,opened=fileopen)
-!if(.not.fileopen)&
-!   open(qunit,file=filenameout,status='unknown',form='unformatted')
-
-!if(gencoord)then
-!   ndimout= -ndim
-!else
-!   ndimout= ndim
-!endif
-
-!prom_ixmax^D=ixmax^D
-!prom_ixmin^D=ixmin^D
-!ixmax1=2
-!ixmin1=0
-
-!write(qunit)fileheadout
-!write(qunit)it,t,ndimout,neqpar+nspecialpar,nw
-!write(qunit) ixmax^D-ixmin^D+1
-!write(qunit)eqpar
-!write(qunit)varnames
-!write(qunit)(x(ix^S,idim),idim=1,ndim)
-
-! write(qunit)w(ix^S,1:nw) produces segmentation fault on Alpha, thus loop
-!
-!do iw=1,nw
-!   write(qunit)w(ix^S,iw)
-!end do
-
-!call flushunit(qunit)
-
-
-!************* end slice ********************************** 
-
-
-
-
-
 
 return 
 end

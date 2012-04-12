@@ -1,4 +1,4 @@
-pro vac2vtk3d,pict,vacdata,x,field,vecsize,filename
+pro vac2vtk,pict,vacdata,x,field,vecsize,filename
 ; pict    :: the pict reference
 ; vacdata :: the full array of vacdata from getpict 
 ; x :: the position data     
@@ -37,32 +37,28 @@ pro vac2vtk3d,pict,vacdata,x,field,vecsize,filename
      printf,lu,'ASCII'
      printf,lu,' '
      printf,lu,'DATASET RECTILINEAR_GRID'
-     printf,lu,'DIMENSIONS ',sizew(1),' ',sizew(2),'    ',sizew(3)
+     printf,lu,'DIMENSIONS ',sizew(1),' ',sizew(2),'    ','1'
 
 
         printf,lu,'X_COORDINATES ',sizew(1),' double'
         for ix=0,sizew(1)-1 do begin
-           printf,lu,x(ix,0,0)
+           printf,lu,x(ix,0)
         endfor
 
         printf,lu,'Y_COORDINATES ',sizew(2),' double'
         for ix=0,sizew(2)-1 do begin
-           printf,lu,x(ix,ix,0)
+           printf,lu,x(ix,ix)
         endfor
 
-        printf,lu,'Z_COORDINATES ',sizew(3),' double'
-        for ix=0,sizew(3)-1 do begin
-           printf,lu,x(ix,0,ix)
-        endfor
+        printf,lu,'Z_COORDINATES 1 double'
+        printf,lu,'0'
 
-        printf,lu,'POINT_DATA ',sizew(1)*sizew(2)*sizew(3)
+        printf,lu,'POINT_DATA ',sizew(1)*sizew(2)
         printf,lu,'VECTORS ',filename,' double'
 
         for ix=0,sizew(1)-1 do begin
            for iy=0,sizew(2)-1 do begin
-              for iz=0,sizew(3)-1 do begin
-                 printf,lu,vacdata(ix,iy,iz,field),' ',vacdata(ix,iy,iz,field+1),' ',vacdata(ix,iy,iz,field+2)
-              endfor
+             printf,lu,vacdata(ix,iy,field),' ',vacdata(ix,iy,field+1),' 0.0'
            endfor
         endfor
 

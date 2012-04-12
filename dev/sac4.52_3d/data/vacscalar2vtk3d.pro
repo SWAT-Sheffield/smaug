@@ -69,7 +69,7 @@ pro vacscalar2vtk3d,pict,vacdata,x,field,vecsize,filename
 
 
 
-     close,lu
+     close,/all
 
 end
 

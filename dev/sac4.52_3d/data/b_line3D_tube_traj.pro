@@ -37,6 +37,11 @@ WINDOW, /FREE, /PIXMAP, COLORS=256 & WDELETE, !D.WINDOW
    Window, 2, Title='Vz', xsize=320,ysize=300, $
            XPOS = 850, YPOS = 750
 
+   Window, 3, Title='energy flux', xsize=420,ysize=300, $
+           XPOS = 350, YPOS = 750
+
+   Window, 4, Title='energy flux', xsize=420,ysize=300, $
+           XPOS = 750, YPOS = 750
 
 print, 'data or function ? (data "1", function "2")'
 ;read,aa
@@ -68,10 +73,14 @@ xmt=dblarr(1)
 ymt=dblarr(1)
 zmt=dblarr(1)
 
+total_flux=dblarr(1)
+time_n=dblarr(1)
+total_f=dblarr(1000,111)
+tf=0
 
-cxmi=1.3d0
-cymi=1.3d0
-czmi=1.3d0
+cxmi=0.7d0
+cymi=0.7d0
+czmi=0.7d0
 
 cxma=1.3d0
 cyma=1.3d0
@@ -86,12 +95,28 @@ close,1
 ;openr,1,'/data/ap1vf/3D_tube_196_100_100t.out',/f77_unf
 ;openr,1,'/data/ap1vf/3D_tube_196_100_100_120s_full.out',/f77_unf
 
-;openr,1,'/data/ap1vf/3D_tube_196_100_100_multidriver2.out',/f77_unf            ;!!!!!!!!!!! the name of the initial file to be plotted
+;openr,1,'/data/ap1vf/3D_tube_196_100_100_multidriver_lower.out',/f77_unf
+
+;openr,1,'/fastdata/cs1mkg/VAC_NN_tests/3D_tubet1_128_128_128.out',/f77_unf
+openr,1,'/fastdata/cs1mkg/VAC_NN_tests/3D_tubewave1_128_128_128_part2_np010101_000.out',/f77_unf
 
 
-openr,1,'/home/mikeg/data/vac3d/3D_tube_196_100_100_multidriver_test.out',/f77_unf
+;openr,1,'/data/ap1vf/3D_tube_128_128_128.ini',/f77_unf
 
 
+;openr,1,'/data/ap1vf/3D/torsional_driver_puls_long/3D_tube_196_100_100.out',/f77_unf
+
+
+
+
+;openr,1,'/data/ap1vf/3D/torsional_driver/3D_tube_196_100_100_puls_one.out',/f77_unf
+
+
+
+
+;openr,1,'/data/ap1vf/3D_tube_120_100_100_vigeesh_ss.ini',/f77_unf
+
+;openr,1,'/data/ap1vf/3D_vert_driver/3D_tube_196_100_100_vert.out',/f77_unf
 
 ;case i_files of
 ;  1: openr,1,'/data/ap1vf/3D_tube_196_100_100_200s_puls.out',/f77_unf
@@ -100,12 +125,22 @@ openr,1,'/home/mikeg/data/vac3d/3D_tube_196_100_100_multidriver_test.out',/f77_u
 
 ;***********************  files path *************************
 
-dr='/data/ap1vf/png/3D/tube/P120_R100_A200_B1000_Dxy2_Dz1.6_Nxy100_Nz196_multidriver'
+;dr='/data/ap1vf/png/3D/tube/P120_R100_A200_B1000_Dxy2_Dz1.6_Nxy100_Nz196_multidriver_lower/normalised/'
+;dr='/data/ap1vf/png/3D/tube/P30_R100_A500_B1000_Dxy2_Dz1.6_Nxy100_Nz196/vert_driver/'
+
+;dr='/data/ap1vf/3D/torsional_driver_puls_long/png/'
 
 
-traj=dr+'/full_ends_moves/traj_All/'
-traj_proj=dr+'/full_ends_moves/traj_proj_All/'
-vz_slice=dr+'/full_ends_moves/vz_slice/'
+
+;traj=dr+'/ends_moves_three_full/traj_three/'
+;traj_proj=dr+'/ends_moves_three_full/traj_proj_three/'
+;vz_slice=dr+'/ends_moves_three_full/vz_slice/'
+
+;flux_plot=dr+'/ends_moves_three_full/flux_plot/'
+;total_flux_plot=dr+'/ends_moves_three_full/total_flux_plot/'
+
+;flux_plot=dr+'/ends_moves_three/flux_plot/'
+;total_flux_plot=dr+'/ends_moves_three/total_flux_plot/'
 
 tarr=dblarr(1)
 headline='                                                                               '
@@ -162,26 +197,29 @@ nj=1
 ;close,1
 
 
-;*********************** sizes of output
+;***********************************************
 nzs=0
-nz=190
-
-nxs=39
-nxe=60
-
-nys=39
-nye=60
-
-nzs=0
-nz=110
+;nz=190
 
 nxs=0
-nxe=99
+nxe=127
 
 nys=0
-nye=99
+nye=127
 
+;nzs=0
+nz=127
+
+;nxs=0
+;nxe=99
+
+;nys=0
+;nye=99
+;stop
 ;***********************************************
+
+
+
 
 bx=dblarr(nz-nzs+1,nxe-nxs+1,nye-nys+1)
 by=dblarr(nz-nzs+1,nxe-nxs+1,nye-nys+1)
@@ -192,6 +230,15 @@ vy=dblarr(nz-nzs+1,nxe-nxs+1,nye-nys+1)
 vz=dblarr(nz-nzs+1,nxe-nxs+1,nye-nys+1)
 
 rho=dblarr(nz-nzs+1,nxe-nxs+1,nye-nys+1)
+
+
+vbbx=dblarr(nz-nzs+1,nxe-nxs+1,nye-nys+1)
+vbby=dblarr(nz-nzs+1,nxe-nxs+1,nye-nys+1)
+vbbz=dblarr(nz-nzs+1,nxe-nxs+1,nye-nys+1)
+
+vbx=dblarr(nz-nzs+1,nxe-nxs+1,nye-nys+1)
+vby=dblarr(nz-nzs+1,nxe-nxs+1,nye-nys+1)
+vbz=dblarr(nz-nzs+1,nxe-nxs+1,nye-nys+1)
 
 if aa eq 1 then begin
 
@@ -230,7 +277,7 @@ loadct, ll
 
 !p.multi=[0,1,0,0,1]
 
-scale=1.0d6   ; Mm ---> meters
+scale=1.0d6
 
 z=dblarr(nz-nzs+1)
 x=dblarr(nxe-nxs+1)
@@ -291,7 +338,8 @@ b_total=sqrt(bx(0,*,*)^2.0+by(0,*,*)^2.0+bz(0,*,*)^2.0)
 
 v_total=sqrt(vx(*,*,*)^2.0+vy(*,*,*)^2.0+vz(*,*,*)^2.0)/rho(*,*,*)
 
-;tvframe,b_total, /bar
+tvframe,b_total, /bar
+
 
 max_b=max(b_total)
 min_b=min(b_total)
@@ -332,21 +380,18 @@ SURFACE, DIST(5), /NODATA, /SAVE, XRANGE=[mi_x, ma_x],  $
  levels = 40
 loadct,3, NColors=40, Bottom=3
 
+step = (Max(vz(12,*,*)/rho(12,*,*)) - Min(vz(12,*,*)/rho(12,*,*))) / levels
+userLevels = IndGen(levels) * step + Min(vz(12,*,*)/rho(12,*,*))
 
-hhz=12
+;step = (Max(v_total(12,*,*)) - Min(v_total(12,*,*))) / levels
+;userLevels = IndGen(levels) * step + Min(v_total(12,*,*))
 
-;;;;;;;;;;;;;;step = (Max(vz(hhz,*,*)/rho(hhz,*,*)) - Min(vz(hhz,*,*)/rho(hhz,*,*))) / levels
-;;;;;;;;;;;;;;userLevels = IndGen(levels) * step + Min(vz(hhz,*,*)/rho(hhz,*,*))
+;vz(12,*,*)
 
-;step = (Max(v_total(hhz,*,*)) - Min(v_total(hhz,*,*))) / levels
-;userLevels = IndGen(levels) * step + Min(v_total(hhz,*,*))
-
-;vz(hhz,*,*)
-
-;;;;;;;;;;;;;;;;;Contour, vz(hhz,*,*)/rho(hhz,*,*), x, y, /Fill, C_Colors=Indgen(levels)+3, Background=1, /T3D,$
-;;;;;;;;;;;;;;;   Levels=userLevels, POSITION=[xx0, yy0, xx1, yy1, 0.1, 0.95], Color=black, ZVALUE = 0.1, $
-;;;;;;;;;;;;;;;   XSTYLE=1, YSTYLE=1, ZSTYLE=1, /NOCLIP,CHARSIZE=2.5, XRANGE=[mi_x, ma_x],  $
-;;;;;;;;;;;;;;;;;   YRANGE=[mi_y, ma_y], ZRANGE=[mi_z, ma_z]
+;Contour, vz(12,*,*)/rho(12,*,*), x, y, /Fill, C_Colors=Indgen(levels)+3, Background=1, /T3D,$
+;   Levels=userLevels, POSITION=[xx0, yy0, xx1, yy1, 0.1, 0.95], Color=black, ZVALUE = 0.1, $
+;   XSTYLE=1, YSTYLE=1, ZSTYLE=1, /NOCLIP,CHARSIZE=2.5, XRANGE=[mi_x, ma_x],  $
+;   YRANGE=[mi_y, ma_y], ZRANGE=[mi_z, ma_z]
   
    
 loadct,ll
@@ -440,7 +485,7 @@ endif
      print, '*', x0n[ii], y0n[ii], z0n[ii], Vvx, VVy, Vvz, ii       
 
 endfor
-
+;stop
 ;***************** END start NEW positions ***************************
 
 xm=dblarr(1)
@@ -467,7 +512,7 @@ while ((x0 ge cxmi*mi_x) and (x0 le cxma*ma_x) and $
      yc=interpol(dindgen(nye-nys+1),y,y0)
      zc=interpol(dindgen(nz-nzs+1),z,z0)
 
-
+;stop
   Bbx=interpolate(bx, zc, xc, yc)
   Bby=interpolate(by, zc, xc, yc)
   Bbz=interpolate(bz, zc, xc, yc)  
@@ -500,8 +545,8 @@ endwhile
 
 endfor
 
-cl=color_min+ijj*1.d0/2.0
-;cl=color_min+ijj*1.d0/4.0
+;cl=color_min+ijj*1.d0/2.0
+cl=color_min+ijj*1.d0/6.0
 
    
 for i=0,n_elements(x0n)-1 do begin
@@ -560,34 +605,33 @@ USERSYM, 1.5*COS(A), 1.5*SIN(A), /fill
 
 ;****************** begin recalculating and plots top points ******************
 
-;np=3 ; kolichesto tochek for trajectory
+np=3 ; kolichesto tochek for trajectory
 
-np=21 ; kolichesto tochek for trajectory
+;np=21 ; kolichesto tochek for trajectory
 
 p=intarr(np)
 
 ; tochki for trajectory
 
-;p[0]=7
-;p[1]=10
-;p[2]=14
+p[0]=7
+p[1]=10
+p[2]=14
 
-for i=0, np-1 do p[i]=i
+;for i=0, np-1 do p[i]=i
 
 nnp=n_elements(xmt)/n_elements(x0n)
 npp=n_elements(x0n)
 print, '#############', nnp
 
-for i=0, np-1 do begin ; kolichestvo tochek
+;for i=0, np-1 do begin ; kolichestvo tochek
 
-xxc=XYZ_coord(xmt,nnp,npp,p[i])
-yyc=XYZ_coord(ymt,nnp,npp,p[i])
-zzc=XYZ_coord(zmt,nnp,npp,p[i])
+;xxc=XYZ_coord(xmt,nnp,npp,p[i])
+;yyc=XYZ_coord(ymt,nnp,npp,p[i])
+;zzc=XYZ_coord(zmt,nnp,npp,p[i])
 
-PLOTS, xxc,yyc,zzc, color=xyz_color_point, psym=8, /T3D
+;PLOTS, xxc,yyc,zzc, color=xyz_color_point, psym=8, /T3D
 
-
-endfor
+;endfor
 
 ;****************** end recalculating and plots top points ******************
 
@@ -623,8 +667,8 @@ case bar of
 
               px = [465, 525]  
               py = [40, 280] 
-              mina = min(vz(hhz,*,*)/rho(hhz,*,*))
-              maxa = max(vz(hhz,*,*)/rho(hhz,*,*))
+              mina = min(vz(12,*,*)/rho(12,*,*))
+              maxa = max(vz(12,*,*)/rho(12,*,*))
 	     end 
  
    2: begin  ;*******'field' 
@@ -707,8 +751,8 @@ image_p = TVRD_24()
 ;write_png,traj+indexss+'.png',image_p, red,green, blue
 
 ;********************** begin side trajectory *****************************
-   WSet, 1
-   !p.multi = [0,3,1,0,1]
+;   WSet, 1
+;   !p.multi = [0,3,1,0,1]
 
 
 ;--------------------
@@ -720,42 +764,42 @@ USERSYM, 0.6*COS(A), 0.6*SIN(A), /fill
 ;--------------------
 
 
-   css=2.0
-   plot, xxc[0:n_elements(xxc)-1],yyc[0:n_elements(yyc)-1], title='x-y', /nodata, $
-         charsize=css, XRANGE=[mi_x, ma_x], YRANGE=[mi_y, ma_y], $
-	 xtitle='x', ytitle='y'
+;   css=2.0
+;   plot, xxc[0:n_elements(xxc)-1],yyc[0:n_elements(yyc)-1], title='x-y', /nodata, $
+;         charsize=css, XRANGE=[mi_x, ma_x], YRANGE=[mi_y, ma_y], $
+;	 xtitle='x', ytitle='y'
 
-for i=0, np-1 do begin ; kolichestvo tochek
+;for i=0, np-1 do begin ; kolichestvo tochek
 
-   xxc=XYZ_coord(xmt,nnp,npp,p[i])
-   yyc=XYZ_coord(ymt,nnp,npp,p[i])
-   plots, xxc,yyc, color=xyz_color_point, psym=8
+;   xxc=XYZ_coord(xmt,nnp,npp,p[i])
+;   yyc=XYZ_coord(ymt,nnp,npp,p[i])
+;   plots, xxc,yyc, color=xyz_color_point, psym=8
    
-endfor
+;endfor
 
-   plot, xxc[0:n_elements(xxc)-1],zzc[0:n_elements(zzc)-1], title='x-z', /nodata, $
-         charsize=css, XRANGE=[mi_x, ma_x], YRANGE=[0.6, 1.3], $
-	 xtitle='x', ytitle='z'	 
+;   plot, xxc[0:n_elements(xxc)-1],zzc[0:n_elements(zzc)-1], title='x-z', /nodata, $
+;         charsize=css, XRANGE=[mi_x, ma_x], YRANGE=[0.8, 1.0], $
+;	 xtitle='x', ytitle='z'	 
    
-for i=0, np-1 do begin ; kolichestvo tochek
+;for i=0, np-1 do begin ; kolichestvo tochek
 
-   xxc=XYZ_coord(xmt,nnp,npp,p[i])
-   zzc=XYZ_coord(zmt,nnp,npp,p[i])	 
-   plots, xxc,zzc, color=xyz_color_point, psym=8
+;   xxc=XYZ_coord(xmt,nnp,npp,p[i])
+;   zzc=XYZ_coord(zmt,nnp,npp,p[i])	 
+;   plots, xxc,zzc, color=xyz_color_point, psym=8
    
-endfor
+;endfor
 
-   plot, yyc[0:n_elements(yyc)-1],zzc[0:n_elements(zzc)-1], title='y-z', /nodata, $
-         charsize=css, XRANGE=[mi_y, ma_y], YRANGE=[0.6, 1.3], $
-	 xtitle='y', ytitle='z'	 
+;   plot, yyc[0:n_elements(yyc)-1],zzc[0:n_elements(zzc)-1], title='y-z', /nodata, $
+;         charsize=css, XRANGE=[mi_y, ma_y], YRANGE=[0.8, 1.0], $
+;	 xtitle='y', ytitle='z'	 
 
-for i=0, np-1 do begin ; kolichestvo tochek
+;for i=0, np-1 do begin ; kolichestvo tochek
 
-   yyc=XYZ_coord(ymt,nnp,npp,p[i])
-   zzc=XYZ_coord(zmt,nnp,npp,p[i])	 
-   plots, yyc,zzc, color=xyz_color_point, psym=8
+;   yyc=XYZ_coord(ymt,nnp,npp,p[i])
+;   zzc=XYZ_coord(zmt,nnp,npp,p[i])	 
+;   plots, yyc,zzc, color=xyz_color_point, psym=8
    
-endfor   
+;endfor   
 
 
 ss='time ='+strTrim(string(FORMAT='(6F10.2)', time),2)+' it ='+strTrim(string(it),1)
@@ -781,9 +825,10 @@ hight='h='+strTrim(string(FORMAT='(6F10.2)',xx(hh,1,1,0)/1.0d6),1)+' [Mm]'
 
 
 
+;tvframe,w(hh,*,*,1)/(w(hh,*,*,0)+w(hh,*,*,9)),/sample, /bar, title='Vz '+hight,$
+;        xtitle='x', ytitle='y',charsize=1.0, CT='dPdT'
 tvframe,w(hh,*,*,1)/(w(hh,*,*,0)+w(hh,*,*,9)),/sample, /bar, title='Vz '+hight,$
-        xtitle='x', ytitle='y',charsize=1.0, CT='dPdT'
-
+        xtitle='x', ytitle='y',charsize=1.0
 ss='time ='+strTrim(string(FORMAT='(6F10.2)', time),2)+' it ='+strTrim(string(it),1)
  xyouts,10,6, ss, /device, color=200	
 
@@ -795,10 +840,54 @@ image_p = TVRD_24()
 
 ni=ni+1
 
+Wset,3
 
+!P.multi=[0,1,1,0,1]
+
+;cross, bx*sqrt(mu)*1.0e4,by*sqrt(mu)*1.0e4,bz*sqrt(mu)*1.0e4,vx,vy,vz,vbx, vby,vbz
+;cross, vbx,vby,vbz,bx*sqrt(mu)*1.0e4,by*sqrt(mu)*1.0e4,bz*sqrt(mu)*1.0e4,vbbx, vbby,vbbz
+flux=dblarr(nz-nzs+1)
+
+;for i=0, nz-nzs do begin
+;flux(i)=mean(vbbz(i,*,*))
+
+;endfor
+
+;plot, z, flux(20:nz-1), xtitle='x[Mm]', ytitle='flux'
+
+
+image_p = TVRD_24()
+;write_png,flux_plot+indexss+'.png',image_p, red,green, blue
+
+
+;if tf eq 0 then begin
+;   total_flux[0]=mean(vbbz(20:nz-1,*,*))
+;   total_f[tf,*]=flux(*)
+;   time_n[0]=time
+ ;  tf=tf+1  
+;endif else begin
+;   total_flux=[total_flux,mean(vbbz(20:nz-1,*,*))]
+;   time_n=[time_n, time]
+;   total_f[tf,*]=flux(*)
+;   tf=tf+1
+;endelse
+
+Wset,4
+
+!P.multi=[0,1,1,0,1]
+
+;plot, total_flux,psym=3
+
+image_p = TVRD_24()
+;write_png,total_flux_plot+'.png',image_p, red,green, blue
+
+
+;SAVE, FILENAME = 'flux_multi_driver.sav', total_flux, total_f, time_n
 endwhile
+
 
 i_files=i_files+1
 
 endwhile 
+
 end
