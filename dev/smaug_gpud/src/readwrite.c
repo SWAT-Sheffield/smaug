@@ -1191,6 +1191,8 @@ int createconfigsegment(params p,  real *wnew,real *wdnew, real *w,real *wd)
   int oni,onj,onk;
 
    k1=0;
+
+   #ifdef USE_MULTIGPU
    ni=p.n[0]/(p.pnpe[0]);
    nj=p.n[1]/(p.pnpe[1]);
    oni=p.n[0];
@@ -1243,6 +1245,8 @@ int oshift;
        // printf("\n");
 
    }
+
+  #endif
   //free(hlines);
   return status;
 }
@@ -1258,6 +1262,9 @@ int gathersegment(params p,  real *wnew,real *wdnew, real *w,real *wd)
   real x,y,val;
 
   int oni,onj,onk;
+
+
+   #ifdef USE_MULTIGPU
 
    k1=0;
    ni=p.n[0];
@@ -1301,7 +1308,7 @@ int oshift;
 
               }
 
-
+  #endif
   //free(hlines);
   return status;
 }

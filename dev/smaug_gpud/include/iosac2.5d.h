@@ -64,7 +64,9 @@ mikeg@photon0.freeserve.co.uk
 #ifdef USE_MPI
         #include "sacmpi.h"
 #endif
-
+#ifdef USE_GPUD
+        #include "sacgpud.h"
+#endif
 
 
 

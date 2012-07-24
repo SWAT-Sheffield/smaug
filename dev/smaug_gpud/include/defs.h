@@ -13,13 +13,13 @@ real *d_wmod,  *d_dwn1,  *d_dwn2,  *d_dwn3,  *d_dwn4,  *d_wd;
 real *w,*wnew,*wd,*wdnew, *temp2,*wmod;
 real *d_wtemp,*d_wtemp1,*d_wtemp2;
 
-#ifdef USE_MPI
+#ifdef USE_MULTIGPU
   real *gmpivisc0,*gmpivisc1,*gmpivisc2, *gmpiw, *gmpiwmod, *gmpiw0, *gmpiwmod0, *gmpiw1, *gmpiwmod1, *gmpiw2, *gmpiwmod2;
   real *d_gmpivisc0,*d_gmpivisc1,*d_gmpivisc2, *d_gmpiw, *d_gmpiwmod, *d_gmpiw0, *d_gmpiwmod0, *d_gmpiw1, *d_gmpiwmod1, *d_gmpiw2, *d_gmpiwmod2;
 #endif
 
 
-#ifdef USE_MPI
+#ifdef USE_MULTIGPU
 //buffers to use on GPU
   real *d_gmpisendbuffer;
   real *d_gmpirecvbuffer;

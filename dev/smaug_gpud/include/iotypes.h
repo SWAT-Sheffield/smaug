@@ -140,9 +140,9 @@ struct params {
         real chyp[NVAR];
         real chyp3;
         real test;  
-        int boundtype[NVAR][NDIM];  //boundtype=0 is periodic 1=mpi 2=mpiperiod 3=cont contcd4=4  fixed=5 symm=6 asymm=7
+        int boundtype[NVAR][NDIM][2];  //boundtype=0 is periodic 1=mpi 2=mpiperiod 3=cont contcd4=4  fixed=5 symm=6 asymm=7
 
-       #ifdef USE_MPI
+       #ifdef USE_MULTIGPU
 		int ipe;
 	        int npe;
                 int pnpe[NDIM];

@@ -77,14 +77,16 @@ printf("calling cuinit\n");
    sprintf(ext,"%s",pch2);
 
 sprintf(configfile,"%s",cfgout);
-#ifdef USE_MPI
-     MPI::Init(argc, argv);
-     mpiinit(p);
+#ifdef USE_MULTIGPU
+	#ifdef USE_MPI
+	     MPI::Init(argc, argv);
+	#endif
+     mgpuinit(p);
      ipe2iped(p);     
-     mpineighbours(0,p);
-     mpineighbours(1,p);
+     mgpuneighbours(0,p);
+     mgpuneighbours(1,p);
      #ifdef USE_SAC3D
-          mpineighbours(2,p);
+          mgpuneighbours(2,p);
      #endif
 
    
@@ -128,7 +130,7 @@ sprintf(configfile,"%s",cfgout);
      
 #else
      sprintf(configinfile,"%s",cfgfile);
-#endif
+#endif   //#ifdef USE_MULTIGPU
 
 char *method=NULL;
 
@@ -227,7 +229,7 @@ char *method=NULL;
 
 
 
-        #ifdef USE_MPI
+        #ifdef USE_MULTIGPU
           int szw,szw0,szw1,szw2,szvisc0,szvisc1,szvisc2;
 	  #ifdef USE_SAC
 		  szw=4*(  ((p)->n[1])  +  ((p)->n[0])   );
@@ -307,6 +309,8 @@ char *method=NULL;
 	printf("after read\n");
 	p->it=0;
 
+
+        #ifdef USE_MULTIGPU
         //scatter/distribute configuration across each CPU
         if(mode==1)
         {
@@ -422,7 +426,7 @@ char *method=NULL;
             //copy segment
             printf("copy segment %d %s\n",i,configinfile);
 
-            #ifdef USE_MPI
+            #ifdef USE_MULTIGPU
             	readasciivacconfig(configinfile,*p, meta, state, w,wd, hlines);
             #else
                 readbinvacconfig(configinfile,*p, meta, w,wd, *state );
@@ -476,13 +480,13 @@ char *method=NULL;
 
         }//if p->ipe==0
 
-
-        mpisync();
+        
+        gpusync();
         //}//loop over nt steps
         //printf("proc %d here \n", p->ipe);
 
         }//if mode==2
-
+        #endif
 
 
 
@@ -501,9 +505,9 @@ char *method=NULL;
         //ensures boundaries defined correctly
 	initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 
-	#ifdef USE_MPI
+	#ifdef USE_MULTIGPU
 	  //initialise the mpi used memory locations
-	 cuinitmpibuffers(&p, &w, &wmod, &temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,   &gmpiw0, &gmpiwmod0,   &gmpiw1, &gmpiwmod1,   &gmpiw2, &gmpiwmod2, &d_p, &d_w, &d_wmod,&d_wtemp2,  &d_gmpivisc0,  &d_gmpivisc1,  &d_gmpivisc2, &d_gmpiw0, &d_gmpiwmod0, &d_gmpiw1, &d_gmpiwmod1, &d_gmpiw2, &d_gmpiwmod2);
+	 cuinitmgpubuffers(&p, &w, &wmod, &temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,   &gmpiw0, &gmpiwmod0,   &gmpiw1, &gmpiwmod1,   &gmpiw2, &gmpiwmod2, &d_p, &d_w, &d_wmod,&d_wtemp2,  &d_gmpivisc0,  &d_gmpivisc1,  &d_gmpivisc2, &d_gmpiw0, &d_gmpiwmod0, &d_gmpiw1, &d_gmpiwmod1, &d_gmpiw2, &d_gmpiwmod2);
 	 cucopywtompiw(&p,&w, &wmod,    &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2, 0);
 
 
@@ -549,12 +553,12 @@ char *method=NULL;
 	#endif
 	#ifdef USE_MPI
            
-           mpisync();
+           gpusync();
            
            
 	   mpibound(NVAR, gmpiwmod0,gmpiwmod1,gmpiwmod2 ,p);
           
-           mpisync();
+           gpusync();
            
 	   cucopywfrommpiw(&p,&w, &wmod,      &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,    &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2,0);
 	#endif
@@ -698,7 +702,7 @@ char *method=NULL;
 		if(n>1)
 		   cugetdtvisc1(&p,&d_p,&d_wmod, &wd,&d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
 		#ifdef USE_MPI
-                   mpisync();
+                   gpusync();
 		   mpiallreduce(&(p->maxviscoef), MPI_MAX);
 		#endif
 
@@ -774,7 +778,7 @@ char *method=NULL;
 		      cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
 		      cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
 		      #ifdef USE_MPI
-                              mpisync();
+                              gpusync();
 			      mpiallreduce(&(p->cmax), MPI_MAX);
 		      #endif
 		      cmax[dim]=p->cmax;
@@ -1126,14 +1130,14 @@ char *method=NULL;
 
 
 	  #ifdef USE_MPI
-                  mpisync();
+                  gpusync();
 		   cucopywtompiw(&p,&w, &wmod,    &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2, order);
-                 mpisync();
+                 gpusync();
 		   mpibound(NVAR, gmpiw0,gmpiw1,gmpiw2 ,p);
-mpisync();
+gpusync();
 		   mpibound(NVAR, gmpiwmod0,gmpiwmod1,gmpiwmod2 ,p);
 
-mpisync();
+gpusync();
 
 		   cucopywfrommpiw(&p,&w, &wmod,    &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2,order);	
 	   
@@ -1173,7 +1177,7 @@ mpisync();
 	     
 	    }*/
 
-           // mpisync();
+           // gpusync();
 	    }//end of testep
        /*********************************************************************************************************/
        /* End of looping over iterations*/
@@ -1188,8 +1192,8 @@ mpisync();
 
 	#ifdef USE_MPI
 	     
-	     cufinishmpi(&p,&w, &wmod, &temp2,&gmpivisc0,&gmpivisc1,&gmpivisc2,   &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,   &d_w, &d_wmod,&d_wtemp2,    &d_gmpivisc0,    &d_gmpivisc1,    &d_gmpivisc2,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2);
-             mpifinalize(p);
+	     cufinishmgpu(&p,&w, &wmod, &temp2,&gmpivisc0,&gmpivisc1,&gmpivisc2,   &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,   &d_w, &d_wmod,&d_wtemp2,    &d_gmpivisc0,    &d_gmpivisc1,    &d_gmpivisc2,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2);
+             mgpufinalize(p);
 
 
 	#endif
