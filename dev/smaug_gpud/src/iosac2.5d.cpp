@@ -105,7 +105,9 @@ sprintf(configfile,"%s",cfgout);
 	      else
 		sprintf(configinfile,"%s_np0%d0%d_00%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->ipe,ext);  	     	     
      #endif
+  
 
+printf("here\n");
      if(mode==1 )
      {
            sprintf(configinfile,"%s",cfgfile);
@@ -226,8 +228,6 @@ char *method=NULL;
 		 for(i=0;i<((p)->n[0])*((p)->n[1])*NDERV;i++)
 		    wdnew[i]=0.0;
 	 #endif
-
-
 
         #ifdef USE_MULTIGPU
           int szw,szw0,szw1,szw2,szvisc0,szvisc1,szvisc2;
@@ -497,10 +497,31 @@ char *method=NULL;
 	v=w+(ni)*(nj)*mom2;
 
 
+
+
+         d_gw=(real **)malloc(p->npe*sizeof(real *));
+	 d_gwtemp=(real **)malloc(p->npe*sizeof(real *));
+	 d_gwtemp1=(real **)malloc(p->npe*sizeof(real *));
+	 d_gwtemp2=(real **)malloc(p->npe*sizeof(real *));
+         d_gwmod=(real **)malloc(p->npe*sizeof(real *));
+         d_gdwn1=(real **)malloc(p->npe*sizeof(real *));
+         d_gwd=(real **)malloc(p->npe*sizeof(real *));
+
+
+	struct params **d_gp=(struct params **)malloc(p->npe*sizeof(struct params *));
+	struct state **d_gstate=(struct state **)malloc(p->npe*sizeof(struct state *));
+	struct bparams **d_gbp=(struct bparams **)malloc(p->npe*sizeof(struct bparams *));
+
+
         if(mode==0)
         {
-	cuinit(&p,&bp,&w,&wnew,&wd,&state,&d_p,&d_bp,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+	//cuinit(&p,&bp,&w,&wnew,&wd,&state,&d_p,&d_bp,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+        cuinit(&p,&bp,&w,&wnew,&wd,&state,&d_gp[2],&d_bp,&d_gw[2],&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_gstate[2],&d_wtemp,&d_wtemp1,&d_wtemp2);
+        cusync();
 
+        d_w=d_gw[2];
+        d_p=d_gp[2];
+        d_state=d_gstate[2];
         //same as the grid initialisation routine in SAC
         //ensures boundaries defined correctly
 	initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
@@ -1204,6 +1225,19 @@ gpusync();
 	free(name);
 	free(outfile);
 	free(formfile);
+
+
+free(d_gw);
+free(d_gwtemp);
+free(d_gwtemp1);
+free(d_gwtemp2);
+free(d_gwmod);
+free(d_gdwn1);
+free(d_gwd);
+
+free(d_gp);
+free(d_gstate);
+free(d_gbp);
 
 
 	#ifdef USE_IOME

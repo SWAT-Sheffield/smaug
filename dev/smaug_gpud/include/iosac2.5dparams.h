@@ -180,11 +180,13 @@ p->chyp[rho]=0.02;
 
 
 
-#ifdef USE_MPI
+#ifdef USE_MULTIGPU
 //number of procs in each dim mpi only
 p->pnpe[0]=2;
 p->pnpe[1]=2;
 p->pnpe[2]=1;
+
+p->npe=4;
 #endif
 
 
