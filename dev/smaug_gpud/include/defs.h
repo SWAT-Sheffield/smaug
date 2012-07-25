@@ -5,7 +5,7 @@ hlines=(char **)calloc(5, sizeof(char*));
 real dt;
 
 
-real **d_gw;
+real **d_gw, **d_gwnew;
 real **d_gwtemp,**d_gwtemp1,**d_gwtemp2;
 real **d_gwmod,  **d_gdwn1,  **d_gwd;
 

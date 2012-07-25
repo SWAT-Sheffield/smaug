@@ -952,7 +952,7 @@ int readasciivacconfig(char *cfgfile, params p, meta md,state *st, real *w, real
    nk=p.n[2];
    #endif
   
-printf("reading\n");
+printf("reading %s\n",cfgfile);
    FILE *fdt=fopen(cfgfilename,"r+");
 //FILE *fdt=fopen("zero1_np0201_001.ini","r+");
    //char **hlines;

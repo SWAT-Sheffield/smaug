@@ -88,22 +88,23 @@ sprintf(configfile,"%s",cfgout);
      #ifdef USE_SAC3D
           mgpuneighbours(2,p);
      #endif
-
-   
-     #ifdef USE_SAC3D
-	      if(p->ipe>99)
-		sprintf(configinfile,"%s_np%d%d%d_%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->pnpe[2],p->ipe,ext);
-	      else if(p->ipe>9)
-		sprintf(configinfile,"%s_np0%d0%d0%d_0%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->pnpe[2],p->ipe,ext);
-	      else
-		sprintf(configinfile,"%s_np00%d00%d00%d_00%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->pnpe[2],p->ipe,ext);  	     
-     #else
-	      if(p->ipe>99)
-		sprintf(configinfile,"%s_np%d%d_%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->ipe,ext);
-	      else if(p->ipe>9)
-		sprintf(configinfile,"%s_np%d%d_%d.0%s",tcfg,p->pnpe[0],p->pnpe[1],p->ipe,ext);
-	      else
-		sprintf(configinfile,"%s_np0%d0%d_00%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->ipe,ext);  	     	     
+          sprintf(configinfile,"%s",cfgfile);
+     #ifdef USE_MPI
+	     #ifdef USE_SAC3D
+		      if(p->ipe>99)
+			sprintf(configinfile,"%s_np%d%d%d_%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->pnpe[2],p->ipe,ext);
+		      else if(p->ipe>9)
+			sprintf(configinfile,"%s_np0%d0%d0%d_0%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->pnpe[2],p->ipe,ext);
+		      else
+			sprintf(configinfile,"%s_np00%d00%d00%d_00%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->pnpe[2],p->ipe,ext);  	     
+	     #else
+		      if(p->ipe>99)
+			sprintf(configinfile,"%s_np%d%d_%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->ipe,ext);
+		      else if(p->ipe>9)
+			sprintf(configinfile,"%s_np%d%d_%d.0%s",tcfg,p->pnpe[0],p->pnpe[1],p->ipe,ext);
+		      else
+			sprintf(configinfile,"%s_np0%d0%d_00%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->ipe,ext);  	     	     
+	     #endif
      #endif
   
 
@@ -498,7 +499,7 @@ char *method=NULL;
 
 
 
-
+         d_gwnew=(real **)malloc(p->npe*sizeof(real *));
          d_gw=(real **)malloc(p->npe*sizeof(real *));
 	 d_gwtemp=(real **)malloc(p->npe*sizeof(real *));
 	 d_gwtemp1=(real **)malloc(p->npe*sizeof(real *));
@@ -511,17 +512,46 @@ char *method=NULL;
 	struct params **d_gp=(struct params **)malloc(p->npe*sizeof(struct params *));
 	struct state **d_gstate=(struct state **)malloc(p->npe*sizeof(struct state *));
 	struct bparams **d_gbp=(struct bparams **)malloc(p->npe*sizeof(struct bparams *));
-
+        int igid=0;  //the GPU id defaults to 0 for single GPU case or for MPI)
 
         if(mode==0)
         {
 	//cuinit(&p,&bp,&w,&wnew,&wd,&state,&d_p,&d_bp,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
-        cuinit(&p,&bp,&w,&wnew,&wd,&state,&d_gp[2],&d_bp,&d_gw[2],&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_gstate[2],&d_wtemp,&d_wtemp1,&d_wtemp2);
-        cusync();
 
-        d_w=d_gw[2];
-        d_p=d_gp[2];
-        d_state=d_gstate[2];
+        #ifdef USE_GPUD
+          p->ipe=-1;  //set to -1 to make set gpuid set the gpu id array
+         cusetgpu(&p);
+         for(igid=0; igid<(p->npe); igid++)
+         {
+                p->ipe=igid;
+                
+        #endif
+        	cuinit(&p,&bp,&w,&wnew,&wd,&state,&d_gp[igid],&d_gbp[igid],&d_gw[igid],&d_gwnew[igid],&d_gwmod[igid], &d_gdwn1[igid],  &d_gwd[igid], &d_gstate[igid],&d_gwtemp[igid],&d_gwtemp1[igid],&d_gwtemp2[igid]);
+
+//cuinit(&p,&bp,&w,&wnew,&wd,&state,&d_gp[igid],&d_bp,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+        #ifdef USE_GPUD
+                p->ipe=0;
+
+         }
+        #endif
+
+
+        cusync(&p);
+
+        igid=0;
+        d_w=d_gw[igid];
+        d_wnew=d_gwnew[igid];
+        d_wmod=d_gwmod[igid];
+        d_dwn1=d_gdwn1[igid];
+        d_wd=d_gwd[igid];
+        d_wtemp=d_gwtemp[igid];
+        d_wtemp1=d_gwtemp1[igid];
+        d_wtemp2=d_gwtemp2[igid];
+
+
+        d_p=d_gp[igid];
+        d_bp=d_gbp[igid];
+        d_state=d_gstate[igid];
         //same as the grid initialisation routine in SAC
         //ensures boundaries defined correctly
 	initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
@@ -1226,7 +1256,7 @@ gpusync();
 	free(outfile);
 	free(formfile);
 
-
+free(d_gwnew);
 free(d_gw);
 free(d_gwtemp);
 free(d_gwtemp1);

@@ -149,6 +149,7 @@ struct params {
                 int pipe[NDIM];
                 int mpiupperb[NDIM];
                 int mpilowerb[NDIM];
+                int gpid[16];
 
                 int gpudirectgroup;
                 int ngpudirectgroups;

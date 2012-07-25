@@ -1247,9 +1247,39 @@ void checkErrors_i(char *label)
 
 }
 
-int cusync()
+int cusync(struct params **p)
 {
+
+  #ifdef USE_GPUD
+     
+         for(int igid=0; igid<((*p)->npe); igid++)
+         {
+                (*p)->ipe=igid;
+                cudaSetDevice((*p)->gpid[igid]) ;
+                
+  #endif
   cudaThreadSynchronize();
+  #ifdef USE_GPUD
+                 (*p)->ipe=0;
+                 cudaSetDevice((*p)->gpid[0]) ;
+          }
+  #endif
+  return 0;
+}
+
+int cusetgpu(struct params **p)
+{
+  #ifdef USE_GPUD
+    if(((*p)->ipe)==-1)
+    {
+         for(int igid=0; igid<((*p)->npe); igid++)
+                (*p)->gpid[igid]=igid ;
+    }
+    else
+      cudaSetDevice((*p)->gpid[(*p)->ipe]) ;
+                
+  #endif
+ 
   return 0;
 }
 
