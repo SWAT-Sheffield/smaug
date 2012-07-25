@@ -554,7 +554,43 @@ char *method=NULL;
         d_state=d_gstate[igid];
         //same as the grid initialisation routine in SAC
         //ensures boundaries defined correctly
-	initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+	
+         #ifdef USE_GPUD
+         for(igid=0; igid<(p->npe); igid++)
+         {
+                p->ipe=igid;
+                cusetgpu(&p);
+                ipe2iped(p);               
+        #endif
+        //initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+       
+	initgrid(&p,&w,&wnew,&state,&wd,&d_gp[igid],&d_gw[igid],&d_gwnew[igid],&d_gwmod[igid], &d_gdwn1[igid],  &d_gwd[igid], &d_gstate[igid],&d_gwtemp[igid],&d_gwtemp1[igid],&d_gwtemp2[igid]);
+        #ifdef USE_GPUD
+
+         }
+
+                p->ipe=0;
+		ipe2iped(p);
+                cusetgpu(&p);
+        #endif
+
+        igid=0;
+                cusync(&p);
+
+
+
+	  #ifdef USE_GPUD
+	     ((p)->n[0])=((p)->n[0])/((p)->pnpe[0]);
+	     ((p)->n[1])=((p)->n[1])/((p)->pnpe[1]);
+	    #ifdef USE_SAC_3D
+	     ((p)->n[2])=((p)->n[2])/((p)->pnpe[2]);
+	    #endif
+	  #endif
+
+
+
+
+        //initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 
 	#ifdef USE_MULTIGPU
 	  //initialise the mpi used memory locations
@@ -700,13 +736,27 @@ char *method=NULL;
 	for( n=1;n<=nt;n++)
 	{
 	    p->it=n;
+
+
+
+  #ifdef USE_GPUD
+     ((p)->n[0])=((p)->n[0])*((p)->pnpe[0]);
+     ((p)->n[1])=((p)->n[1])*((p)->pnpe[1]);
+    #ifdef USE_SAC_3D
+     ((p)->n[2])=((p)->n[2])*((p)->pnpe[2]);
+    #endif
+  #endif
+
+
 	    if(((n-1)%(p->cfgsavefrequency))==0)
 	    {
 			//writeconfig(name,n,*p, meta , w);
 		#ifndef USE_MPI
 			// writevtkconfig(configfile,n,*p, meta , w);
-		#endif
+                      writevacconfig(configfile,n,*p, meta , w,wd,*state);
+		#else
 			writeasciivacconfig(configfile,*p, meta , w,wd,hlines,*state);
+                 #endif
 		//writevacconfig(configfile,n,*p, meta , w,wd,*state);
 
           /*if((p->ipe)==3)
@@ -726,6 +776,17 @@ char *method=NULL;
 	 
      
 	    }
+
+
+	  #ifdef USE_GPUD
+	     ((p)->n[0])=((p)->n[0])/((p)->pnpe[0]);
+	     ((p)->n[1])=((p)->n[1])/((p)->pnpe[1]);
+	    #ifdef USE_SAC_3D
+	     ((p)->n[2])=((p)->n[2])/((p)->pnpe[2]);
+	    #endif
+	  #endif
+
+
 	    order=0;
 	    t1=second();
 
@@ -1177,7 +1238,36 @@ char *method=NULL;
 
 
 	   p->it=n+1;
-	 cuupdate(&p,&w,&wmod,&temp2,&state,&d_p,&d_w,&d_wmod,&d_wtemp2,  &d_state,n);
+	 //cuupdate(&p,&w,&wmod,&temp2,&state,&d_p,&d_w,&d_wmod,&d_wtemp2,  &d_state,n);
+
+
+
+         #ifdef USE_GPUD
+         for(igid=0; igid<(p->npe); igid++)
+         {
+                p->ipe=igid;
+                cusetgpu(&p);
+                ipe2iped(p);               
+        #endif
+        //initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+        cuupdate(&p,&w,&wmod,&temp2,&state,&d_gp[igid],&d_gw[igid],&d_gwmod[igid],&d_gwtemp2[igid],  &d_gstate[igid],n);
+	//initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_gw[igid],&d_wnew,&d_wmod, &d_dwn1,  &d_gwd[igid], &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+	//initgrid(&p,&w,&wnew,&state,&wd,&d_gp[igid],&d_gw[igid],&d_gwnew[igid],&d_gwmod[igid], &d_gdwn1[igid],  &d_gwd[igid], &d_gstate[igid],&d_gwtemp[igid],&d_gwtemp1[igid],&d_gwtemp2[igid]);
+        #ifdef USE_GPUD
+
+         }
+
+                p->ipe=0;
+		ipe2iped(p);
+                cusetgpu(&p);
+        #endif
+        igid=0;
+        cusync(&p);
+
+
+
+
+
 
 
 	  #ifdef USE_MPI

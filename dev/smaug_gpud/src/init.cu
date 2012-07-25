@@ -1295,7 +1295,7 @@ int cuinit(struct params **p, struct bparams **bp,real **w, real **wnew, real **
   /////////////////////////////////////
   int deviceCount;
   int dir;
-  cudaGetDeviceCount(&deviceCount);
+ /* cudaGetDeviceCount(&deviceCount);
    
  // if (deviceCount == 0)
  // {
@@ -1329,7 +1329,7 @@ int cuinit(struct params **p, struct bparams **bp,real **w, real **wnew, real **
 
   cudaSetDevice(selectedDevice);
   printf("device count %d selected %d\n", deviceCount,selectedDevice);
-  checkErrors_i("initialisations");
+  checkErrors_i("initialisations");*/
   
 	// Build empty u, v, b matrices
 
@@ -1339,6 +1339,14 @@ int cuinit(struct params **p, struct bparams **bp,real **w, real **wnew, real **
   struct params *adp;
   struct bparams *adbp;
   struct state *ads;
+
+  #ifdef USE_GPUD
+     ((*p)->n[0])=((*p)->n[0])/((*p)->pnpe[0]);
+     ((*p)->n[1])=((*p)->n[1])/((*p)->pnpe[1]);
+    #ifdef USE_SAC_3D
+     ((*p)->n[2])=((*p)->n[2])/((*p)->pnpe[2]);
+    #endif
+  #endif
  
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
@@ -1386,8 +1394,103 @@ printf("ni is %d\n",(*p)->n[1]);
 
      
 printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
+
+
+
+
+
+
+
+
+
+
+ #ifdef USE_GPUD
+ 	#ifdef USE_SAC_3D
+	   int ndimp=((*p)->n[0])*((*p)->n[1])*((*p)->n[2]);
+        #else
+	   int ndimp= ((*p)->n[0])*((*p)->n[1]);
+	#endif      
+
+     real      *wt=(real *)calloc(ndimp*NVAR,sizeof(real));
+     real      *wdt=(real *)calloc(ndimp*NDERV,sizeof(real));
+
+
+     int shift,oshift;
+     int ok1,oj1,oi1;
+     int oni,onj,onk;
+     int i1,j1,k1;
+     int ni,nj,nk;
+     real *wa=*w;
+     real *wda=*wd;
+
+     //printf("printing\n");
+     //for(i1=0;i1<ndimp;i1++) wt[i1]=0.0;
+     //printf("printed %lg \n", wt[50]);
+
+
+     oni=((*p)->n[0])*((*p)->pnpe[0]);
+     onj=((*p)->n[1])*((*p)->pnpe[1]);
+     onk=1;
+     ni=((*p)->n[0]);
+     nj=((*p)->n[1]);
+
+     #ifdef USE_SAC_3D
+     	onk=((*p)->n[2])*((*p)->pnpe[2]);
+        nk=((*p)->n[2]);
+     #endif
+     for(int ivar=0; ivar<NDERV; ivar++)
+     {
+
+		#ifdef USE_SAC_3D
+		   for(k1=0; k1<nk; k1++)
+		#endif
+        for(j1=0; j1<nj; j1++)
+        for(i1=0; i1<ni; i1++)
+        {
+                oi1=i1+((*p)->pipe[0]*ni);
+                oj1=j1+((*p)->pipe[1]*nj);  
+		#ifdef USE_SAC_3D
+                         shift=(k1*ni*nj+j1*ni+i1);
+                         ok1=k1+((*p)->pipe[2]*nk);
+
+                         oshift=(ok1*oni*onj+oj1*oni+oi1);
+		#else
+			 shift=(j1*ni+i1);
+                         oshift=(oj1*oni+oi1);
+                #endif
+                 //if(i1==0 && j1==0)
+                 //if(ivar==0 && ((*p)->ipe)==0)
+              //    printf("called initgrid coppy %d %d %d %lg\n",ivar,shift,oshift+oni*onj*ivar,wa[oshift+oni*onj*ivar]);//, wa[oshift+oni*onj*ivar]);//,wt[shift]);
+                          
+
+                   //if(ivar==0 && ((*p)->ipe)==0) 
+                   //    printf("%d %d %d\n",ivar,shift,oshift);                
+
+                    if(ivar<NVAR)
+                         wt[shift+ivar*ndimp]= wa[oshift+onk*oni*onj*ivar];
+                         wdt[shift+ivar*ndimp]= wda[oshift+onk*oni*onj*ivar];                     
+        }
+     }
+    printf("here2\n"); 
+    cudaMemcpy(*d_w, wt, NVAR*ndimp*sizeof(real), cudaMemcpyHostToDevice);
+    cudaMemcpy(*d_wd, wdt, NDERV*ndimp*sizeof(real), cudaMemcpyHostToDevice);    
+         
+    printf("here2\n"); 
+#else
+
     cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_wd, *wd, NDERV*dimp*sizeof(real), cudaMemcpyHostToDevice);
+
+#endif
+
+
+
+
+
+
+
+
+
 
    // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
     printf("here\n");
@@ -1407,12 +1510,77 @@ printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
      init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd, *d_wtemp, *d_wtemp1, *d_wtemp2);
      //cudaThreadSynchronize();
      
+
+
+
      //copy data back to cpu so we can compute and update the grid (on the cpu)
+
+ #ifdef USE_GPUD
+ 
+     oni=((*p)->n[0])*((*p)->pnpe[0]);
+     onj=((*p)->n[1])*((*p)->pnpe[1]);
+     ni=((*p)->n[0]);
+     nj=((*p)->n[1]);
+
+     #ifdef USE_SAC_3D
+     	onk=((*p)->n[2])*((*p)->pnpe[2]);
+        nk=((*p)->n[2]);
+     #endif
+
+    cudaMemcpy(wt, *d_w, NVAR*ndimp*sizeof(real), cudaMemcpyDeviceToHost);
+
+
+
+     for(int ivar=0; ivar<NVAR; ivar++)
+     {
+
+		#ifdef USE_SAC_3D
+		   for(k1=0; k1<nk; k1++)
+		#endif
+        for(j1=0; j1<nj; j1++)
+        for(i1=0; i1<ni; i1++)
+        {
+                oi1=i1+((*p)->pipe[0]*ni);
+                oj1=j1+((*p)->pipe[1]*nj);  
+		#ifdef USE_SAC_3D
+                         shift=(k1*ni*nj+j1*ni+i1);
+                         ok1=k1+((*p)->pipe[2]*nk);
+
+                         oshift=(ok1*oni*onj+oj1*oni+oi1);
+		#else
+			 shift=(j1*ni+i1);
+                         oshift=(oj1*oni+oi1);
+                #endif
+                 //if(i1==0 && j1==0)
+                 //if(ivar==0 && ((*p)->ipe)==0)
+              //    printf("called initgrid coppy %d %d %d %lg\n",ivar,shift,oshift+oni*onj*ivar,wa[oshift+oni*onj*ivar]);//, wa[oshift+oni*onj*ivar]);//,wt[shift]);
+                  
+                   
+              wa[oshift+oni*onj*ivar]=wt[shift+ivar*ndimp];
+                                              
+        }
+     }
+
+       printf("here1\n");   
+          free(wt);
+          free(wdt);
+#else
+
     cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+
+#endif
+
+
+
+
+
+
+
+    //cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
     //setup the grid and dx values here
 
 
-    cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
+    //cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
 
 
  //initialise grid on the gpu
@@ -1428,10 +1596,22 @@ printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
   }*/
 
 	    printf("called initialiser\n");
-	cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+	//cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
 
 	cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
         cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+
+
+
+
+  #ifdef USE_GPUD
+     ((*p)->n[0])=((*p)->n[0])*((*p)->pnpe[0]);
+     ((*p)->n[1])=((*p)->n[1])*((*p)->pnpe[1]);
+    #ifdef USE_SAC_3D
+     ((*p)->n[2])=((*p)->n[2])*((*p)->pnpe[2]);
+    #endif
+  #endif
+
 	//cudaMemcpy(*wnew, *d_wnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
 	//cudaMemcpy(*b, *d_b, (((*p)->n[0])* ((*p)->n[1]))*sizeof(real), cudaMemcpyDeviceToHost);
 
@@ -1462,6 +1642,7 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
     int dir,dir1,dir2;
     int ixmin,ixmax,ixe,ixf;
     real *wda=*wd;
+    real *wa=*w;
  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
  #ifdef USE_SAC_3D
  
@@ -1470,7 +1651,10 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
     kp=0;
     printf("called initgrid\n");
     
-
+    #ifdef USE_GPUD
+      if(((*p)->ipe)==0)
+      {
+    #endif
     for(int i=0;i<3;i++)
     {
        ii1[i]=0;
@@ -1906,11 +2090,96 @@ kp=0;
 
               }*/
 
+  //  cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
+  //  cudaMemcpy(*d_wd, *wd, NDERV*dimp*sizeof(real), cudaMemcpyHostToDevice);
+
+ free(ttemp2);
+
+ #ifdef USE_GPUD
+  }
+
+
+	#ifdef USE_SAC_3D
+	   int ndimp=((*p)->n[0])*((*p)->n[1])*((*p)->n[2])/(   ((*p)->pnpe[0])*((*p)->pnpe[1])*((*p)->pnpe[2])    );
+        #else
+	   int ndimp= ((*p)->n[0])*((*p)->n[1]) /(  ((*p)->pnpe[0])*((*p)->pnpe[1])  );
+	#endif      
+
+     real      *wt=(real *)calloc(ndimp*NVAR,sizeof(real));
+     real      *wdt=(real *)calloc(ndimp*NDERV,sizeof(real));
+
+
+     int shift,oshift;
+     int ok1,oj1,oi1;
+     int oni,onj,onk;
+     int i1,j1,k1;
+     int ni,nj,nk;
+
+     //printf("printing\n");
+     //for(i1=0;i1<ndimp;i1++) wt[i1]=0.0;
+     //printf("printed %lg \n", wt[50]);
+
+
+     ni=((*p)->n[0])/((*p)->pnpe[0]);
+     nj=((*p)->n[1])/((*p)->pnpe[1]);
+     oni=((*p)->n[0]);
+     onj=((*p)->n[1]);
+
+     #ifdef USE_SAC_3D
+     	nk=((*p)->n[2])/((*p)->pnpe[2]);
+        onk=((*p)->n[2]);
+     #endif
+     for(int ivar=0; ivar<NDERV; ivar++)
+     {
+
+		#ifdef USE_SAC_3D
+		   for(k1=0; k1<nk; k1++)
+		#endif
+        for(j1=0; j1<nj; j1++)
+        for(i1=0; i1<ni; i1++)
+        {
+                oi1=i1+((*p)->pipe[0]*ni);
+                oj1=j1+((*p)->pipe[1]*nj);  
+		#ifdef USE_SAC_3D
+                         shift=(k1*ni*nj+j1*ni+i1);
+                         ok1=k1+((*p)->pipe[2]*nk);
+
+                         oshift=(ok1*oni*onj+oj1*oni+oi1);
+		#else
+			 shift=(j1*ni+i1);
+                         oshift=(oj1*oni+oi1);
+                #endif
+                 //if(i1==0 && j1==0)
+                 //if(ivar==0 && ((*p)->ipe)==0)
+              //    printf("called initgrid coppy %d %d %d %lg\n",ivar,shift,oshift+oni*onj*ivar,wa[oshift+oni*onj*ivar]);//, wa[oshift+oni*onj*ivar]);//,wt[shift]);
+                      if(ivar<NVAR)
+                         wt[shift+ivar*ndimp]= wa[oshift+oni*onj*ivar];
+                      wdt[shift+ivar*ndimp]=wda[oshift+oni*onj*ivar];
+        }
+     }
+
+    cudaMemcpy(*d_w, wt, NVAR*ndimp*sizeof(real), cudaMemcpyHostToDevice);
+    cudaMemcpy(*d_wd, wdt, NDERV*ndimp*sizeof(real), cudaMemcpyHostToDevice);
+
+          free(wt);
+          free(wdt);
+
+        printf("leaving\n");
+    #else
+
     cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_wd, *wd, NDERV*dimp*sizeof(real), cudaMemcpyHostToDevice);
+
+
+#endif
+    //  
+     
+
+
+
   
 
-    free(ttemp2);
+   
   return 0;
 
 
