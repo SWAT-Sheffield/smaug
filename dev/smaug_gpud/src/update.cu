@@ -253,8 +253,8 @@ cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
                          oshift=(oj1*oni+oi1);
                 #endif
                  //if(i1==0 && j1==0)
-                 //if(ivar==0 && ((*p)->ipe)==0)
-              //    printf("called initgrid coppy %d %d %d %lg\n",ivar,shift,oshift+oni*onj*ivar,wa[oshift+oni*onj*ivar]);//, wa[oshift+oni*onj*ivar]);//,wt[shift]);
+                 //if(ivar==0 && ((*p)->ipe)==0 && step==5)
+                 // printf("called update %d %d %d %lg %lg\n",ivar,shift,oshift+oni*onj*ivar,wa[oshift+oni*onj*ivar],wt[shift+ivar*ndimp]);//, wa[oshift+oni*onj*ivar]);//,wt[shift]);
                   
                    
               wa[oshift+oni*onj*ivar]=wt[shift+ivar*ndimp];

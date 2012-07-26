@@ -1381,7 +1381,7 @@ else
   cudaMalloc((void**)&adbp, sizeof(struct bparams));
   cudaMalloc((void**)&adp, sizeof(struct params));
   cudaMalloc((void**)&ads, sizeof(struct state));
-  checkErrors_i("memory allocation");
+ // checkErrors_i("memory allocation");
 
 printf("ni is %d\n",(*p)->n[1]);
 
@@ -1411,8 +1411,8 @@ printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
 	   int ndimp= ((*p)->n[0])*((*p)->n[1]);
 	#endif      
 
-     real      *wt=(real *)calloc(ndimp*NVAR,sizeof(real));
-     real      *wdt=(real *)calloc(ndimp*NDERV,sizeof(real));
+     real      *wt=(real *)malloc(ndimp*NVAR*sizeof(real));
+     real      *wdt=(real *)malloc(ndimp*NDERV*sizeof(real));
 
 
      int shift,oshift;
@@ -1474,7 +1474,7 @@ printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
     printf("here2\n"); 
     cudaMemcpy(*d_w, wt, NVAR*ndimp*sizeof(real), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_wd, wdt, NDERV*ndimp*sizeof(real), cudaMemcpyHostToDevice);    
-         
+        
     printf("here2\n"); 
 #else
 
@@ -1511,7 +1511,7 @@ printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
      //cudaThreadSynchronize();
      
 
-
+//checkErrors_i("memory allocation");
 
      //copy data back to cpu so we can compute and update the grid (on the cpu)
 
@@ -1602,7 +1602,7 @@ printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
         cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
 
 
-
+//checkErrors_i("memory allocation");checkErrors_i("memory allocation");
 
   #ifdef USE_GPUD
      ((*p)->n[0])=((*p)->n[0])*((*p)->pnpe[0]);
@@ -1644,12 +1644,17 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
     real *wda=*wd;
     real *wa=*w;
  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
+
+if(((*p)->ipe)==2)
+      {
+checkErrors_i("initgrid memory allocation");
+}
  #ifdef USE_SAC_3D
  
    dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
 #endif      
     kp=0;
-    printf("called initgrid\n");
+    printf("called initgrid %d\n",(*p)->ipe);
     
     #ifdef USE_GPUD
       if(((*p)->ipe)==0)
@@ -1667,7 +1672,7 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
     ttemp2=(real *)malloc((NTEMP2+2)*(((*p)->n[0])+2)* (((*p)->n[1])+2)* (((*p)->n[2])+2)*sizeof(real));
     #endif
     
-   	cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+   	;//cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
      for(dir=0;dir<NDIM;dir++)
      for(ii[0]=0; ii[0]<((*p)->n[0])+2; ii[0]++)
      for(ii[1]=0; ii[1]<((*p)->n[1])+2; ii[1]++)
@@ -2105,8 +2110,8 @@ kp=0;
 	   int ndimp= ((*p)->n[0])*((*p)->n[1]) /(  ((*p)->pnpe[0])*((*p)->pnpe[1])  );
 	#endif      
 
-     real      *wt=(real *)calloc(ndimp*NVAR,sizeof(real));
-     real      *wdt=(real *)calloc(ndimp*NDERV,sizeof(real));
+     real      *wt=(real *)malloc(ndimp*NVAR*sizeof(real));
+     real      *wdt=(real *)malloc(ndimp*NDERV*sizeof(real));
 
 
      int shift,oshift;
@@ -2158,9 +2163,12 @@ kp=0;
         }
      }
 
+
+
+
     cudaMemcpy(*d_w, wt, NVAR*ndimp*sizeof(real), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_wd, wdt, NDERV*ndimp*sizeof(real), cudaMemcpyHostToDevice);
-
+    cudaThreadSynchronize();
           free(wt);
           free(wdt);
 
