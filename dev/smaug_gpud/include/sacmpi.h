@@ -447,12 +447,12 @@ void mpisend(int nvar,real *var, int *ixmin, int *ixmax  ,int qipe,int iside, in
                         bound=i2+2*(iside>0);
 			 gmpisendbuffer[n]=var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)];
 
-			if((p->ipe==0  ) && ivar==0 )
+			/*if((p->ipe==0  ) && ivar==0 )
 			{
 			 //for(int i=0;i<nvar;i++)
 			   printf(" %d %d %d %lg ",bound,i2,i1,gmpisendbuffer[n]);
 			 printf("\n");
-			}
+			}*/
 
 		      }
 
@@ -620,7 +620,7 @@ void mpibuffer2var(int iside,int nvar,real *var, int *ixmin, int *ixmax, int dim
 }
 
 
-void mpisync()
+void gpusync()
 {
 //printf("mpisync\n");
 comm.Barrier();

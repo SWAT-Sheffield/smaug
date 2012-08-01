@@ -609,8 +609,8 @@ char *method=NULL;
 
 	#ifdef USE_MULTIGPU
 	  //initialise the mpi used memory locations
-	;// cuinitmgpubuffers(&p, &w, &wmod, &temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,   &gmpiw0, &gmpiwmod0,   &gmpiw1, &gmpiwmod1,   &gmpiw2, &gmpiwmod2, &d_p, &d_w, &d_wmod,&d_wtemp2,  &d_gmpivisc0,  &d_gmpivisc1,  &d_gmpivisc2, &d_gmpiw0, &d_gmpiwmod0, &d_gmpiw1, &d_gmpiwmod1, &d_gmpiw2, &d_gmpiwmod2);
-	;// cucopywtompiw(&p,&w, &wmod,    &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2, 0);
+	 cuinitmgpubuffers(&p, &w, &wmod, &temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,   &gmpiw0, &gmpiwmod0,   &gmpiw1, &gmpiwmod1,   &gmpiw2, &gmpiwmod2, &d_p, &d_w, &d_wmod,&d_wtemp2,  &d_gmpivisc0,  &d_gmpivisc1,  &d_gmpivisc2, &d_gmpiw0, &d_gmpiwmod0, &d_gmpiw1, &d_gmpiwmod1, &d_gmpiw2, &d_gmpiwmod2);
+	 cucopywtompiw(&p,&w, &wmod,    &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2, 0);
 
 
 
@@ -642,7 +642,7 @@ char *method=NULL;
 	   if((p->boundtype[ii][idir][ibound])==5)  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
 	   {
 
-		    ;//   cuboundary(&p, &bp, &d_p, &d_bp, &d_state, &d_w, 0,idir,ii);
+		       cuboundary(&p, &bp, &d_p, &d_bp, &d_state, &d_w, 0,idir,ii);
 	 
 	   }
 	}
@@ -665,13 +665,13 @@ char *method=NULL;
 	   cucopywfrommpiw(&p,&w, &wmod,      &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,    &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2,0);
 	#endif
 
-        ;//cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_w, 0,0,0);
-	;//cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, 0,0,0);
+        cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_w, 0,0,0);
+	cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, 0,0,0);
 
        /*********************************************************************************************************/
        /* End of section initialising the configuration */
        /*********************************************************************************************************/
-	printf("after cuinit\n");
+	printf("after cuinit %d\n",p->ipe);
 
 
        
@@ -856,7 +856,7 @@ char *method=NULL;
 	{
 	  ordero=0;
 	 
-	 ;// cucomputedervfields(&p,&d_p,&d_wmod, &d_wd,order);
+	  cucomputedervfields(&p,&d_p,&d_wmod, &d_wd,order);
 	  order=1;
 
 	 for(int dir=0;dir<NDIM; dir++)
@@ -864,25 +864,25 @@ char *method=NULL;
 		  for(int f=rho; f<=(mom1+NDIM-1); f++)
 		  { 
 		      if((f==mom1 && dir==0)  ||  (f==mom2 && dir==1)  || (f==mom2 && dir==2) )
-		      ;// cucomputept(&p,&d_p,&d_wmod, &d_wd,order,dir);
-		      ;// cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);	     
+		       cucomputept(&p,&d_p,&d_wmod, &d_wd,order,dir);
+		      cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);	     
 		  } //end looping over fields for cucentdiff1
 		   #ifndef ADIABHYDRO
 		   for(int f=energy; f<=(b1+(NDIM-1)); f++)
 		   {
 		     if(f==energy)
 		     {
-			;// cucomputevels(&p,&d_p,&d_wmod, &d_wd,order,dir);
-			;// cucomputepbg(&p,&d_p,&d_wmod, &d_wd,order,dir);
-			;// cucomputept(&p,&d_p,&d_wmod, &d_wd,order,dir);
+			 cucomputevels(&p,&d_p,&d_wmod, &d_wd,order,dir);
+			 cucomputepbg(&p,&d_p,&d_wmod, &d_wd,order,dir);
+			 cucomputept(&p,&d_p,&d_wmod, &d_wd,order,dir);
 		     }	      
-		     ;//cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
+		     cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt,f,dir);
 		   }//end looping over fields for cucentdiff2
 		   #endif
 	  }//end loop over directions
 	   
 	 
-	  ;//cugrav(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt);//gravitational contributions
+	  cugrav(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt);//gravitational contributions
 
 	  if(p->divbon==1)
 		       cudivb(&p,&d_p,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt);
@@ -1039,9 +1039,9 @@ char *method=NULL;
            /*********************************************************************************************************/
 
 	  //source terms
-          ;//cusource(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt);
+          cusource(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt);
 
-	  ;//cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, ordero,0,0);
+	  cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, ordero,0,0);
 
 	} //end of if((p->rkon)==0)
        /*********************************************************************************************************/
@@ -1083,11 +1083,11 @@ char *method=NULL;
 			cucomputevels(&p,&d_p,&d_wmod, &d_wd,order,dir);
 
 			for(int f=rho; f<=mom1+(NDIM-1); f++)//looping over fields for cucentdiff1
-			;//cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f,dir);
+			  cucentdiff1(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,dt,f,dir);
 
 			#ifndef ADIABHYDRO
 				   for(int f=energy; f<=b1+(NDIM-1); f++)//looping over fields for cucentdiff2
-				     ;//  cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
+				       cucentdiff2(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order,ordero,p->dt,f,dir);
 
 			#endif
 		    }
@@ -1256,11 +1256,10 @@ char *method=NULL;
 	 //cuupdate(&p,&w,&wmod,&temp2,&state,&d_p,&d_w,&d_wmod,&d_wtemp2,  &d_state,n);
 
 
-        //just used for testin
-        /*for(int ivar=1;ivar<NVAR;ivar++)
-        for(j1=0; j1<p->n[1]; j1++)
-        for(i1=0; i1<p->n[0]; i1++)
-            w[(j1*(p->n[0])+i1)+ivar*(p->n[0])*(p->n[1])]=0.0;*/
+       // for(int ivar=1;ivar<NVAR;ivar++)
+       // for(j1=0; j1<2*(p->n[1]); j1++)
+      //  for(i1=0; i1<2*(p->n[0]); i1++)
+          ;//  w[(2*j1*(p->n[0])+i1)+4*ivar*(p->n[0])*(p->n[1])]=0.0;
 
          #ifdef USE_GPUD
          for(igid=0; igid<(p->npe); igid++)
@@ -1271,7 +1270,7 @@ char *method=NULL;
         #endif
         //initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
         //cuupdate(&p,&w,&wmod,&temp2,&state,&d_gp[igid],&d_gw[igid],&d_gwmod[igid],&d_gwtemp2[igid],  &d_gstate[igid],n);
-        //if(igid != 2)
+        //if(igid != 3)
          cuupdate(&p,&w,&wmod,&temp2,&state,&d_gp[igid],&d_gw[igid],&d_gwmod[igid],&d_gwtemp2[igid],  &d_gstate[igid],n);
 	//initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_gw[igid],&d_wnew,&d_wmod, &d_dwn1,  &d_gwd[igid], &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 	//initgrid(&p,&w,&wnew,&state,&wd,&d_gp[igid],&d_gw[igid],&d_gwnew[igid],&d_gwmod[igid], &d_gdwn1[igid],  &d_gwd[igid], &d_gstate[igid],&d_gwtemp[igid],&d_gwtemp1[igid],&d_gwtemp2[igid]);

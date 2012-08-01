@@ -969,7 +969,7 @@ fscanf(fdt,"%d %lG %d %d %d\n",&(st->it),&(st->t),&ii1,&ii2,&ii3);
      freadl(fdt, &hlines[i]);
      printf("%s\n", hlines[i]);
    }
-printf("read header\n");
+printf("read header %d\n" , p.ipe);
   //fscanf(fdt,"%f",&val);
  //printf("%f",val);
 #ifdef USE_SAC_3D
@@ -1096,7 +1096,8 @@ sprintf(configfile,"%s",cfgfile);
       sprintf(configfile,"%s_%d.out",cfgfile,st.it);
   #endif
 
-
+//printf("%s %d", configfile,p.ipe);
+//return 0;
   FILE *fdt=fopen(configfile,"a+");
 
 
@@ -1122,6 +1123,9 @@ sprintf(configfile,"%s",cfgfile);
      fprintf(fdt,"%d %lg %d 6 %d\n", st.it,st.t,NDIM,NVAR);
      printf("%d %g %d 6 %d\n", st.it,st.t,NDIM,NVAR);
    #endif
+
+    
+
 
    for(i=2;i<=4;i++)
    {

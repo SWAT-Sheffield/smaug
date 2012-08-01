@@ -1645,16 +1645,16 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
     real *wa=*w;
  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
-if(((*p)->ipe)==2)
+/*if(((*p)->ipe)==2)
       {
 checkErrors_i("initgrid memory allocation");
-}
+}*/
  #ifdef USE_SAC_3D
  
    dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
 #endif      
     kp=0;
-    printf("called initgrid %d\n",(*p)->ipe);
+   // printf("called initgrid %d\n",(*p)->ipe);
     
     #ifdef USE_GPUD
       if(((*p)->ipe)==0)

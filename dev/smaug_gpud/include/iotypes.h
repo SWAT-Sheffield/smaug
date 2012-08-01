@@ -141,15 +141,16 @@ struct params {
         real chyp3;
         real test;  
         int boundtype[NVAR][NDIM][2];  //boundtype=0 is periodic 1=mpi 2=mpiperiod 3=cont contcd4=4  fixed=5 symm=6 asymm=7
-
+        
+        int gpid[16];
+        int npe;
        #ifdef USE_MULTIGPU
 		int ipe;
-	        int npe;
+	
                 int pnpe[NDIM];
                 int pipe[NDIM];
                 int mpiupperb[NDIM];
                 int mpilowerb[NDIM];
-                int gpid[16];
 
                 int gpudirectgroup;
                 int ngpudirectgroups;
