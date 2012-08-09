@@ -144,6 +144,7 @@ struct params {
         
         int gpid[16];
         int npe;
+        int noghost;
        #ifdef USE_MULTIGPU
 		int ipe;
 	

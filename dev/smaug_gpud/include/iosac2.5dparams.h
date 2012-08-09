@@ -10,7 +10,7 @@ int ngk=2;
 #ifdef USE_SAC
 //vac ozt
 int ni;
-ni=252;    //OZT tests
+ni=122;    //OZT tests
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
@@ -23,7 +23,7 @@ real dx = xmax/(ni);
 // Define the y domain
 #ifdef USE_SAC
 //vac ozt
-int nj = 252;  //OZT tests
+int nj = 122;  //OZT tests
 //int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
@@ -151,7 +151,7 @@ p->divbfix=0.0;
 p->hyperdifmom=0.0;
 p->readini=1.0;
 p->cfgsavefrequency=1;
-
+p->noghost=0;
 
 p->xmax[0]=xmax;
 p->xmax[1]=ymax;

@@ -204,6 +204,27 @@ char *method=NULL;
        /*********************************************************************************************************/
        /* Start of section creating arrays on the host*/
        /*********************************************************************************************************/
+  
+       #ifdef USE_MULTIGPU
+       if(mode==0)
+       {
+		if((p->pipe[0])==0) (p->n[0])+=ngi;
+		if((p->pipe[0])==((p->pnpe[0])-1)) (p->n[0])+=ngi;
+		if((p->pipe[1])==0) (p->n[1])+=ngj;
+		if((p->pipe[1])==((p->pnpe[1])-1)) (p->n[1])+=ngj;
+
+	  #ifdef USE_SAC_3D
+		if((p->pipe[2])==0) (p->n[2])+=ngk;
+		if((p->pipe[2])==((p->pnpe[2])-1)) (p->n[2])+=ngk;
+          #endif
+
+
+	}
+
+       #endif
+
+
+
           printf("allocating w and wnew\n");
 	  #ifdef USE_SAC_3D
 		 wnew=(real *)calloc(ni*nj*nk*NVAR,sizeof(real ));
@@ -260,18 +281,18 @@ char *method=NULL;
 	  #endif
 
 
-	  gmpiwmod0=(real *)malloc(szw0*sizeof(real));
-	  gmpiw0=(real *)malloc(szw0*sizeof(real));
-	  gmpiwmod1=(real *)malloc(szw1*sizeof(real));
-	  gmpiw1=(real *)malloc(szw1*sizeof(real));
+	  gmpiwmod0=(real *)calloc(szw0,sizeof(real));
+	  gmpiw0=(real *)calloc(szw0,sizeof(real));
+	  gmpiwmod1=(real *)calloc(szw1,sizeof(real));
+	  gmpiw1=(real *)calloc(szw1,sizeof(real));
 
-          gmpivisc0=(real *)malloc(szvisc0*sizeof(real));
-          gmpivisc1=(real *)malloc(szvisc1*sizeof(real));
+          gmpivisc0=(real *)calloc(szvisc0,sizeof(real));
+          gmpivisc1=(real *)calloc(szvisc1,sizeof(real));
 
 	  #ifdef USE_SAC_3D
-		  gmpiwmod2=(real *)malloc(szw2*sizeof(real));
-		  gmpiw2=(real *)malloc(szw2*sizeof(real));
-                  gmpivisc2=(real *)malloc(szvisc2*sizeof(real));
+		  gmpiwmod2=(real *)calloc(szw2,sizeof(real));
+		  gmpiw2=(real *)calloc(szw2,sizeof(real));
+                  gmpivisc2=(real *)calloc(szvisc2,sizeof(real));
 	  #endif
         #endif
        /*********************************************************************************************************/
@@ -302,10 +323,13 @@ char *method=NULL;
        /* Start of section initialising the configuration 
           on the host and on GPU host memory*/
        /*********************************************************************************************************/
-	if((p->readini)==0)
-	 initconfig(p, &meta, w);
-	else
-	 readasciivacconfig(configinfile,*p,meta, state,w,wd,hlines);
+
+
+		if((p->readini)==0)
+		 initconfig(p, &meta, w);
+		else
+		 readasciivacconfig(configinfile,*p,meta, state,w,wd,hlines,mode);
+
 
 	printf("after read\n");
 	p->it=0;
@@ -364,7 +388,7 @@ char *method=NULL;
                     #ifdef USE_SAC3D
                       p->n[2]=nk;
                     #endif
-		    writeasciivacconfig(configinfile, *p, meta,  wnew,wdnew, hlines, *state);
+		    writeasciivacconfig(configinfile, *p, meta,  wnew,wdnew, hlines, *state,mode);
                     p->n[0]=ni*(p->pnpe[0]);
                     p->n[1]=nj*(p->pnpe[1]);
 
@@ -428,7 +452,7 @@ char *method=NULL;
             printf("copy segment %d %s\n",i,configinfile);
 
             #ifdef USE_MULTIGPU
-            	readasciivacconfig(configinfile,*p, meta, state, w,wd, hlines);
+            	readasciivacconfig(configinfile,*p, meta, state, w,wd, hlines,mode);
             #else
                 readbinvacconfig(configinfile,*p, meta, w,wd, *state );
             #endif
@@ -508,6 +532,7 @@ char *method=NULL;
          d_gdwn1=(real **)malloc(p->npe*sizeof(real *));
          d_gwd=(real **)malloc(p->npe*sizeof(real *));
 
+	int order=0;
 
 	struct params **d_gp=(struct params **)malloc(p->npe*sizeof(struct params *));
 	struct state **d_gstate=(struct state **)malloc(p->npe*sizeof(struct state *));
@@ -517,6 +542,13 @@ char *method=NULL;
         if(mode==0)
         {
 	//cuinit(&p,&bp,&w,&wnew,&wd,&state,&d_p,&d_bp,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+
+       //adjust sizes for ghost cells used for messaging
+
+
+
+
+
 
         #ifdef USE_GPUD
           p->ipe=-1;  //set to -1 to make set gpuid set the gpu id array
@@ -563,6 +595,83 @@ char *method=NULL;
         //same as the grid initialisation routine in SAC
         //ensures boundaries defined correctly
 	
+
+
+	  #ifdef USE_MPI
+
+    cuinitmgpubuffers(&p, &w, &wmod, &temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,   &gmpiw0, &gmpiwmod0,   &gmpiw1, &gmpiwmod1,   &gmpiw2, &gmpiwmod2, &d_p, &d_w, &d_wmod,&d_wtemp2,  &d_gmpivisc0,  &d_gmpivisc1,  &d_gmpivisc2, &d_gmpiw0, &d_gmpiwmod0, &d_gmpiw1, &d_gmpiwmod1, &d_gmpiw2, &d_gmpiwmod2);
+
+                  gpusync();
+		   cucopywdtompiwd(&p,&wd,    &gmpiw0,     &gmpiw1,    &gmpiw2, &d_p,  &d_wd,    &d_gmpiw0,   &d_gmpiw1,   &d_gmpiw2,  order);
+
+
+
+
+    if((p)->ipe==3 && ((p)->it)==2)
+    {
+         printf("ipe3 mpiwmod \n");
+         for(int i=0; i<4*((p)->n[0]);i++)
+             printf("%d %lg \n",i, (gmpiwmod1[i]));
+         //printf("\n");
+
+
+        /* printf("ipe3 mpiwmod \n");
+         for(int i=0; i<4*((p)->n[0]);i++)
+             printf("%d %lg ",i,(gmpiw0[i]));
+         printf("\n");*/
+     }
+
+
+                 gpusync();
+		   mpibound(NDERV, gmpiw0,gmpiw1,gmpiw2 ,p);
+
+		 
+ gpusync();
+
+		;//   cucopywdfrommpiwd(&p,&wd,     &gmpiw0,     &gmpiw1,     &gmpiw2,  &d_p,  &d_wd,   &d_gmpiw0,    &d_gmpiw1,    &d_gmpiw2, order);
+
+
+         #ifdef USE_GPUD
+         for(igid=0; igid<(p->npe); igid++)
+         {
+                p->ipe=igid;
+                cusetgpu(&p);
+                ipe2iped(p);               
+        #endif
+	   p->it=n+1;
+
+        //initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+        //cuupdate(&p,&w,&wmod,&temp2,&state,&d_gp[igid],&d_gw[igid],&d_gwmod[igid],&d_gwtemp2[igid],  &d_gstate[igid],n);
+        //if(igid != 3)
+       ;//  cuupdatehostwd(&p,&wd,&wmod,&temp2,&state,&d_gp[igid],&d_gwd[igid],&d_gwmod[igid],&d_gwtemp2[igid],  &d_gstate[igid],n);
+	//initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_gw[igid],&d_wnew,&d_wmod, &d_dwn1,  &d_gwd[igid], &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+	//initgrid(&p,&w,&wnew,&state,&wd,&d_gp[igid],&d_gw[igid],&d_gwnew[igid],&d_gwmod[igid], &d_gdwn1[igid],  &d_gwd[igid], &d_gstate[igid],&d_gwtemp[igid],&d_gwtemp1[igid],&d_gwtemp2[igid]);
+        #ifdef USE_GPUD
+
+         }
+
+         for(igid=0; igid<(p->npe); igid++)
+         {
+                p->ipe=igid;
+                cusetgpu(&p);
+                cusync(&p);
+         }
+
+                p->ipe=0;
+		ipe2iped(p);
+                cusetgpu(&p);
+        #endif
+        igid=0;
+        cusync(&p);
+
+
+
+	
+	   
+	  #endif     //endif MPI
+
+
+
          #ifdef USE_GPUD
          for(igid=0; igid<(p->npe); igid++)
          {
@@ -593,6 +702,42 @@ char *method=NULL;
                 cusync(&p);
 
 
+         #ifdef USE_MPI
+         #ifdef USE_GPUD
+         for(igid=0; igid<(p->npe); igid++)
+         {
+                p->ipe=igid;
+                cusetgpu(&p);
+                ipe2iped(p);               
+        #endif
+	   p->it=n+1;
+
+        //initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+        //cuupdate(&p,&w,&wmod,&temp2,&state,&d_gp[igid],&d_gw[igid],&d_gwmod[igid],&d_gwtemp2[igid],  &d_gstate[igid],n);
+        //if(igid != 3)
+     ;//    cuupdatehostwd(&p,&wd,&wmod,&temp2,&state,&d_gp[igid],&d_gwd[igid],&d_gwmod[igid],&d_gwtemp2[igid],  &d_gstate[igid],n);
+	//initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_gw[igid],&d_wnew,&d_wmod, &d_dwn1,  &d_gwd[igid], &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+	;//initgrid(&p,&w,&wnew,&state,&wd,&d_gp[igid],&d_gw[igid],&d_gwnew[igid],&d_gwmod[igid], &d_gdwn1[igid],  &d_gwd[igid], &d_gstate[igid],&d_gwtemp[igid],&d_gwtemp1[igid],&d_gwtemp2[igid]);
+        #ifdef USE_GPUD
+
+         }
+
+         for(igid=0; igid<(p->npe); igid++)
+         {
+                p->ipe=igid;
+                cusetgpu(&p);
+                cusync(&p);
+         }
+
+                p->ipe=0;
+		ipe2iped(p);
+                cusetgpu(&p);
+        #endif
+        igid=0;
+        cusync(&p);
+        #endif //use_MPI
+
+
 
 	  #ifdef USE_GPUD
 	     ((p)->n[0])=((p)->n[0])/((p)->pnpe[0]);
@@ -605,11 +750,11 @@ char *method=NULL;
 
 
 
-        //initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
+        ;//initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 
 	#ifdef USE_MULTIGPU
 	  //initialise the mpi used memory locations
-	 cuinitmgpubuffers(&p, &w, &wmod, &temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,   &gmpiw0, &gmpiwmod0,   &gmpiw1, &gmpiwmod1,   &gmpiw2, &gmpiwmod2, &d_p, &d_w, &d_wmod,&d_wtemp2,  &d_gmpivisc0,  &d_gmpivisc1,  &d_gmpivisc2, &d_gmpiw0, &d_gmpiwmod0, &d_gmpiw1, &d_gmpiwmod1, &d_gmpiw2, &d_gmpiwmod2);
+	 //cuinitmgpubuffers(&p, &w, &wmod, &temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,   &gmpiw0, &gmpiwmod0,   &gmpiw1, &gmpiwmod1,   &gmpiw2, &gmpiwmod2, &d_p, &d_w, &d_wmod,&d_wtemp2,  &d_gmpivisc0,  &d_gmpivisc1,  &d_gmpivisc2, &d_gmpiw0, &d_gmpiwmod0, &d_gmpiw1, &d_gmpiwmod1, &d_gmpiw2, &d_gmpiwmod2);
 	 cucopywtompiw(&p,&w, &wmod,    &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2, 0);
 
 
@@ -665,8 +810,8 @@ char *method=NULL;
 	   cucopywfrommpiw(&p,&w, &wmod,      &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,    &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2,0);
 	#endif
 
-        cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_w, 0,0,0);
-	cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, 0,0,0);
+        ;//cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_w, 0,0,0);
+	;//cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, 0,0,0);
 
        /*********************************************************************************************************/
        /* End of section initialising the configuration */
@@ -727,7 +872,6 @@ char *method=NULL;
 
 	
 	real t1,t2,ttot;
-	int order=0;
 	int ordero=0;
 	int order1;
 	int orderb=0;
@@ -763,6 +907,9 @@ char *method=NULL;
   #endif
 
 
+
+
+
 	    if(((n-1)%(p->cfgsavefrequency))==0)
 	    {
 			//writeconfig(name,n,*p, meta , w);
@@ -770,7 +917,7 @@ char *method=NULL;
 			// writevtkconfig(configfile,n,*p, meta , w);
                       writevacconfig(configfile,n,*p, meta , w,wd,*state);
 		#else
-			writeasciivacconfig(configfile,*p, meta , w,wd,hlines,*state);
+		     writeasciivacconfig(configfile,*p, meta , w,wd,hlines,*state,mode);
                  #endif
 		//writevacconfig(configfile,n,*p, meta , w,wd,*state);
 
@@ -1039,9 +1186,9 @@ char *method=NULL;
            /*********************************************************************************************************/
 
 	  //source terms
-          cusource(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt);
+         ;// cusource(&p,&d_p,&d_state,&d_w,&d_wmod, &d_dwn1, &d_wd,order, ordero,p->dt);
 
-	  cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, ordero,0,0);
+	;//  cuboundary(&p,&bp,&d_p,&d_bp,&d_state,&d_wmod, ordero,0,0);
 
 	} //end of if((p->rkon)==0)
        /*********************************************************************************************************/
@@ -1252,7 +1399,6 @@ char *method=NULL;
        /*********************************************************************************************************/
 
 
-	   p->it=n+1;
 	 //cuupdate(&p,&w,&wmod,&temp2,&state,&d_p,&d_w,&d_wmod,&d_wtemp2,  &d_state,n);
 
 
@@ -1261,6 +1407,45 @@ char *method=NULL;
       //  for(i1=0; i1<2*(p->n[0]); i1++)
           ;//  w[(2*j1*(p->n[0])+i1)+4*ivar*(p->n[0])*(p->n[1])]=0.0;
 
+
+
+	  #ifdef USE_MPI
+                  gpusync();
+		   cucopywtompiw(&p,&w, &wmod,    &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2, order);
+
+
+
+
+    if((p)->ipe==3 && ((p)->it)==2)
+    {
+         printf("ipe3 mpiwmod \n");
+         for(int i=0; i<4*((p)->n[0]);i++)
+             printf("%d %lg \n",i, (gmpiwmod1[i]));
+         //printf("\n");
+
+
+        /* printf("ipe3 mpiwmod \n");
+         for(int i=0; i<4*((p)->n[0]);i++)
+             printf("%d %lg ",i,(gmpiw0[i]));
+         printf("\n");*/
+     }
+
+
+                 gpusync();
+		   mpibound(NVAR, gmpiw0,gmpiw1,gmpiw2 ,p);
+		   gpusync();
+		   mpibound(NVAR, gmpiwmod0,gmpiwmod1,gmpiwmod2 ,p);
+
+		 
+ gpusync();
+
+		   cucopywfrommpiw(&p,&w, &wmod,    &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2,order);	
+	   
+	  #endif
+
+
+
+
          #ifdef USE_GPUD
          for(igid=0; igid<(p->npe); igid++)
          {
@@ -1268,6 +1453,8 @@ char *method=NULL;
                 cusetgpu(&p);
                 ipe2iped(p);               
         #endif
+	   p->it=n+1;
+
         //initgrid(&p,&w,&wnew,&state,&wd,&d_p,&d_w,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
         //cuupdate(&p,&w,&wmod,&temp2,&state,&d_gp[igid],&d_gw[igid],&d_gwmod[igid],&d_gwtemp2[igid],  &d_gstate[igid],n);
         //if(igid != 3)
@@ -1298,19 +1485,7 @@ char *method=NULL;
 
 
 
-	  #ifdef USE_MPI
-                  gpusync();
-		   cucopywtompiw(&p,&w, &wmod,    &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2, order);
-                 gpusync();
-		   mpibound(NVAR, gmpiw0,gmpiw1,gmpiw2 ,p);
-gpusync();
-		   mpibound(NVAR, gmpiwmod0,gmpiwmod1,gmpiwmod2 ,p);
 
-gpusync();
-
-		   cucopywfrommpiw(&p,&w, &wmod,    &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2,order);	
-	   
-	  #endif
 
 
 

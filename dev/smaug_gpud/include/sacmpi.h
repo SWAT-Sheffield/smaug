@@ -424,12 +424,16 @@ void mpisend(int nvar,real *var, int *ixmin, int *ixmax  ,int qipe,int iside, in
                         bound=i1+2*(iside>0);
 			 gmpisendbuffer[n]=var[sacencodempiw0 (p,i1, i2, i3, ivar,bound)];
 
-			/*if((p->ipe==0  ) && ivar==0 )
-			{
+
+
+
+
+			//if((p->ipe==1  ) && ivar==0  && iside==1 && (100*(p->ipe)+10*dim+iside)==101 )
+			//{
 			 //for(int i=0;i<nvar;i++)
-			   printf(" %d %d %d %lg ",bound,i1,i2,gmpisendbuffer[n]);
-			 printf("\n");
-			}*/
+			//   printf(" %d %d %d %lg ",i1,i2,iside,gmpisendbuffer[n]);
+			// printf("\n");
+			//}
 
 		      }
 		break;
@@ -447,10 +451,11 @@ void mpisend(int nvar,real *var, int *ixmin, int *ixmax  ,int qipe,int iside, in
                         bound=i2+2*(iside>0);
 			 gmpisendbuffer[n]=var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)];
 
-			/*if((p->ipe==0  ) && ivar==0 )
+			/*if((p->ipe==3  ) && ivar==0 && ((p)->it)==2)
 			{
 			 //for(int i=0;i<nvar;i++)
-			   printf(" %d %d %d %lg ",bound,i2,i1,gmpisendbuffer[n]);
+			  // printf(" %d %d %d %lg ",bound,i2,i1,gmpisendbuffer[n]);
+                         printf(" %d %d %d %lg ",bound,i2,i1,var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]);
 			 printf("\n");
 			}*/
 
@@ -484,8 +489,8 @@ void mpisend(int nvar,real *var, int *ixmin, int *ixmax  ,int qipe,int iside, in
 
 
 
-//if(p->ipe==1  && dim==0)
-//      printf("ipe %d send tag %d nb %d  to %d %d %d\n",p->ipe,10*(p->ipe)+iside,n,qipe,iside,dim);
+if(p->ipe==1  && dim==0)
+      printf("ipe %d send tag %d nb %d  to %d %d %d\n",p->ipe,100*(p->ipe)+10*dim+iside,n,qipe,iside,dim);
    
    comm.Rsend(gmpisendbuffer, n, MPI_DOUBLE_PRECISION, qipe, 100*(p->ipe)+10*dim+iside);
 
@@ -541,8 +546,8 @@ int nrecv;
 
 
 gnmpirequest++;
-  if(p->ipe==0  && dim==0)
-      printf("ipe %d recv tag %d nb %d  to %d  %d %d\n",p->ipe,10*qipe+(iside==0?1:0),nrecv,qipe,iside,dim);
+  if((p->ipe)==0  && dim==0)
+      printf("ipe %d recv tag %d nb %d  to %d  %d %d\n",p->ipe, 100*qipe+10*dim+(iside==0?1:0) ,nrecv,qipe,iside,dim);
 
 //gmpirequest[gnmpirequest]=comm.Irecv(gmpirecvbuffer+(iside*gnmpibuffer),nrecv,MPI_DOUBLE_PRECISION,qipe,10*(p->ipe)+iside);
 //gmpirequest[gnmpirequest]=comm.Irecv(gmpirecvbuffer+(iside*gnmpibuffer),nrecv,MPI_DOUBLE_PRECISION,qipe,MPI_ANY_TAG);
@@ -580,6 +585,11 @@ void mpibuffer2var(int iside,int nvar,real *var, int *ixmin, int *ixmax, int dim
 			n++;
                         bound=i1+2*(iside>0);
 			 var[sacencodempiw0 (p,i1, i2, i3, ivar,bound)]=gmpirecvbuffer[n+iside*gnmpibuffer];
+
+                        //if(iside==0  && p->ipe==0  && ivar==0 && (100+10*dim+(iside==0?1:0))==101)
+                        //  ;//   printf("%d %d %d %lg\n",i1 ,i2 , iside,gmpirecvbuffer[n+iside*gnmpibuffer]);
+			//printf("\n");
+
 		      }
 		break;
 		case 1:
@@ -695,7 +705,8 @@ if((p->pnpe[0])>1)
    //if(mpilowerB(1) .or. periodic)call mpirecvbuffer(nvar,ixRMmin1,ixRMmin2,&
    //   ixRMmax1,ixRMmax2,hpe,2)*/
 
-   //printf("ipe %d  recv right (from left) %d recv left (from right neigh) %d\n",p->ipe,p->hpe,p->jpe);
+   //if(p->ipe==0)
+   //  printf("ipe %d  recv right (from left) %d recv left (from right neigh) %d\n",p->ipe,p->hpe,p->jpe);
    if(((p->mpilowerb[0])==1) ||  ((p->boundtype[0][0][0])==0)||  ((p->boundtype[0][0][0])==2))
 	mpirecvbuffer(nvar,ixrmmin,ixrmmax,p->hpe,0,0,p);
 
