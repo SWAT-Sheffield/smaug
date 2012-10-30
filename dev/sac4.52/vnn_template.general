@@ -1,0 +1,11 @@
+file = ../data/hurlbmhd22_asc.out
+points = 4800
+format = ascii
+interleaving = field
+header = lines 5
+series = numseries, 1, 1, separator = lines 5
+field = locations, field0, field1,field2,field3
+structure = 2-vector, scalar, 2-vector, scalar, 2-vector
+type = float, float, float,float,float
+
+end
