@@ -1,4 +1,0 @@
-../testcont2.out
-%step%
-ascii
-../testasc_%step%.out
