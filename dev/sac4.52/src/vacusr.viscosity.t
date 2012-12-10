@@ -10,7 +10,10 @@ integer::          ixI^L,ixO^L,iws(niw_)
 double precision:: qdt,qtC,qt,w(ixG^T,nw),wnew(ixG^T,nw)
 
 integer:: ix,ix^L,idim,idir,jdir,iiw,iw
-double precision:: tmp2(ixG^T),nushk(ixG^T,ndim)
+
+!already declared in vacusr.f
+!double precision:: tmp2(ixG^T)
+double precision:: nushk(ixG^T,ndim)
 
 
 double precision:: tmprhoL(ixG^T), tmprhoR(ixG^T), tmprhoC(ixG^T)
@@ -341,16 +344,16 @@ select case(idim)
 
 
    if (mpiupperB(^D)) nmpirequest=nmpirequest+1
-   if (mpiupperB(^D)) call MPI_IRECV(tgtbufferR^D(1),n,MPI_DOUBLE_PRECISION, jpe,10*jpe+0,MPI_COMM_WORLD, mpirequests(nmpirequest),ierrmpi)
+   if (mpiupperB(^D)) call MPI_IRECV(tgtbufferR^D(1,1),n,MPI_DOUBLE_PRECISION, jpe,10*jpe+0,MPI_COMM_WORLD, mpirequests(nmpirequest),ierrmpi)
 
    if (mpilowerB(^D)) nmpirequest=nmpirequest+1
-   if (mpilowerB(^D)) call MPI_IRECV(tgtbufferL^D(1),n,MPI_DOUBLE_PRECISION, hpe,10*hpe+1,MPI_COMM_WORLD, mpirequests(nmpirequest),ierrmpi)
+   if (mpilowerB(^D)) call MPI_IRECV(tgtbufferL^D(1,1),n,MPI_DOUBLE_PRECISION, hpe,10*hpe+1,MPI_COMM_WORLD, mpirequests(nmpirequest),ierrmpi)
 
    call MPI_BARRIER(MPI_COMM_WORLD,ierrmpi)
 
-   if (mpiupperB(^D)) call MPI_RSEND(srcbufferR^D(1),n,MPI_DOUBLE_PRECISION, jpe,10*ipe+1,MPI_COMM_WORLD,ierrmpi)
+   if (mpiupperB(^D)) call MPI_RSEND(srcbufferR^D(1,1),n,MPI_DOUBLE_PRECISION, jpe,10*ipe+1,MPI_COMM_WORLD,ierrmpi)
 
-   if (mpilowerB(^D)) call MPI_RSEND(srcbufferL^D(1),n,MPI_DOUBLE_PRECISION, hpe,10*ipe+0,MPI_COMM_WORLD,ierrmpi)
+   if (mpilowerB(^D)) call MPI_RSEND(srcbufferL^D(1,1),n,MPI_DOUBLE_PRECISION, hpe,10*ipe+0,MPI_COMM_WORLD,ierrmpi)
 
    call MPI_WAITALL(nmpirequest,mpirequests,mpistatus,ierrmpi)
 
@@ -460,7 +463,9 @@ subroutine setnushk(w,ix^L,nushk)
 
 include 'vacdef.f'
 
-double precision:: w(ixG^T,nw),tmp2(ixG^T),nushk(ixG^T,ndim)
+!double precision:: w(ixG^T,nw),tmp2(ixG^T),nushk(ixG^T,ndim)
+double precision:: w(ixG^T,nw),nushk(ixG^T,ndim)
+
 double precision:: c_shk
 
 double precision:: tmp3(ixG^T)

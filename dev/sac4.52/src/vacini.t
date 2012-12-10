@@ -17,9 +17,9 @@ logical:: lastiw
 verbose=.true. .and.ipe==0^IFMPI
 if(verbose)then
    write(*,'(a)')'VACINI 4.52 configured to'
-   write(*,'(a)')'  -d=22 -phi=0 -z=0 -g=2048,2048 -p=mhd -u=sim1'
-   write(*,'(a)')'  -on=cd,resist,rk'
-   write(*,'(a)')'  -off=mc,fct,tvdlf,tvd,impl,poisson,ct,gencoord,mpi'
+   write(*,'(a)')'  -d=22 -phi=0 -z=0 -g=2048,1024 -p=mhd -u=sim1'
+   write(*,'(a)')'  -on=cd,resist,rk,mpi'
+   write(*,'(a)')'  -off=mc,fct,tvdlf,tvd,impl,poisson,ct,gencoord'
    {^IFMPI write(*,'(a,i3,a)')'Running on ',npe,' processors'}
 endif
 

@@ -24,7 +24,8 @@ double precision:: onemor,inix,ddx
 double precision:: p_1,p_2
 
 integer:: iii_,iix_1,info,i,j
-double precision:: pi,comi,eneu,sum,mode,bmax,l
+double precision:: comi,eneu,sum,mode,bmax,l
+!double precision:: pi,comi,eneu,sum,mode,bmax,l
 character*79 atmfilename
 
 double precision:: p1,p2,rho1,rho2,v1,v2,T1,T2, b1_1,b1_2,b2_1,b2_2
@@ -116,7 +117,9 @@ integer:: singl
 integer:: ix_1,ix_2,idim, ix^L
 
 !*****************
-double precision:: t01,t02,a1,a2,s1,s2,sf,xc1,xc2,rad,rfc,sdep,tdep,sigma2
+!double precision:: t01,t02,a1,a2,s1,s2,sf,xc1,xc2,rad,rfc,sdep,tdep,sigma2
+double precision:: t01,t02,a1,a2,s1,s2,sf
+
 
 
 !-----------------------------------------------------------------------------
