@@ -1567,7 +1567,7 @@ __global__ void computedervfields_parallel(struct params *p,   real *wmod, real 
     jp=iindex/ni;
    ip=iindex-(jp*ni);
 #endif     
-
+int dir=0;
 
 
 
@@ -1587,17 +1587,31 @@ if(order == 0)
        if(ii[0]<p->n[0] && ii[1]<p->n[1])
      #endif
 	{		
-
                for(int f=vel1; f<=pkb; f++)
                         wd[fencode3_cdf(p,ii,f)]=0; 
 		#ifdef USE_SAC_3D
 		  for(int f=rho; f<=b3; f++)
-                  	wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]=wmod[fencode3_cdf(p,ii,f)]; 
+                  	//wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]=wmod[fencode3_cdf(p,ii,f)]; 
+                        wmod[fencode3_cdf(p,ii,f)]=wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]; 
 
 		#else
 		  for(int f=rho; f<=b2; f++)
-                  	wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]=wmod[fencode3_cdf(p,ii,f)]; 
+                  	//wmod[fencode3_cdf(p,ii,f)+dimp*NVAR]=wmod[fencode3_cdf(p,ii,f)]; 
+                         wmod[fencode3_cdf(p,ii,f)]=wmod[fencode3_cdf(p,ii,f)+dimp*NVAR];
 		#endif               
+
+
+
+// for(int field=rho;field<=rho ; field++)
+//if(  (p->ipe)==0  && ((p)->it)==1 && ( isnan(wmod[fencode3_cdf(p,ii,field)])|| wmod[fencode3_cdf(p,ii,field)]==0 ))
+//if(  /*(p->ipe)==0  &&*/ (  wmod[fencode3_cdf(p,ii,field)]==0 ))
+//       { 
+//    				printf("nant %d %d %d %d %lg %lg \n",ii[0],ii[1],field,dir, wmod[fencode3_cdf(p,ii,rho)],wmod[fencode3_cdf(p,ii,field)+dimp*NVAR] );
+//;//wmod[fencode3_cdf(p,ii,rho)]=0.221049;
+//;//wmod[fencode3_cdf(p,ii,field)+dimp*NVAR]=0.221049;
+//}
+
+
 
         }
 
@@ -1757,79 +1771,43 @@ int cucomputemaxc(struct params **p,  struct params **d_p, real **d_wmod,  real 
     fn=log(dimp)/log(2.0);
     fractn=modf(fn,&in);
     
-    if(fractn>0)
-    {
-       fn+=1;
-       ndimp=(int)pow(2,fn);
-     }
-     else
-       ndimp=dimp;
-       int NTPB=512;
+  if(fractn>0)
+  {
+   fn+=1;
+   ndimp=(int)pow(2,fn);
+  }
+  else
+   ndimp=dimp;
+
+  //Number threads per block
+  int NTPB=512;
+
+  //Num blocks is determined by size of zeropadded 2^n size array
   int numBlocks = (ndimp+NTPB-1) / NTPB;
 
+  //Shared memory
   int smemSize = NTPB * sizeof(double);
- double *h_cmax = (double*)malloc(numBlocks*sizeof(double));
+
+  //Array to store maximum values for reduction in host memory 
+  double *h_cmax = (double*)malloc(numBlocks*sizeof(double));
 
   cudaMalloc((void**)&d_cmax, numBlocks*sizeof(double)); 
-  cudaMalloc((void**)&d_bmax, numBlocks*sizeof(double)); 
+  cudaMalloc((void**)&d_bmax, numBlocks*sizeof(double)); //Array to store maximum values for reduction in GPU global memory
 
-   (*p)->cmax=0.0;
+  //set maximum value to zero and update values in GPU memory
+  (*p)->cmax=0.0;
   cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
- //dim3 dimBlock(dimblock, 1);
-    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-   // dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-  // int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
-
-
-
-
-//cudaMemcpy(*d_wtemp, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
-  zeropadmaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp);
-//((*wd)+(cfast*dimp))[1]=999.0;
-
-
-cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
-
-//real *h_wtemp=(real *)malloc(dimp*sizeof(real));
-cudaMemcpy(*d_wtemp, ((*wd)+(cfast*dimp)), dimp*sizeof(real), cudaMemcpyHostToDevice);
-//cudaMemcpy(h_wtemp, *d_wtemp, dimp*sizeof(real), cudaMemcpyDeviceToHost);
-
-//cudaMemcpy(*d_wtemp, ((*wd)+fencode_cdf(*p,0,0,cfast)), dimp*sizeof(real), cudaMemcpyHostToDevice);
-
-int i=0;
-
-/*for(i=0; i<dimp; i++)
-   if(h_wtemp[i]>((*p)->cmax))  ((*p)->cmax)=h_wtemp[i];
-
-cudaMemcpy(*d_wtemp, ((*wd)+(soundspeed*dimp)), dimp*sizeof(real), cudaMemcpyHostToDevice);
-cudaMemcpy(h_wtemp, *d_wtemp, dimp*sizeof(real), cudaMemcpyDeviceToHost);*/
-
-/*for(i=0; i<dimp; i++)
-   if(h_wtemp[i]>((*p)->cmax))  ((*p)->cmax)=h_wtemp[i];*/
-
-
-//free(h_wtemp);
-//real *mywd=*wd;
-//for(i=0;i<ndimp;i++)
-//  printf("d_wtemp %g %g %d %d\n",mywd[i+fencode_cdf(*p,0,0,cfast)],h_temp[i+0] ,ndimp,dimp );
-
-//free(h_temp);
-
-//__global__ void newreduction0computemax_parallel(real *cmax, real *temp,int ndimp)
  
-/*int s=1;
+  //determine maximum value of magneto-acoustic fast mode
+  zeropadmaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp);
 
-   myreduction0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp,s);
-   cudaThreadSynchronize();
-while(((s*=2)<=((ndimp/2)-1)) ) 
-{
-   myreduction0computemaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp,s);
-   cudaThreadSynchronize();
-}*/
+  cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+  cudaMemcpy(*d_wtemp, ((*wd)+(cfast*dimp)), dimp*sizeof(real), cudaMemcpyHostToDevice);
+  int i=0;
 
 
-
- for(i=0;i<numBlocks;i++)
+  //find the maximum in each block
+  for(i=0;i<numBlocks;i++)
                 h_cmax[i]=0;
   cudaMemcpy(d_bmax, h_cmax, numBlocks*sizeof(double), cudaMemcpyHostToDevice);
 
@@ -1837,20 +1815,23 @@ while(((s*=2)<=((ndimp/2)-1)) )
   cudaThreadSynchronize();
   cudaMemcpy(h_cmax, d_bmax, numBlocks*sizeof(double), cudaMemcpyDeviceToHost);
 
+  //compare the maxima for all of the blocks and determine maximum value
   for( i=0;i<numBlocks;i++)          		
                 if(h_cmax[i]>((*p)->cmax)) ((*p)->cmax)=h_cmax[i];
 
 
+ //determine maximum value of sound speed
  cudaMemcpy(*d_wtemp, ((*wd)+(soundspeed*dimp)), dimp*sizeof(real), cudaMemcpyHostToDevice);
  zeropadmaxc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wmod,  *d_wd, order, dir, *d_wtemp,ndimp);
  for(i=0;i<numBlocks;i++)
                 h_cmax[i]=0;
-  cudaMemcpy(d_bmax, h_cmax, numBlocks*sizeof(double), cudaMemcpyHostToDevice);
+ cudaMemcpy(d_bmax, h_cmax, numBlocks*sizeof(double), cudaMemcpyHostToDevice);
 
-  newreduction0computemax_parallel<<<numBlocks,NTPB,smemSize>>>(d_bmax,*d_wtemp,ndimp);
-  cudaThreadSynchronize();
-  cudaMemcpy(h_cmax, d_bmax, numBlocks*sizeof(double), cudaMemcpyDeviceToHost);
+ newreduction0computemax_parallel<<<numBlocks,NTPB,smemSize>>>(d_bmax,*d_wtemp,ndimp);
+ cudaThreadSynchronize();
 
+ cudaMemcpy(h_cmax, d_bmax, numBlocks*sizeof(double), cudaMemcpyDeviceToHost);
+  //compare the maxima for all of the blocks and determine maximum value
   for( i=0;i<numBlocks;i++)          		
                 if(h_cmax[i]>((*p)->cmax)) ((*p)->cmax)=h_cmax[i];
 

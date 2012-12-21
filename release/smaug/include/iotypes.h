@@ -87,6 +87,7 @@ struct params {
 	int n[NDIM];
 	int ng[NDIM];
         int npgp[NDIM];
+        int fullgridini;
 
         real hdmean;
         real hdmax;
@@ -132,7 +133,7 @@ struct params {
         int divbfix;
         int cfgsavefrequency;
         int hyperdifmom; 
-
+        int mode;
         int readini;
         real courant;
         real maxviscoef;
@@ -140,15 +141,23 @@ struct params {
         real chyp[NVAR];
         real chyp3;
         real test;  
-        int boundtype[NVAR][NDIM];  //boundtype=0 is periodic 1=mpi 2=mpiperiod 3=cont contcd4=4  fixed=5 symm=6 asymm=7
-
-       #ifdef USE_MPI
+        int boundtype[NVAR][NDIM][2];  //boundtype=0 is periodic 1=mpi 2=mpiperiod 3=cont contcd4=4  fixed=5 symm=6 asymm=7
+        
+        int gpid[16];
+        int npe;
+        int noghost;
+       #ifdef USE_MULTIGPU
 		int ipe;
-	        int npe;
+	
                 int pnpe[NDIM];
                 int pipe[NDIM];
                 int mpiupperb[NDIM];
                 int mpilowerb[NDIM];
+
+                int gpudirectgroup;
+                int ngpudirectgroups;
+
+                int gpudirectgroupneighb[2][NDIM]; //gpudirect group ID for each neighbour
                 
                 //nearest neighbours                
                 int phpe[NDIM];
@@ -158,6 +167,10 @@ struct params {
                 
                 int gpemin[NDIM];
                 int gpemax[NDIM];
+
+                //global value of box dimensions
+		real gxmax[NDIM];
+		real gxmin[NDIM];
        #endif   
 };
 
@@ -188,6 +201,9 @@ struct hydrovars{
          #else
 
          #endif*/
+
+
+typedef enum mode {run,scatter,gather,init,redistribute} MODE;
 
 //typedef enum oldvars {mom3, b3,b3b} CEVOLD;
 #ifdef USE_SAC

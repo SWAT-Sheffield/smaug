@@ -17,7 +17,7 @@
 
 //*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd
 
-__global__ void init_parallel(struct params *p, real *w, real *wnew, real *wmod, 
+__global__ void init_parallel(struct params *p, real *wnew, real *wmod, 
     real *dwn1, real *wd, real *wtemp, real *wtemp1, real *wtemp2)
 {
   // compute the global index in the vector from
@@ -104,12 +104,11 @@ int ni=p->n[0];
 	//initiate alfven wave propagtion 
 	//if no initial config read
 
-	    for(int f=0; f<NVAR; f++)
+	    /*for(int f=0; f<NVAR; f++)
             { 		         
                           for(ord=0;ord<(2+3*(p->rkon==1));ord++)
                               wmod[fencode3_i(p,ii,f)+ord*NVAR*dimp]=0;
-	    }
-
+	    }*/
 
 
 //	 __syncthreads();
@@ -149,7 +148,7 @@ int ni=p->n[0];
 
             #ifdef ADIABHYDRO
 		    if(i> (((p->n[0])/2)-2) && i<(((p->n[0])/2)+2) && j>(((p->n[1])/2)-2) && j<(((p->n[1])/2)+2) ) 
-				w[fencode3_i(p,ii,rho)]=1.3;
+				;//w[fencode3_i(p,ii,rho)]=1.3;
             #else
                    // init_alftest (real *w, struct params *p,int i, int j)
                    // init_alftest(w,p,i,j);
@@ -167,7 +166,11 @@ int ni=p->n[0];
                    wd[fencode3_i(p,ii,delx3)]=(p->dx[2]);
                  #endif
 
-                   init_user_i(w,p,ii);
+                   //init_user_i(w,p,ii);  //initilise using w field
+
+                   //commented out because spicule problem
+                   //constructed on host
+                   ;//init_user_i(wmod,wd,p,ii);
            #endif
 
 	
@@ -198,16 +201,35 @@ int ni=p->n[0];
                   //wmod[fencode3_i(p,ii,f)]=w[fencode3_i(p,ii,f)];
                   //wmod[  (((3*(1+(p->rkon)))-1)*NVAR*dimp)+fencode3_i(p,ii,f)]=w[fencode3_i(p,ii,f)];              
                   dwn1[fencode3_i(p,ii,f)]=0;
-                  for(ord=0;ord<(2+3*(p->rkon==1));ord++)
+
+                  //initial value of ord changed to 1 ensure have correct background fields set
+                  for(ord=1;ord<(2+3*(p->rkon==1));ord++)
                   {
-                              wmod[fencode3_i(p,ii,f)+ord*NVAR*dimp]=w[fencode3_i(p,ii,f)];
+                              //only the wmod field is used w now redundant
+                              wmod[fencode3_i(p,ii,f)+ord*NVAR*dimp]=wmod[fencode3_i(p,ii,f)];
+
+                              //original version using w
+                              //wmod[fencode3_i(p,ii,f)+ord*NVAR*dimp]=w[fencode3_i(p,ii,f)];
                               //wmod[fencode3_i(p,ii,b2b)+ord*NVAR*dimp]=w[fencode3_i(p,ii,b3b)];
                   }
-                            
+  /*        int dir=0;
+ for(int field=rho;field<=rho ; field++)
+if( ii[0]<4 && (p->ipe)==0  && ((p)->it)==1 && ( isnan(wmod[fencode3_i(p,ii,field)])|| wmod[fencode3_i(p,ii,field)]==0 ))
+        { 
+    				printf("nant %d %d %d %d %lg %lg \n",ii[0],ii[1],field,dir, wmod[fencode3_i(p,ii,rho)],wmod[fencode3_i(p,ii,field)] );
+}*/
+                  
         }
 
         for(int f=tmp1; f<NTEMP; f++)
                  wtemp[fencode3_i(p,ii,f)]=0;
+
+
+	/*for(int field=rho;field<=rho ; field++)
+	if(  (p->ipe)==0  && (  wmod[fencode3_i(p,ii,field)]==0 ))
+		{ 
+	    				printf("nanti %d %d %d %d %lg %lg \n",ii[0],ii[1],field,0, wmod[fencode3_i(p,ii,rho)],wmod[fencode3_i(p,ii,field)+dimp*NVAR] );
+	}*/
 
 
 }
@@ -218,6 +240,120 @@ int ni=p->n[0];
 
 }
 
+__global__ void updatemod_parallel(struct params *p, real *w, real *wnew, real *wmod, 
+    real *dwn1, real *wd, real *wtemp, real *wtemp1, real *wtemp2)
+{
+  // compute the global index in the vector from
+  // the number of the current block, blockIdx,
+  // the number of threads per block, blockDim,
+  // and the number of the current thread within the block, threadIdx
+  // int i = blockIdx.x * blockDim.x + threadIdx.x;
+  // int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+ int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+ // int index,k;
+int ni=p->n[0];
+  int nj=p->n[1];
+#ifdef USE_SAC_3D
+  int nk=p->n[2];
+#endif
+
+
+// Block index
+    int bx = blockIdx.x;
+   // int by = blockIdx.y;
+    // Thread index
+    int tx = threadIdx.x;
+   // int ty = threadIdx.y;
+    
+  real *u,  *v,  *h;
+
+   int ord;
+//enum vars rho, mom1, mom2, mom3, energy, b1, b2, b3;
+
+
+  int i,j;
+  int ip,jp;
+  int ii[NDIM];
+   int dimp=((p->n[0]))*((p->n[1]));
+
+   
+ #ifdef USE_SAC_3D
+   int kp;
+  dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+/*   int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni/((p->npgp[1])*(p->npgp[0])));
+   jp=(iindex-(kp*(nj*ni/((p->npgp[1])*(p->npgp[0])))))/(ni/(p->npgp[0]));
+   ip=iindex-(kp*nj*ni/((p->npgp[1])*(p->npgp[0])))-(jp*(ni/(p->npgp[0])));
+#else
+    jp=iindex/(ni/(p->npgp[0]));
+   ip=iindex-(jp*(ni/(p->npgp[0])));
+#endif */ 
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
+   
+
+     ii[0]=ip;
+     ii[1]=jp;
+     #ifdef USE_SAC_3D
+	   ii[2]=kp;
+     #endif
+
+
+
+
+
+
+ 
+     #ifdef USE_SAC_3D
+       if(ii[0]<p->n[0] && ii[1]<p->n[1] && ii[2]<p->n[2])
+     #else
+       if(ii[0]<p->n[0] && ii[1]<p->n[1])
+     #endif
+	{
+        for(int f=rho; f<NVAR; f++)
+        {               
+                  for(ord=1;ord<(2+3*(p->rkon==1));ord++)
+                  {
+                              //wmod[fencode3_i(p,ii,f)+ord*NVAR*dimp]=w[fencode3_i(p,ii,f)];
+                              wmod[fencode3_i(p,ii,f)+ord*NVAR*dimp]=wmod[fencode3_i(p,ii,f)];
+
+                            // if(p->ipe==0    && f==rho)
+                            //    printf("wmod,w %d %d %lg %lg\n",ii[0],ii[1],wmod[fencode3_i(p,ii,f)+ord*NVAR*dimp],w[fencode3_i(p,ii,f)]);
+ 
+                  }
+          int dir=0;
+
+
+ //for(int field=rho;field<=rho ; field++)
+//if( /*ii[0]<4 &&*/ (p->ipe)==0  && /*((p)->it)==1 &&*/ (/* isnan(wmod[fencode3_i(p,ii,field)])||*/ wmod[fencode3_i(p,ii,field)]==0 ))
+//        { 
+//    				printf("nant %d %d %d %d %lg %lg \n",ii[0],ii[1],field,dir, wmod[fencode3_i(p,ii,rho)],wmod[fencode3_i(p,ii,field)] );
+//}
+                  
+        }
+
+
+
+
+}
+
+ __syncthreads();
+
+
+
+}
 
 
  //initialise grid on the gpu
@@ -619,6 +755,36 @@ bound*(         (dim==2)*((p->n[0])*(p->n[1]))   +  (dim==0)*((p->n[1])*(p->n[2]
 }
 
 __device__ __host__
+int encodempiw0 (struct params *p,int ix, int iy, int iz, int field,int bound) {
+  #ifdef USE_SAC_3D
+    return (4*field*(         ((p->n[1])*(p->n[2]))   )+
+bound*(            +  ((p->n[1])*(p->n[2]))      )+   (  (iy+iz*(p->n[1]))    ));
+  #else
+    return (   4*field*(p->n[1]) +bound*((p->n[1]))  +   (iy)   );
+  #endif
+}
+
+
+__device__ __host__
+int encodempiw1 (struct params *p,int ix, int iy, int iz, int field,int bound) {
+  #ifdef USE_SAC_3D
+    return (4*field*(         ((p->n[0])*(p->n[2]))   )+
+bound*(            +  ((p->n[0])*(p->n[2]))      )+   (  (ix+iz*(p->n[0]))    ));
+  #else
+    return (4*field*(p->n[0]) +bound*((p->n[0]))  +   (ix));
+  #endif
+}
+
+__device__ __host__
+int encodempiw2 (struct params *p,int ix, int iy, int iz, int field,int bound) {
+  #ifdef USE_SAC_3D
+    return (4*field*(         ((p->n[0])*(p->n[1]))   )+
+bound*(            +  ((p->n[0])*(p->n[1]))      )+   (  (ix+iy*(p->n[0]))    ));
+  #endif
+}
+
+
+__device__ __host__
 int encodempivisc (struct params *p,int ix, int iy, int iz, int bound,int dim) {
   #ifdef USE_SAC_3D
     return (dim*(    2*(         (((p->n[0])+2)*((p->n[1])+2))+(((p->n[1])+2)*((p->n[2])+2))+(((p->n[0])+2)*((p->n[2])+2))   )           )+
@@ -629,27 +795,77 @@ bound*(         (dim==2)*(((p->n[0])+2)*((p->n[1])+2))   +  (dim==0)*(((p->n[1])
 }
 
 
+__device__ __host__
+int encodempivisc0 (struct params *p,int ix, int iy, int iz, int bound,int dim) {
+  #ifdef USE_SAC_3D
+    return (
+bound*(           (((p->n[1])+2)*((p->n[2])+2))      )+   (  (iy+iz*((p->n[1])+2))    ));
+  #else
+    return (   bound*(    ((p->n[1])+2)  )  +   iy     );
+  #endif
+}
 
-     __device__ __host__ void mpiwtogpu(struct params *p,real *d_w,real *d_wmod,real *d_mpiw,real *d_mpiwmod,int *ii, int var, int dim)
+
+__device__ __host__
+int encodempivisc1 (struct params *p,int ix, int iy, int iz, int bound,int dim) {
+  #ifdef USE_SAC_3D
+    return (
+bound*(           (((p->n[0])+2)*((p->n[2])+2))      )+   (  (ix+iz*((p->n[0])+2))    ));
+  #else
+    return (   bound*(    ((p->n[0])+2)  )  +   ix     );
+  #endif
+}
+
+__device__ __host__
+int encodempivisc2 (struct params *p,int ix, int iy, int iz, int bound,int dim) {
+  #ifdef USE_SAC_3D
+    return (
+bound*(           (((p->n[0])+2)*((p->n[1])+2))      )+   (  (ix+iy*((p->n[0])+2))    ));
+  #endif
+}
+
+
+#ifdef USE_MPI
+
+     __device__ __host__ void mpiwtogpu(struct params *p,real *d_w,real *d_wmod,real *d_mpiw0,real *d_mpiwmod0,real *d_mpiw1,real *d_mpiwmod1,real *d_mpiw2,real *d_mpiwmod2,int *ii, int var, int dim)
     {
 
              int i,j,k,bound;
 i=ii[0];
 j=ii[1];
 k=0;
- 
- 
+
+
+
+
                 if((i==0 || i==1) && dim==0)
                 {              
                     bound=i;
-                    d_w[encode3_i(p,i,j,k,var)]=d_mpiw[encodempiw(p,i,j,k,var,bound,dim)];
-                    d_wmod[encode3_i(p,i,j,k,var)]=d_mpiwmod[encodempiw(p,i,j,k,var,bound,dim)];              
+                    d_w[encode3_i(p,i,j,k,var)]=d_mpiw0[encodempiw0(p,i,j,k,var,bound)];
+                   // d_wmod[encode3_i(p,i,j,k,var)]=d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)];
+                    // if(var==4 && ((p)->ipe)==0)                        
+                    //    printf(" %d %d %d %d actual %d  mpi data%d %g\n",i,j,bound,dim,var,encodempiw0(p,i,j,k,var,bound),d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]);   
+
+
+ 
+
+     
+      
                 }
                 else if((( i>=((p->n[0])-2)   ))  && dim==0)               
                 {
-                    bound=1+(p->n[0])-i;
-                    d_w[encode3_i(p,i,j,k,var)]=d_mpiw[encodempiw(p,i,j,k,var,bound,dim)];
-                    d_wmod[encode3_i(p,i,j,k,var)]=d_mpiwmod[encodempiw(p,i,j,k,var,bound,dim)];              
+                    bound=2*(i==((p->n[0])-1))+(p->n[0])-i;
+                    d_w[encode3_i(p,i,j,k,var)]=d_mpiw0[encodempiw0(p,i,j,k,var,bound)];
+                  //  d_wmod[encode3_i(p,i,j,k,var)]=d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)];    
+
+
+                          // if(p->ipe==0    && var==rho && dim==0 )
+                          //   {
+                             // for(int bound=0;bound<=1;bound++)
+                             //   printf("mpiw0 %d %d %d %d %lg \n",dim,bound,i,j,d_mpiw0[encodempiw0(p,i,j,k,var,bound)]);
+			     	//printf("mpiwmod0 %d %d %d %d %lg %lg\n\n",dim,bound,i,j,d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)],d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)]);
+                           //  }
+          
                 }
 
               
@@ -657,14 +873,14 @@ k=0;
                 if((j==0 || j==1) && dim==1)              
                 {              
                     bound=j;
-                    d_w[encode3_i(p,i,j,k,var)]=d_mpiw[encodempiw(p,i,j,k,var,bound,dim)];
-                    d_wmod[encode3_i(p,i,j,k,var)]=d_mpiwmod[encodempiw(p,i,j,k,var,bound,dim)];              
+                    d_w[encode3_i(p,i,j,k,var)]=d_mpiw1[encodempiw1(p,i,j,k,var,bound)];
+                   // d_wmod[encode3_i(p,i,j,k,var)]=d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)];              
                 }            
                  else if((( j>=((p->n[1])-2)   ))  && dim==1)               
                 {
-                    bound=1+(p->n[1])-j;
-                    d_w[encode3_i(p,i,j,k,var)]=d_mpiw[encodempiw(p,i,j,k,var,bound,dim)];
-                    d_wmod[encode3_i(p,i,j,k,var)]=d_mpiwmod[encodempiw(p,i,j,k,var,bound,dim)];              
+                   bound=2*(j==((p->n[1])-1))+(p->n[1])-j;
+                    d_w[encode3_i(p,i,j,k,var)]=d_mpiw1[encodempiw1(p,i,j,k,var,bound)];
+                  //  d_wmod[encode3_i(p,i,j,k,var)]=d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)];              
                 }
 
        #ifdef USE_SAC_3D
@@ -672,14 +888,181 @@ k=0;
                 if((k==0 || k==1) && dim==2)              
                 {              
                     bound=k;
-                    d_w[encode3_i(p,i,j,k,var)]=d_mpiw[encodempiw(p,i,j,k,var,bound,dim)];
-                    d_wmod[encode3_i(p,i,j,k,var)]=d_mpiwmod[encodempiw(p,i,j,k,var,bound,dim)];              
+                    d_w[encode3_i(p,i,j,k,var)]=d_mpiw2[encodempiw2(p,i,j,k,var,bound)];
+                  //  d_wmod[encode3_i(p,i,j,k,var)]=d_mpiwmod2[encodempiw2(p,i,j,k,var,bound)];              
                 }        
                  else if((( k>=((p->n[2])-2)   ))  && dim==2)               
                 {
-                    bound=1+(p->n[0])-k;
-                    d_w[encode3_i(p,i,j,k,var)]=d_mpiw[encodempiw(p,i,j,k,var,bound,dim)];
-                    d_wmod[encode3_i(p,i,j,k,var)]=d_mpiwmod[encodempiw(p,i,j,k,var,bound,dim)];              
+                    bound=2*(k==((p->n[2])-1))+(p->n[2])-k;
+                    d_w[encode3_i(p,i,j,k,var)]=d_mpiw2[encodempiw2(p,i,j,k,var,bound)];
+                  //  d_wmod[encode3_i(p,i,j,k,var)]=d_mpiwmod2[encodempiw2(p,i,j,k,var,bound)];              
+                }
+
+     #endif
+ 
+// if( (p->ipe)==0  && ((p)->it)==0 && (isnan(d_wmod[fencode3_i(p,ii,rho)]) || d_wmod[fencode3_i(p,ii,rho)]==0      ))
+//        { 
+//    	printf("nant %d %d %d %lg\n",ii[0],ii[1], dim, d_wmod[fencode3_i(p,ii,rho)] );
+//}
+
+    }
+
+     __device__ __host__ void mpiwmodtogpu(struct params *p,real *d_w,real *d_wmod,real *d_mpiw0,real *d_mpiwmod0,real *d_mpiw1,real *d_mpiwmod1,real *d_mpiw2,real *d_mpiwmod2,int *ii, int var, int dim, int order)
+    {
+
+             int i,j,k,bound;
+i=ii[0];
+j=ii[1];
+k=0;
+
+ #ifdef USE_SAC_3D
+	int ntot=((p->n[0]))*((p->n[1]))*((p->n[2]))*NVAR;
+ #else
+	int ntot=((p->n[0]))*((p->n[1]))*NVAR;
+ #endif
+                //remember only update the boundaries if they are mpiupper boundaries 
+                //or an mpi period 
+
+
+                if((i==0 || i==1) && dim==0  && ( ((p->mpilowerb[dim])==1) || ((p->boundtype[0][dim][0])==2))    )
+                {              
+                    bound=i;
+                    d_wmod[order*ntot+encode3_i(p,i,j,k,var)]=d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)];
+                    // if(var==0 && ((p)->ipe)==0)                        
+                    //    printf(" %d %d %d %d actual mpi data %d %g\n",i,j,bound,dim,encodempiw0(p,i,j,k,var,bound),d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]); 
+
+       
+      
+                }
+                else if((( i>=((p->n[0])-2)   ))  && dim==0  && ( ((p->mpiupperb[dim])==1) || ((p->boundtype[0][dim][0])==2)) )               
+                {
+                    bound=2*(i==((p->n[0])-1))+(p->n[0])-i;
+                    d_wmod[order*ntot+encode3_i(p,i,j,k,var)]=d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)];  
+
+                             //if(p->ipe==0    && var==rho && dim==0 )
+                             //{
+                             // for(int bound=0;bound<=1;bound++)
+                             //   printf("mpiw0 %d %d %d %d %lg \n",dim,bound,i,j,d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]);
+			     //	printf("mpiwmod0 %d %d %d %d %lg %lg\n\n",dim,bound,i,j,d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)],d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)]);
+                             //}
+          
+                }
+
+              
+
+                if((j==0 || j==1) && dim==1  && ( ((p->mpilowerb[dim])==1) || ((p->boundtype[0][dim][0])==2))   )              
+                {              
+                    bound=j;
+                    d_wmod[order*ntot+encode3_i(p,i,j,k,var)]=d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)]; 
+
+
+
+             
+                }            
+                 else if((( j>=((p->n[1])-2)   ))  && dim==1   && ( ((p->mpiupperb[dim])==1) || ((p->boundtype[0][dim][0])==2))    )               
+                {
+                   bound=2*(j==((p->n[1])-1))+(p->n[1])-j;
+                    d_wmod[order*ntot+encode3_i(p,i,j,k,var)]=d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)]; 
+
+  
+
+             
+                }
+
+       #ifdef USE_SAC_3D
+               k=ii[2];
+                if((k==0 || k==1) && dim==2   && ( ((p->mpilowerb[dim])==1) || ((p->boundtype[0][dim][0])==2))   )              
+                {              
+                    bound=k;
+                    d_wmod[order*ntot+encode3_i(p,i,j,k,var)]=d_mpiwmod2[encodempiw2(p,i,j,k,var,bound)];              
+                }        
+                 else if((( k>=((p->n[2])-2)   ))  && dim==2   && ( ((p->mpiupperb[dim])==1) || ((p->boundtype[0][dim][0])==2))   )               
+                {
+                    bound=2*(k==((p->n[2])-1))+(p->n[2])-k;
+                    d_wmod[order*ntot+encode3_i(p,i,j,k,var)]=d_mpiwmod2[encodempiw2(p,i,j,k,var,bound)];              
+                }
+
+     #endif
+ 
+// if( (p->ipe)==0  && ((p)->it)==0 && (isnan(d_wmod[fencode3_i(p,ii,rho)]) || d_wmod[fencode3_i(p,ii,rho)]==0      ))
+//        { 
+//    	printf("nant %d %d %d %lg\n",ii[0],ii[1], dim, d_wmod[fencode3_i(p,ii,rho)] );
+//}
+
+    }
+
+
+
+     __device__ __host__ void mpiwdtogpu(struct params *p,real *d_wd,real *d_mpiw0,real *d_mpiw1,real *d_mpiw2,int *ii, int var, int dim)
+    {
+
+             int i,j,k,bound;
+i=ii[0];
+j=ii[1];
+k=0;
+
+                //remember only update the boundaries if they are mpiupper boundaries 
+                //or an mpi period 
+
+
+
+ 
+                if((i==0 || i==1) && dim==0   &&  ((p->mpilowerb[dim])==1))
+                {              
+                    bound=i;
+                    d_wd[encode3_i(p,i,j,k,var)]=d_mpiw0[encodempiw0(p,i,j,k,var,bound)];
+                    // if(var==4 && ((p)->ipe)==0)                        
+                    //    printf(" %d %d %d %d actual %d  mpi data%d %g\n",i,j,bound,dim,var,encodempiw0(p,i,j,k,var,bound),d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]);        
+      
+                }
+                else if((( i>=((p->n[0])-2)   ))  && dim==0  &&  ((p->mpiupperb[dim])==1))               
+                {
+                    bound=2*(i==((p->n[0])-1))+(p->n[0])-i;
+                    d_wd[encode3_i(p,i,j,k,var)]=d_mpiw0[encodempiw0(p,i,j,k,var,bound)];
+                }
+
+              
+
+                if((j==0 || j==1) && dim==1   &&  ((p->mpilowerb[dim])==1))              
+                {              
+                    bound=j;
+                    d_wd[encode3_i(p,i,j,k,var)]=d_mpiw1[encodempiw1(p,i,j,k,var,bound)];
+                }            
+                 else if((( j>=((p->n[1])-2)   ))  && dim==1  &&  ((p->mpiupperb[dim])==1))               
+                {
+                   bound=2*(j==((p->n[1])-1))+(p->n[1])-j;
+                    d_wd[encode3_i(p,i,j,k,var)]=d_mpiw1[encodempiw1(p,i,j,k,var,bound)];
+                }
+
+
+               /* if((i==0 || i==1) && (j==0 || j==1))
+                {              
+                    bound=i;
+                    d_wd[encode3_i(p,i,j,k,var)]=d_mpiw0[encodempiw0(p,i,j,k,var,bound)];
+                    // if(var==4 && ((p)->ipe)==0)                        
+                    //    printf(" %d %d %d %d actual %d  mpi data%d %g\n",i,j,bound,dim,var,encodempiw0(p,i,j,k,var,bound),d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]);        
+      
+                }
+                if((( j>=((p->n[1])-2)   ))  && (( i>=((p->n[0])-2)   )))               
+                {
+                   bound=2*(j==((p->n[1])-1))+(p->n[1])-j;
+                    d_wd[encode3_i(p,i,j,k,var)]=d_mpiw1[encodempiw0(p,i,j,k,var,bound)];
+                }*/
+                
+
+
+
+       #ifdef USE_SAC_3D
+               k=ii[2];
+                if((k==0 || k==1) && dim==2)              
+                {              
+                    bound=k;
+                    d_wd[encode3_i(p,i,j,k,var)]=d_mpiw2[encodempiw2(p,i,j,k,var,bound)];
+                }        
+                 else if((( k>=((p->n[2])-2)   ))  && dim==2)               
+                {
+                    bound=2*(k==((p->n[2])-1))+(p->n[2])-k;
+                    d_wd[encode3_i(p,i,j,k,var)]=d_mpiw2[encodempiw2(p,i,j,k,var,bound)];
                 }
 
      #endif
@@ -688,7 +1071,10 @@ k=0;
 
     }
 
-__device__ __host__ void   mpivisctogpu(struct params *p,real *d_wtemp2,real *d_gmpivisc,int *ii,  int dim)
+
+
+
+__device__ __host__ void   mpivisctogpu(struct params *p,real *d_wtemp2,real *d_gmpivisc0,real *d_gmpivisc1,real *d_gmpivisc2,int *ii,  int dim)
 {
                                 
                int i,j,k,bound,var;
@@ -696,45 +1082,46 @@ __device__ __host__ void   mpivisctogpu(struct params *p,real *d_wtemp2,real *d_
 i=ii[0];
 j=ii[1];
 k=0;
+                //remember only update the boundaries if they are mpiupper boundaries 
+                //or an mpi period 
  
- 
-                if((i==0 ) && dim==0)
+                if((i==0 ) && dim==0 /* && ( ((p->mpilowerb[dim])==1) || ((p->boundtype[0][dim][0])==2))*/)
                 {              
                     bound=i;
-                    d_wtemp2[encode3p2_i(p,i,j,k,var)]=d_gmpivisc[encodempivisc(p,i,j,k,bound,dim)];
+                    d_wtemp2[encode3p2_i(p,i,j,k,var)]=d_gmpivisc0[encodempivisc0(p,i,j,k,bound,dim)];
                     
                 }
-                else if((( i==((p->n[0])+1)   ))  && dim==0)               
+                else if((( i==((p->n[0])+1)   ))  && dim==0  /* && ( ((p->mpiupperb[dim])==1) || ((p->boundtype[0][dim][0])==2)) */ )               
                 {
                     bound=1;
-                    d_wtemp2[encode3p2_i(p,i,j,k,var)]=d_gmpivisc[encodempivisc(p,i,j,k,bound,dim)];
+                    d_wtemp2[encode3p2_i(p,i,j,k,var)]=d_gmpivisc0[encodempivisc0(p,i,j,k,bound,dim)];
                 }
 
               
 
-                if((j==0) && dim==1)              
+                if((j==0) && dim==1 /* && ( ((p->mpilowerb[dim])==1) || ((p->boundtype[0][dim][0])==2))*/)              
                 {              
                     bound=j;
-                    d_wtemp2[encode3p2_i(p,i,j,k,var)]=d_gmpivisc[encodempivisc(p,i,j,k,bound,dim)];
+                    d_wtemp2[encode3p2_i(p,i,j,k,var)]=d_gmpivisc1[encodempivisc1(p,i,j,k,bound,dim)];
                 }            
-                 else if((( j==((p->n[1])+1)   ))  && dim==1)               
+                 else if((( j==((p->n[1])+1)   ))  && dim==1   /*&& ( ((p->mpiupperb[dim])==1) || ((p->boundtype[0][dim][0])==2))*/)               
                 {
                     bound=1;
-                    d_wtemp2[encode3p2_i(p,i,j,k,var)]=d_gmpivisc[encodempivisc(p,i,j,k,bound,dim)];
+                    d_wtemp2[encode3p2_i(p,i,j,k,var)]=d_gmpivisc1[encodempivisc1(p,i,j,k,bound,dim)];
              
                 }
 
        #ifdef USE_SAC_3D
                k=ii[2];
-                if((k==0 ) && dim==2)              
+                if((k==0 ) && dim==2  /*&& ( ((p->mpilowerb[dim])==1) || ((p->boundtype[0][dim][0])==2))*/)              
                 {              
                     bound=k;
-                    d_wtemp2[encode3p2_i(p,i,j,k,var)]=d_gmpivisc[encodempivisc(p,i,j,k,bound,dim)];
+                    d_wtemp2[encode3p2_i(p,i,j,k,var)]=d_gmpivisc2[encodempivisc2(p,i,j,k,bound,dim)];
                 }        
-                 else if(((k==((p->n[2])+1)   ))  && dim==2)               
+                 else if(((k==((p->n[2])+1)   ))  && dim==2   /* && ( ((p->mpiupperb[dim])==1) || ((p->boundtype[0][dim][0])==2))*/)               
                 {
                     bound=1;
-                    d_wtemp2[encode3p2_i(p,i,j,k,var)]=d_gmpivisc[encodempivisc(p,i,j,k,bound,dim)];
+                    d_wtemp2[encode3p2_i(p,i,j,k,var)]=d_gmpivisc2[encodempivisc2(p,i,j,k,bound,dim)];
                 }
 
      #endif
@@ -742,7 +1129,7 @@ k=0;
                                 
 }
 
-__device__ __host__ void   gputompivisc(struct params *p,real *d_wtemp2,real *d_gmpivisc,int *ii,  int dim)
+__device__ __host__ void   gputompivisc(struct params *p,real *d_wtemp2,real *d_gmpivisc0,real *d_gmpivisc1,real *d_gmpivisc2,int *ii,  int dim)
 {
                                 
               int i,j,k,bound,var;
@@ -755,13 +1142,13 @@ k=0;
                 if((i==0 ) && dim==0)
                 {              
                     bound=i;
-                    d_gmpivisc[encodempivisc(p,i,j,k,bound,dim)]=d_wtemp2[encode3p2_i(p,i,j,k,var)];
+                    d_gmpivisc0[encodempivisc0(p,i,j,k,bound,dim)]=d_wtemp2[encode3p2_i(p,i,j,k,var)];
                     
                 }
                 else if((( i==((p->n[0])+1)   ))  && dim==0)               
                 {
                     bound=1;
-                    d_gmpivisc[encodempivisc(p,i,j,k,bound,dim)]=d_wtemp2[encode3p2_i(p,i,j,k,var)];
+                    d_gmpivisc0[encodempivisc0(p,i,j,k,bound,dim)]=d_wtemp2[encode3p2_i(p,i,j,k,var)];
                 }
 
               
@@ -769,12 +1156,12 @@ k=0;
                 if((j==0) && dim==1)              
                 {              
                     bound=j;
-                    d_gmpivisc[encodempivisc(p,i,j,k,bound,dim)]=d_wtemp2[encode3p2_i(p,i,j,k,var)];
+                    d_gmpivisc1[encodempivisc1(p,i,j,k,bound,dim)]=d_wtemp2[encode3p2_i(p,i,j,k,var)];
                 }            
                  else if((( j==((p->n[1])+1)   ))  && dim==1)               
                 {
                     bound=1;
-                    d_gmpivisc[encodempivisc(p,i,j,k,bound,dim)]=d_wtemp2[encode3p2_i(p,i,j,k,var)];
+                    d_gmpivisc1[encodempivisc1(p,i,j,k,bound,dim)]=d_wtemp2[encode3p2_i(p,i,j,k,var)];
              
                 }
 
@@ -783,12 +1170,12 @@ k=0;
                 if((k==0 ) && dim==2)              
                 {              
                     bound=k;
-                    d_gmpivisc[encodempivisc(p,i,j,k,bound,dim)]=d_wtemp2[encode3p2_i(p,i,j,k,var)];
+                    d_gmpivisc2[encodempivisc2(p,i,j,k,bound,dim)]=d_wtemp2[encode3p2_i(p,i,j,k,var)];
                 }        
                  else if(((k==((p->n[2])+1)   ))  && dim==2)               
                 {
                     bound=1;
-                    d_gmpivisc[encodempivisc(p,i,j,k,bound,dim)]=d_wtemp2[encode3p2_i(p,i,j,k,var)];
+                    d_gmpivisc2[encodempivisc2(p,i,j,k,bound,dim)]=d_wtemp2[encode3p2_i(p,i,j,k,var)];
                 }
 
      #endif
@@ -796,7 +1183,241 @@ k=0;
                                 
 }
 
-     __device__ __host__ void gputompiw(struct params *p,real *d_w,real *d_wmod,real *d_mpiw,real *d_mpiwmod,int *ii, int var, int dim)
+     __device__ __host__ void gputompiw(struct params *p,real *d_w,real *d_wmod,real *d_mpiw0,real *d_mpiwmod0,real *d_mpiw1,real *d_mpiwmod1,real *d_mpiw2,real *d_mpiwmod2,int *ii, int var, int dim)
+    {
+             int i,j,k,bound;
+i=ii[0];
+j=ii[1];
+k=0;
+
+/*  for(int field=rho;field<=rho ; field++)
+if(  (p->ipe)==0  && ((p)->it)==1 && ( isnan(d_wmod[fencode3_i(p,ii,field)])|| d_wmod[fencode3_i(p,ii,field)]==0 ))
+        { 
+    				printf("nant %d %d %d %d %lg %lg \n",ii[0],ii[1],field,dim,d_wmod[fencode3_i(p,ii,rho)],d_wmod[fencode3_i(p,ii,field)] );
+}*/
+ 
+                if((i==0 || i==1) && dim==0)
+                {              
+                    bound=i;
+                    d_mpiw0[encodempiw0(p,i,j,k,var,bound)]=d_w[encode3_i(p,i+2,j,k,var)];
+                   // d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]=d_wmod[encode3_i(p,i+2,j,k,var)];
+
+
+
+              
+                }
+                else if((( i>=((p->n[0])-2)   ))  && dim==0)               
+                {
+                    bound=2*(i==((p->n[0])-1))+(p->n[0])-i;
+                    d_mpiw0[encodempiw0(p,i,j,k,var,bound)]=d_w[encode3_i(p,i-2,j,k,var)];
+                   // d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]=d_wmod[encode3_i(p,i-2,j,k,var)];  
+
+
+
+
+                }
+
+              
+
+                if((j==0 || j==1) && dim==1)              
+                {              
+                    bound=j;
+                    d_mpiw1[encodempiw1(p,i,j,k,var,bound)]=d_w[encode3_i(p,i,j+2,k,var)];
+                   // d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)]=d_wmod[encode3_i(p,i,j+2,k,var)];   
+
+
+
+
+
+
+
+
+			/*  if( var==0 && (p)->ipe==3 && ((p)->it)==2 && bound==3)
+			    {
+				 //printf("ipe3 mpiwmod \n");
+				 //for(int iii=0; iii<4*((p)->n[0]);iii++)
+				     printf(" %lg %d \n",d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)],encodempiw1(p,i,j,k,var,bound));
+				 //printf("\n");
+			     }*/
+
+
+           
+                }            
+                 else if((( j>=((p->n[1])-2)   ))  && dim==1)               
+                {
+                    bound=2*(j==((p->n[1])-1))+(p->n[1])-j;
+                    d_mpiw1[encodempiw1(p,i,j,k,var,bound)]=d_w[encode3_i(p,i,j-2,k,var)];
+                   // d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)]=d_wmod[encode3_i(p,i,j-2,k,var)];  
+
+                          /*   if(p->ipe==0    && var==rho && dim==1 )
+                             {
+                             // for(int bound=0;bound<=1;bound++)
+                                printf("mpiw0 %d %d %d %d %lg \n",dim,bound,i,j,d_mpiw0[encodempiw0(p,i,j,k,var,bound)]);
+			     	//printf("mpiwmod0 %d %d %d %d %lg %lg\n\n",dim,bound,i,j,d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)],d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)]);
+                             }*/
+
+
+
+             
+                }
+
+       #ifdef USE_SAC_3D
+               k=ii[2];
+                if((k==0 || k==1) && dim==2)              
+                {              
+                    bound=k;
+                    d_mpiw2[encodempiw2(p,i,j,k,var,bound)]=d_w[encode3_i(p,i,j,k+2,var)];
+                   // d_mpiwmod2[encodempiw2(p,i,j,k,var,bound)]=d_wmod[encode3_i(p,i,j,k+2,var)];              
+                }        
+                 else if((( k>=((p->n[2])-2)   ))  && dim==2)               
+                {
+                    bound=2*(k==((p->n[2])-1))+(p->n[2])-k;
+                    d_mpiw2[encodempiw2(p,i,j,k,var,bound)]=d_w[encode3_i(p,i,j,k-2,var)];
+                   // d_mpiwmod2[encodempiw2(p,i,j,k,var,bound)]=d_wmod[encode3_i(p,i,j,k-2,var)];               
+                }
+
+     #endif
+
+
+
+    /*if((p)->ipe==3 && ((p)->it)==2  && i==((p->n[0])-1) && j==((p->n[1])-1))
+    {
+         printf("ipe3 mpiwmod \n");
+         for(int iii=0; iii<4*((p)->n[0]);iii++)
+             printf(" %lg ",d_mpiwmod1[iii]);
+         printf("\n");
+     }*/
+
+ 
+ 
+ }
+
+
+     __device__ __host__ void gputompiwmod(struct params *p,real *d_w,real *d_wmod,real *d_mpiw0,real *d_mpiwmod0,real *d_mpiw1,real *d_mpiwmod1,real *d_mpiw2,real *d_mpiwmod2,int *ii, int var, int dim, int order)
+    {
+             int i,j,k,bound;
+i=ii[0];
+j=ii[1];
+k=0;
+
+ #ifdef USE_SAC_3D
+	int ntot=((p->n[0]))*((p->n[1]))*((p->n[2]))*NVAR;
+ #else
+	int ntot=((p->n[0]))*((p->n[1]))*NVAR;
+ #endif
+
+/*  for(int field=rho;field<=rho ; field++)
+if(  (p->ipe)==0  && ((p)->it)==1 && ( isnan(d_wmod[fencode3_i(p,ii,field)])|| d_wmod[fencode3_i(p,ii,field)]==0 ))
+        { 
+    				printf("nant %d %d %d %d %lg %lg \n",ii[0],ii[1],field,dim,d_wmod[fencode3_i(p,ii,rho)],d_wmod[fencode3_i(p,ii,field)] );
+}*/
+ 
+                if((i==0 || i==1) && dim==0)
+                {              
+                    bound=i;
+                    d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]=d_wmod[(order*ntot)+encode3_i(p,i+2,j,k,var)];
+                   // d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]=d_wmod[encode3_i(p,i+2,j,k,var)];
+
+                            // if(p->ipe==0    && var==rho && dim==0 )
+                             //{
+                             // for(int bound=0;bound<=1;bound++)
+                              //  printf("mpiw0 %d %d %d %d %lg \n",dim,bound,i,j,d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]);
+			     	//printf("mpiwmod0 %d %d %d %d %lg %lg\n\n",dim,bound,i,j,d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)],d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)]);
+                             //}
+              
+                }
+                else if((( i>=((p->n[0])-2)   ))  && dim==0)               
+                {
+                    bound=2*(i==((p->n[0])-1))+(p->n[0])-i;
+                    //d_mpiw0[encodempiw0(p,i,j,k,var,bound)]=d_w[encode3_i(p,i-2,j,k,var)];
+                    d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]=d_wmod[(order*ntot)+encode3_i(p,i-2,j,k,var)];  
+
+                             //if(p->ipe==0    && var==rho && dim==0 )
+                             //{
+                             // for(int bound=0;bound<=1;bound++)
+                             //   printf("mpiw0 %d %d %d %d %lg \n",dim,bound,i,j,d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]);
+			     	//printf("mpiwmod0 %d %d %d %d %lg %lg\n\n",dim,bound,i,j,d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)],d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)]);
+                             //}
+
+
+
+
+
+                }
+
+              
+
+                if((j==0 || j==1) && dim==1)              
+                {              
+                    bound=j;
+                    //d_mpiw1[encodempiw1(p,i,j,k,var,bound)]=d_w[encode3_i(p,i,j+2,k,var)];
+                    d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)]=d_wmod[(order*ntot)+encode3_i(p,i,j+2,k,var)];   
+
+
+
+
+
+
+			/*  if( var==0 && (p)->ipe==3 && ((p)->it)==2 && bound==3)
+			    {
+				 //printf("ipe3 mpiwmod \n");
+				 //for(int iii=0; iii<4*((p)->n[0]);iii++)
+				     printf(" %lg %d \n",d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)],encodempiw1(p,i,j,k,var,bound));
+				 //printf("\n");
+			     }*/
+
+
+           
+                }            
+                 else if((( j>=((p->n[1])-2)   ))  && dim==1)               
+                {
+                    bound=2*(j==((p->n[1])-1))+(p->n[1])-j;
+                   // d_mpiw1[encodempiw1(p,i,j,k,var,bound)]=d_w[encode3_i(p,i,j-2,k,var)];
+                    d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)]=d_wmod[(order*ntot)+encode3_i(p,i,j-2,k,var)];  
+
+
+
+
+
+             
+                }
+
+       #ifdef USE_SAC_3D
+               k=ii[2];
+                if((k==0 || k==1) && dim==2)              
+                {              
+                    bound=k;
+                   // d_mpiw2[encodempiw2(p,i,j,k,var,bound)]=d_w[encode3_i(p,i,j,k+2,var)];
+                    d_mpiwmod2[encodempiw2(p,i,j,k,var,bound)]=d_wmod[(order*ntot)+encode3_i(p,i,j,k+2,var)];              
+                }        
+                 else if((( k>=((p->n[2])-2)   ))  && dim==2)               
+                {
+                    bound=2*(k==((p->n[2])-1))+(p->n[2])-k;
+                    //d_mpiw2[encodempiw2(p,i,j,k,var,bound)]=d_w[encode3_i(p,i,j,k-2,var)];
+                    d_mpiwmod2[encodempiw2(p,i,j,k,var,bound)]=d_wmod[(order*ntot)+encode3_i(p,i,j,k-2,var)];               
+                }
+
+     #endif
+
+
+
+    /*if((p)->ipe==3 && ((p)->it)==2  && i==((p->n[0])-1) && j==((p->n[1])-1))
+    {
+         printf("ipe3 mpiwmod \n");
+         for(int iii=0; iii<4*((p)->n[0]);iii++)
+             printf(" %lg ",d_mpiwmod1[iii]);
+         printf("\n");
+     }*/
+
+ 
+ 
+ }
+
+
+
+
+
+     __device__ __host__ void gputompiwd(struct params *p,real *d_wd,real *d_mpiw0,real *d_mpiw1,real *d_mpiw2,int *ii, int var, int dim)
     {
              int i,j,k,bound;
 i=ii[0];
@@ -807,51 +1428,74 @@ k=0;
                 if((i==0 || i==1) && dim==0)
                 {              
                     bound=i;
-                    d_mpiw[encodempiw(p,i,j,k,var,bound,dim)]=d_w[encode3_i(p,i,j,k,var)];
-                    d_mpiwmod[encodempiw(p,i,j,k,var,bound,dim)]=d_wmod[encode3_i(p,i,j,k,var)];              
-                }
+                    d_mpiw0[encodempiw0(p,i,j,k,var,bound)]=d_wd[encode3_i(p,i+2,j,k,var)];
+                 }
                 else if((( i>=((p->n[0])-2)   ))  && dim==0)               
                 {
-                    bound=1+(p->n[0])-i;
-                    d_mpiw[encodempiw(p,i,j,k,var,bound,dim)]=d_w[encode3_i(p,i,j,k,var)];
-                    d_mpiwmod[encodempiw(p,i,j,k,var,bound,dim)]=d_wmod[encode3_i(p,i,j,k,var)];               
-                }
+                    bound=2*(i==((p->n[0])-1))+(p->n[0])-i;
+                    d_mpiw0[encodempiw0(p,i,j,k,var,bound)]=d_wd[encode3_i(p,i-2,j,k,var)];
+                  }
 
               
 
                 if((j==0 || j==1) && dim==1)              
                 {              
                     bound=j;
-                    d_mpiw[encodempiw(p,i,j,k,var,bound,dim)]=d_w[encode3_i(p,i,j,k,var)];
-                    d_mpiwmod[encodempiw(p,i,j,k,var,bound,dim)]=d_wmod[encode3_i(p,i,j,k,var)];              
+                    d_mpiw1[encodempiw1(p,i,j,k,var,bound)]=d_wd[encode3_i(p,i,j+2,k,var)];
+ 
+
+			/*  if( var==0 && (p)->ipe==3 && ((p)->it)==2 && bound==3)
+			    {
+				 //printf("ipe3 mpiwmod \n");
+				 //for(int iii=0; iii<4*((p)->n[0]);iii++)
+				     printf(" %lg %d \n",d_mpiwmod1[encodempiw1(p,i,j,k,var,bound)],encodempiw1(p,i,j,k,var,bound));
+				 //printf("\n");
+			     }*/
+
+
+           
                 }            
                  else if((( j>=((p->n[1])-2)   ))  && dim==1)               
                 {
-                    bound=1+(p->n[1])-j;
-                    d_mpiw[encodempiw(p,i,j,k,var,bound,dim)]=d_w[encode3_i(p,i,j,k,var)];
-                    d_mpiwmod[encodempiw(p,i,j,k,var,bound,dim)]=d_wmod[encode3_i(p,i,j,k,var)];               
-                }
+                    bound=2*(j==((p->n[1])-1))+(p->n[1])-j;
+                    d_mpiw1[encodempiw1(p,i,j,k,var,bound)]=d_wd[encode3_i(p,i,j-2,k,var)];
+                 }
 
        #ifdef USE_SAC_3D
                k=ii[2];
                 if((k==0 || k==1) && dim==2)              
                 {              
                     bound=k;
-                    d_mpiw[encodempiw(p,i,j,k,var,bound,dim)]=d_w[encode3_i(p,i,j,k,var)];
-                    d_mpiwmod[encodempiw(p,i,j,k,var,bound,dim)]=d_wmod[encode3_i(p,i,j,k,var)];              
-                }        
+                    d_mpiw2[encodempiw2(p,i,j,k,var,bound)]=d_wd[encode3_i(p,i,j,k+2,var)];
+                 }        
                  else if((( k>=((p->n[2])-2)   ))  && dim==2)               
                 {
-                    bound=1+(p->n[0])-k;
-                    d_mpiw[encodempiw(p,i,j,k,var,bound,dim)]=d_w[encode3_i(p,i,j,k,var)];
-                    d_mpiwmod[encodempiw(p,i,j,k,var,bound,dim)]=d_wmod[encode3_i(p,i,j,k,var)];               
-                }
+                    bound=2*(k==((p->n[2])-1))+(p->n[2])-k;
+                    d_mpiw2[encodempiw2(p,i,j,k,var,bound)]=d_wd[encode3_i(p,i,j,k-2,var)];
+                 }
 
      #endif
+
+
+
+    /*if((p)->ipe==3 && ((p)->it)==2  && i==((p->n[0])-1) && j==((p->n[1])-1))
+    {
+         printf("ipe3 mpiwmod \n");
+         for(int iii=0; iii<4*((p)->n[0]);iii++)
+             printf(" %lg ",d_mpiwmod1[iii]);
+         printf("\n");
+     }*/
+
+ 
  
  }
 
-__global__ void  mpiwtogpu_parallel(struct params *p,real *d_w, real *d_wmod, real *d_mpiw, real *d_mpiwmod)
+
+
+
+
+
+__global__ void  mpiwtogpu_parallel(struct params *p,real *d_w, real *d_wmod, real *d_mpiw0, real *d_mpiwmod0, real *d_mpiw1, real *d_mpiwmod1, real *d_mpiw2, real *d_mpiwmod2, int idir)
 {
 
 int iindex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -888,6 +1532,8 @@ int iindex = blockIdx.x * blockDim.x + threadIdx.x;
 
 //int shift=order*NVAR*dimp;
 
+//if(iindex==0)
+//         printf("in mpiwtogpu\n");
 
      iia[0]=ip;
      iia[1]=jp;
@@ -897,18 +1543,26 @@ int iindex = blockIdx.x * blockDim.x + threadIdx.x;
      #ifdef USE_SAC_3D
 	   iia[2]=kp;
            k=iia[2];
-      for(int dim=0; dim<NDIM;dim++)
-           for( f=rho; f<=b3; f++)
+      //for(int dim=0; dim<NDIM;dim++)
+           //for( f=rho; f<=b3; f++)
+            for( f=rho; f<NVAR; f++)
      #else
-     for(int dim=0; dim<NDIM;dim++)
-           for( f=rho; f<=b2; f++)
+     //for(int dim=0; dim<NDIM;dim++)
+           //for( f=rho; f<=b2; f++)
+	  for( f=rho; f<NVAR; f++)
      #endif     
          #ifdef USE_SAC_3D
            if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
          #else
            if(i<((p->n[0])) && j<((p->n[1])))
-         #endif           
-                      mpiwtogpu(p,d_w,d_wmod,d_mpiw,d_mpiwmod,iia,f,dim);
+         #endif     
+{      
+    // if(iindex==0)
+    //     printf("calling  mpiwtogpu %d %d\n",dim,f);
+
+                 mpiwtogpu(p,d_w,d_wmod,d_mpiw0,d_mpiwmod0,d_mpiw1,d_mpiwmod1,d_mpiw2,d_mpiwmod2,iia,f,idir);
+
+}
 
 
  __syncthreads();
@@ -918,7 +1572,185 @@ int iindex = blockIdx.x * blockDim.x + threadIdx.x;
 }
 
 
-     __global__ void gputompiw_parallel(struct params *p,real *d_w,real *d_wmod,real *d_mpiw,real *d_mpiwmod,int order)
+
+__global__ void  mpiwmodtogpu_parallel(struct params *p,real *d_w, real *d_wmod, real *d_mpiw0, real *d_mpiwmod0, real *d_mpiw1, real *d_mpiwmod1, real *d_mpiw2, real *d_mpiwmod2, int idir, int order)
+{
+
+int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int index,k;
+  int f;
+
+//int var,bound;
+
+  int ni=p->n[0];
+  int nj=p->n[1];
+  real dt=p->dt;
+  real dy=p->dx[0];
+  real dx=p->dx[1];
+                real val=0;
+  
+   int ip,jp,ipg,jpg;
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+#ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
+
+//int shift=order*NVAR*dimp;
+
+//if(iindex==0)
+//         printf("in mpiwtogpu\n");
+
+     iia[0]=ip;
+     iia[1]=jp;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp;
+           k=iia[2];
+      //for(int dim=0; dim<NDIM;dim++)
+           //for( f=rho; f<=b3; f++)
+            for( f=rho; f<NVAR; f++)
+     #else
+     //for(int dim=0; dim<NDIM;dim++)
+           //for( f=rho; f<=b2; f++)
+	  for( f=rho; f<NVAR; f++)
+     #endif     
+         #ifdef USE_SAC_3D
+           if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
+         #else
+           if(i<((p->n[0])) && j<((p->n[1])))
+         #endif     
+{      
+    // if(iindex==0)
+    //     printf("calling  mpiwtogpu %d %d\n",dim,f);
+
+                    //bound=2*(i==((p->n[0])-1))+(p->n[0])-i;
+                    /*bound=i;
+                    var=f;
+                    d_mpiwmod0[encodempiw0(p,i,j,k,var,bound)]=d_wmod[encode3_i(p,i+2,j,k,var)];
+
+
+                 if( f==rho && (p->ipe)==0  && (  d_wmod[fencode3_i(p,iia,f)]==0 )   && i<=1)
+                       if(idir==0)
+    				printf("nani0 %d %d  %lg  \n",iia[0],iia[1], d_mpiwmod0[encodempiw0(p,i,j,k,f,bound)] );*/
+
+
+
+                 mpiwmodtogpu(p,d_w,d_wmod,d_mpiw0,d_mpiwmod0,d_mpiw1,d_mpiwmod1,d_mpiw2,d_mpiwmod2,iia,f,idir,order);
+
+
+
+                // if( f==rho && (p->ipe)==0  && (  d_wmod[fencode3_i(p,iia,f)]==0 ))
+                //       if(idir==0)
+    		//		printf("nani0 %d %d  %lg %lg \n",iia[0],iia[1], d_wmod[fencode3_i(p,iia,rho)],d_wmod[fencode3_i(p,iia,f)+dimp*NVAR] );
+
+}
+
+
+ __syncthreads();
+
+           
+               
+}
+
+
+
+
+__global__ void  mpiwdtogpu_parallel(struct params *p,  int dir, int var, real *d_wd, real *d_mpiw0,  real *d_mpiw1,  real *d_mpiw2, int idir)
+{
+
+int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int index,k;
+  int f;
+
+  int ni=p->n[0];
+  int nj=p->n[1];
+  real dt=p->dt;
+  real dy=p->dx[0];
+  real dx=p->dx[1];
+                real val=0;
+  
+   int ip,jp,ipg,jpg;
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+#ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
+
+//int shift=order*NVAR*dimp;
+
+//if(iindex==0)
+//         printf("in mpiwtogpu\n");
+
+     iia[0]=ip;
+     iia[1]=jp;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp;
+           k=iia[2];
+      //for(int dim=0; dim<NDIM;dim++)
+           //for( f=rho; f<=b3; f++)
+            for( f=pos1; f<=delx3; f++)
+     #else
+     //for(int dim=0; dim<NDIM;dim++)
+           //for( f=rho; f<=b2; f++)
+	  for( f=pos1; f<=delx2; f++)
+     #endif     
+         #ifdef USE_SAC_3D
+           if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
+         #else
+           if(i<((p->n[0])) && j<((p->n[1])))
+         #endif     
+{      
+    // if(iindex==0)
+    //     printf("calling  mpiwtogpu %d %d\n",dim,f);
+
+                 mpiwdtogpu(p,d_wd,d_mpiw0,d_mpiw1,d_mpiw2,iia,f,idir);
+
+}
+
+
+ __syncthreads();
+
+           
+               
+}
+
+
+
+     __global__ void gputompiwmod_parallel(struct params *p,real *d_w,real *d_wmod,real *d_mpiw0,real *d_mpiwmod0,real *d_mpiw1,real *d_mpiwmod1,real *d_mpiw2,real *d_mpiwmod2,int order, int idir)
     {
 
  int iindex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -964,11 +1796,13 @@ int dim;
      #ifdef USE_SAC_3D
 	   iia[2]=kp;
            k=iia[2];
-      for(dim=0; dim<NDIM;dim++)
-           for( f=rho; f<=b3; f++)
+      //for(dim=0; dim<NDIM;dim++)
+           //for( f=rho; f<=b3; f++)
+           for( f=rho; f<NVAR; f++)
      #else
-           for(dim=0; dim<NDIM;dim++)
-           for( f=rho; f<=b2; f++)
+           //for(dim=0; dim<NDIM;dim++)
+           //for( f=rho; f<=b2; f++)
+	   for( f=rho; f<NVAR; f++)
      #endif
              {
             
@@ -981,19 +1815,190 @@ int dim;
 
  
 
-                  gputompiw(p,d_w,d_wmod,d_mpiw,d_mpiwmod,iia,f,dim);
+                  gputompiwmod(p,d_w,d_wmod,d_mpiw0,d_mpiwmod0,d_mpiw1,d_mpiwmod1,d_mpiw2,d_mpiwmod2,iia,f,idir,order);
+
+                            // if(p->ipe==0    && f==rho && idir==0 )
+                            //  for(int bound=0;bound<=1;bound++)
+                            //    printf("mpiw0 %d %d %d %d %lg %lg\n",idir,bound,iia[0],iia[1],d_mpiwmod0[encodempiw0(p,i,j,k,f,bound)],d_mpiwmod1[encodempiw1(p,i,j,k,f,bound)]);
 
 	}
 
                }
+
+
+
+
+
+ __syncthreads();
+
+}
+
+     __global__ void gputompiw_parallel(struct params *p,real *d_w,real *d_wmod,real *d_mpiw0,real *d_mpiwmod0,real *d_mpiw1,real *d_mpiwmod1,real *d_mpiw2,real *d_mpiwmod2,int order, int idir)
+    {
+
+ int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int index,k;
+  int f;
+int dim;
+  int ni=p->n[0];
+  int nj=p->n[1];
+  real dt=p->dt;
+  real dy=p->dx[0];
+  real dx=p->dx[1];
+                real val=0;
+  
+   int ip,jp,ipg,jpg;
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
+
+//int shift=order*NVAR*dimp;
+
+
+     iia[0]=ip;
+     iia[1]=jp;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp;
+           k=iia[2];
+      //for(dim=0; dim<NDIM;dim++)
+           //for( f=rho; f<=b3; f++)
+           for( f=rho; f<NVAR; f++)
+     #else
+           //for(dim=0; dim<NDIM;dim++)
+           //for( f=rho; f<=b2; f++)
+	   for( f=rho; f<NVAR; f++)
+     #endif
+             {
+            
+         #ifdef USE_SAC_3D
+      if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
+     #else
+       if(i<((p->n[0])) && j<((p->n[1])))
+     #endif           
+	{
+
+ 
+
+                  gputompiw(p,d_w,d_wmod,d_mpiw0,d_mpiwmod0,d_mpiw1,d_mpiwmod1,d_mpiw2,d_mpiwmod2,iia,f,idir);
+
+                             //if(p->ipe==0    && f==rho && idir==0 )
+                             // for(int bound=0;bound<=1;bound++)
+                             //   printf("mpiw0 %d %d %d %d %lg %lg\n",idir,bound,iia[0],iia[1],d_mpiw0[encodempiw0(p,i,j,k,f,bound)],d_mpiw1[encodempiw1(p,i,j,k,f,bound)]);
+
+	}
+
+               }
+
+
+
+
 
  __syncthreads();
 
 }
 
 
+     __global__ void gputompiwd_parallel(struct params *p,real *d_wd,real *d_mpiw0,real *d_mpiw1,real *d_mpiw2,int order, int idir)
+    {
 
-     __global__ void gputompivisc_parallel(struct params *p,real *d_wtemp2,real *d_gmpivisc)
+ int iindex = blockIdx.x * blockDim.x + threadIdx.x;
+  int i,j;
+  int index,k;
+  int f;
+int dim;
+  int ni=p->n[0];
+  int nj=p->n[1];
+  real dt=p->dt;
+  real dy=p->dx[0];
+  real dx=p->dx[1];
+                real val=0;
+  
+   int ip,jp,ipg,jpg;
+  int iia[NDIM];
+  int dimp=((p->n[0]))*((p->n[1]));
+ #ifdef USE_SAC_3D
+   int kp;
+   real dz=p->dx[2];
+   dimp=((p->n[0]))*((p->n[1]))*((p->n[2]));
+#endif  
+   //int ip,jp,ipg,jpg;
+
+  #ifdef USE_SAC_3D
+   kp=iindex/(nj*ni);
+   jp=(iindex-(kp*(nj*ni)))/ni;
+   ip=iindex-(kp*nj*ni)-(jp*ni);
+#else
+    jp=iindex/ni;
+   ip=iindex-(jp*ni);
+#endif     
+
+
+//int shift=order*NVAR*dimp;
+
+
+     iia[0]=ip;
+     iia[1]=jp;
+     i=iia[0];
+     j=iia[1];
+     k=0;
+     #ifdef USE_SAC_3D
+	   iia[2]=kp;
+           k=iia[2];
+      //for(dim=0; dim<NDIM;dim++)
+           //for( f=rho; f<=b3; f++)
+           for( f=pos1; f<=delx3; f++)
+     #else
+        //   for(dim=0; dim<NDIM;dim++)
+           //for( f=rho; f<=b2; f++)
+	   for( f=pos1; f<=delx2; f++)
+     #endif
+             {
+            
+         #ifdef USE_SAC_3D
+      if(i<((p->n[0])) && j<((p->n[1]))  && k<((p->n[2])))
+     #else
+       if(i<((p->n[0])) && j<((p->n[1])))
+     #endif           
+	{
+
+ 
+
+                  gputompiwd(p,d_wd,d_mpiw0,d_mpiw1,d_mpiw2,iia,f,idir);
+
+
+	}
+
+               }
+
+
+
+
+
+ __syncthreads();
+
+}
+
+
+     __global__ void gputompivisc_parallel(struct params *p,real *d_wtemp2,real *d_gmpivisc0,real *d_gmpivisc1,real *d_gmpivisc2)
      {
                
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1055,7 +2060,7 @@ int dim;
 
  
 
-                  gputompivisc(p,d_wtemp2,d_gmpivisc,iia,dim);
+                  gputompivisc(p,d_wtemp2,d_gmpivisc0,d_gmpivisc1,d_gmpivisc2,iia,dim);
 
 	}
 
@@ -1066,7 +2071,7 @@ int dim;
                }    
      
      
-    __global__ void  mpivisctogpu_parallel(struct params *p,real *d_wtemp2,real *d_gmpivisc)
+    __global__ void  mpivisctogpu_parallel(struct params *p,real *d_wtemp2,real *d_gmpivisc0,real *d_gmpivisc1,real *d_gmpivisc2)
     {
                
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1128,7 +2133,7 @@ int dim;
 
  
 
-                  mpivisctogpu(p,d_wtemp2,d_gmpivisc,iia,dim);
+                  mpivisctogpu(p,d_wtemp2,d_gmpivisc0,d_gmpivisc1,d_gmpivisc2,iia,dim);
 
 	}
 
@@ -1138,6 +2143,8 @@ int dim;
                
                
 }
+
+#endif
 
 
 
@@ -1152,24 +2159,64 @@ void checkErrors_i(char *label)
 
   cudaError_t err;
 
+  
+
   err = cudaThreadSynchronize();
   if (err != cudaSuccess)
   {
     char *e = (char*) cudaGetErrorString(err);
     fprintf(stderr, "CUDA Error: %s (at %s)", e, label);
   }
-
+  
   err = cudaGetLastError();
   if (err != cudaSuccess)
   {
     char *e = (char*) cudaGetErrorString(err);
     fprintf(stderr, "CUDA Error: %s (at %s)", e, label);
   }
+
+  
+
+
 }
 
+int cusync(struct params **p)
+{
 
+  #ifdef USE_GPUD
+     
+         for(int igid=0; igid<((*p)->npe); igid++)
+         {
+                (*p)->ipe=igid;
+                cudaSetDevice((*p)->gpid[igid]) ;
+                
+  #endif
+  cudaThreadSynchronize();
+  #ifdef USE_GPUD
+                 (*p)->ipe=0;
+                 cudaSetDevice((*p)->gpid[0]) ;
+          }
+  #endif
+  return 0;
+}
 
-int cuinit(struct params **p, struct bparams **bp,real **w, real **wnew, real **wd, struct state **state, struct params **d_p, struct bparams **d_bp,real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
+int cusetgpu(struct params **p)
+{
+  #ifdef USE_GPUD
+    if(((*p)->ipe)==-1)
+    {
+         for(int igid=0; igid<((*p)->npe); igid++)
+                (*p)->gpid[igid]=igid ;
+    }
+    else
+      cudaSetDevice((*p)->gpid[(*p)->ipe]) ;
+                
+  #endif
+ 
+  return 0;
+}
+
+int cuinit(struct params **p, struct bparams **bp, real **wmod,real **wnew, real **wd, struct state **state, struct params **d_p, struct bparams **d_bp, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
 {
 
 
@@ -1181,21 +2228,41 @@ int cuinit(struct params **p, struct bparams **bp,real **w, real **wnew, real **
   /////////////////////////////////////
   int deviceCount;
   int dir;
-  cudaGetDeviceCount(&deviceCount);
+ /* cudaGetDeviceCount(&deviceCount);
    
  // if (deviceCount == 0)
  // {
  //   fprintf(stderr, "Sorry, no CUDA device fount");
  //   return 1;
 //  }
+
+  #ifdef USE_MPI
+     int lipe=(*p)->ipe;
+     int gpugid=lipe/4;
+     selectedDevice=lipe-4*gpugid;
+  #endif
   if (selectedDevice >= deviceCount)
   {
     fprintf(stderr, "Choose device ID between 0 and %d\n", deviceCount-1);
     return 1;
   }
-  //cudaSetDevice(selectedDevice);
+
+
+        cudaDeviceProp deviceProp;
+        cudaGetDeviceProperties(&deviceProp, selectedDevice);
+        if (deviceProp.major < 1) {
+            fprintf(stderr, "gpuDeviceInit(): GPU device does not support CUDA.\n");
+            exit(-1);                                                  \
+        }
+
+        cudaSetDevice(selectedDevice) ;
+        printf("> gpuDeviceInit() CUDA device [%d]: %s %s\n", selectedDevice, deviceProp.name, getenv("HOSTNAME"));
+
+
+
+  cudaSetDevice(selectedDevice);
   printf("device count %d selected %d\n", deviceCount,selectedDevice);
-  checkErrors_i("initialisations");
+  checkErrors_i("initialisations");*/
   
 	// Build empty u, v, b matrices
 
@@ -1205,6 +2272,8 @@ int cuinit(struct params **p, struct bparams **bp,real **w, real **wnew, real **
   struct params *adp;
   struct bparams *adbp;
   struct state *ads;
+
+
  
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
@@ -1213,72 +2282,128 @@ int cuinit(struct params **p, struct bparams **bp,real **w, real **wnew, real **
    
   dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
 #endif  
+if((*p)->mode != 3)
+{
+	if(((*p)->rkon)==1)
+	  cudaMalloc((void**)d_wmod, 6*NVAR*dimp*sizeof(real));
+	else
+	  cudaMalloc((void**)d_wmod, 3*NVAR*dimp*sizeof(real));
 
-if(((*p)->rkon)==1)
-  cudaMalloc((void**)d_wmod, 6*NVAR*dimp*sizeof(real));
-else
-  cudaMalloc((void**)d_wmod, 3*NVAR*dimp*sizeof(real));
-
-  cudaMalloc((void**)d_dwn1, NVAR*dimp*sizeof(real));
-  cudaMalloc((void**)d_wd, NDERV*dimp*sizeof(real));
-  cudaMalloc((void**)d_wtemp, NTEMP*dimp*sizeof(real));
+	  cudaMalloc((void**)d_dwn1, NVAR*dimp*sizeof(real));
+	  cudaMalloc((void**)d_wd, NDERV*dimp*sizeof(real));
+	  cudaMalloc((void**)d_wtemp, NTEMP*dimp*sizeof(real));
 
 
-  #ifdef USE_SAC
-  cudaMalloc((void**)d_wtemp1, NTEMP1*(((*p)->n[0])+1)* (((*p)->n[1])+1)*sizeof(real));
-  cudaMalloc((void**)d_wtemp2, NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2)*sizeof(real));
-  #endif
-  #ifdef USE_SAC_3D
-  cudaMalloc((void**)d_wtemp1, NTEMP1*(((*p)->n[0])+1)* (((*p)->n[1])+1)* (((*p)->n[2])+1)*sizeof(real));
-  cudaMalloc((void**)d_wtemp2, NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2)* (((*p)->n[2])+2)*sizeof(real));
-  #endif
+	  #ifdef USE_SAC
+	  cudaMalloc((void**)d_wtemp1, NTEMP1*(((*p)->n[0])+1)* (((*p)->n[1])+1)*sizeof(real));
+	  cudaMalloc((void**)d_wtemp2, NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2)*sizeof(real));
+	  #endif
+	  #ifdef USE_SAC_3D
+	  cudaMalloc((void**)d_wtemp1, NTEMP1*(((*p)->n[0])+1)* (((*p)->n[1])+1)* (((*p)->n[2])+1)*sizeof(real));
+	  cudaMalloc((void**)d_wtemp2, NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2)* (((*p)->n[2])+2)*sizeof(real));
+	  #endif
 
-  cudaMalloc((void**)&adw, NVAR*dimp*sizeof(real));
-  cudaMalloc((void**)&adwnew, NVAR*dimp*sizeof(real));
+	  //cudaMalloc((void**)&adw, NVAR*dimp*sizeof(real));
+	  //cudaMalloc((void**)&adwnew, NVAR*dimp*sizeof(real));
 
-  cudaMalloc((void**)&adbp, sizeof(struct bparams));
-  cudaMalloc((void**)&adp, sizeof(struct params));
-  cudaMalloc((void**)&ads, sizeof(struct state));
-  checkErrors_i("memory allocation");
+	  cudaMalloc((void**)&adbp, sizeof(struct bparams));
+	  cudaMalloc((void**)&adp, sizeof(struct params));
+	  cudaMalloc((void**)&ads, sizeof(struct state));
+	 // checkErrors_i("memory allocation");
 
-printf("ni is %d\n",(*p)->n[1]);
+	printf("ni is %d\n",(*p)->n[1]);
 
-   // *d_b=adb;
-    *d_bp=adbp;
-    *d_p=adp;
-    *d_w=adw;
-    *d_wnew=adwnew;
-    *d_state=ads;
+	   // *d_b=adb;
+	    *d_bp=adbp;
+	    *d_p=adp;
+	    //*d_w=adw;
+	    //*d_wnew=adwnew;
+	    *d_state=ads;
 
+	     
+	//printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
+	printf("allocating %d %d %d \n",dimp,(*p)->n[0],(*p)->n[1]);
+
+
+
+
+	printf("here1\n");
+
+
+
+
+
+
+	 
+	    printf("here2\n");
+
+	    //cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
+	    cudaMemcpy(*d_wmod, *wmod, 2*(1+(((*p)->rkon)==1))*NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
+	    cudaMemcpy(*d_wd, *wd, NDERV*dimp*sizeof(real), cudaMemcpyHostToDevice);
+
+
+
+
+
+
+	printf("here3\n");
+
+
+
+
+
+
+	   // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
+	    printf("here\n");
+	    cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
+	    cudaMemcpy(*d_state, *state, sizeof(struct state), cudaMemcpyHostToDevice);
+	    
+	    dim3 dimBlock(16, 1);
+	    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+	    dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
+	   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
+	   
+
+	    printf("calling initialiser\n");
+	     //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
+	    // init_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
+	    // init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_b);
+	     init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p, *d_wnew, *d_wmod, *d_dwn1,  *d_wd, *d_wtemp, *d_wtemp1, *d_wtemp2);
+
+
+}//end of if(p->mode !=3)
+
+     //cudaThreadSynchronize();
      
-printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
-    cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
-    cudaMemcpy(*d_wd, *wd, NDERV*dimp*sizeof(real), cudaMemcpyHostToDevice);
 
-   // cudaMemcpy(*d_wnew, *wnew, 8*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyHostToDevice);
-    printf("here\n");
-    cudaMemcpy(*d_p, *p, sizeof(struct params), cudaMemcpyHostToDevice);
-    cudaMemcpy(*d_state, *state, sizeof(struct state), cudaMemcpyHostToDevice);
-    
-    dim3 dimBlock(16, 1);
-    //dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-    dim3 dimGrid(((*p)->n[0])/dimBlock.x,((*p)->n[1])/dimBlock.y);
-   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
-   
+//checkErrors_i("memory allocation");
 
-    printf("calling initialiser\n");
-     //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
-    // init_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
-    // init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_b);
-     init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd, *d_wtemp, *d_wtemp1, *d_wtemp2);
-     cudaThreadSynchronize();
-     
      //copy data back to cpu so we can compute and update the grid (on the cpu)
-    cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+
+ 
+    //cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+
+/*if((*p)->mode==3)
+{
+  
+  int ii[3];
+  ii[0]=0;
+  ii[1]=0;
+  ii[2]=0;
+ init_user_i(*wmod,*wd,*p,ii);
+}*/
+
+
+
+
+
+
+
+    //cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
     //setup the grid and dx values here
 
 
-    cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
+    //cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
 
 
  //initialise grid on the gpu
@@ -1294,10 +2419,18 @@ printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
   }*/
 
 	    printf("called initialiser\n");
-	cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
-
+	//cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+if((*p)->mode !=3)
+{
 	cudaMemcpy(*state, *d_state, sizeof(struct state), cudaMemcpyDeviceToHost);
         cudaMemcpy(*p, *d_p, sizeof(struct params), cudaMemcpyDeviceToHost);
+}
+
+
+//checkErrors_i("memory allocation");checkErrors_i("memory allocation");
+
+
+
 	//cudaMemcpy(*wnew, *d_wnew, NVAR*((*p)->n[0])* ((*p)->n[1])*sizeof(real), cudaMemcpyDeviceToHost);
 	//cudaMemcpy(*b, *d_b, (((*p)->n[0])* ((*p)->n[1]))*sizeof(real), cudaMemcpyDeviceToHost);
 
@@ -1311,6 +2444,50 @@ printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
 
 }
 
+
+
+
+int cuupdatemod(struct params **p, struct bparams **bp,real **w, real **wnew, real **wd, struct state **state, struct params **d_p, struct bparams **d_bp,real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
+{
+  int deviceCount;
+  int dir;
+ 
+  printf("in cuinit\n");
+ // real *adb;
+  real *adw, *adwnew;
+  struct params *adp;
+  struct bparams *adbp;
+  struct state *ads;
+
+ 
+ 
+  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
+
+   
+ #ifdef USE_SAC_3D   
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif  
+
+   int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
+   
+    printf("calling updatemod\n");
+     //init_parallel(struct params *p, real *b, real *u, real *v, real *h)
+    // init_parallel<<<dimGrid,dimBlock>>>(*d_p,*d_b,*d_u,*d_v,*d_h);
+    // init_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_b);
+     updatemod_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w, *d_wnew, *d_wmod, *d_dwn1,  *d_wd, *d_wtemp, *d_wtemp1, *d_wtemp2);
+     //cudaThreadSynchronize();
+     
+
+
+ 
+
+
+  return 0;
+}
+
+
+
+
 /*! Cartesian or polar grid. Determine x at the boundaries.
 ! Determine often needed combinations of x, such as dx or dvolume.
 ! Determine variables for axial symmetry
@@ -1319,7 +2496,7 @@ printf("allocating %d %d %d %d\n",dimp,(*p)->n[0],(*p)->n[1],(*p)->n[2]);
 ! ixf          - coordinate inside of ixe
 ! qx           - x with an extended index range for calculation of dx   */
 
-int initgrid(struct params **p, real **w, real **wnew,   struct state **state, real **wd, struct params **d_p, real **d_w, real **d_wnew, real **d_wmod, real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
+int initgrid(struct params **p,   struct state **state, real **wd, struct params **d_p,  real **d_dwn1, real **d_wd, struct state **d_state, real **d_wtemp, real **d_wtemp1, real **d_wtemp2)
 {
     real *ttemp2;
     int ii[NDIM];
@@ -1328,13 +2505,19 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
     int dir,dir1,dir2;
     int ixmin,ixmax,ixe,ixf;
     real *wda=*wd;
+    //real *wa=*wmod;
  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
+
+/*if(((*p)->ipe)==2)
+      {
+checkErrors_i("initgrid memory allocation");
+}*/
  #ifdef USE_SAC_3D
  
    dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
 #endif      
     kp=0;
-    printf("called initgrid\n");
+    //printf("called initgrid %d\n",(*p)->ipe);
     
 
     for(int i=0;i<3;i++)
@@ -1349,7 +2532,8 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
     ttemp2=(real *)malloc((NTEMP2+2)*(((*p)->n[0])+2)* (((*p)->n[1])+2)* (((*p)->n[2])+2)*sizeof(real));
     #endif
     
-   	cudaMemcpy(*w, *d_w, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+     //cudaMemcpy(*wmod, *d_wmod, NVAR*dimp*sizeof(real), cudaMemcpyDeviceToHost);
+     cudaMemcpy(*wd, *d_wd, NDERV*dimp*sizeof(real), cudaMemcpyDeviceToHost);
      for(dir=0;dir<NDIM;dir++)
      for(ii[0]=0; ii[0]<((*p)->n[0])+2; ii[0]++)
      for(ii[1]=0; ii[1]<((*p)->n[1])+2; ii[1]++)
@@ -1414,7 +2598,20 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
 		     break;			
 		     #endif
 	     }
+
+
       }	
+
+
+   /* if((*p)->ipe==3   ) 
+        for(ii[1]=1; ii[1]<((*p)->n[1])+1; ii[1]++)                                                            
+        for(ii[0]=1; ii[0]<((*p)->n[0])+1; ii[0]++)    
+           {
+                      ip=ii[0];
+                        jp=ii[1];
+                         printf("ii0, ii1 %d %d %16.20f %16.20f\n",ip,jp, ttemp2[encode3p2_i(*p,ip,jp,kpo,tmpnui)],ttemp2[(encode3p2_i(*p,ip,jp,kpo,tmpnui1))]);
+
+            }*/
 
 
   	
@@ -1428,7 +2625,12 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
 	    {
 		     case 0:
                        ixmax=((*p)->n[0])+1;//ixGmax1+1; 
-                       ixmin=((*p)->n[0])+1;//ixmin1=ixGmax1+1                      
+                       ixmin=((*p)->n[0])-1;//ixmin1=ixGmax1+1                      
+
+                      #ifdef USE_MULTIGPU
+			if(((*p)->fullgridini)==1    ||   ((*p)->mpiupperb[dir])==1) ixmin=((*p)->n[0])+1;//ixGmax1+1;
+                      #endif
+
                        ixe=ixmin-1; 
                        ixf=ixe-1;
 
@@ -1455,6 +2657,9 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
                                                        }
                                                        ii1[0]=ixe;
                                                        ii2[0]=ixf; 
+
+ 
+
                                                        ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))])-(abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
 						      //ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (wda[fencode3_i(*p,ii1,pos1+dir1)]);
 						  }
@@ -1466,7 +2671,13 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
                       //lower layers
 
                        ixmin=0;//ixmin1=ixGmin1-1;
-                       ixmax=0;//ixmax1=ixGmin1-1                   
+                       ixmax=2;//ixmax1=ixGmin1-1 
+
+                     #ifdef USE_MULTIGPU
+			if(((*p)->fullgridini)==1    ||  ((*p)->mpilowerb[dir])==1) ixmax=0;
+                      #endif
+
+                  
                        ixe=ixmax+1; 
                        ixf=ixe+1;
 
@@ -1489,10 +2700,23 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
                                                          ii2[dir2]=ii[dir2];
                                                        }
                                                        ii1[0]=ixe;
-                                                       ii2[0]=ixf; 
+                                                       ii2[0]=ixf;
+
+
+
+
+ 
     ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))])-(abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
 // ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]= (ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))])+ (ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
    // qx(ix,ixmin2:ixmax2,jdim)=(1+abs(ixe-ix))*qx(ixe,ixmin2:ixmax2,jdim)- abs(ixe-ix) *qx(ixf,ixmin2:ixmax2,jdim)
+
+
+//		if((*p)->ipe==0   && ii[1]==0) 
+//                         printf("ii0, ii1 %d %d %16.20f %16.20f %d %d %d %d %d  %d %d %d %d\n",ip,jp, ttemp2[encode3p2_i(*p,ip,jp,kpo,tmpnui)],ttemp2[(encode3p2_i(*p,ip,jp,kpo,tmpnui1))],dir1,ixe,ixf,ixmin,ixmax,ii1[0],ii1[1],ii2[0],ii2[1]);
+
+
+
+
 
 						  }
 
@@ -1500,10 +2724,13 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
 		     break;
 	
 		     case 1:
-
-
                        ixmax=((*p)->n[1])+1;//ixGmax1+1; 
-                       ixmin=((*p)->n[1])+1;//ixGmax1+1;                      
+                       ixmin=((*p)->n[1])-1;//ixmin1=ixGmax1+1                      
+
+                      #ifdef USE_MULTIGPU
+			if(((*p)->fullgridini)==1    ||  ((*p)->mpiupperb[dir])==1) ixmin=((*p)->n[1])+1;//ixGmax1+1;
+                      #endif
+                     
                        ixe=ixmin-1; 
                        ixf=ixe-1;
 
@@ -1530,6 +2757,11 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
                                                        }
                                                        ii1[1]=ixe;
                                                        ii2[1]=ixf; 
+
+
+
+
+
 						       ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))])-(abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
 						      //ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (wda[fencode3_i(*p,ii1,pos1+dir1)]);
 						  }
@@ -1541,7 +2773,12 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
                       //lower layers
 
                        ixmin=0;//ixmin1=ixGmin1-1;
-                       ixmax=0;//ixmax1=ixGmin1-1                    
+                       ixmax=2;//ixmax1=ixGmin1-1 
+
+                     #ifdef USE_MULTIGPU
+			if(((*p)->fullgridini)==1    ||  ((*p)->mpilowerb[dir])==1) ixmax=0;
+                      #endif
+                
                        ixe=ixmax+1; 
                        ixf=ixe+1;
 
@@ -1565,7 +2802,20 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
                                                        }
                                                        ii1[1]=ixe;
                                                        ii2[1]=ixf; 
+
+
+
+                                                        
+
 						       ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)]=(1+abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))])-(abs(ixe-ix))* (ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
+//write(*,*) jdim,ixe,ixf,ix,ixmin1,ixmax1,ixmin2,ixmax2, qx(ixmin1:ixmax1,ix,jdim),qx(ixmin1:ixmax1,&
+//                   ixe,jdim),qx(ixmin1:ixmax1,ixf,jdim)
+//if((*p)->ipe==0   && ii[0]==0)
+//                                                             printf("ixe, ix %d %d %d %d %d %d %16.20f %16.20f %16.20f\n",dir1,ixe,ixf,ix,ixmin,ixmax, ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)],ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))],ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
+//if((*p)->ipe==0   && ii[0]==0)
+//                                                             printf("ixe, ix %d %d %d %d %d %d %16.20f %16.20f %16.20f\n",dir1,ixe,ixf,ix,ixmin,ixmax, ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui+dir1)],ttemp2[(fencode3p2_i(*p,ii1,tmpnui+dir1))],ttemp2[(fencode3p2_i(*p,ii2,tmpnui+dir1))]);
+
+
 						  }
 
 				}
@@ -1577,10 +2827,13 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
 		         
 		     #ifdef USE_SAC_3D
 		     case 2:
-
-
                        ixmax=((*p)->n[2])+1;//ixGmax1+1; 
-                       ixmin=((*p)->n[2])+1;//ixGmax1+1;                      
+                       ixmin=((*p)->n[2])-1;//ixmin1=ixGmax1+1                      
+
+                      #ifdef USE_MULTIGPU
+			if(((*p)->mpiupperb[dir])==1) ixmin=((*p)->n[2])+1;//ixGmax1+1;
+                      #endif
+                  
                        ixe=ixmin-1; 
                        ixf=ixe-1;
 
@@ -1617,9 +2870,15 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
 
 
                       //lower layers
+                      //lower layers
 
                        ixmin=0;//ixmin1=ixGmin1-1;
-                       ixmax=0;//ixmax1=ixGmin1-1                    
+                       ixmax=2;//ixmax1=ixGmin1-1 
+
+                     #ifdef USE_MULTIGPU
+			if(((*p)->fullgridini)==1    ||  ((*p)->mpilowerb[dir])==1) ixmax=0;
+                      #endif
+                   
                        ixe=ixmax+1; 
                        ixf=ixe+1;
 
@@ -1658,7 +2917,43 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
       }	
 
 
+kp=0;
 
+     for(dir=0;dir<NDIM;dir++)
+        for(ii[0]=0; ii[0]<((*p)->n[0]); ii[0]++)
+           for(ii[1]=0; ii[1]<((*p)->n[1]); ii[1]++)
+		#ifdef USE_SAC_3D
+		   for(ii[2]=0; ii[2]<((*p)->n[2]); ii[2]++)
+		#endif
+                {
+                        ip=ii[0]+1;
+                        jp=ii[1]+1;
+         		     #ifdef USE_SAC_3D
+                       kp=ii[2]+1;
+                     #endif                   
+                       
+	    switch(dir)
+	    {
+		     case 0:
+	                 (wda[fencode3_i(*p,ii,pos1)])=ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui)];
+                      //  if(ip==1)
+                      //  printf("delx 0 %d %d %16.20f  %16.20f \n",ii[0],ii[1],wda[(encode3_i(*p,ip-1,jp-1,kp,delx1))],wda[(encode3_i(*p,ip-1,jp-1,kp,delx2))]);
+		     break;
+	
+		     case 1:
+			  (wda[(fencode3_i(*p,ii,pos2))])=ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui1)];
+//if(ip==1)
+                 //       printf("delx 1 %d %d %16.20f  %16.20f \n",ii[0],ii[1],wda[(encode3_i(*p,ip-1,jp-1,kp,delx1))],wda[(encode3_i(*p,ip-1,jp-1,kp,delx2))]);
+
+		     break;
+		         
+		     #ifdef USE_SAC_3D
+		     case 2:
+			  (wda[(fencode3_i(*p,ii,pos3))])=ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui2)];
+		     break;			
+		     #endif
+	     }
+      }	
 
 
 
@@ -1721,62 +3016,43 @@ int initgrid(struct params **p, real **w, real **wnew,   struct state **state, r
 printf("dx=%g dy=%g\n",(*p)->dx[0], (*p)->dx[1] );
 
 
-kp=0;
 
-     for(dir=0;dir<NDIM;dir++)
-        for(ii[0]=0; ii[0]<((*p)->n[0]); ii[0]++)
-           for(ii[1]=0; ii[1]<((*p)->n[1]); ii[1]++)
-		#ifdef USE_SAC_3D
-		   for(ii[2]=0; ii[2]<((*p)->n[2]); ii[2]++)
-		#endif
-                {
-                        ip=ii[0]+1;
-                        jp=ii[1]+1;
-         		     #ifdef USE_SAC_3D
-                       kp=ii[2]+1;
-                     #endif                   
-                       
-	    switch(dir)
-	    {
-		     case 0:
-	                 (wda[fencode3_i(*p,ii,pos1)])=ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui)];
-                      //  if(ip==1)
-                      //  printf("delx 0 %d %d %16.20f  %16.20f \n",ii[0],ii[1],wda[(encode3_i(*p,ip-1,jp-1,kp,delx1))],wda[(encode3_i(*p,ip-1,jp-1,kp,delx2))]);
-		     break;
-	
-		     case 1:
-			  (wda[(fencode3_i(*p,ii,pos2))])=ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui1)];
-//if(ip==1)
-                 //       printf("delx 1 %d %d %16.20f  %16.20f \n",ii[0],ii[1],wda[(encode3_i(*p,ip-1,jp-1,kp,delx1))],wda[(encode3_i(*p,ip-1,jp-1,kp,delx2))]);
-
-		     break;
-		         
-		     #ifdef USE_SAC_3D
-		     case 2:
-			  (wda[(fencode3_i(*p,ii,pos3))])=ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui2)];
-		     break;			
-		     #endif
-	     }
-      }	
 
      kp=0;
-     //for(dir=0;dir<NDIM;dir++)
-       /* for(ii[0]=0; ii[0]<((*p)->n[0])+2; ii[0]++)
-           for(ii[1]=0; ii[1]<((*p)->n[1])+2; ii[1]++)
-             {
 
-                        ip=ii[0];
-                        jp=ii[1];
-                if(ii[0]==0)
-                printf("delx 0 %d %d %16.20f  %16.20f \n",ii[0],ii[1],ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui)],ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui1)]);
+   // if((*p)->ipe==3)
+    // for(dir=0;dir<NDIM;dir++)
+//for(ii[1]=0; ii[1]<((*p)->n[1])+2; ii[1]++)
+        //for(ii[0]=0; ii[0]<((*p)->n[0])+2; ii[0]++)
+           
+            // {
 
-              }*/
+              //          ip=ii[0];
+              //          jp=ii[1];
+                //if(ii[0]==0)
+              //  printf("delx %d %d %16.20f  %16.20f  %16.20f  %16.20f \n",ii[0],ii[1],wda[(fencode3_i(*p,ii,pos1))],wda[(fencode3_i(*p,ii,pos2))],wda[(fencode3_i(*p,ii,delx1))],wda[(fencode3_i(*p,ii,delx2))]);
+//printf("ttemp2 %d %d %16.20f  %16.20f  \n",ii[0],ii[1],ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui)],ttemp2[encode3p2_i(*p,ip,jp,kp,tmpnui1)]);
+            //  }
 
-    cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
+  //  cudaMemcpy(*d_w, *w, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
+  //  cudaMemcpy(*d_wd, *wd, NDERV*dimp*sizeof(real), cudaMemcpyHostToDevice);
+
+ free(ttemp2);
+
+ 
+
+    //cudaMemcpy(*d_wmod, *wmod, NVAR*dimp*sizeof(real), cudaMemcpyHostToDevice);
     cudaMemcpy(*d_wd, *wd, NDERV*dimp*sizeof(real), cudaMemcpyHostToDevice);
+
+
+    //  
+     
+
+
+
   
 
-    free(ttemp2);
+   
   return 0;
 
 
@@ -1784,29 +3060,44 @@ kp=0;
 }
 
 
-#ifdef USE_MPI
+#ifdef USE_MULTIGPU
 
 //prepare data buffers used to copy data between gpu and cpu
 //this will update only the ghost cells transferred between the CPU's
 
 
-int cuinitmpibuffers(struct params **p,real **w, real **wmod, real **temp2, real **gmpivisc,   real **gmpiw, real **gmpiwmod, struct params **d_p,   real **d_w, real **d_wmod,real **d_wtemp2,    real **d_gmpivisc,   real **d_gmpiw, real **d_gmpiwmod)
+int cuinitmgpubuffers(struct params **p,real **w, real **wmod, real **temp2, real **gmpivisc0, real **gmpivisc1, real **gmpivisc2,   real **gmpiw0, real **gmpiwmod0,   real **gmpiw1, real **gmpiwmod1,   real **gmpiw2, real **gmpiwmod2, struct params **d_p,   real **d_w, real **d_wmod,real **d_wtemp2,    real **d_gmpivisc0,    real **d_gmpivisc1,    real **d_gmpivisc2,   real **d_gmpiw0, real **d_gmpiwmod0,   real **d_gmpiw1, real **d_gmpiwmod1,   real **d_gmpiw2, real **d_gmpiwmod2)
 {
 
-  int szw,  szvisc;
+  int szw,  szvisc0,szvisc1,szvisc2,szw0,szw1,szw2;
   #ifdef USE_SAC
-  real *dt;
+  //real *dt;
   
   szw=4*(  ((*p)->n[1])  +  ((*p)->n[0])   );
-  szvisc=4*(  (((*p)->n[1])+2 )  +  (((*p)->n[0]) +2 )  );
- dt=(real *)calloc( NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2),sizeof(real));
+  szw0=4*NDERV*(  ((*p)->n[1])     );
+  szw1=4*NDERV*(  ((*p)->n[0])     );
+
+  szvisc0=4*(  (((*p)->n[1])+2 )   );
+  szvisc1=4*(    (((*p)->n[0]) +2 )  );
+
+ //dt=(real *)calloc( NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2),sizeof(real));
 
   #endif
   #ifdef USE_SAC_3D
   
-  szw=4*NVAR*(  ((*p)->n[1])*((*p)->n[2])  +  ((*p)->n[0])*((*p)->n[2])  +  ((*p)->n[0])*((*p)->n[1])  );
-  szvisc=4*NVAR*(  (((*p)->n[1])+2)*(((*p)->n[2])+2)  +  (((*p)->n[0])+2)*(((*p)->n[2])+2)  +  (((*p)->n[0])+2)*(((*p)->n[1])+2)  );    
-  dt=(real *)calloc( NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2)* (((*p)->n[2])+2),sizeof(real));
+  szw=4*NDERV*(  ((*p)->n[1])*((*p)->n[2])  +  ((*p)->n[0])*((*p)->n[2])  +  ((*p)->n[0])*((*p)->n[1])  );
+  szw0=4*NDERV*(  ((*p)->n[1])*((*p)->n[2])    );
+  szw1=4*NDERV*(    ((*p)->n[0])*((*p)->n[2])   );
+  szw2=4*NDERV*(    ((*p)->n[0])*((*p)->n[1])  );
+
+
+
+  szvisc0=4*(  (((*p)->n[1])+2)*(((*p)->n[2])+2)  ); 
+  szvisc1=4*(   (((*p)->n[0])+2)*(((*p)->n[2])+2)    );    
+  szvisc2=4*(  (((*p)->n[1])+2)*(((*p)->n[2])+2)   );    
+
+   
+  //dt=(real *)calloc( NTEMP2*(((*p)->n[0])+2)* (((*p)->n[1])+2)* (((*p)->n[2])+2),sizeof(real));
   #endif
 
 
@@ -1814,31 +3105,57 @@ int cuinitmpibuffers(struct params **p,real **w, real **wmod, real **temp2, real
 
 
 
-  temp2=&dt;
-  gmpiwmod=(real **)malloc(szw*sizeof(real));
-  gmpiw=(real **)malloc(szw*sizeof(real));
-  gmpivisc=(real **)malloc(szvisc*sizeof(real));
-  
-  
-  cudaMalloc((void**)d_gmpiwmod, NVAR*szw*sizeof(real));
-  cudaMalloc((void**)d_gmpiw, NVAR*szw*sizeof(real));
-  cudaMalloc((void**)d_gmpivisc, szvisc*sizeof(real));
+  //temp2=&dt;
+  //gmpiwmod=(real **)malloc(szw*sizeof(real));
+  //gmpiw=(real **)malloc(szw*sizeof(real));
+
+  //gmpiwmod0=(real **)malloc(szw0*sizeof(real));
+  //gmpiw0=(real **)malloc(szw0*sizeof(real));
+  //gmpiwmod1=(real **)malloc(szw1*sizeof(real));
+  //gmpiw1=(real **)malloc(szw1*sizeof(real));
+
+  #ifdef USE_SAC_3D
+	//  gmpiwmod2=(real **)malloc(szw2*sizeof(real));
+	//  gmpiw2=(real **)malloc(szw2*sizeof(real));
+  #endif
+
+  //gmpivisc=(real **)malloc(szvisc*sizeof(real));
+	//  cudaMalloc((void**)d_gmpiwmod, szw*sizeof(real));
+	//  cudaMalloc((void**)d_gmpiw, szw*sizeof(real));
+
+
+  	  cudaMalloc((void**)d_gmpiwmod0, szw0*sizeof(real));
+	  cudaMalloc((void**)d_gmpiw0, szw0*sizeof(real));
+	  cudaMalloc((void**)d_gmpiwmod1, szw1*sizeof(real));
+	  cudaMalloc((void**)d_gmpiw1, szw1*sizeof(real));
+
+  #ifdef USE_SAC_3D  
+	  cudaMalloc((void**)d_gmpiwmod2, szw2*sizeof(real));
+	  cudaMalloc((void**)d_gmpiw2, szw2*sizeof(real));
+          cudaMalloc((void**)d_gmpivisc2, szvisc2*sizeof(real));
+  #else
+
+          cudaMalloc((void**)d_gmpivisc2, sizeof(real));
+  #endif
+          cudaMalloc((void**)d_gmpivisc0, szvisc0*sizeof(real));
+          cudaMalloc((void**)d_gmpivisc1, szvisc1*sizeof(real));
   return 0;
 }
 
 //copy gpu memory data to mpi send buffer for w and wmod
 //just update the edges of w and wmod with values copied from gmpiw, gmpiwmod and gmpivisc
-int cucopywtompiw(struct params **p,real **w, real **wmod,    real **gmpiw, real **gmpiwmod, struct params **d_p  ,real **d_w, real **d_wmod,   real **d_gmpiw, real **d_gmpiwmod, int order)
+int cucopywtompiwmod(struct params **p,real **w, real **wmod,    real **gmpiw0, real **gmpiwmod0,    real **gmpiw1, real **gmpiwmod1,    real **gmpiw2, real **gmpiwmod2, struct params **d_p  ,real **d_w, real **d_wmod,   real **d_gmpiw0, real **d_gmpiwmod0,   real **d_gmpiw1, real **d_gmpiwmod1,   real **d_gmpiw2, real **d_gmpiwmod2, int order, int idir)
 {
      int i1,i2,i3;
      int ii[NDIM];
      int var,dim,bound;
+     int szw0,szw1,szw2;
 
      int szbuf;
      int dimp=(((*p)->n[0]))*(((*p)->n[1]));
      
      
-   
+     i3=0;
      #ifdef USE_SAC_3D  
        dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
      #endif 
@@ -1849,17 +3166,191 @@ int cucopywtompiw(struct params **p,real **w, real **wmod,    real **gmpiw, real
      szbuf=2*2*( ((*p)->n[0])*((*p)->n[1])+ ((*p)->n[0])*((*p)->n[2]) + ((*p)->n[1])*((*p)->n[2])        );
      #endif
 
+
+  #ifdef USE_SAC
+  
+  szw0=4*NVAR*(  ((*p)->n[1])     );
+  szw1=4*NVAR*(  ((*p)->n[0])     );
+
+  #endif
+  #ifdef USE_SAC_3D
+  
+   szw0=4*NVAR*(  ((*p)->n[1])*((*p)->n[2])    );
+  szw1=4*NVAR*(    ((*p)->n[0])*((*p)->n[2])   );
+  szw2=4*NVAR*(    ((*p)->n[0])*((*p)->n[1])  );
+
+  #endif
+
+    //real **d_tgmpiw0;
+    //real **tgmpiw0=(real **)malloc(szw0*sizeof(real));
+    //cudaMalloc((void**)d_tgmpiw0, szw0*sizeof(real));
     // for(var=0; var<NVAR; var++)
     //   for(dim=0;dim<NDIM;dim++)
-     gputompiw_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wmod,*d_gmpiw,*d_gmpiwmod,order);
-     cudaThreadSynchronize();
-     cudaMemcpy(*gmpiwmod, *d_gmpiwmod, NVAR*szbuf*sizeof(real), cudaMemcpyDeviceToHost);
-     cudaMemcpy(*gmpiw, *d_gmpiw, NVAR*szbuf*sizeof(real), cudaMemcpyDeviceToHost);
+     gputompiwmod_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wmod,*d_gmpiw0,*d_gmpiwmod0,*d_gmpiw1,*d_gmpiwmod1,*d_gmpiw2,*d_gmpiwmod2,order,idir);
+
      
+     cudaThreadSynchronize();
+
+if(idir==0)
+{
+     cudaMemcpy(*gmpiwmod0, *d_gmpiwmod0, szw0*sizeof(real), cudaMemcpyDeviceToHost);
+
+// cudaThreadSynchronize();
+
+   //   cudaMemcpy(*gmpiw0, *d_gmpiw0, szw0*sizeof(real), cudaMemcpyDeviceToHost);
+
+
+
+
+}
+
+if(idir==1)
+{
+     cudaMemcpy(*gmpiwmod1, *d_gmpiwmod1, szw1*sizeof(real), cudaMemcpyDeviceToHost);
+   //  cudaMemcpy(*gmpiw1, *d_gmpiw1, szw1*sizeof(real), cudaMemcpyDeviceToHost);
+}
+ 
+
+//struct params *tp;     
+
+
+
+
+
+
+
+    
+
+   #ifdef USE_SAC3D
+if(idir==2)
+{
+     cudaMemcpy(*gmpiwmod2, *d_gmpiwmod2, szw2*sizeof(real), cudaMemcpyDeviceToHost);
+     //cudaMemcpy(*gmpiw2, *d_gmpiw2, szw2*sizeof(real), cudaMemcpyDeviceToHost);
+}
+   #endif 
+
+cudaThreadSynchronize();
+}
+
+
+//copy gpu memory data to mpi send buffer for w and wmod
+//just update the edges of w and wmod with values copied from gmpiw, gmpiwmod and gmpivisc
+int cucopywtompiw(struct params **p,real **w, real **wmod,    real **gmpiw0, real **gmpiwmod0,    real **gmpiw1, real **gmpiwmod1,    real **gmpiw2, real **gmpiwmod2, struct params **d_p  ,real **d_w, real **d_wmod,   real **d_gmpiw0, real **d_gmpiwmod0,   real **d_gmpiw1, real **d_gmpiwmod1,   real **d_gmpiw2, real **d_gmpiwmod2, int order, int idir)
+{
+     int i1,i2,i3;
+     int ii[NDIM];
+     int var,dim,bound;
+     int szw0,szw1,szw2;
+
+     int szbuf;
+     int dimp=(((*p)->n[0]))*(((*p)->n[1]));
+     
+     
+     i3=0;
+     #ifdef USE_SAC_3D  
+       dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+     #endif 
+     int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
+
+     szbuf=2*2*( ((*p)->n[0])+((*p)->n[1]));
+     #ifdef USE_SAC3D
+     szbuf=2*2*( ((*p)->n[0])*((*p)->n[1])+ ((*p)->n[0])*((*p)->n[2]) + ((*p)->n[1])*((*p)->n[2])        );
+     #endif
+
+
+  #ifdef USE_SAC
+  
+  szw0=4*NVAR*(  ((*p)->n[1])     );
+  szw1=4*NVAR*(  ((*p)->n[0])     );
+
+  #endif
+  #ifdef USE_SAC_3D
+  
+   szw0=4*NVAR*(  ((*p)->n[1])*((*p)->n[2])    );
+  szw1=4*NVAR*(    ((*p)->n[0])*((*p)->n[2])   );
+  szw2=4*NVAR*(    ((*p)->n[0])*((*p)->n[1])  );
+
+  #endif
+
+    //real **d_tgmpiw0;
+    //real **tgmpiw0=(real **)malloc(szw0*sizeof(real));
+    //cudaMalloc((void**)d_tgmpiw0, szw0*sizeof(real));
+    // for(var=0; var<NVAR; var++)
+    //   for(dim=0;dim<NDIM;dim++)
+     gputompiw_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wmod,*d_gmpiw0,*d_gmpiwmod0,*d_gmpiw1,*d_gmpiwmod1,*d_gmpiw2,*d_gmpiwmod2,order,idir);
+
+     
+     cudaThreadSynchronize();
+
+if(idir==0)
+{
+     //cudaMemcpy(*gmpiwmod0, *d_gmpiwmod0, szw0*sizeof(real), cudaMemcpyDeviceToHost);
+
+
+      cudaMemcpy(*gmpiw0, *d_gmpiw0, szw0*sizeof(real), cudaMemcpyDeviceToHost);
+}
+
+if(idir==1)
+{
+     //cudaMemcpy(*gmpiwmod1, *d_gmpiwmod1, szw1*sizeof(real), cudaMemcpyDeviceToHost);
+     cudaMemcpy(*gmpiw1, *d_gmpiw1, szw1*sizeof(real), cudaMemcpyDeviceToHost);
+}
+      
+    
+
+   #ifdef USE_SAC3D
+if(idir==2)
+{
+    // cudaMemcpy(*gmpiwmod2, *d_gmpiwmod2, szw2*sizeof(real), cudaMemcpyDeviceToHost);
+     cudaMemcpy(*gmpiw2, *d_gmpiw2, szw2*sizeof(real), cudaMemcpyDeviceToHost);
+}
+   #endif 
+
+cudaThreadSynchronize();
+
+
+ /*if(((*p)->ipe)==3  && ((*p)->it)==2)
+{
+
+
+       printf("%d %d \n",szw0,szw1);
+
+        for(i1=0;i1<(((*p)->n[0]));i1++ )
+                  {
+                       ii[0]=i1;
+                       ii[1]=0;
+                       bound=0;
+                       var=0;
+                            printf(" %d %d %d %lg %d \n",i1,i2,bound,(*gmpiwmod1)[encodempiw1(*p,i1,i2,i3,var,bound)],encodempiw1(*p,i1,i2,i3,var,bound));                                        
+                     ;//  (*wmod)[fencode3_i(*p,ii,var)]=(*gmpiwmod1)[encodempiw1(*p,i1,i2,i3,var,bound)];              
+                     ;//  (*w)[fencode3_i(*p,ii,var)]=(*gmpiw1)[encodempiw1(*p,i1,i2,i3,var,bound)];
+
+
+
+                  }
+         ;// printf("\n");
+}*/
+
+
+
+
+
+
+
+
+
+//encodempiw1(p,i,j,k,var,bound)]
+
+
+
+   //free(tgmpiw0);
+   //cudaFree(*d_tgmpiw0);
+//gmpiw behaving OK but cannot display or access any of the gmpiwmod variables!
+//printf("%f\n",(*gmpiwmod)[0]);
      
 //encodempiw (struct params *dp,int ix, int iy, int iz, int field,int bound,int dim)
      //copy data to correct area in w and wmod
-     for(var=0; var<NVAR; var++)
+   /*  for(var=0; var<NVAR; var++)
        for(dim=0;dim<NDIM;dim++) 
          for(bound=0;bound<4;bound++)
          {
@@ -1874,23 +3365,39 @@ int cucopywtompiw(struct params **p,real **w, real **wmod,    real **gmpiw, real
                        ii[0]=i1;
                        ii[1]=i2;
                        ii[2]=i3;                                                                     
-                       (*wmod)[fencode3_i(*p,ii,var)]=(*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)];              
-                       (*w)[fencode3_i(*p,ii,var)]=(*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)];
+                       (*wmod)[fencode3_i(*p,ii,var)]=(*gmpiwmod0)[encodempiw0(*p,i1,i2,i3,var,bound)];              
+                       (*w)[fencode3_i(*p,ii,var)]=(*gmpiw0)[encodempiw0(*p,i1,i2,i3,var,bound)];
                   }
             #else
          ii[2]=0;
-         i1=bound*(bound<2)+(((*p)->n[1])-(bound-1))*(bound>1);
+         i1=bound*(bound<2)+(((*p)->n[0])-(bound-1))*(bound>1);
          for(i2=0;i2<(((*p)->n[1]));i2++ )
                   {
                        ii[0]=i1;
                        ii[1]=i2;
+                      
 
-                       (*wmod)[fencode3_i(*p,ii,var)]=(*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)];              
-                       (*w)[fencode3_i(*p,ii,var)]=(*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)];
+
+		
+                       (*wmod)[fencode3_i(*p,ii,var)]=(*gmpiwmod0)[encodempiw0(*p,i1,i2,i3,var,bound)];  
+                      //if(encodempiw(*p,i1,i2,i3,var,bound,dim)<10)  
+                      if(var==5 && ((*p)->ipe)==0)                        
+                        printf(" %d %d %d %d actual %d  mpi data%d %g\n",i1,i2,bound,dim,var,encodempiw0(*p,i1,i2,i3,var,bound),(*gmpiwmod0)[encodempiw0(*p,i1,i2,i3,var,bound)]);
+
+                     ;// if(encodempiw(*p,i1,i2,i3,var,bound,dim)<10239 )
+                       (*w)[fencode3_i(*p,ii,var)]=(*gmpiw0)[encodempiw0(*p,i1,i2,i3,var,bound)];
                                                                      
-                      // *(wmod+encode3_i(*p,ii,var))=*(gmpiwmod+encodempiw(*p,i1,i2,i3,var,bound,dim));              
-                      // (*w)[encode3_i(*p,ii,var)]=(*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)];
-                  }            
+                      // *(wmod+encode3_i(*p,ii,var))=*(gmpiwmod0+encodempiw0(*p,i1,i2,i3,var,bound));              
+                      // (*w)[encode3_i(*p,ii,var)]=(*gmpiw0)[encodempiw0(*p,i1,i2,i3,var,bound)];
+
+                      /* if(var==4  && ((*p)->ipe)==1)
+                       {
+				(*wmod)[fencode3_i(*p,ii,var)]=0.5;
+				(*w)[fencode3_i(*p,ii,var)]=0.5;
+                       }*/
+
+
+              /*    }            
             
             #endif
                        
@@ -1904,8 +3411,8 @@ int cucopywtompiw(struct params **p,real **w, real **wmod,    real **gmpiw, real
                        ii[0]=i1;
                        ii[1]=i2;
                        ii[2]=i3;                                                                     
-                       (*wmod)[fencode3_i(*p,ii,var)]=(*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)];              
-                       (*w)[fencode3_i(*p,ii,var)]=(*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)];
+                       (*wmod)[fencode3_i(*p,ii,var)]=(*gmpiwmod1)[encodempiw1(*p,i1,i2,i3,var,bound)];              
+                       (*w)[fencode3_i(*p,ii,var)]=(*gmpiw1)[encodempiw1(*p,i1,i2,i3,var,bound)];
                   }
 
             #else
@@ -1916,8 +3423,11 @@ int cucopywtompiw(struct params **p,real **w, real **wmod,    real **gmpiw, real
                        ii[0]=i1;
                        ii[1]=i2;
                                                                      
-                       (*wmod)[fencode3_i(*p,ii,var)]=(*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)];              
-                       (*w)[fencode3_i(*p,ii,var)]=(*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)];
+                     ;//  (*wmod)[fencode3_i(*p,ii,var)]=(*gmpiwmod1)[encodempiw1(*p,i1,i2,i3,var,bound)];              
+                     ;//  (*w)[fencode3_i(*p,ii,var)]=(*gmpiw1)[encodempiw1(*p,i1,i2,i3,var,bound)];
+
+
+
                   }
             
             
@@ -1933,24 +3443,122 @@ int cucopywtompiw(struct params **p,real **w, real **wmod,    real **gmpiw, real
                        ii[0]=i1;
                        ii[1]=i2;
                        ii[2]=i3;                                                                     
-                       (*wmod)[fencode3_i(*p,ii,var)]=(*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)];              
-                       (*w)[fencode3_i(*p,ii,var)]=(*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)];
+                       (*wmod)[fencode3_i(*p,ii,var)]=(*gmpiwmod2)[encodempiw2(*p,i1,i2,i3,var,bound)];              
+                       (*w)[fencode3_i(*p,ii,var)]=(*gmpiw2)[encodempiw2(*p,i1,i2,i3,var,bound)];
                   }                            
                        break;                       
             #endif             
              }
                                      
-         }    
+         }    */
 
 }
 
+
+
+
+int cucopywdtompiwd(struct params **p,real **wd,    real **gmpiw0,    real **gmpiw1,    real **gmpiw2, struct params **d_p  ,real **d_wd,   real **d_gmpiw0,   real **d_gmpiw1,   real **d_gmpiw2, int order, int idir)
+{
+     int i1,i2,i3;
+     int ii[NDIM];
+     int var,dim,bound;
+     int szw0,szw1,szw2;
+
+     int szbuf;
+     int dimp=(((*p)->n[0]))*(((*p)->n[1]));
+     
+     
+     i3=0;
+     #ifdef USE_SAC_3D  
+       dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+     #endif 
+     int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
+
+     szbuf=2*2*( ((*p)->n[0])+((*p)->n[1]));
+     #ifdef USE_SAC3D
+     szbuf=2*2*( ((*p)->n[0])*((*p)->n[1])+ ((*p)->n[0])*((*p)->n[2]) + ((*p)->n[1])*((*p)->n[2])        );
+     #endif
+
+
+  #ifdef USE_SAC
+  
+  szw0=4*NDERV*(  ((*p)->n[1])     );
+  szw1=4*NDERV*(  ((*p)->n[0])     );
+
+  #endif
+  #ifdef USE_SAC_3D
+  
+   szw0=4*NDERV*(  ((*p)->n[1])*((*p)->n[2])    );
+  szw1=4*NDERV*(    ((*p)->n[0])*((*p)->n[2])   );
+  szw2=4*NDERV*(    ((*p)->n[0])*((*p)->n[1])  );
+
+  #endif
+
+    //real **d_tgmpiw0;
+    //real **tgmpiw0=(real **)malloc(szw0*sizeof(real));
+    //cudaMalloc((void**)d_tgmpiw0, szw0*sizeof(real));
+    // for(var=0; var<NVAR; var++)
+    //   for(dim=0;dim<NDIM;dim++)
+     gputompiwd_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_wd,*d_gmpiw0,*d_gmpiw1,*d_gmpiw2,order, idir);
+
+     
+     cudaThreadSynchronize();
+if(idir==0)
+      cudaMemcpy(*gmpiw0, *d_gmpiw0, szw0*sizeof(real), cudaMemcpyDeviceToHost);
+
+if(idir==1)
+     cudaMemcpy(*gmpiw1, *d_gmpiw1, szw1*sizeof(real), cudaMemcpyDeviceToHost);
+
+      
+    
+
+   #ifdef USE_SAC3D
+if(idir==2)
+      cudaMemcpy(*gmpiw2, *d_gmpiw2, szw2*sizeof(real), cudaMemcpyDeviceToHost);
+   #endif 
+
+cudaThreadSynchronize();
+
+
+ /*if(((*p)->ipe)==3  && ((*p)->it)==2)
+{
+
+
+       printf("%d %d \n",szw0,szw1);
+
+        for(i1=0;i1<(((*p)->n[0]));i1++ )
+                  {
+                       ii[0]=i1;
+                       ii[1]=0;
+                       bound=0;
+                       var=0;
+                            printf(" %d %d %d %lg %d \n",i1,i2,bound,(*gmpiwmod1)[encodempiw1(*p,i1,i2,i3,var,bound)],encodempiw1(*p,i1,i2,i3,var,bound));                                        
+                     ;//  (*wmod)[fencode3_i(*p,ii,var)]=(*gmpiwmod1)[encodempiw1(*p,i1,i2,i3,var,bound)];              
+                     ;//  (*w)[fencode3_i(*p,ii,var)]=(*gmpiw1)[encodempiw1(*p,i1,i2,i3,var,bound)];
+
+
+
+                  }
+         ;// printf("\n");
+}*/
+
+
+
+
+
+}
+
+
+
+
 //copy mpi recv buffer to gpu memory     
-int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw, real **gmpiwmod, struct params **d_p  ,real **d_w, real **d_wmod,   real **d_gmpiw, real **d_gmpiwmod, int order)
+int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw0, real **gmpiwmod0,    real **gmpiw1, real **gmpiwmod1,    real **gmpiw2, real **gmpiwmod2, struct params **d_p  ,real **d_w, real **d_wmod,   real **d_gmpiw0, real **d_gmpiwmod0,   real **d_gmpiw1, real **d_gmpiwmod1,   real **d_gmpiw2, real **d_gmpiwmod2, int order, int idir)
 {
        int i1,i2,i3;
      int ii[NDIM];
      int var,dim,bound;     
        int szbuf;
+     int szw0,szw1,szw2;
 
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
@@ -1964,11 +3572,29 @@ int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw, re
      #endif
         int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
 
+
+  #ifdef USE_SAC
+  
+  szw0=4*NVAR*(  ((*p)->n[1])     );
+  szw1=4*NVAR*(  ((*p)->n[0])     );
+
+  #endif
+  #ifdef USE_SAC_3D
+  
+   szw0=4*NVAR*(  ((*p)->n[1])*((*p)->n[2])    );
+  szw1=4*NVAR*(    ((*p)->n[0])*((*p)->n[2])   );
+  szw2=4*NVAR*(    ((*p)->n[0])*((*p)->n[1])  );
+
+  #endif
+
+
+
+
       //copy data from w and wmod to correct gmpiw and gmpiwmod
 
 //encodempiw (struct params *dp,int ix, int iy, int iz, int field,int bound,int dim)
      //copy data to correct area in w and wmod
-     for(var=0; var<NVAR; var++)
+   /*  for(var=0; var<NVAR; var++)
        for(dim=0;dim<NDIM;dim++) 
          for(bound=0;bound<4;bound++)
          {
@@ -1983,18 +3609,29 @@ int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw, re
                        ii[0]=i1;
                        ii[1]=i2;
                        ii[2]=i3;                                                                     
-                       (*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*wmod)[fencode3_i(*p,ii,var)];              
-                       (*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*w)[fencode3_i(*p,ii,var)];
+                       (*gmpiwmod0)[encodempiw0(*p,i1,i2,i3,var,bound)]=(*wmod)[fencode3_i(*p,ii,var)];              
+                       (*gmpiw0)[encodempiw0(*p,i1,i2,i3,var,bound)]=(*w)[fencode3_i(*p,ii,var)];
                   }
             #else
          ii[2]=0;
-         i1=bound*(bound<2)+(((*p)->n[1])-(bound-1))*(bound>1);
+         i1=bound*(bound<2)+(((*p)->n[0])-(bound-1))*(bound>1);
          for(i2=0;i2<(((*p)->n[1]));i2++ )
                   {
                        ii[0]=i1;
                        ii[1]=i2;
-                       (*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*wmod)[fencode3_i(*p,ii,var)];              
-                       (*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*w)[fencode3_i(*p,ii,var)];
+                       (*gmpiwmod0)[encodempiw0(*p,i1,i2,i3,var,bound)]=(*wmod)[fencode3_i(*p,ii,var)];  
+
+                 //   if(var==4 && ((*p)->ipe)==1) 
+                                 
+                //        printf(" %d %d %d %d actual %d  mpi data%d %g %g\n",i1,i2,bound,dim,var,encodempiw0(*p,i1,i2,i3,var,bound),(*gmpiwmod0)[encodempiw0(*p,i1,i2,i3,var,bound)],  (*wmod)[fencode3_i(*p,ii,var)] );
+            
+                       (*gmpiw0)[encodempiw0(*p,i1,i2,i3,var,bound)]=(*w)[fencode3_i(*p,ii,var)];
+
+                      //  if(var==4  && ((*p)->ipe)==1)
+                     //  {
+			//	(*gmpiwmod0)[encodempiw0(*p,i1,i2,i3,var,bound)]=0.5;
+			//	(*gmpiw0)[encodempiw0(*p,i1,i2,i3,var,bound)]=0.5;
+                      // }
 
                   }            
             
@@ -2011,8 +3648,8 @@ int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw, re
                        ii[1]=i2;
                        ii[2]=i3;  
 
-                       (*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*wmod)[fencode3_i(*p,ii,var)];              
-                       (*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*w)[fencode3_i(*p,ii,var)];
+                       (*gmpiwmod1)[encodempiw1(*p,i1,i2,i3,var,bound)]=(*wmod)[fencode3_i(*p,ii,var)];              
+                       (*gmpiw1)[encodempiw1(*p,i1,i2,i3,var,bound)]=(*w)[fencode3_i(*p,ii,var)];
 
                   }
 
@@ -2023,8 +3660,8 @@ int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw, re
                   {
                        ii[0]=i1;
                        ii[1]=i2;
-                      (*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*wmod)[fencode3_i(*p,ii,var)];              
-                       (*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*w)[fencode3_i(*p,ii,var)];      
+                      (*gmpiwmod1)[encodempiw1(*p,i1,i2,i3,var,bound)]=(*wmod)[fencode3_i(*p,ii,var)];              
+                       (*gmpiw1)[encodempiw1(*p,i1,i2,i3,var,bound)]=(*w)[fencode3_i(*p,ii,var)];      
 
                   }
             
@@ -2042,16 +3679,18 @@ int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw, re
                        ii[1]=i2;
                        ii[2]=i3; 
 
-                      (*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*wmod)[fencode3_i(*p,ii,var)];              
-                       (*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*w)[fencode3_i(*p,ii,var)];      
+                      (*gmpiwmod2)[encodempiw2(*p,i1,i2,i3,var,bound)]=(*wmod)[fencode3_i(*p,ii,var)];              
+                       (*gmpiw2)[encodempiw2(*p,i1,i2,i3,var,bound)]=(*w)[fencode3_i(*p,ii,var)];      
                     }                            
                        break;                       
             #endif             
              }
                                      
-         }    //encodempiw (struct params *dp,int ix, int iy, int iz, int field,int bound,int dim)
+         }    */
+
+//encodempiw (struct params *dp,int ix, int iy, int iz, int field,int bound,int dim)
      //copy data to correct area in w and wmod
-     for(var=0; var<NVAR; var++)
+     /*for(var=0; var<NVAR; var++)
        for(dim=0;dim<NDIM;dim++) 
          for(bound=0;bound<4;bound++)
          {
@@ -2067,20 +3706,20 @@ int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw, re
                        ii[1]=i2;
                        ii[2]=i3;     
 
-                      (*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*wmod)[fencode3_i(*p,ii,var)];              
-                       (*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*w)[fencode3_i(*p,ii,var)];      
+                      (*gmpiwmod0)[encodempiw0(*p,i1,i2,i3,var,bound)]=(*wmod)[fencode3_i(*p,ii,var)];              
+                       (*gmpiw0)[encodempiw0(*p,i1,i2,i3,var,bound)]=(*w)[fencode3_i(*p,ii,var)];      
   
                   }
             #else
          ii[2]=0;
-         i1=bound*(bound<2)+(((*p)->n[1])-(bound-1))*(bound>1);
+         i1=bound*(bound<2)+(((*p)->n[0])-(bound-1))*(bound>1);
          for(i2=0;i2<(((*p)->n[1]));i2++ )
                   {
                        ii[0]=i1;
                        ii[1]=i2;
 
-                      (*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*wmod)[fencode3_i(*p,ii,var)];              
-                       (*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*w)[fencode3_i(*p,ii,var)];      
+                      (*gmpiwmod0)[encodempiw0(*p,i1,i2,i3,var,bound)]=(*wmod)[fencode3_i(*p,ii,var)];              
+                       (*gmpiw0)[encodempiw0(*p,i1,i2,i3,var,bound)]=(*w)[fencode3_i(*p,ii,var)];      
                   }            
             
             #endif
@@ -2096,8 +3735,8 @@ int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw, re
                        ii[1]=i2;
                        ii[2]=i3; 
 
-                      (*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*wmod)[fencode3_i(*p,ii,var)];              
-                       (*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*w)[fencode3_i(*p,ii,var)];      
+                      (*gmpiwmod1)[encodempiw1(*p,i1,i2,i3,var,bound)]=(*wmod)[fencode3_i(*p,ii,var)];              
+                       (*gmpiw1)[encodempiw1(*p,i1,i2,i3,var,bound)]=(*w)[fencode3_i(*p,ii,var)];      
                    }
 
             #else
@@ -2109,8 +3748,8 @@ int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw, re
                        ii[1]=i2;
 
 
-                      (*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*wmod)[fencode3_i(*p,ii,var)];              
-                       (*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*w)[fencode3_i(*p,ii,var)];      
+                      (*gmpiwmod1)[encodempiw1(*p,i1,i2,i3,var,bound)]=(*wmod)[fencode3_i(*p,ii,var)];              
+                       (*gmpiw1)[encodempiw1(*p,i1,i2,i3,var,bound)]=(*w)[fencode3_i(*p,ii,var)];      
                   }
             
             
@@ -2128,32 +3767,215 @@ int cucopywfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw, re
                        ii[2]=i3; 
 
 
-                      (*gmpiwmod)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*wmod)[fencode3_i(*p,ii,var)];              
-                       (*gmpiw)[encodempiw(*p,i1,i2,i3,var,bound,dim)]=(*w)[fencode3_i(*p,ii,var)];      
+                      (*gmpiwmod2)[encodempiw2(*p,i1,i2,i3,var,bound)]=(*wmod)[fencode3_i(*p,ii,var)];              
+                       (*gmpiw2)[encodempiw2(*p,i1,i2,i3,var,bound)]=(*w)[fencode3_i(*p,ii,var)];      
                    }                            
                        break;                       
             #endif             
              }
                                      
-         }    
+         }  */ 
 
 
 
+if(idir==0)
+{
+   	 cudaMemcpy(*d_gmpiw0, *gmpiw0, szw0*sizeof(real), cudaMemcpyHostToDevice);     
+   	 //cudaMemcpy(*d_gmpiwmod0, *gmpiwmod0, szw0*sizeof(real), cudaMemcpyHostToDevice); 
+}
 
-   	 cudaMemcpy(*d_gmpiw, *gmpiw, NVAR*szbuf*sizeof(real), cudaMemcpyHostToDevice);     
-   	 cudaMemcpy(*d_gmpiwmod, *gmpiwmod, NVAR*szbuf*sizeof(real), cudaMemcpyHostToDevice);     
+if(idir==1)
+{
+   	 cudaMemcpy(*d_gmpiw1, *gmpiw1, szw1*sizeof(real), cudaMemcpyHostToDevice);     
+   	 //cudaMemcpy(*d_gmpiwmod1, *gmpiwmod1, szw1*sizeof(real), cudaMemcpyHostToDevice);     
+}
+    
+            #ifdef USE_SAC3D
+if(idir==2)
+{
+   	      cudaMemcpy(*d_gmpiw2, *gmpiw2, szw2*sizeof(real), cudaMemcpyHostToDevice);     
+   	     // cudaMemcpy(*d_gmpiwmod2, *gmpiwmod0, szw2*sizeof(real), cudaMemcpyHostToDevice); 
+}    
+         #endif
 
-     mpiwtogpu_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wmod,*d_gmpiw,*d_gmpiwmod);
+    //printf("call mpiwtogpu\n");
+
+     mpiwtogpu_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wmod,*d_gmpiw0,*d_gmpiwmod0,*d_gmpiw1,*d_gmpiwmod1,*d_gmpiw2,*d_gmpiwmod2,idir);
      cudaThreadSynchronize();
 }
 
-//copy gpu memory data to mpi send buffer for w and wmod
-//just update the edges of w and wmod with values copied from gmpiw, gmpiwmod and gmpivisc
-int cucopytompivisc(struct params **p,real **temp2, real **gmpivisc,  struct params **d_p,real **d_wtemp2,    real **d_gmpivisc)
+int cucopywmodfrommpiw(struct params **p,real **w, real **wmod,    real **gmpiw0, real **gmpiwmod0,    real **gmpiw1, real **gmpiwmod1,    real **gmpiw2, real **gmpiwmod2, struct params **d_p  ,real **d_w, real **d_wmod,   real **d_gmpiw0, real **d_gmpiwmod0,   real **d_gmpiw1, real **d_gmpiwmod1,   real **d_gmpiw2, real **d_gmpiwmod2, int order, int idir)
+{
+       int i1,i2,i3;
+     int ii[NDIM];
+     int var,dim,bound;     
+       int szbuf;
+     int szw0,szw1,szw2;
+
+  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
+
+
+
+real *tgmpiwmod0=*gmpiwmod0;
+real *tgmpiwmod1=*gmpiwmod1;
+ /*  if(idir==0 && (*p)->ipe==0     &&  idir==0 )
+    {
+        printf("ipe2 mpiw0 after bound \n");
+        for(int j=0; j<4;j++)
+         for(int i=0; i<((*p)->n[1]);i++)           
+             printf("%d %d %lg %lg\n",i,j, (tgmpiwmod0[4*rho*((*p)->n[0]) +i+j*((*p)->n[0])]), (tgmpiwmod1[4*rho*((*p)->n[0]) +i+j*((*p)->n[0])]));
+         printf("\n");
+     }*/
+
+
+   
+ #ifdef USE_SAC_3D  
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif      
+     szbuf=2*2*( ((*p)->n[0])+((*p)->n[1]));
+     #ifdef USE_SAC3D
+     szbuf=2*2*( ((*p)->n[0])*((*p)->n[1])+ ((*p)->n[0])*((*p)->n[2]) + ((*p)->n[1])*((*p)->n[2])        );
+     #endif
+        int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
+
+
+  #ifdef USE_SAC
+  
+  szw0=4*NVAR*(  ((*p)->n[1])     );
+  szw1=4*NVAR*(  ((*p)->n[0])     );
+
+  #endif
+  #ifdef USE_SAC_3D
+  
+   szw0=4*NVAR*(  ((*p)->n[1])*((*p)->n[2])    );
+  szw1=4*NVAR*(    ((*p)->n[0])*((*p)->n[2])   );
+  szw2=4*NVAR*(    ((*p)->n[0])*((*p)->n[1])  );
+
+  #endif
+
+
+
+
+      //copy data from w and wmod to correct gmpiw and gmpiwmod
+
+
+
+
+if(idir==0)
 {
 
 
-     int szbuf;
+
+		    i3=0;
+                   //   int bound,iside,n=0;
+                     //for(iside=0;iside<2;iside++)
+		    //for(int i1=0;i1<=1;i1++)
+		      //for(int i2=0;i2<(*p)->n[1];i2++)
+		      //{
+			//iside=0;
+                        // bound=i1+2*(iside>0);
+			 
+			//if(((*p)->ipe==0) /*&&  (*p)->it != -1     && iside==1 && (100*(p->ipe)+10*dim+iside)==101*/ )
+			//{
+                          //  printf("tini %d %d %d %lg  \n",bound,i2,i1,tgmpiwmod0[encodempiw0 (*p,i1, i2, i3, 0,bound)]);
+                            // printf(" %d %d %d   \n",bound,i2,i1);
+
+			//}
+                   //   n++;
+                    //}
+
+
+
+
+
+   	 cudaMemcpy(*d_gmpiwmod0, *gmpiwmod0, szw0*sizeof(real), cudaMemcpyHostToDevice); 
+}
+
+if(idir==1)
+{
+   	 cudaMemcpy(*d_gmpiwmod1, *gmpiwmod1, szw1*sizeof(real), cudaMemcpyHostToDevice);     
+}
+    
+            #ifdef USE_SAC3D
+if(idir==2)
+{
+   	      cudaMemcpy(*d_gmpiwmod2, *gmpiwmod0, szw2*sizeof(real), cudaMemcpyHostToDevice); 
+}    
+         #endif
+
+    //printf("call mpiwtogpu\n");
+
+     mpiwmodtogpu_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_w,*d_wmod,*d_gmpiw0,*d_gmpiwmod0,*d_gmpiw1,*d_gmpiwmod1,*d_gmpiw2,*d_gmpiwmod2,idir,order);
+     cudaThreadSynchronize();
+}
+
+
+//copy mpi recv buffer to gpu memory     
+int cucopywdfrommpiwd(struct params **p,real **wd,     real **gmpiw0,     real **gmpiw1,     real **gmpiw2,  struct params **d_p  ,real **d_wd,    real **d_gmpiw0,   real **d_gmpiw1,   real **d_gmpiw2,  int order, int idir)
+{
+       int i1,i2,i3;
+     int ii[NDIM];
+     int var,dim,bound;     
+       int szbuf;
+     int szw0,szw1,szw2;
+
+  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
+
+   
+ #ifdef USE_SAC_3D  
+  dimp=(((*p)->n[0]))*(((*p)->n[1]))*(((*p)->n[2]));
+#endif      
+     szbuf=2*2*( ((*p)->n[0])+((*p)->n[1]));
+     #ifdef USE_SAC3D
+     szbuf=2*2*( ((*p)->n[0])*((*p)->n[1])+ ((*p)->n[0])*((*p)->n[2]) + ((*p)->n[1])*((*p)->n[2])        );
+     #endif
+        int numBlocks = (dimp+numThreadsPerBlock-1) / numThreadsPerBlock;
+
+
+  #ifdef USE_SAC
+  
+  szw0=4*NDERV*(  ((*p)->n[1])     );
+  szw1=4*NDERV*(  ((*p)->n[0])     );
+
+  #endif
+  #ifdef USE_SAC_3D
+  
+   szw0=4*NDERV*(  ((*p)->n[1])*((*p)->n[2])    );
+  szw1=4*NDERV*(    ((*p)->n[0])*((*p)->n[2])   );
+  szw2=4*NDERV*(    ((*p)->n[0])*((*p)->n[1])  );
+
+  #endif
+
+
+
+
+       if(idir==0)
+   	 cudaMemcpy(*d_gmpiw0, *gmpiw0, szw0*sizeof(real), cudaMemcpyHostToDevice);     
+ 
+	if(idir==1)
+   	 cudaMemcpy(*d_gmpiw1, *gmpiw1, szw1*sizeof(real), cudaMemcpyHostToDevice);     
+
+    
+            #ifdef USE_SAC3D
+     if(idir==2)
+   	      cudaMemcpy(*d_gmpiw2, *gmpiw2, szw2*sizeof(real), cudaMemcpyHostToDevice);     
+         #endif
+
+    //printf("call mpiwtogpu\n");
+
+     mpiwdtogpu_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,0,0,*d_wd,*d_gmpiw0,*d_gmpiw1,*d_gmpiw2,idir);
+     cudaThreadSynchronize();
+}
+
+
+
+//copy gpu memory data to mpi send buffer for w and wmod
+//just update the edges of w and wmod with values copied from gmpiw, gmpiwmod and gmpivisc
+int cucopytompivisc(struct params **p,real **temp2, real **gmpivisc0, real **gmpivisc1, real **gmpivisc2,  struct params **d_p,real **d_wtemp2,    real **d_gmpivisc0,    real **d_gmpivisc1,    real **d_gmpivisc2)
+{
+
+
+     int szbuf,szbuf0,szbuf1,szbuf2;
      int dim,bound,var=0;
      int i1,i2,i3;
 
@@ -2168,17 +3990,29 @@ int cucopytompivisc(struct params **p,real **temp2, real **gmpivisc,  struct par
 
 
      szbuf=2*2*( ((*p)->n[0])+((*p)->n[1]));
+	  szbuf0=4*(  (((*p)->n[1])+2 )   );
+	  szbuf1=4*(    (((*p)->n[0]) +2 )  );
+
+
      #ifdef USE_SAC3D
      szbuf=2*2*( ((*p)->n[0])*((*p)->n[1])+ ((*p)->n[0])*((*p)->n[2]) + ((*p)->n[1])*((*p)->n[2])        );
-     #endif
-     gputompivisc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_wtemp2,*d_gmpivisc);
-     cudaThreadSynchronize();
-     cudaMemcpy(*gmpivisc, *d_gmpivisc, NVAR*szbuf*sizeof(real), cudaMemcpyDeviceToHost);
+  szbuf0=4*(  (((*p)->n[1])+2)*(((*p)->n[2])+2)  ); 
+  szbuf1=4*(   (((*p)->n[0])+2)*(((*p)->n[2])+2)    );    
+  szbuf2=4*(  (((*p)->n[1])+2)*(((*p)->n[2])+2)   );    
 
+
+     #endif
+     gputompivisc_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_wtemp2,*d_gmpivisc0,*d_gmpivisc1,*d_gmpivisc2);
+     cudaThreadSynchronize();
+     cudaMemcpy(*gmpivisc0, *d_gmpivisc0, szbuf0*sizeof(real), cudaMemcpyDeviceToHost);
+     cudaMemcpy(*gmpivisc1, *d_gmpivisc1, szbuf1*sizeof(real), cudaMemcpyDeviceToHost);
+     #ifdef USE_SAC3D
+     	cudaMemcpy(*gmpivisc2, *d_gmpivisc2, szbuf2*sizeof(real), cudaMemcpyDeviceToHost);
+     #endif
      //copy data to correct area in temp2
 //encodempiw (struct params *dp,int ix, int iy, int iz, int field,int bound,int dim)
      //copy data to correct area in w and wmod
-       for(dim=0;dim<NDIM;dim++) 
+     /*  for(dim=0;dim<NDIM;dim++) 
          for(bound=0;bound<2;bound++)
          {
             switch(dim)
@@ -2195,14 +4029,14 @@ int cucopytompivisc(struct params **p,real **temp2, real **gmpivisc,  struct par
           //temp2[encode3p2_sacmpi (p,i1, i2, i3, tmpnui)]=gmpitgtbufferr[0][i2+i3*((p->n[1])+2)];
           //temp2[encode3p2_sacmpi (p,0, i2, i3, tmpnui)]=gmpitgtbufferl[0][i2+i3*((p->n[1])+2)];
          
-                       (*temp2)[encode3p2_i(*p,i1,i2,i3,var)]=(*gmpivisc)[encodempivisc(*p,i1,i2,i3,bound,dim)];
+                       (*temp2)[encode3p2_i(*p,i1,i2,i3,var)]=(*gmpivisc0)[encodempivisc0(*p,i1,i2,i3,bound,dim)];
                   }
             #else
          i3=0;
          i1=bound*(((*p)->n[0])+1);
                   for(i2=1;i2<(((*p)->n[1])+2);i2++ )
                   {
-                       (*temp2)[encode3p2_i(*p,i1,i2,i3,var)]=(*gmpivisc)[encodempivisc(*p,i1,i2,i3,bound,dim)];
+                       (*temp2)[encode3p2_i(*p,i1,i2,i3,var)]=(*gmpivisc0)[encodempivisc0(*p,i1,i2,i3,bound,dim)];
                   }            
             
             #endif
@@ -2214,16 +4048,15 @@ int cucopytompivisc(struct params **p,real **temp2, real **gmpivisc,  struct par
          for(i1=1;i1<(((*p)->n[0])+2);i1++ )
                   for(i3=1;i3<(((*p)->n[2])+2);i3++ )
                   {
-                       (*temp2)[encode3p2_i(*p,i1,i2,i3,var)]=(*gmpivisc)[encodempivisc(*p,i1,i2,i3,bound,dim)];
+                       (*temp2)[encode3p2_i(*p,i1,i2,i3,var)]=(*gmpivisc1)[encodempivisc1(*p,i1,i2,i3,bound,dim)];
                   }
 
             #else
          i3=0;
          i2=bound*(((*p)->n[1])+1);
                   for(i1=1;i1<(((*p)->n[0])+2);i1++ )
-                  {
-                                                                     
-                       (*temp2)[encode3p2_i(*p,i1,i2,i3,var)]=(*gmpivisc)[encodempivisc(*p,i1,i2,i3,bound,dim)];
+                  {                                                       
+                       (*temp2)[encode3p2_i(*p,i1,i2,i3,var)]=(*gmpivisc1)[encodempivisc1(*p,i1,i2,i3,bound,dim)];
                   }
             
             
@@ -2235,24 +4068,24 @@ int cucopytompivisc(struct params **p,real **temp2, real **gmpivisc,  struct par
                   i3=bound*(((*p)->n[2])+1);
         for(i1=1;i1<(((*p)->n[0])+2);i1++ )
                   for(i2=1;i2<(((*p)->n[1])+2);i2++ )
-                  {
-                                                              
-                       (*temp2)[encode3p2_i(*p,i1,i2,i3,var)]=(*gmpivisc)[encodempivisc(*p,i1,i2,i3,bound,dim)];
+                  {                                                           
+                       (*temp2)[encode3p2_i(*p,i1,i2,i3,var)]=(*gmpivisc2)[encodempivisc2(*p,i1,i2,i3,bound,dim)];
                   }                            
                        break;                       
             #endif             
              }
                                      
-         }    
+         }    */
 
 }
 
 //copy mpi recv buffer to gpu memory     
-int cucopyfrommpivisc(struct params **p,real **temp2,real **gmpivisc,  struct params **d_p,real **d_wtemp2,    real **d_gmpivisc)
+int cucopyfrommpivisc(struct params **p,real **temp2,real **gmpivisc0,real **gmpivisc1,real **gmpivisc2,  struct params **d_p,real **d_wtemp2,    real **d_gmpivisc0,    real **d_gmpivisc1,    real **d_gmpivisc2)
 {
       int dim,bound,var=0;
      int i1,i2,i3;      
-       int szbuf;
+ 
+     int szbuf,szbuf0,szbuf1,szbuf2;
 
   int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
@@ -2265,12 +4098,22 @@ int cucopyfrommpivisc(struct params **p,real **temp2,real **gmpivisc,  struct pa
 
      
      szbuf=2*2*( ((*p)->n[0])+((*p)->n[1]));
+     
+ 	  szbuf0=4*(  (((*p)->n[1])+2 )   );
+	  szbuf1=4*(    (((*p)->n[0]) +2 )  );
+
      #ifdef USE_SAC3D
      szbuf=2*2*( ((*p)->n[0])*((*p)->n[1])+ ((*p)->n[0])*((*p)->n[2]) + ((*p)->n[1])*((*p)->n[2])        );
+
+     
+  szbuf0=4*(  (((*p)->n[1])+2)*(((*p)->n[2])+2)  ); 
+  szbuf1=4*(   (((*p)->n[0])+2)*(((*p)->n[2])+2)    );    
+  szbuf2=4*(  (((*p)->n[1])+2)*(((*p)->n[2])+2)   ); 
+
      #endif
 
       //copy data from temp2 to gmpivisc
-             for(dim=0;dim<NDIM;dim++) 
+        /*     for(dim=0;dim<NDIM;dim++) 
          for(bound=0;bound<2;bound++)
          {
             switch(dim)
@@ -2287,14 +4130,14 @@ int cucopyfrommpivisc(struct params **p,real **temp2,real **gmpivisc,  struct pa
           //temp2[encode3p2_sacmpi (p,i1, i2, i3, tmpnui)]=gmpitgtbufferr[0][i2+i3*((p->n[1])+2)];
           //temp2[encode3p2_sacmpi (p,0, i2, i3, tmpnui)]=gmpitgtbufferl[0][i2+i3*((p->n[1])+2)];
          
-                       (*gmpivisc)[encodempivisc(*p,i1,i2,i3,bound,dim)]=(*temp2)[encode3p2_i(*p,i1,i2,i3,var)];
+                       (*gmpivisc0)[encodempivisc0(*p,i1,i2,i3,bound,dim)]=(*temp2)[encode3p2_i(*p,i1,i2,i3,var)];
                   }
             #else
          i3=0;
          i1=bound*(((*p)->n[0])+1);
                   for(i2=1;i2<(((*p)->n[1])+2);i2++ )
                   {
-                       (*gmpivisc)[encodempivisc(*p,i1,i2,i3,bound,dim)]=(*temp2)[encode3p2_i(*p,i1,i2,i3,var)];
+                       (*gmpivisc0)[encodempivisc0(*p,i1,i2,i3,bound,dim)]=(*temp2)[encode3p2_i(*p,i1,i2,i3,var)];
                   }            
             
             #endif
@@ -2306,7 +4149,7 @@ int cucopyfrommpivisc(struct params **p,real **temp2,real **gmpivisc,  struct pa
          for(i1=1;i1<(((*p)->n[0])+2);i1++ )
                   for(i3=1;i3<(((*p)->n[2])+2);i3++ )
                   {
-                       (*gmpivisc)[encodempivisc(*p,i1,i2,i3,bound,dim)]=(*temp2)[encode3p2_i(*p,i1,i2,i3,var)];
+                       (*gmpivisc1)[encodempivisc1(*p,i1,i2,i3,bound,dim)]=(*temp2)[encode3p2_i(*p,i1,i2,i3,var)];
                   }
 
             #else
@@ -2315,7 +4158,7 @@ int cucopyfrommpivisc(struct params **p,real **temp2,real **gmpivisc,  struct pa
                   for(i1=1;i1<(((*p)->n[0])+2);i1++ )
                   {
                                                                      
-                       (*gmpivisc)[encodempivisc(*p,i1,i2,i3,bound,dim)]=(*temp2)[encode3p2_i(*p,i1,i2,i3,var)];
+                       (*gmpivisc1)[encodempivisc1(*p,i1,i2,i3,bound,dim)]=(*temp2)[encode3p2_i(*p,i1,i2,i3,var)];
                   }
             
             
@@ -2329,18 +4172,22 @@ int cucopyfrommpivisc(struct params **p,real **temp2,real **gmpivisc,  struct pa
                   for(i2=1;i2<(((*p)->n[1])+2);i2++ )
                   {
                                                               
-                       (*gmpivisc)[encodempivisc(*p,i1,i2,i3,bound,dim)]=(*temp2)[encode3p2_i(*p,i1,i2,i3,var)];
+                       (*gmpivisc2)[encodempivisc2(*p,i1,i2,i3,bound,dim)]=(*temp2)[encode3p2_i(*p,i1,i2,i3,var)];
                   }                            
                        break;                       
             #endif             
              }
                                      
-         }    
+         } */   
 
 
-   	 cudaMemcpy(*d_gmpivisc, *gmpivisc, NVAR*szbuf*sizeof(real), cudaMemcpyHostToDevice);     
+   	 cudaMemcpy(*d_gmpivisc0, *gmpivisc0, szbuf0*sizeof(real), cudaMemcpyHostToDevice);     
+   	 cudaMemcpy(*d_gmpivisc1, *gmpivisc1, szbuf1*sizeof(real), cudaMemcpyHostToDevice);
+       #ifdef USE_SAC3D    
+   	 cudaMemcpy(*d_gmpivisc2, *gmpivisc2, szbuf2*sizeof(real), cudaMemcpyHostToDevice); 
+       #endif    
 
-     mpivisctogpu_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_wtemp2,*d_gmpivisc);
+     mpivisctogpu_parallel<<<numBlocks, numThreadsPerBlock>>>(*d_p,*d_wtemp2,*d_gmpivisc0,*d_gmpivisc1,*d_gmpivisc2);
      cudaThreadSynchronize();
 }
 
