@@ -1,0 +1,50 @@
+#make include file for building StarSimulation IoSimTestSimple on Felix
+# Standard defines:
+#CC  	=	g++
+CC  	=	mpiCC
+NVCC  	=	nvcc
+FF  	=	gfortran
+LD  	=	g++
+HOMEV	=	..
+VPATH	=	$(HOMEV)/include
+oDir	=	.
+Bin	=	../bin
+obj	=	../obj
+MYLIBS  =
+BASE = /usr/local/dx
+incDirs = -I$(BASE)/include   -I/usr/local/include 
+
+
+LD_FLAGS =	-g
+
+
+
+#use -DUSE_IOME to enable IOME
+#CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DUSE_SHOCKVISC  -DADIABHYDRO -DUSE_VAC -DD1D -DUSE_IOME -DUSE_USERSOURCE -DUSE_SAC_3D -DUSE_DORDER3
+
+CCFLAGS = -DUSE_SAC -DD1D -DUSE_MULTIGPU -DUSE_MPI
+
+
+
+LIBS	=	 -L../lib -L/usr/local/lib -lm 
+
+##C_FLAGS	= -g -Dlinux -DBASE=\"$(BASE)\"  -DIO_FORTRAN $(incDirs) $(IOME_C_FLAGS)
+C_FLAGS	= -O4 -Dlinux -DBASE=\"$(BASE)\"  -DIO_FORTRAN $(incDirs) 
+
+
+
+SRCS	=\
+	IoSimTestSimple.cpp
+
+#INCLUDES = ../IoUtils/vec.h ../IoUtils/IoPropertyManager.h
+
+INCLUDES = $(IOME_INLUDES)
+
+
+BASICEXOBJS	=\
+	iosmaugutils.o\
+	initialisation.o\
+	dxroutines.o\
+	readwrite.o\
+
+
