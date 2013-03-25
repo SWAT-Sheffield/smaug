@@ -121,7 +121,10 @@ if(argc>1)
 
 	//adopt the sac MPI naming convention append the file name npXXYY where XX and YY are the
 	//number of processors in the x and y directions
+        
 	#ifdef USE_MPI
+        if(mode != init)
+        {
 	     #ifdef USE_SAC3D
 		      if(p->ipe>99)
 			sprintf(configinfile,"%s_np%d%d%d_%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->pnpe[2],p->ipe,ext);
@@ -137,6 +140,7 @@ if(argc>1)
 		      else
 			sprintf(configinfile,"%s_np0%d0%d_00%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->ipe,ext);  	     	     
 	     #endif
+        }
 	#endif
 
 	//if doing a scatter or gather set the domain size correctly
@@ -251,7 +255,7 @@ char *method=NULL;
   	printf("Creating arrays on the host\n");
 
        #ifdef USE_MULTIGPU
-       if(mode==0)
+       if(mode==run)
        {
 		if((p->pipe[0])==0) (p->n[0])+=ngi;
 		if((p->pipe[0])==((p->pnpe[0])-1)) (p->n[0])+=ngi;

@@ -364,12 +364,12 @@ void initialisation_user1(real *w, real *wd, struct params *p) {
                     
 int ntt=-1;
 int count;	
-        real h,rho0, TT0;
+        real h,rho0, TT0,p0;
         int i,j,k;
         int n1,n2;
         int ip,ipp;
         int ii[3];
-        char st1[200],st2[200],st3[200];
+        char st1[200],st2[200],st3[200],st4[200];
 
         real x,y,z;
         //FILE *fatmos;
@@ -400,12 +400,13 @@ int count;
           ii[1]=n2/2;
 	  ii[2]=0;
 
-          real *T, *lambda;
+          real *T, *lambda, *presval;
           real **pres,**prese,**dbzdx,**dbxdx,**dbzdz,**dbxdz,**bsq,**dbsq,**dpdz;
           
 
           T=(real *)calloc(n1,sizeof(real));
           lambda=(real *)calloc(n1,sizeof(real));
+          presval=(real *)calloc(n1,sizeof(real));
 
 	  pres=(real **)calloc(n1,sizeof(real *));
           prese=(real **)calloc(n1,sizeof(real *));
@@ -420,7 +421,7 @@ int count;
 
           //read the atmosphere file
           //FILE *fatmos=fopen("/data/cs1mkg/smaug_spicule1/atmosphere/VALMc_rho_8184.dat","r");
-          FILE *fatmos=fopen("/data/cs1mkg/smaug_spicule1/atmosphere/VALMc_rho_2048_test.dat","r");
+          FILE *fatmos=fopen("/data/cs1mkg/smaugutils/atmosphere/VALMc_rho_1024_test.dat","r");
 //FILE *fatmos=fopen("test.dat","r");
 
 
@@ -441,20 +442,21 @@ int count;
 h=atof(st1);
 rho0=atof(st3);
 TT0=atof(st2);
+p0=atof(st4);
 printf("vars %g %g %g\n",h,TT0,rho0);
 
 
 #ifdef USE_MULTIGPU
-	if(p->ipe>3) 
-	  ip=(p->ipe)-4;
+	if(p->pnpe[0]>1) 
+	  ip=(p->pipe[p->ipe])+1;
 	else
-	  ip=(p->ipe);
+	  ip=(p->pipe[p->ipe]);
 		 //atmosphere stored from top of corona to photosphere!
 		  //skip the first few fields 
-		  for(ipp=3; ipp>ip; ipp--)
+		  for(ipp=1; ipp<ip; ipp++)
 		       for(i=0; i<p->n[0]; i++)
 		       {
-		         fscanf(fatmos, " %s %s %s %n", st1, st2,st3,&ntt);
+		         fscanf(fatmos, " %s %s %s %s %n", st1, st2,st3,st4,&ntt);
 		        //if(p->ipe==1)
 		    
 		      }
@@ -462,7 +464,7 @@ printf("vars %g %g %g\n",h,TT0,rho0);
 
 
 
-          for(i=((p->n[0])-1); i>=0; i--)
+          for(i=0; i<((p->n[0])); i++)
           {
             ii[0]=i;
             //fscanf(fatmos, "%g %g", &h, &rho0);
@@ -471,6 +473,7 @@ printf("vars %g %g %g\n",h,TT0,rho0);
 		rho0=atof(st3);
                 TT0=atof(st2);
                 T[i]=TT0;
+                presval[i]=atof(st4);
                 
 		 for(j=0; j<p->n[1]; j++)
 		#ifdef USE_SAC_3D
