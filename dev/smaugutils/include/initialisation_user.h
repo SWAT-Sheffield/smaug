@@ -363,10 +363,11 @@ void temp(real *w, real *wd,int *ii, struct params *p, real *T)
 void initialisation_user1(real *w, real *wd, struct params *p) {
                     
 int ntt=-1;
-int count;	
+int count;
+int nh;	
         real h,rho0, TT0,p0;
         int i,j,k;
-        int n1,n2;
+        int n1,n2,n3;
         int ip,ipp;
         int ii[3];
         char st1[200],st2[200],st3[200],st4[200];
@@ -394,8 +395,8 @@ int count;
           y=i*(p->dx[1]);
           z=i*(p->dx[2]);*/
 
-          n1=p->n[0];
-          n2=p->n[1];
+          n1=(p->n[0]);///(p->pnpe[0]);
+          n2=p->n[1];///(p->pnpe[1]);
           ii[0]=n1/2;
           ii[1]=n2/2;
 	  ii[2]=0;
@@ -421,7 +422,7 @@ int count;
 
           //read the atmosphere file
           //FILE *fatmos=fopen("/data/cs1mkg/smaug_spicule1/atmosphere/VALMc_rho_8184.dat","r");
-          FILE *fatmos=fopen("/data/cs1mkg/smaugutils/atmosphere/VALMc_rho_1024_test.dat","r");
+          FILE *fatmos=fopen("/data/cs1mkg/smaugutils/atmosphere/VALMc_rho_1020_test.dat","r");
 //FILE *fatmos=fopen("test.dat","r");
 
 
@@ -447,37 +448,51 @@ printf("vars %g %g %g\n",h,TT0,rho0);
 
 
 #ifdef USE_MULTIGPU
-	if(p->pnpe[0]>1) 
+	/*if(p->pnpe[0]>1) 
 	  ip=(p->pipe[p->ipe])+1;
 	else
-	  ip=(p->pipe[p->ipe]);
+	  ip=(p->pipe[p->ipe]);*/
+
+        ipe2iped(p);
+        ip=1+(p->pipe[0]);
+
+
+
 		 //atmosphere stored from top of corona to photosphere!
 		  //skip the first few fields 
+                printf("%d %d %d\n",p->ipe,p->pipe[0],ip);
 		  for(ipp=1; ipp<ip; ipp++)
-		       for(i=0; i<p->n[0]; i++)
+                  //if(  (p->ipe)==1  || (p->ipe)==3 )
+                  {
+                      //printf("%d %d\n",p->ipe,p->pipe[0]);
+		       for(i=0; i<n1; i++)
 		       {
-		         fscanf(fatmos, " %s %s %s %s %n", st1, st2,st3,st4,&ntt);
+		         
+                          fscanf(fatmos, " %s %s %s %s %n", st1, st2,st3,st4,&ntt);
 		        //if(p->ipe==1)
 		    
 		      }
+                  }
 #endif
 
 
 
-          for(i=0; i<((p->n[0])); i++)
+          for(i=0; i<((n1)); i++)
           {
             ii[0]=i;
             //fscanf(fatmos, "%g %g", &h, &rho0);
-            fscanf(fatmos, " %s %s %s %n", st1, st2, st3,&ntt);
+            fscanf(fatmos, " %s %s %s %s %n", st1, st2, st3, st4,&ntt);
 		h=atof(st1);
 		rho0=atof(st3);
                 TT0=atof(st2);
                 T[i]=TT0;
                 presval[i]=atof(st4);
                 
-		 for(j=0; j<p->n[1]; j++)
+//if(p->ipe==1)
+//       printf("%d %g %g \n",i, h,rho0);
+		 for(j=0; j<n2; j++)
 		#ifdef USE_SAC_3D
-		 for(k=0; k<p->n[2]; k++)
+		 for(k=0; k<n3; k++)
                 #endif
                  {
                      ii[1]=j;
@@ -512,7 +527,8 @@ printf("vars %g %g %g\n",h,TT0,rho0);
 	   for(i=0;i<=n1-1;i++)	
             {
 		//prese[i][j]=-ggg*lambda[i]*w[encode3_uin(p,i,j,ii[2],rhob)];
-                prese[i][j]=w[encode3_uin(p,i,j,ii[2],rhob)]*T[i]*R/mut;
+                //prese[i][j]=w[encode3_uin(p,i,j,ii[2],rhob)]*T[i]*R/mut;
+                prese[i][j]=presval[i];
                //if(j==0) printf("pres %d %g %g\n", i,T[i],prese[i][j]);
 
              }
@@ -634,6 +650,7 @@ printf("compute energy and bfields to background\n");
          free(lambda);
          free(prese);
          free(pres);
+         free(presval);
 	//free(dbsq);
 	//free(bsq);
 	free(dpdz);

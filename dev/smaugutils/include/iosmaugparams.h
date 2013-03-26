@@ -10,12 +10,12 @@ int ngk=2;
 #ifdef USE_SAC
 //vac ozt
 int ni;
-ni=1020;    //OZT tests
+ni=506;    //OZT tests
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
-real xmax=5994157.7e0;
-real xmin=17526.777;
+real xmax=5994123.4e0;
+real xmin=5876.5916;
 real dx = (xmax-xmin)/(ni);
 #endif
 
@@ -24,7 +24,7 @@ real dx = (xmax-xmin)/(ni);
 // Define the y domain
 #ifdef USE_SAC
 //vac ozt
-int nj = 1020;  //OZT tests
+int nj = 506;  //OZT tests
 //int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
@@ -71,7 +71,7 @@ int finishsteering=0;
 
 //char *cfgfile="zero1_np020203.ini";
 //char *cfgfile="zero1_np0201.ini";
-char *cfgfile="2D_spicule1_2048_1024_asc.ini";
+char *cfgfile="2D_spicule1_1020_1020_asc.ini";
 //char *cfgfile="2D_spicule1_2048_1024_test_asc.ini";
 //char *cfgfile="2D_spiculemuraw1_nohydros_nobg_tube_2048_1024_asc.o";
 //char *cfgfile="2D_spiculemuraw1_nohydros_tube_2048_1024_asc.out";

@@ -133,11 +133,13 @@ plot, harrVALMc/1.0e6, alog10(parrVALMc), charsize=1.5, title='log p VALIIIC McW
 nvaldata=252
 nvaldata=2052
 ;nvaldata=8188
-nvaldata=1028
+;nvaldata=1028
+nvaldata=1024
 hmax=2.6e3*1000.d0
 hmax=6.0e3*1000.d0
-;hmax=24.0e3*1000.d0
-x=findgen(nvaldata)*hmax/(nvaldata-1)
+;hmax=24.0e3*1000.d0;
+;x=findgen(nvaldata)*hmax/(nvaldata-1)
+x=findgen(nvaldata)*hmax/(nvaldata-3)
 
 rhoarrVALMc = INTERPOL(alog10(rhoarrVALMc), alog10(harrVALMc), alog10(x));, /spline)
 TarrVALMc = INTERPOL(alog10(TarrVALMc), alog10(harrVALMc), alog10(x));, /spline)
@@ -165,10 +167,11 @@ oplot, alog10(rhoarrVALMc), psym=4
 ;openw, 11, 'VALMc_rho_248.dat'
 ;openw, 11, 'VALMc_rho_2048_test.dat'
 ;openw, 11, 'VALMc_rho_8184.dat'
-openw, 11, 'VALMc_rho_1024_test.dat'
+;openw, 11, 'VALMc_rho_1024_test.dat'
+openw, 11, 'VALMc_rho_1020_test.dat'
 
  ;for i=nvaldata-2,3,-1 do begin
- for i=3,nvaldata-2 do begin
+ for i=1,nvaldata-4 do begin
 
    		printf, 11, x(i), TarrVALMc[i], rhoarrVALMc[i],parrVALMc[i]
 	;	printf, 11, x(i), rhoarrVALMc[i]		;
