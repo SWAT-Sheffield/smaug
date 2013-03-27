@@ -30,7 +30,7 @@ spiculejet1:
 
 spicule1:
 	cp ../models/iosmaugparams.h.spicule1 ../include/iosmaugparams.h
-	cp ../models/initialisation_user.h.default ../include/initialisation_user.h
+	cp ../models/initialisation_user.h.spicule1 ../include/initialisation_user.h
 spicule1_mpi:
 	cp ../models/iosmaugparams.h.spicule1_mpi ../include/iosmaugparams.h
 	cp ../models/initialisation_user.h.spicule1_mpi ../include/initialisation_user.h

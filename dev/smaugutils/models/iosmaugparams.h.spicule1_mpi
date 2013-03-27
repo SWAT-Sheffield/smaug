@@ -10,14 +10,12 @@ int ngk=2;
 #ifdef USE_SAC
 //vac ozt
 int ni;
-ni=8188;    //OZT tests
+ni=506;    //OZT tests
 ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
-//real xmax=5997074.6e0;
-real xmax=23997069.0e0;
-//real xmin=8776.2067;
-real xmin=8794.4302;
+real xmax=5994123.4e0;
+real xmin=5876.5916;
 real dx = (xmax-xmin)/(ni);
 #endif
 
@@ -26,14 +24,13 @@ real dx = (xmax-xmin)/(ni);
 // Define the y domain
 #ifdef USE_SAC
 //vac ozt
-int nj = 252;  //OZT tests
+int nj = 506;  //OZT tests
 //int nj=2;  //BW test
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
-//real ymax = 4.0e6;
-real ymax = 7953023.2e0;
-real ymin=0;
+real ymax = 4.0e6;
+real ymin=1953.10;
 real dy = ymax/(nj);    
 //nj=41;
 #endif
@@ -74,7 +71,8 @@ int finishsteering=0;
 
 //char *cfgfile="zero1_np020203.ini";
 //char *cfgfile="zero1_np0201.ini";
-char *cfgfile="2D_spicule_tube_8184_2044_asc.ini";
+char *cfgfile="2D_spicule1_1020_1020_asc.ini";
+//char *cfgfile="2D_spicule1_2048_1024_test_asc.ini";
 //char *cfgfile="2D_spiculemuraw1_nohydros_nobg_tube_2048_1024_asc.o";
 //char *cfgfile="2D_spiculemuraw1_nohydros_tube_2048_1024_asc.out";
 //char *cfgfile="2D_spiculemuraw1_tube_2048_1024_asc.out";
@@ -87,13 +85,13 @@ char *cfgfile="2D_spicule_tube_8184_2044_asc.ini";
 //char *cfgout="/fastdata/cs1mkg/smaug/spicule_nohydros/zerospic1";
 //char *cfgout="/fastdata/cs1mkg/smaug/spicule2/zerospic1";
 //char *cfgout="/fastdata/cs1mkg/smaug/spicule3/zerospic1";
-char *cfgout="/fastdata/cs1mkg/smaug/spicule1/zerospic1_.out";
-char *cfggathout="out/zero1_.out";
+//char *cfgout="/fastdata/cs1mkg/smaug/spicule4_nob/zerospic1";
+char *cfgout="/fastdata/cs1mkg/smaug/spicule7_nob/zerospic1";
 //char *cfgout="zero1_np0201.out";
 
 #ifdef USE_SAC
 dt=0.0018;  //OZT test
-dt=0.0125;
+dt=0.001;
 #endif
 
 
@@ -101,8 +99,9 @@ dt=0.0125;
 //nt=5000;
 //nt=200000;
 //nt=150000;
-nt=101;
+nt=1200000;
 //nt=10000;
+
 
 
 real *t=(real *)calloc(nt,sizeof(real));
@@ -161,7 +160,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=1.0;
 p->readini=1.0;
-p->cfgsavefrequency=10;
+p->cfgsavefrequency=500;
 //p->cfgsavefrequency=10;
 
 p->xmax[0]=xmax;
@@ -195,8 +194,8 @@ p->chyp[rho]=0.02;
 
 #ifdef USE_MPI
 //number of procs in each dim mpi only
-p->pnpe[0]=1;
-p->pnpe[1]=8;
+p->pnpe[0]=2;
+p->pnpe[1]=2;
 p->pnpe[2]=1;
 #endif
 
@@ -205,24 +204,15 @@ iome elist;
 meta meta;
 
 //set boundary types
-
-for(int ii=0; ii<NVAR; ii++)
+for(int ii=0;ii<NVAR; ii++)
 for(int idir=0; idir<NDIM; idir++)
 for(int ibound=0; ibound<2; ibound++)
 {
- (p->boundtype[ii][idir][ibound])=0;   
-  //(p->boundtype[ii][idir][ibound])=0;  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
+   (p->boundtype[ii][idir][ibound])=5;  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
 }
 
 
-//fixed BC's in y direction
-for(int ii=0; ii<NVAR; ii++)
-for(int ibound=0; ibound<2; ibound++)
-{
- int idir=0;
- (p->boundtype[ii][idir][ibound])=5;   
-  //(p->boundtype[ii][idir][ibound])=0;  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
-}
+
 
 
 
@@ -248,9 +238,9 @@ strcpy(meta.name,"test1");
 strcpy(meta.ini_file,"test1.ini");
 strcpy(meta.log_file,"test1.log");
 strcpy(meta.out_file,"test1.out");
+strcpy(elist.server,"localhost1");
 
-	strcpy(elist.server,"localhost1");
-	elist.port=80801;
-	elist.id=0;
+elist.port=80801;
+elist.id=0;
 
 

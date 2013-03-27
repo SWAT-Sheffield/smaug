@@ -362,13 +362,15 @@ void temp(real *w, real *wd,int *ii, struct params *p, real *T)
 
 void initialisation_user1(real *w, real *wd, struct params *p) {
                     
-	
-        real h,rho0;
+int ntt=-1;
+int count;
+int nh;	
+        real h,rho0, TT0,p0;
         int i,j,k;
-        int n1,n2;
+        int n1,n2,n3;
         int ip,ipp;
         int ii[3];
-        char st1[100],st2[100];
+        char st1[200],st2[200],st3[200],st4[200];
 
         real x,y,z;
         //FILE *fatmos;
@@ -379,6 +381,7 @@ void initialisation_user1(real *w, real *wd, struct params *p) {
        real gamma=1.66666667;
 	real ggg=-274.0;
        real mu=4.0*PI/1.0e7;
+       real mut=1.2;  //maybe mut = 0.6?
 	real bzero=1.0e0;// bfield in tesla
 	real bscale=0.5e6;
 	real zr=0.5e6;
@@ -392,35 +395,96 @@ void initialisation_user1(real *w, real *wd, struct params *p) {
           y=i*(p->dx[1]);
           z=i*(p->dx[2]);*/
 
-          n1=p->n[0];
-          n2=p->n[1];
+          n1=(p->n[0]);///(p->pnpe[0]);
+          n2=p->n[1];///(p->pnpe[1]);
           ii[0]=n1/2;
           ii[1]=n2/2;
 	  ii[2]=0;
 
-          real *T, *lambda;
+          real *T, *lambda, *presval;
           real **pres,**prese,**dbzdx,**dbxdx,**dbzdz,**dbxdz,**bsq,**dbsq,**dpdz;
           
 
           T=(real *)calloc(n1,sizeof(real));
           lambda=(real *)calloc(n1,sizeof(real));
+          presval=(real *)calloc(n1,sizeof(real));
 
 	  pres=(real **)calloc(n1,sizeof(real *));
           prese=(real **)calloc(n1,sizeof(real *));
+          dpdz=(real **)calloc(n1,sizeof(real *));
           for(i=0;i<n1;i++)
           {
             prese[i]=(real *)calloc(n2,sizeof(real));
 	    pres[i]=(real *)calloc(n2,sizeof(real));
+            dpdz[i]=(real *)calloc(n2,sizeof(real));
+          }
+          printf("open atmosphere file");
+
+          //read the atmosphere file
+          //FILE *fatmos=fopen("/data/cs1mkg/smaug_spicule1/atmosphere/VALMc_rho_8184.dat","r");
+          FILE *fatmos=fopen("/data/cs1mkg/smaugutils/atmosphere/VALMc_rho_1020_test.dat","r");
+
+h=atof(st1);
+rho0=atof(st3);
+TT0=atof(st2);
+p0=atof(st4);
+printf("vars %g %g %g\n",h,TT0,rho0);
+
+
+#ifdef USE_MULTIGPU
+
+        ipe2iped(p);
+        ip=1+(p->pipe[0]);
+
+
+
+		 //atmosphere stored from top of corona to photosphere!
+		  //skip the first few fields 
+                printf("%d %d %d\n",p->ipe,p->pipe[0],ip);
+		  for(ipp=1; ipp<ip; ipp++)
+		       for(i=0; i<n1; i++)
+                          fscanf(fatmos, " %s %s %s %s %n", st1, st2,st3,st4,&ntt);
+
+
+#endif
+
+
+
+          for(i=0; i<((n1)); i++)
+          {
+            ii[0]=i;
+            //fscanf(fatmos, "%g %g", &h, &rho0);
+            fscanf(fatmos, " %s %s %s %s %n", st1, st2, st3, st4,&ntt);
+		h=atof(st1);
+		rho0=atof(st3);
+                TT0=atof(st2);
+                T[i]=TT0;
+                presval[i]=atof(st4);
+                
+//if(p->ipe==1)
+//       printf("%d %g %g \n",i, h,rho0);
+		 for(j=0; j<n2; j++)
+		#ifdef USE_SAC_3D
+		 for(k=0; k<n3; k++)
+                #endif
+                 {
+                     ii[1]=j;
+                     ii[2]=k;
+                     w[encode3_uin(p,ii[0],ii[1],ii[2],rhob)]=rho0;
+                 }
           }
 
-          temp(w, wd,ii, p,T);
-	  for( int i=0;i<p->n[0];i++) 
-              lambda[i]=-R*T[i]/ggg; //-ve sign because ggg is -ve
+          fclose(fatmos);
 
-	printf("Computing pressure\n");
-	for(j=0;j<=n2-1;j++)
-	   for(i=0;i<=n1-1;i++)	
-		prese[i][j]=ggg*lambda[i]*w[encode3_uin(p,i,j,ii[2],rhob)];
+
+          //temp(w, wd,ii, p,T);
+	  //for( int i=0;i<p->n[0];i++) 
+          //    lambda[i]=-R*T[i]/ggg; //-ve sign because ggg is -ve
+
+
+
+
+        //compute b-field components
 
 	printf("compute fields\n");
 	for(j=0;j<=n2-1;j++)
@@ -433,143 +497,39 @@ void initialisation_user1(real *w, real *wd, struct params *p) {
 
 
 
-          bsq=(real **)calloc(n1,sizeof(real *));
-          dbsq=(real **)calloc(n1,sizeof(real *));
-          dbzdx=(real **)calloc(n1,sizeof(real *));
-          dbxdx=(real **)calloc(n1,sizeof(real *));
-          dbzdz=(real **)calloc(n1,sizeof(real *));
-          dbxdz=(real **)calloc(n1,sizeof(real *));
-          dpdz=(real **)calloc(n1,sizeof(real *));
-          for(i=0;i<n1;i++)
-          {
-            dbsq[i]=(real *)calloc(n2,sizeof(real));
-            bsq[i]=(real *)calloc(n2,sizeof(real));
-            dbzdx[i]=(real *)calloc(n2,sizeof(real));
-            dbxdx[i]=(real *)calloc(n2,sizeof(real));
-            dbzdz[i]=(real *)calloc(n2,sizeof(real));
-            dbxdz[i]=(real *)calloc(n2,sizeof(real));
-            dpdz[i]=(real *)calloc(n2,sizeof(real));
-          }
 
 
 
-printf("compute bsq\n");
+
+	printf("Computing pressure\n");
 	for(j=0;j<=n2-1;j++)
-	   for(i=0;i<=n1-1;i++)
-           {
-		bsq[i][j]=w[encode3_uin(p,i,j,ii[2],b1)]*w[encode3_uin(p,i,j,ii[2],b1)]+w[encode3_uin(p,i,j,ii[2],b2)]*w[encode3_uin(p,i,j,ii[2],b2)];
-		w[encode3_uin(p,i,j,ii[2],rho)]=0.0;
-		w[encode3_uin(p,i,j,ii[2],mom1)]=0.0;
-		w[encode3_uin(p,i,j,ii[2],mom2)]=0.0;
-                dpdz[i][j]=0.0;
-                dbsq[i][j]=0.0;
-		dbzdx[i][j]=0.0;
-		dbzdz[i][j]=0.0;
-		dbxdx[i][j]=0.0;
-		dbxdz[i][j]=0.0;
-                pres[i][j]=0.0;
-            }
+	   for(i=0;i<=n1-1;i++)	
+            {
+		//prese[i][j]=-ggg*lambda[i]*w[encode3_uin(p,i,j,ii[2],rhob)];
+                //prese[i][j]=w[encode3_uin(p,i,j,ii[2],rhob)]*T[i]*R/mut;
+                prese[i][j]=presval[i];
+               //if(j==0) printf("pres %d %g %g\n", i,T[i],prese[i][j]);
 
-printf("compute derivative\n");
-	for(j=0;j<=n2-1;j++)
-	   for(i=0;i<=n1-1;i++)
-           {
-		  ii[0]=i;
-		  ii[1]=j;
-		  dbsq[i][j]=grad3dngen_uin(bsq, wd,p,ii,0);
-
-                  dbzdz[i][j]=grad3dn_uin(w, wd,p,ii,b1,0);
-                  dbzdx[i][j]=grad3dn_uin(w, wd,p,ii,b1,1);
-                  dbxdz[i][j]=grad3dn_uin(w, wd,p,ii,b2,0);
-                  dbxdx[i][j]=grad3dn_uin(w, wd,p,ii,b2,1);
-
-                  dpdz[i][j]=ggg*w[encode3_uin(p,i,j,ii[2],rho)]-w[encode3_uin(p,i,j,ii[2],b1)]*dbzdz[i][j]-w[encode3_uin(p,i,j,ii[2],b2)]*dbzdx[i][j]-dbsq[i][j]/2;
-	   }
+             }
 
 
 
-          //read the atmosphere file
-          FILE *fatmos=fopen("/data/cs1mkg/smaug_spicule1/atmosphere/VALMc_rho_8184.dat","r");
-int ntt=-1;
-int count;
-//if(p->ipe==0)
-//{
-//fatmos=fopen("test.dat","r");
-//fprintf(fatmos,"%f %f\n",1.3,1.4);
-//rewind(fatmos);
-count=fscanf(fatmos, " %s %s %n", st1, st2,&ntt);
 
-//freadl_ui(fatmos,&inbuf);
-printf("fatmos ipe=%d  %s %s %d\n",p->ipe,st1,st2,count);
-h=atof(st1);
-rho0=atof(st2);
-printf("vars %g %g\n",h,rho0);
-
-
-
-if(p->ipe>3) 
-  ip=(p->ipe)-4;
-else
-  ip=(p->ipe);
-         //atmosphere stored from top of corona to photosphere!
-          //skip the first few fields 
-          for(ipp=3; ipp>ip; ipp--)
-               for(i=0; i<p->n[0]; i++)
-               {
-                 fscanf(fatmos, " %s %s %n", st1, st2,&ntt);
-                //if(p->ipe==1)
-            
-              }
-
-          for(i=((p->n[0])-1); i>=0; i--)
-          {
-            ii[0]=i;
-            //fscanf(fatmos, "%g %g", &h, &rho0);
-            fscanf(fatmos, " %s %s %n", st1, st2,&ntt);
-		h=atof(st1);
-		rho0=atof(st2);
-		 for(j=0; j<p->n[1]; j++)
-		#ifdef USE_SAC_3D
-		 for(k=0; k<p->n[2]; k++)
-                #endif
-                 {
-                     ii[1]=j;
-                     ii[2]=k;
-                     w[encode3_uin(p,ii[0],ii[1],ii[2],rhob)]=rho0;
-                 }
-          }
-
-          fclose(fatmos);
 
 
 
 real sum;
-printf("compute pressure\n");
-	for(j=0;j<=n2-1;j++)
-	   for(i=0;i<=n1-1;i++)
-           {
-		sum=0;
-                sum=inte(dpdz,p->n[0],i,j,p->dx[0]);
-                pres[i][j]=prese[i][j]+sum;  //note different from original (see below) careful check this
-                if(pres[i][j]<0) printf("Danger Wil Robinson! %d %d %d \n",p->ipe,i,j);
-
-		}
-
-
-
-/*for i=0,n1-1 do begin
-  for j=0,n2-1 do begin
-   sum=0
-   sum=inte(dpdz(0:i,j),x(1)-x(0)) 
-   p(i,j)=pe(0,j)+sum
- endfor
-endfor*/
 
 printf("compute energy and bfields to background\n");
 	for(j=0;j<=n2-1;j++)
 	   for(i=0;i<=n1-1;i++)
            {
-		w[encode3_uin(p,i,j,ii[2],energyb)]=((pres[i][j]-((bsq[i][j])/2))/(gamma-1))+(bsq[i][j]/2);
+
+                w[encode3_uin(p,i,j,ii[2],rho)]=0.0;
+                w[encode3_uin(p,i,j,ii[2],mom1)]=0.0;
+                w[encode3_uin(p,i,j,ii[2],mom2)]=0.0;
+		//w[encode3_uin(p,i,j,ii[2],energyb)]=((pres[i][j]-((bsq[i][j])/2))/(gamma-1))+(bsq[i][j]/2);
+                w[encode3_uin(p,i,j,ii[2],energyb)]=((prese[i][j])/(gamma-1));
 		w[encode3_uin(p,i,j,ii[2],energy)]=0.0;
 
 		w[encode3_uin(p,i,j,ii[2],b1b)]=w[encode3_uin(p,i,j,ii[2],b1)];
@@ -583,13 +543,16 @@ printf("compute energy and bfields to background\n");
          free(lambda);
          free(prese);
          free(pres);
-	free(dbsq);
-	free(bsq);
+         free(presval);
+	//free(dbsq);
+	//free(bsq);
 	free(dpdz);
-	free(dbzdx);
-	free(dbzdz);
-	free(dbxdx);
-	free(dbxdz);
+
+printf("finished");
+	//free(dbzdx);
+	//free(dbzdz);
+	//free(dbxdx);
+	//free(dbxdz);
 
 }
 
