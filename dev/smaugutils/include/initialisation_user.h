@@ -425,10 +425,11 @@ int nh;
           real *T, *lambda, *presval;
           real **pres,**prese,**dbzdx,**dbxdx,**dbzdz,**dbxdz,**bsq,**dbsq,**dpdz;
 
-	  real *b0z;
+	  real *b0z, *db0z;
 	  real **xf;    //opening function
           
 	  b0z=(real *)calloc(n1,sizeof(real));
+	  db0z=(real *)calloc(n1,sizeof(real));
 
           xf=(real **)calloc(n1,sizeof(real *));
           for(i=0;i<n1;i++)
@@ -536,7 +537,20 @@ printf("vars %g %g %g\n",h,TT0,rho0);
 		b0z[i]=Bmin+((Bmax-Bmin)/(bnmax-bnmin))*(b0z[i]-bnmin);
 
 
+	printf("compute fields\n");
+	for(j=0;j<=n2-1;j++)
+	   for(i=0;i<=n1-1;i++)
+           {		
+		w[encode3_uin(p,i,j,ii[2],b1)]=b0z[i];
 
+           } 
+
+	for(j=0;j<=n2-1;j++)
+	   for(i=0;i<=n1-1;i++)
+           {		
+		w[encode3_uin(p,i,j,ii[2],b1)]=b0z[i];
+
+           } 
 
           //temp(w, wd,ii, p,T);
 	  //for( int i=0;i<p->n[0];i++) 
