@@ -25,6 +25,49 @@ unsigned long int fencode3_uin (struct params *dp,int *ii, int field) {
 }
 
 
+
+
+real grad1d_uin(real *wmod, real *wd,struct params *p,int *ii,int dir)
+{
+
+ real grad=0;
+
+ switch(dir)
+ {
+   case 0:
+
+if(ii[0]>1 && ii[0]<((p->n[0])-2) )
+ grad=(  ( ((8*wmod[ii[0]+1]-8*wmod[ii[0]-1]+wmod[ii[0]-2]-wmod[ii[0]+2])/6.0))/(2.0*(wd[fencode3_uin(p,ii,delx1)]))    );
+
+
+
+  ;//for OZT test using MPI use this directive further clarification needed
+  #ifndef USE_MPI
+   if((ii[0]==(p->n[0])-3) || (ii[0]==(p->n[0])-4)  && ii[1]>1   && ii[1]<(p->n[1])-2  )
+       grad=0;
+   else if(ii[0]==2 || ii[0]==3  && ii[1]>1   && ii[1]<(p->n[1])-2  )
+       grad=0;
+  #endif
+   break;
+}
+
+
+
+ return grad;
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
 #ifdef USE_SAC_3D
 real grad3dngen_uin(real ***wmod, real *wd,struct params *p,int *ii,int dir)
 #else
@@ -525,6 +568,14 @@ printf("vars %g %g %g\n",h,TT0,rho0);
 	real z_shift=0.e0 ;// shift in Mm
 	real A=1.0e0 ;// amplitude
 
+	real xr=0.15e5;
+	real yr=0.15e5;
+	real yr=0.0;
+
+	real R2=(xr*xr+yr*yr);
+
+	real A=R2/2.e0;
+
 
 	maxminb0z(b0z,n1, &bnmin, &bnmax);
 
@@ -536,21 +587,28 @@ printf("vars %g %g %g\n",h,TT0,rho0);
 	for(i=0;i<n1li++)
 		b0z[i]=Bmin+((Bmax-Bmin)/(bnmax-bnmin))*(b0z[i]-bnmin);
 
+           ii[1]=0;
+	   for(i=0;i<=n1-1;i++)
+           {	
+                ii[0]=i;	
+		db0z[i]= grad1d_uin(b0z, wd,p,ii,0);
+
+           } 
+
+        k=0;
+	for(j=0;j<=n2-1;j++)
+	   for(i=0;i<=n1-1;i++)	
+		xf[i][j]=exp(-(wd[encode3_uin(p,i,j,k,pos2)]*wd[encode3_uin(p,i,j,k,pos2)])*b0z[i]/R2);
+
 
 	printf("compute fields\n");
 	for(j=0;j<=n2-1;j++)
 	   for(i=0;i<=n1-1;i++)
            {		
-		w[encode3_uin(p,i,j,ii[2],b1)]=b0z[i];
-
+		w[encode3_uin(p,i,j,ii[2],b1)]=b0z[i]*xf[i][j];
+                w[encode3_uin(p,i,j,ii[2],b2)]=-wd[encode3_uin(p,i,j,k,pos2)]*db0z[j]*xf[i][j]/2;
            } 
 
-	for(j=0;j<=n2-1;j++)
-	   for(i=0;i<=n1-1;i++)
-           {		
-		w[encode3_uin(p,i,j,ii[2],b1)]=b0z[i];
-
-           } 
 
           //temp(w, wd,ii, p,T);
 	  //for( int i=0;i<p->n[0];i++) 
