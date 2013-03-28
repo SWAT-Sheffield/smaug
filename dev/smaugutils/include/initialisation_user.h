@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 
-int encode3_uin(params *dp,int ix, int iy, int iz, int field) {
+unsigned long int encode3_uin(params *dp,int ix, int iy, int iz, int field) {
 
 
   #ifdef USE_SAC_3D
@@ -13,7 +13,7 @@ int encode3_uin(params *dp,int ix, int iy, int iz, int field) {
   #endif
 }
 
-int fencode3_uin (struct params *dp,int *ii, int field) {
+unsigned long int fencode3_uin (struct params *dp,int *ii, int field) {
 
 
 #ifdef USE_SAC_3D
@@ -358,6 +358,26 @@ void temp(real *w, real *wd,int *ii, struct params *p, real *T)
 		T[i]=0.5*tc*( 1+dt+(1.0-dt)*tanh((wd[encode3_uin(p,i,ii[1],ii[2],pos1)]-yt)/yw));
 }
 
+void maxminb0z(real *b0z,int n1, real *bnmin, real *bnmax)
+{
+     real tmax;
+     real tmin;
+ 
+     tmax=-9.9e99;
+     tmin=9.9e99;
+
+     for(int i=0; i<n1; i++)
+     {
+        if(b0z[i]>tmax)
+	   tmax=b0z[i];
+        if(b0z[i]<tmin)
+           tmin=b0z[i];
+
+        *bnmax=tmax;
+        *bnmin=tmin;
+     }
+}
+
 //bach3d
 
 void initialisation_user1(real *w, real *wd, struct params *p) {
@@ -401,9 +421,25 @@ int nh;
           ii[1]=n2/2;
 	  ii[2]=0;
 
+
           real *T, *lambda, *presval;
           real **pres,**prese,**dbzdx,**dbxdx,**dbzdz,**dbxdz,**bsq,**dbsq,**dpdz;
+
+	  real *b0z;
+	  real **xf;    //opening function
           
+	  b0z=(real *)calloc(n1,sizeof(real));
+
+          xf=(real **)calloc(n1,sizeof(real *));
+          for(i=0;i<n1;i++)
+          {
+            xf[i]=(real *)calloc(n2,sizeof(real));
+          }
+
+
+
+
+
 
           T=(real *)calloc(n1,sizeof(real));
           lambda=(real *)calloc(n1,sizeof(real));
@@ -422,7 +458,7 @@ int nh;
 
           //read the atmosphere file
           //FILE *fatmos=fopen("/data/cs1mkg/smaug_spicule1/atmosphere/VALMc_rho_8184.dat","r");
-          FILE *fatmos=fopen("/data/cs1mkg/smaugutils/atmosphere/VALMc_rho_1020_test.dat","r");
+          FILE *fatmos=fopen("/data/cs1mkg/smaugutils/atmosphere/VALMc_rho_2048_test.dat","r");
 
 h=atof(st1);
 rho0=atof(st3);
@@ -475,6 +511,31 @@ printf("vars %g %g %g\n",h,TT0,rho0);
           }
 
           fclose(fatmos);
+
+
+
+
+	real Bmax=0.10e0  ;// mag field Tesla
+	//real Bmin=0.0006d0  ;// mag field Tesla
+	real Bmin=0.0005e0  ;// mag field Tesla
+	real bnmin,bnmax;
+
+	real d_z=1.0e0 ;// width of Gaussian in Mm
+	real z_shift=0.e0 ;// shift in Mm
+	real A=1.0e0 ;// amplitude
+
+
+	maxminb0z(b0z,n1, &bnmin, &bnmax);
+
+        j=0;
+        k=0;
+	for(i=0;i<n1;i++)
+		b0z[i]=exp(-((wd[encode3_uin(p,i,j,k,pos1)]/(scale-z_shift))/d_z)); 
+
+	for(i=0;i<n1li++)
+		b0z[i]=Bmin+((Bmax-Bmin)/(bnmax-bnmin))*(b0z[i]-bnmin);
+
+
 
 
           //temp(w, wd,ii, p,T);

@@ -1,5 +1,29 @@
 #include "../include/readwrite.h"
 
+unsigned long int encode3_rw(params *dp,int ix, int iy, int iz, int field) {
+
+
+  #ifdef USE_SAC_3D
+    return ( (iz*((dp)->n[0])*((dp)->n[1])  + iy * ((dp)->n[0]) + ix)+(field*((dp)->n[0])*((dp)->n[1])*((dp)->n[2])));
+  #else
+    return ( (iy * ((dp)->n[0]) + ix)+(field*((dp)->n[0])*((dp)->n[1])));
+  #endif
+}
+
+unsigned long int fencode3_rw (struct params *dp,int *ii, int field) {
+
+
+#ifdef USE_SAC_3D
+   return (ii[2]*((dp)->n[0])*((dp)->n[1])  + ii[1] * ((dp)->n[0]) + ii[0]+(field*((dp)->n[0])*((dp)->n[1])*((dp)->n[2])));
+#else
+   return ( ii[1] * ((dp)->n[0]) + ii[0]+(field*((dp)->n[0])*((dp)->n[1])));
+#endif
+
+}
+
+
+
+
 void freadl(FILE *stream, char **string)
 {    
     unsigned long counter = 0;
