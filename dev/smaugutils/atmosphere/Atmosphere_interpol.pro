@@ -129,12 +129,12 @@ plot, harrVALMc/1.0e6, alog10(parrVALMc), charsize=1.5, title='log p VALIIIC McW
 
 
 
-
-nvaldata=252
-nvaldata=2052
+nvaldata=516
+;nvaldata=260
+;nvaldata=2052
 ;nvaldata=8188
 ;nvaldata=1028
-nvaldata=1024
+;nvaldata=1024
 hmax=2.6e3*1000.d0
 hmax=6.0e3*1000.d0
 ;hmax=24.0e3*1000.d0;
@@ -166,9 +166,11 @@ oplot, alog10(rhoarrVALMc), psym=4
 
 ;openw, 11, 'VALMc_rho_248.dat'
 ;openw, 11, 'VALMc_rho_2048_test.dat'
+openw, 11, 'VALMc_rho_512_test.dat'
+
 ;openw, 11, 'VALMc_rho_8184.dat'
 ;openw, 11, 'VALMc_rho_1024_test.dat'
-openw, 11, 'VALMc_rho_1020_test.dat'
+;openw, 11, 'VALMc_rho_1020_test.dat'
 
  ;for i=nvaldata-2,3,-1 do begin
  for i=1,nvaldata-4 do begin

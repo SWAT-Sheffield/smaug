@@ -15,7 +15,7 @@ int n;
 //int elist.id=0;
 //int elist.port=8080;
 
-int i1,i2,i3,j1;
+int i2,i3,j1;
 int i,j,k,iv;
 
 

@@ -29,8 +29,8 @@ int nj = 1020;  //OZT tests
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
-real ymax = 4.0e6;
-real ymin=0;
+real ymax = 2.0e6;
+real ymin=-2.0e6;
 real dy = ymax/(nj);    
 //nj=41;
 #endif
