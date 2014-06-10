@@ -37,12 +37,14 @@ nothing	:
 #F77=f95
 #F77=/usr/local/mpich-gm2_PGI/bin/mpif77
 F77=mpif77
-F77FLG=-132 -dusty -Mnobounds
+#F77FLG=-132 -dusty -Mnobounds
+F77FLG=-132 -free -mcmodel=medium
 
 #F90=f95
 #F90=/usr/local/mpich-gm2_PGI/bin/mpif90
 F90=mpif90
-F90FLG=-Mfreeform -Mnobounds
+#F90FLG=-Mfreeform -Mnobounds
+F90FLG=-free -mcmodel=medium -m64
 
 #
 # Select one:
@@ -367,11 +369,11 @@ PREFOR=$(F90TOF90)
 ############### VACPreProcessor ################
 #For the dependency
 
-VACPP_=vacpp.pl
+VACPP_=./vacpp.pl
 
 # ... select one for the compilation rules:
 #
-VACPP =vacpp.pl #			
+VACPP =./vacpp.pl #			
 #VACPP =vacpp.pl -O #			Optimized shifts (always used by HPF)
 #VACPP =vacpp.pl -maxlen=72 #		Reduced maximum line length
 #VACPP =vacpp.pl -O -maxlen=72 #	Optimization and reduction 

@@ -1,0 +1,32 @@
+Currently Loaded Modulefiles:
+  1) licenses             4) intel/12.1.5.339     7) intelmpi/4.1.0.024
+  2) sge                  5) sheffield
+  3) bit/64               6) user
+forrtl: severe (64): input conversion error, unit -5, file Internal Formatted Read
+Image              PC                Routine            Line        Source             
+libintlc.so.5      00002AFF217F8A7A  Unknown               Unknown  Unknown
+libintlc.so.5      00002AFF217F7576  Unknown               Unknown  Unknown
+vacini             0000000000494F60  Unknown               Unknown  Unknown
+vacini             000000000043E38E  Unknown               Unknown  Unknown
+vacini             000000000043D8CF  Unknown               Unknown  Unknown
+vacini             00000000004589E6  Unknown               Unknown  Unknown
+vacini             0000000000457064  Unknown               Unknown  Unknown
+vacini             00000000004360C6  Unknown               Unknown  Unknown
+vacini             0000000000403FCD  Unknown               Unknown  Unknown
+vacini             0000000000403A1C  Unknown               Unknown  Unknown
+libc.so.6          0000003E8D81ECDD  Unknown               Unknown  Unknown
+vacini             0000000000403919  Unknown               Unknown  Unknown
+forrtl: severe (64): input conversion error, unit -5, file Internal Formatted Read
+Image              PC                Routine            Line        Source             
+libintlc.so.5      00002B1DB4D16A7A  Unknown               Unknown  Unknown
+libintlc.so.5      00002B1DB4D15576  Unknown               Unknown  Unknown
+vacini             0000000000494F60  Unknown               Unknown  Unknown
+vacini             000000000043E38E  Unknown               Unknown  Unknown
+vacini             000000000043D8CF  Unknown               Unknown  Unknown
+vacini             00000000004589E6  Unknown               Unknown  Unknown
+vacini             0000000000457064  Unknown               Unknown  Unknown
+vacini             00000000004360C6  Unknown               Unknown  Unknown
+vacini             0000000000403FCD  Unknown               Unknown  Unknown
+vacini             0000000000403A1C  Unknown               Unknown  Unknown
+libc.so.6          0000003E8D81ECDD  Unknown               Unknown  Unknown
+vacini             0000000000403919  Unknown               Unknown  Unknown
