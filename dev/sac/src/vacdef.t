@@ -15,6 +15,7 @@ INTEGER,PARAMETER:: r_=1, phi_=^PHI, z_=^Z
 INTEGER,PARAMETER:: pphi_=^PPHI, zz_=^ZZ
 
 include 'vacpar.f'
+DOUBLE PRECISION:: grav0_,nu_
 
 INTEGER,PARAMETER:: ixGlo^D=1
 ! The next line is edited by SETVAC
