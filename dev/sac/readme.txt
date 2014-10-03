@@ -38,6 +38,50 @@ or qsub run.sh
 
 ******************************************************************************************
 
+Compile, Run and visualise results for the Brio-Wu Test
+
+ cd src
+ cp vacusr.t.sim1_BW vacusr.t.sim1
+ 
+
+ ./setvac -d=22 -g=800,10 -u=sim1 -p=mhd -off=mpi
+ make vacini
+ make vac
+
+ cd ..
+ cp par/vac_nm_BW.par vac.par
+
+ Generate starting configuration for the Orszag-Tang test
+ ./vacini < inipar/vacini_BW.par
+
+ To generate a parallel configuration for a 4x1 array of processors
+ ./distribution configs/zero1_bw_bin_256.ini configs/zero1_bw_bin_256_np0401.ini
+
+ ./vac < vac.par
+
+or qsub run.sh
+
+
+ Visualise the results
+
+
+ cd data
+ idl
+ 
+  From IDL (Using IDL procedure visex22D.pro in the data folder)
+
+    .r procedures
+    .r tvframe
+    .r visex22D_BW
+
+******************************************************************************************
+
+
+
+
+
+
+
 Compile, Run and visualise results for the Flux tube Test
 
  cd src
