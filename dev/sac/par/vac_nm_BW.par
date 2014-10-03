@@ -1,10 +1,10 @@
 &testlist /
 
 &filelist
-	filenameini='/data/ap1vf/zero1.ini',
+	filenameini='configs/zero1_bw_bin_800.ini',
 	typefileini='binary'
-	filename=   '/data/ap1vf/zeroBW.log',
-		    '/data/ap1vf/zeroBW.out'
+	filename=   'results/zeroBW.log',
+		    'results/zeroBW.out'
 	typefileout='binary'
         fullgridout= T
         fullgridini= T
