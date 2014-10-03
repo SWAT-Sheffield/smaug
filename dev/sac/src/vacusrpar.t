@@ -1,8 +1,8 @@
 !##############################################################################
 ! include vacusrpar - gravity
-INTEGER,PARAMETER:: grav0_=neqpar+1
-INTEGER,PARAMETER:: grav^D_=neqpar+^D+1
-INTEGER,PARAMETER:: nu_=neqpar+4
+DOUBLE PRECISION,PARAMETER:: grav0_=neqpar+1
+DOUBLE PRECISION,PARAMETER:: grav^D_=neqpar+^D+1
+DOUBLE PRECISION,PARAMETER:: nu_=neqpar+4
 INTEGER,PARAMETER:: nspecialpar=^ND+2
 
 !CHARACTER*2 ,PARAMETER:: specialparname='nu'
