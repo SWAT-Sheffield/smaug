@@ -3,34 +3,35 @@ SUBROUTINE addsource_visc(qdt,ixI^L,ixO^L,iws,qtC,w,qt,wnew)
 
   ! Add viscosity source to wnew within ixO 
 
-  INCLUDE 'vacdef.f'
+  USE constants
+  USE common_variables
 
   INTEGER::          ixI^L,ixO^L,iws(niw_)
-  DOUBLE PRECISION:: qdt,qtC,qt,w(ixG^T,nw),wnew(ixG^T,nw)
+  REAL(kind=8):: qdt,qtC,qt,w(ixG^T,nw),wnew(ixG^T,nw)
 
   INTEGER:: ix,ix^L,idim,idir,jdir,iiw,iw
 
   !already declared in vacusr.f
   !double precision:: tmp2(ixG^T)
-  DOUBLE PRECISION:: nushk(ixG^T,ndim)
+  REAL(kind=8):: nushk(ixG^T,ndim)
 
 
 
-  DOUBLE PRECISION:: tmprhoL(ixG^T), tmprhoR(ixG^T), tmprhoC(ixG^T)
-  DOUBLE PRECISION:: tmpVL(ixG^T), tmpVR(ixG^T), tmpVC(ixG^T)
-  DOUBLE PRECISION:: tmpBL(ixG^T), tmpBR(ixG^T), tmpBC(ixG^T)
+  REAL(kind=8):: tmprhoL(ixG^T), tmprhoR(ixG^T), tmprhoC(ixG^T)
+  REAL(kind=8):: tmpVL(ixG^T), tmpVR(ixG^T), tmpVC(ixG^T)
+  REAL(kind=8):: tmpBL(ixG^T), tmpBR(ixG^T), tmpBC(ixG^T)
 
-  DOUBLE PRECISION:: tmpL(ixG^T),tmpR(ixG^T), tmpC(ixG^T)
+  REAL(kind=8):: tmpL(ixG^T),tmpR(ixG^T), tmpC(ixG^T)
 
-  DOUBLE PRECISION:: nuL(ixG^T),nuR(ixG^T)
+  REAL(kind=8):: nuL(ixG^T),nuR(ixG^T)
 
   INTEGER:: jx^L,hx^L, hxO^L
 
-  DOUBLE PRECISION:: c_ene,c_shk
+  REAL(kind=8):: c_ene,c_shk
 
   INTEGER:: i,j,k,l,m,ii0,ii1,t00
 
-  DOUBLE PRECISION:: sB
+  REAL(kind=8):: sB
 
   !-----------------------------------------------------------------------------
 
@@ -225,17 +226,18 @@ SUBROUTINE setnu(w,iw,idim,ix^L,nuR,nuL)
 
   ! Set the viscosity coefficient nu within ixO based on w(ixI). 
 
-  INCLUDE 'vacdef.f'
+  USE constants
+  USE common_variables
 
   INTEGER:: ixi^L
-  DOUBLE PRECISION:: w(ixG^T,nw)
-  DOUBLE PRECISION:: d1R(^SIDEADO),d1L(^SIDEADO)
-  DOUBLE PRECISION:: d3R(^SIDEADO),d3L(^SIDEADO)
-  DOUBLE PRECISION:: md3R(ixG^T),md3L(ixG^T)
-  DOUBLE PRECISION:: md1R(ixG^T),md1L(ixG^T)
-  DOUBLE PRECISION:: nuR(ixG^T),nuL(ixG^T)
+  REAL(kind=8):: w(ixG^T,nw)
+  REAL(kind=8):: d1R(^SIDEADO),d1L(^SIDEADO)
+  REAL(kind=8):: d3R(^SIDEADO),d3L(^SIDEADO)
+  REAL(kind=8):: md3R(ixG^T),md3L(ixG^T)
+  REAL(kind=8):: md1R(ixG^T),md1L(ixG^T)
+  REAL(kind=8):: nuR(ixG^T),nuL(ixG^T)
 
-  DOUBLE PRECISION:: c_tot, c_hyp,cmax(ixG^T), tmp_nu(ixG^T)
+  REAL(kind=8):: c_tot, c_hyp,cmax(ixG^T), tmp_nu(ixG^T)
   INTEGER:: ix^L,idim, iw
   INTEGER:: kx^L,jx^L,hx^L,gx^L,ixFF^L,jxFF^L,hxFF^L
   INTEGER:: ix_1,ix_2,ix_3
@@ -244,7 +246,7 @@ SUBROUTINE setnu(w,iw,idim,ix^L,nuR,nuL)
 
   LOGICAL:: new_cmax
 
-  DOUBLE PRECISION:: tmp_nuI(^SIDEADD)
+  REAL(kind=8):: tmp_nuI(^SIDEADD)
 
   INTEGER:: k,iwc
 
@@ -259,10 +261,10 @@ SUBROUTINE setnu(w,iw,idim,ix^L,nuR,nuL)
 
   INTEGER:: hpe,jpe
 
-  DOUBLE PRECISION:: tgtbufferR^D(1^D%^LM)
-  DOUBLE PRECISION:: tgtbufferL^D(1^D%^LM)
-  DOUBLE PRECISION:: srcbufferR^D(1^D%^LM)
-  DOUBLE PRECISION:: srcbufferL^D(1^D%^LM)
+  REAL(kind=8):: tgtbufferR^D(1^D%^LM)
+  REAL(kind=8):: tgtbufferL^D(1^D%^LM)
+  REAL(kind=8):: srcbufferR^D(1^D%^LM)
+  REAL(kind=8):: srcbufferL^D(1^D%^LM)
 
   INTEGER:: n
 
@@ -459,14 +461,15 @@ END SUBROUTINE setnu
 !=============================================================================
 SUBROUTINE setnushk(w,ix^L,nushk)
 
-  INCLUDE 'vacdef.f'
+  USE constants
+  USE common_variables
 
   !double precision:: w(ixG^T,nw),tmp2(ixG^T),nushk(ixG^T,ndim)
-  DOUBLE PRECISION:: w(ixG^T,nw),nushk(ixG^T,ndim)
+  REAL(kind=8):: w(ixG^T,nw),nushk(ixG^T,ndim)
 
-  DOUBLE PRECISION:: c_shk
+  REAL(kind=8):: c_shk
 
-  DOUBLE PRECISION:: tmp3(ixG^T)
+  REAL(kind=8):: tmp3(ixG^T)
 
   INTEGER:: ix^L,idim, iw,i
 
@@ -512,15 +515,16 @@ SUBROUTINE getdt_visc(w,ix^L)
 
   ! Based on Hirsch volume 2, p.631, eq.23.2.17
 
-  INCLUDE 'vacdef.f'
+  USE constants
+  USE common_variables
 
-  DOUBLE PRECISION:: w(ixG^T,nw),dtdiff_visc
+  REAL(kind=8):: w(ixG^T,nw),dtdiff_visc
   INTEGER:: ix^L,idim, ix_1,ix_2
 
   INTEGER:: aa
 
   ! For spatially varying nu you need a common nu array
-  DOUBLE PRECISION::tmpdt(ixG^T), nuL(ixG^T),nuR(ixG^T), nushk(ixG^T,ndim)
+  REAL(kind=8)::tmpdt(ixG^T), nuL(ixG^T),nuR(ixG^T), nushk(ixG^T,ndim)
   COMMON/visc/nuL
   COMMON/visc/nuR
   !-----------------------------------------------------------------------------
@@ -545,9 +549,10 @@ END SUBROUTINE getdt_visc
 !***** 2-point central finite difference gradient******
 
 SUBROUTINE gradient1(q,ix^L,idim,gradq)
-  INCLUDE 'vacdef.f'
+  USE constants
+  USE common_variables
   INTEGER:: ix^L,idim
-  DOUBLE PRECISION:: q(ixG^T),gradq(ixG^T)
+  REAL(kind=8):: q(ixG^T),gradq(ixG^T)
   INTEGER:: hx^L,kx^L
   INTEGER:: minx1^D,maxx1^D,k
   !-----------------------------------------------------------------------------
@@ -591,9 +596,10 @@ END SUBROUTINE gradient1
 !*****left upwind forward 2-point non-central finite difference gradient******
 
 SUBROUTINE gradient1L(q,ix^L,idim,gradq)
-  INCLUDE 'vacdef.f'
+  USE constants
+  USE common_variables
   INTEGER:: ix^L,idim
-  DOUBLE PRECISION:: q(ixG^T),gradq(ixG^T)
+  REAL(kind=8):: q(ixG^T),gradq(ixG^T)
   INTEGER:: hx^L
   INTEGER:: minx1^D,maxx1^D,k
   !-----------------------------------------------------------------------------
@@ -635,9 +641,10 @@ END SUBROUTINE gradient1L
 !*****right upwind forward 2-point non-central finite difference gradient*****
 
 SUBROUTINE gradient1R(q,ix^L,idim,gradq)
-  INCLUDE 'vacdef.f'
+  USE constants
+  USE common_variables
   INTEGER:: ix^L,idim
-  DOUBLE PRECISION:: q(ixG^T),gradq(ixG^T)
+  REAL(kind=8):: q(ixG^T),gradq(ixG^T)
   INTEGER:: hx^L
   INTEGER:: minx1^D,maxx1^D,k
   !-----------------------------------------------------------------------------
