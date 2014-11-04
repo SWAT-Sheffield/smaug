@@ -1,0 +1,10 @@
+#!/bin/bash
+#$ -cwd -V
+#$ -l h_rt=0:30:00
+#$ -l np=4
+module unload openmpi/1.6.1
+module load intelmpi/4.1.0.024
+module list 
+mpirun -np 4 ./vacini
+#mpirun -np 4 /home/polaris_she1/shexs/large/VAC_3D/vac4.52/vac
+
