@@ -1,8 +1,0 @@
-version
-help overload
-set a=<b c>
-set a=<b gamma>
-overload gamma 1
-set a=<b gamma>
-print {a}
-quit

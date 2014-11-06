@@ -1,7 +1,0 @@
-#!/bin/sh
-#$ -l h_cpu=24:00:00
-#$ -cwd
-#$ -P mhd
-#$ -pe openmpi-ib 16
-/usr/mpi/pgi/openmpi-1.2.8/bin/mpirun vac
-

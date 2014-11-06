@@ -1,4 +1,0 @@
-../testcont2.out
-415
-ascii
-../testasc_415.out

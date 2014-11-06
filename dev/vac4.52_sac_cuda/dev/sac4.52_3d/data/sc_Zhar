@@ -1,7 +1,0 @@
-#!/bin/sh
-#$
-$ -l h_cpu=400:00:00
-$ -m be
-$ -M V.FEDUN
-$
-idl < visex22D.pro
