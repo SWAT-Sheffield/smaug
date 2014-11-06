@@ -1,0 +1,32 @@
+ &testlist &end
+
+ &filelist
+	filenameini='data/7wave.ini',
+	filename=   'data/7wave.log',
+		    'data/7wave.out'
+ &end
+
+ &savelist
+        itsave(1,2)=0
+	dtsave=0.01,8.0
+ &end
+
+ &stoplist
+        tmax=80.0
+        tmaxexact = T
+ &end
+
+ &methodlist
+	wnames=		'rho m1 m2 m3 e bx by bz'
+	typefull=	8*'tvd'
+        typelimiter=    8*'minmod'
+ &end
+
+ &boundlist
+	typeB=8*'cont',8*'cont'
+ &end
+
+ &paramlist
+        slowsteps=10
+	courantpar=0.8
+ &end

@@ -1,0 +1,31 @@
+ &testlist &end
+
+ &filelist
+	filenameini='data/briowu.ini',
+	filename=   'data/briowu.log',
+		    'data/briowu.out'
+ &end
+
+ &savelist
+        itsave(1,2)=0
+	dtsave=0.01,0.01
+ &end
+
+ &stoplist
+        tmax=0.1
+        tmaxexact = T
+ &end
+
+ &methodlist
+	wnames=		'rho m1 m2 e bx by'
+	typefull=	6*'tvd'
+        typelimiter=    6*'minmod'
+ &end
+
+ &boundlist
+	typeB=6*'cont',6*'cont'
+ &end
+
+ &paramlist
+	courantpar=0.8
+ &end

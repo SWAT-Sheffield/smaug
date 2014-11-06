@@ -1,0 +1,835 @@
+!##############################################################################
+! module vacphys - mhd
+
+!##############################################################################
+! module vacphys.mhd0 - common subroutines for mhd and mhdiso
+
+
+
+
+!##############################################################################
+! module vacphys.mhdres - subroutines for resistive mhd and mhdiso
+
+!=============================================================================
+subroutine getdt_res(w,ixmin1,ixmin2,ixmax1,ixmax2)
+
+! If resistivity is  not zero, check diffusion time limit for dt
+
+include 'vacdef.f'
+
+double precision:: w(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw),dtdiff
+integer:: ixmin1,ixmin2,ixmax1,ixmax2,idim,idirmin
+save dtdiff
+
+double precision:: current(ixGlo1:ixGhi1,ixGlo2:ixGhi2,7-2*ndir:3),&
+   eta(ixGlo1:ixGhi1,ixGlo2:ixGhi2),gradeta(ixGlo1:ixGhi1,ixGlo2:ixGhi2,ndim)
+common/resist/current,eta,gradeta
+!-----------------------------------------------------------------------------
+
+oktest=index(teststr,'getdt')>=1
+if(oktest)write(*,*)'GetDt_Res'
+
+if(eqpar(eta_)==zero)return
+
+if(eqpar(eta_)>zero)then
+   dtdiff=dtdiffpar*minval(dx(ixmin1:ixmax1,ixmin2:ixmax2,1:ndim))**2&
+      /eqpar(eta_)
+else if(eqpar(eta_)<zero)then
+   if(it==itmin)then
+      call getcurrent(w,ixMmin1,ixMmin2,ixMmax1,ixMmax2,idirmin)
+      call specialeta(w,ixMmin1,ixMmin2,ixMmax1,ixMmax2,idirmin)
+   endif
+   dtdiff=bigdouble
+   do idim=1,ndim
+      dtdiff=min(dtdiff,dtdiffpar/(smalldouble+maxval(eta(ixmin1:ixmax1,&
+         ixmin2:ixmax2)/dx(ixmin1:ixmax1,ixmin2:ixmax2,idim)**2)))
+   enddo
+endif
+
+
+dt=min(dt,dtdiff)
+
+if(oktest) write(*,*)'GetDt dtdiff:',dtdiff
+if(oktest) write(*,*)'GetDt dt    :',dt
+
+return
+end
+
+!=============================================================================
+subroutine getcurrent(w,ixmin1,ixmin2,ixmax1,ixmax2,idirmin)
+
+! Calculate idirmin and the idirmin:3 components of the common current array
+
+include 'vacdef.f'
+
+integer, parameter:: idirmin0=7-2*ndir
+double precision:: w(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw)
+integer::          ixmin1,ixmin2,ixmax1,ixmax2,idirmin
+
+integer:: ixImin1,ixImin2,ixImax1,ixImax2,idir,jdir,kdir
+
+! For ndir=2 only 3rd component of J can exist, ndir=1 is impossible for MHD
+double precision:: current(ixGlo1:ixGhi1,ixGlo2:ixGhi2,7-2*ndir:3),&
+   eta(ixGlo1:ixGhi1,ixGlo2:ixGhi2),gradeta(ixGlo1:ixGhi1,ixGlo2:ixGhi2,ndim)
+common/resist/current,eta,gradeta
+!-----------------------------------------------------------------------------
+
+oktest=index(teststr,'getcurrent')>=1
+if(oktest)write(*,*)'GetCurrent'
+
+ixImin1=ixmin1-1;ixImin2=ixmin2-1;ixImax1=ixmax1+1;ixImax2=ixmax2+1;
+
+! Calculate current density within ixL: J=curl B, thus J_i=eps_ijk*d_j B_k
+! Current can have components (idirmin0:3)
+! Determine exact value of idirmin while doing the loop.
+
+idirmin=4
+current(ixmin1:ixmax1,ixmin2:ixmax2,idirmin0:3)=zero
+
+do idir=idirmin0,3; do jdir=1,ndim; do kdir=1,ndir
+   if(lvc(idir,jdir,kdir)/=0)then
+      tmp(ixImin1:ixImax1,ixImin2:ixImax2)=(w(ixImin1:ixImax1,ixImin2:ixImax2,&
+         b0_+kdir)+w(ixImin1:ixImax1,ixImin2:ixImax2,bg0_+kdir))
+      call gradient(.true.,tmp,ixmin1,ixmin2,ixmax1,ixmax2,jdir,tmp2)
+      if(lvc(idir,jdir,kdir)==1)then
+         current(ixmin1:ixmax1,ixmin2:ixmax2,idir)=current(ixmin1:ixmax1,&
+            ixmin2:ixmax2,idir)+tmp2(ixmin1:ixmax1,ixmin2:ixmax2)
+      else
+         current(ixmin1:ixmax1,ixmin2:ixmax2,idir)=current(ixmin1:ixmax1,&
+            ixmin2:ixmax2,idir)-tmp2(ixmin1:ixmax1,ixmin2:ixmax2)
+      endif
+      if(idir<idirmin)idirmin=idir
+   endif
+enddo; enddo; enddo;
+
+if(oktest)write(*,*)'idirmin,J(idirmin:3):',idirmin,current(ixtest1,ixtest2,&
+   idirmin:3)
+
+return
+end
+
+!=============================================================================
+subroutine addsource_res1(qdt,ixImin1,ixImin2,ixImax1,ixImax2,ixmin1,ixmin2,&
+   ixmax1,ixmax2,iws,qtC,w,qt,wnew)
+
+! Add resistive source to wnew within ixL if possible, otherwise shrink ixL
+! Uses 3 point stencil (1 neighbour) in each direction, non-conservative
+
+include 'vacdef.f'
+
+integer::          ixImin1,ixImin2,ixImax1,ixImax2,ixmin1,ixmin2,ixmax1,&
+   ixmax2,iws(niw_)
+double precision:: qdt,qtC,qt,w(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw),&
+   wnew(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw)
+
+integer:: ix,jxmin1,jxmin2,jxmax1,jxmax2,hxmin1,hxmin2,hxmax1,hxmax2,idim,&
+   idir,jdir,kdir,idirmin,iiw,iw
+
+! Resistivity "eta" may or may not vary in time and/or space
+! For ndir=2 only 3rd component of J can exist, ndir=1 is not possible for MHD
+double precision:: current(ixGlo1:ixGhi1,ixGlo2:ixGhi2,7-2*ndir:3),&
+   eta(ixGlo1:ixGhi1,ixGlo2:ixGhi2),gradeta(ixGlo1:ixGhi1,ixGlo2:ixGhi2,ndim)
+common/resist/current,eta,gradeta
+!-----------------------------------------------------------------------------
+
+oktest=index(teststr,'addsource_res')>=1
+if(oktest)write(*,*)'AddSource_Res1'
+
+! Compact resistive sources involve one extra layer only
+call ensurebound(1,ixImin1,ixImin2,ixImax1,ixImax2,ixmin1,ixmin2,ixmax1,&
+   ixmax2,qtC,w)
+
+! Calculate current density within ixL and determine idirmin
+call getcurrent(w,ixmin1,ixmin2,ixmax1,ixmax2,idirmin)
+
+! Calculate and save eta for the first time
+! for eqpar(eta_)<0 call specialeta, this will also set the common gradeta
+if(eqpar(eta_)>zero)then
+   if(it==itmin) eta(ixGmin1:ixGmax1,ixGmin2:ixGmax2)=eqpar(eta_)
+else
+   call specialeta(w,ixmin1,ixmin2,ixmax1,ixmax2,idirmin)
+endif
+if(oktest)write(*,*)'eta    :',eta(ixtest1,ixtest2)
+if(oktest)write(*,*)'gradeta:',gradeta(ixtest1,ixtest2,1:ndim)
+
+do idir=1,ndir
+
+   ! Put B_idir into tmp2 and eta*Laplace B_idir into tmp
+   tmp(ixmin1:ixmax1,ixmin2:ixmax2)=zero
+   tmp2(ixGmin1:ixGmax1,ixGmin2:ixGmax2)=(w(ixGmin1:ixGmax1,ixGmin2:ixGmax2,&
+      b0_+idir)+w(ixGmin1:ixGmax1,ixGmin2:ixGmax2,bg0_+idir))
+   if(gencoord)then 
+      ! Use contour integral of Grad(B_idir) along cell edges
+      !!! Assumes that connected cell centers are orthogonal to interfaces
+      do idim=1,ndim
+         !SHIFT
+         jxmin1=ixmin1+kr(idim,1);jxmin2=ixmin2+kr(idim,2)
+         jxmax1=ixmax1+kr(idim,1);jxmax2=ixmax2+kr(idim,2);
+         !SHIFT MORE
+         hxmin1=ixmin1-kr(idim,1);hxmin2=ixmin2-kr(idim,2)
+         hxmax1=ixmax1-kr(idim,1);hxmax2=ixmax2-kr(idim,2);
+         !SHIFT BEGIN
+         tmp(ixmin1:ixmax1,ixmin2:ixmax2)=tmp(ixmin1:ixmax1,ixmin2:ixmax2) &
+            +surfaceC(ixmin1:ixmax1,ixmin2:ixmax2,idim)*(tmp2(jxmin1:jxmax1,&
+            jxmin2:jxmax2)-tmp2(ixmin1:ixmax1,ixmin2:ixmax2)) &
+            /sqrt((x(jxmin1:jxmax1,jxmin2:jxmax2,1)-x(ixmin1:ixmax1,&
+            ixmin2:ixmax2,1))**2+(x(jxmin1:jxmax1,jxmin2:jxmax2,2)&
+            -x(ixmin1:ixmax1,ixmin2:ixmax2,2))**2) +surfaceC(hxmin1:hxmax1,&
+            hxmin2:hxmax2,idim)*(tmp2(hxmin1:hxmax1,hxmin2:hxmax2)&
+            -tmp2(ixmin1:ixmax1,ixmin2:ixmax2)) /sqrt((x(hxmin1:hxmax1,&
+            hxmin2:hxmax2,1)-x(ixmin1:ixmax1,ixmin2:ixmax2,1))**2&
+            +(x(hxmin1:hxmax1,hxmin2:hxmax2,2)-x(ixmin1:ixmax1,ixmin2:ixmax2,&
+            2))**2)
+         !SHIFT END
+      enddo
+      tmp(ixmin1:ixmax1,ixmin2:ixmax2)=tmp(ixmin1:ixmax1,ixmin2:ixmax2)&
+         /dvolume(ixmin1:ixmax1,ixmin2:ixmax2)
+   else
+      do idim=1,ndim
+         if(typeaxial=='cylinder'.and.idim==r_)then
+            ! Calculate 1/r d(r d(B_idir)/dr)/dr
+            forall(ix=ixmin1:ixmax1)tmp(ix,ixmin2:ixmax2)=tmp(ix,&
+               ixmin2:ixmax2) +(areaC(ix)*(tmp2(ix+1,ixmin2:ixmax2)&
+               -tmp2(ix,ixmin2:ixmax2))/(x(ix+1,ixmin2:ixmax2,r_)&
+               -x(ix,ixmin2:ixmax2,r_)) +areaC(ix-1)*(tmp2(ix&
+               -1,ixmin2:ixmax2)-tmp2(ix,ixmin2:ixmax2))/(x(ix,ixmin2:ixmax2,&
+               r_)-x(ix-1,ixmin2:ixmax2,r_))) /x(ix,ixmin2:ixmax2,r_)&
+               /dx(ix,ixmin2:ixmax2,r_)
+         else
+            !SHIFT
+            jxmin1=ixmin1+kr(idim,1);jxmin2=ixmin2+kr(idim,2)
+            jxmax1=ixmax1+kr(idim,1);jxmax2=ixmax2+kr(idim,2); 
+            !SHIFT MORE
+            hxmin1=ixmin1-kr(idim,1);hxmin2=ixmin2-kr(idim,2)
+            hxmax1=ixmax1-kr(idim,1);hxmax2=ixmax2-kr(idim,2);
+            !SHIFT BEGIN
+            tmp(ixmin1:ixmax1,ixmin2:ixmax2)=tmp(ixmin1:ixmax1,ixmin2:ixmax2)&
+               +(tmp2(jxmin1:jxmax1,jxmin2:jxmax2)-2*tmp2(ixmin1:ixmax1,&
+               ixmin2:ixmax2)+tmp2(hxmin1:hxmax1,hxmin2:hxmax2))&
+               /dx(ixmin1:ixmax1,ixmin2:ixmax2,idim)**2 
+
+
+            !SHIFT END
+         endif
+      enddo
+   endif
+
+   ! Multiply by eta
+   tmp(ixmin1:ixmax1,ixmin2:ixmax2)=tmp(ixmin1:ixmax1,ixmin2:ixmax2)&
+      *eta(ixmin1:ixmax1,ixmin2:ixmax2)
+
+   ! Subtract grad(eta) x J = eps_ijk d_j eta J_k if eta is non-constant
+   if(eqpar(eta_)<zero)then
+      do jdir=1,ndim; do kdir=idirmin,3
+         if(lvc(idir,jdir,kdir)/=0)then
+            if(lvc(idir,jdir,kdir)==1)then
+               tmp(ixmin1:ixmax1,ixmin2:ixmax2)=tmp(ixmin1:ixmax1,&
+                  ixmin2:ixmax2)-gradeta(ixmin1:ixmax1,ixmin2:ixmax2,jdir)&
+                  *current(ixmin1:ixmax1,ixmin2:ixmax2,kdir)
+            else
+               tmp(ixmin1:ixmax1,ixmin2:ixmax2)=tmp(ixmin1:ixmax1,&
+                  ixmin2:ixmax2)+gradeta(ixmin1:ixmax1,ixmin2:ixmax2,jdir)&
+                  *current(ixmin1:ixmax1,ixmin2:ixmax2,kdir)
+            endif
+         endif
+      enddo; enddo
+   endif
+
+   ! Add sources related to eta*laplB-grad(eta) x J to B and e
+   do iiw=1,iws(niw_); iw=iws(iiw)
+      if(iw==b0_+idir)then
+         ! dB_idir/dt+=tmp
+         wnew(ixmin1:ixmax1,ixmin2:ixmax2,iw)=wnew(ixmin1:ixmax1,&
+            ixmin2:ixmax2,iw)+qdt*tmp(ixmin1:ixmax1,ixmin2:ixmax2)
+      else if(iw==e_)then
+         ! de/dt+=B.tmp
+         wnew(ixmin1:ixmax1,ixmin2:ixmax2,iw)=wnew(ixmin1:ixmax1,&
+            ixmin2:ixmax2,iw)+qdt*tmp(ixmin1:ixmax1,ixmin2:ixmax2)&
+            *(w(ixmin1:ixmax1,ixmin2:ixmax2,b0_+idir)+w(ixmin1:ixmax1,&
+            ixmin2:ixmax2,bg0_+idir))
+      endif
+   end do  ! iiw
+enddo ! idir
+
+! de/dt+=eta*J**2
+do iiw=1,iws(niw_); iw=iws(iiw)
+   if(iw==e_)then
+      tmp(ixmin1:ixmax1,ixmin2:ixmax2)=zero
+      do idir=idirmin,3
+         tmp(ixmin1:ixmax1,ixmin2:ixmax2)=tmp(ixmin1:ixmax1,ixmin2:ixmax2)&
+            +current(ixmin1:ixmax1,ixmin2:ixmax2,idir)**2
+      enddo
+      wnew(ixmin1:ixmax1,ixmin2:ixmax2,iw)=wnew(ixmin1:ixmax1,ixmin2:ixmax2,&
+         iw)+qdt*eta(ixmin1:ixmax1,ixmin2:ixmax2)*tmp(ixmin1:ixmax1,&
+         ixmin2:ixmax2)
+   endif
+enddo
+
+return
+end
+
+!=============================================================================
+subroutine addsource_res2(qdt,ixImin1,ixImin2,ixImax1,ixImax2,ixOmin1,ixOmin2,&
+   ixOmax1,ixOmax2,iws,qtC,w,qt,wnew)
+
+! Add resistive source to wnew within ixO if possible, otherwise shrink ixO
+! Uses 5 point stencil (2 neighbours) in each direction, conservative
+
+include 'vacdef.f'
+
+integer::          ixImin1,ixImin2,ixImax1,ixImax2,ixOmin1,ixOmin2,ixOmax1,&
+   ixOmax2,iws(niw_)
+double precision:: qdt,qtC,qt,w(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw),&
+   wnew(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw)
+
+integer:: ixmin1,ixmin2,ixmax1,ixmax2,idir,jdir,kdir,idirmin,iiw,iw
+
+! Resistivity may or may not vary in time and/or space
+! For ndir=2 only 3rd component of J can exist, ndir=1 is impossible for MHD
+double precision:: current(ixGlo1:ixGhi1,ixGlo2:ixGhi2,7-2*ndir:3),&
+   eta(ixGlo1:ixGhi1,ixGlo2:ixGhi2),gradeta(ixGlo1:ixGhi1,ixGlo2:ixGhi2,ndim)
+common/resist/current,eta,gradeta
+!-----------------------------------------------------------------------------
+
+oktest=index(teststr,'addsource_res')>=1
+if(oktest)write(*,*)'AddSource_Res2'
+
+! Calculating resistive sources involves second derivatives, two extra layers
+if(oktest)write(*,*)'calling ensurebound in Addsource_Res2'
+call ensurebound(2,ixImin1,ixImin2,ixImax1,ixImax2,ixOmin1,ixOmin2,ixOmax1,&
+   ixOmax2,qtC,w)
+if(oktest)write(*,*)'end calling ensurebound in Addsource_Res2'
+ixmin1=ixOmin1-1;ixmin2=ixOmin2-1;ixmax1=ixOmax1+1;ixmax2=ixOmax2+1;
+
+! Calculate current density within ixL: J=curl B, thus J_i=eps_ijk*d_j B_k
+! Determine exact value of idirmin while doing the loop.
+call getcurrent(w,ixmin1,ixmin2,ixmax1,ixmax2,idirmin)
+
+! Calculate and save eta for the first time
+! for eqpar(eta_)<0 call specialeta
+if(eqpar(eta_)>zero)then
+   if(it==itmin) eta(ixGmin1:ixGmax1,ixGmin2:ixGmax2)=eqpar(eta_)
+else
+   call specialeta(w,ixmin1,ixmin2,ixmax1,ixmax2,idirmin)
+endif
+if(oktest)write(*,*)'eta:',eta(ixtest1,ixtest2)
+
+! Calculate sources from resistivity
+do iiw=1,iws(niw_); iw=iws(iiw)
+   select case(iw)
+   case(b1_,b2_)
+      ! dB/dt= -curl(J*eta), thus B_i=B_i-eps_ijk d_j Jeta_k
+      idir=iw-b0_
+      do jdir=1,ndim; do kdir=idirmin,3;
+         if(lvc(idir,jdir,kdir)/=0)then
+            tmp(ixmin1:ixmax1,ixmin2:ixmax2)=current(ixmin1:ixmax1,&
+               ixmin2:ixmax2,kdir)*eta(ixmin1:ixmax1,ixmin2:ixmax2)*qdt
+            call gradient(.true.,tmp,ixOmin1,ixOmin2,ixOmax1,ixOmax2,jdir,&
+               tmp2)
+            if(lvc(idir,jdir,kdir)==1)then
+               wnew(ixOmin1:ixOmax1,ixOmin2:ixOmax2,iw)=wnew(ixOmin1:ixOmax1,&
+                  ixOmin2:ixOmax2,iw)-tmp2(ixOmin1:ixOmax1,ixOmin2:ixOmax2)
+            else
+               wnew(ixOmin1:ixOmax1,ixOmin2:ixOmax2,iw)=wnew(ixOmin1:ixOmax1,&
+                  ixOmin2:ixOmax2,iw)+tmp2(ixOmin1:ixOmax1,ixOmin2:ixOmax2)
+            endif
+        endif
+      enddo; enddo
+   case(e_)
+      ! de/dt+= div(B x Jeta), thus e-= dt*eps_ijk d_i B_j Jeta_k
+      do idir=1,ndim; do jdir=1,ndir; do kdir=idirmin,3
+         if(lvc(idir,jdir,kdir)/=0)then
+            tmp(ixmin1:ixmax1,ixmin2:ixmax2)=(w(ixmin1:ixmax1,ixmin2:ixmax2,&
+               b0_+jdir)+w(ixmin1:ixmax1,ixmin2:ixmax2,bg0_&
+               +jdir))*current(ixmin1:ixmax1,ixmin2:ixmax2,kdir)&
+               *eta(ixmin1:ixmax1,ixmin2:ixmax2)*qdt
+            call gradient(.false.,tmp,ixOmin1,ixOmin2,ixOmax1,ixOmax2,idir,&
+               tmp2)
+            if(lvc(idir,jdir,kdir)==1)then
+               wnew(ixOmin1:ixOmax1,ixOmin2:ixOmax2,ee_)=wnew(ixOmin1:ixOmax1,&
+                  ixOmin2:ixOmax2,ee_)+tmp2(ixOmin1:ixOmax1,ixOmin2:ixOmax2)
+            else
+               wnew(ixOmin1:ixOmax1,ixOmin2:ixOmax2,ee_)=wnew(ixOmin1:ixOmax1,&
+                  ixOmin2:ixOmax2,ee_)-tmp2(ixOmin1:ixOmax1,ixOmin2:ixOmax2)
+            endif
+        endif
+      enddo; enddo; enddo
+   end select ! iw
+end do        ! iiw
+
+return
+end
+
+!=============================================================================
+! end module vacphys.mhdres
+!##############################################################################
+
+
+subroutine gradient(bebe,q,ixmin1,ixmin2,ixmax1,ixmax2,idim,gradq)
+include 'vacdef.f'
+integer:: ixmin1,ixmin2,ixmax1,ixmax2,idim
+double precision:: q(ixGlo1:ixGhi1,ixGlo2:ixGhi2),gradq(ixGlo1:ixGhi1,&
+   ixGlo2:ixGhi2)
+integer:: hxmin1,hxmin2,hxmax1,hxmax2,kxmin1,kxmin2,kxmax1,kxmax2
+logical:: bebe
+!-----------------------------------------------------------------------------
+
+hxmin1=ixmin1-kr(idim,1);hxmin2=ixmin2-kr(idim,2);hxmax1=ixmax1-kr(idim,1)
+hxmax2=ixmax2-kr(idim,2);
+kxmin1=ixmin1+kr(idim,1);kxmin2=ixmin2+kr(idim,2);kxmax1=ixmax1+kr(idim,1)
+kxmax2=ixmax2+kr(idim,2);
+gradq(ixmin1:ixmax1,ixmin2:ixmax2)=-(q(kxmin1:kxmax1,kxmin2:kxmax2)&
+   -q(hxmin1:hxmax1,hxmin2:hxmax2))/dx(ixmin1:ixmax1,ixmin2:ixmax2,idim)/two
+
+return
+end
+!=============================================================================
+subroutine physini
+
+! Tell VAC which variables are vectors, set default entropy coefficients
+
+include 'vacdef.f'
+integer:: il
+!-----------------------------------------------------------------------------
+
+iw_vector(1)=m0_; iw_vector(2)=b0_
+
+! The values of the constants are taken from Ryu & Jones ApJ 442, 228
+do il=1,nw
+   select case(il)
+   case(fastRW_,fastLW_,slowRW_,slowLW_)
+      entropycoef(il)=0.2
+   case(alfvRW_,alfvLW_)
+      entropycoef(il)=0.4
+   case default
+      entropycoef(il)= -one
+   end select
+end do
+
+return
+end
+
+!=============================================================================
+subroutine process(count,idimmin,idimmax,w)
+
+! Process w before it is advected in directions idim^LIM, or before save
+! count=1 and 2 for first and second (half step) processing during advection
+! count=ifile+2 for saving results into the file indexed by ifile
+
+include 'vacdef.f'
+
+integer:: count,idimmin,idimmax
+double precision:: w(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw)
+
+logical:: oktime
+double precision:: cputime,time1,timeproc
+data timeproc /0.D0/
+
+! The processing should eliminate divergence of B.
+!-----------------------------------------------------------------------------
+
+oktest=index(teststr,'process')>=1
+oktime=index(teststr,'timeproc')>=1
+
+if(oktest)write(*,*)'Process it,idim^LIM,count',it,idimmin,idimmax,count
+
+if(oktime)time1=cputime()
+
+
+if(count==0)then
+   if(divbconstrain)then
+      call die('CT module is OFF: setvac -on=ct; make vac')
+   endif
+else
+   ! Use the projection scheme 
+   call die('Poisson module is OFF: setvac -on=poisson;make vac')
+endif
+
+
+if(oktime)then
+   time1=cputime()-time1
+   timeproc=timeproc+time1
+   write(*,*)'Time.Proc:',time1,timeproc
+endif
+
+return
+end
+
+!=============================================================================
+subroutine getdt(w,ixmin1,ixmin2,ixmax1,ixmax2)
+
+! If resistivity is  not zero, check diffusion time limit for dt
+
+include 'vacdef.f'
+
+double precision:: w(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw)
+integer:: ixmin1,ixmin2,ixmax1,ixmax2
+!-----------------------------------------------------------------------------
+
+oktest=index(teststr,'getdt')>=1
+if(oktest)write(*,*)'GetDt'
+
+if(eqpar(eta_)==zero)return
+
+       call getdt_res(w,ixmin1,ixmin2,ixmax1,ixmax2)
+
+
+return
+end
+
+!=============================================================================
+subroutine getdivb(w,ixOmin1,ixOmin2,ixOmax1,ixOmax2,divb)
+
+! Calculate div B within ixO
+
+include 'vacdef.f'
+
+integer::          ixOmin1,ixOmin2,ixOmax1,ixOmax2,ixmin1,ixmin2,ixmax1,&
+   ixmax2,idim
+double precision:: w(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw),divb(ixGlo1:ixGhi1,&
+   ixGlo2:ixGhi2)
+!-----------------------------------------------------------------------------
+
+oktest=index(teststr,'getdivb')>=1
+if(oktest)write(*,*)'getdivb ixO=',ixOmin1,ixOmin2,ixOmax1,ixOmax2
+
+if(fourthorder)then
+   ixmin1=ixOmin1-2;ixmin2=ixOmin2-2;ixmax1=ixOmax1+2;ixmax2=ixOmax2+2;
+else
+   ixmin1=ixOmin1-1;ixmin2=ixOmin2-1;ixmax1=ixOmax1+1;ixmax2=ixOmax2+1;
+endif
+divb(ixOmin1:ixOmax1,ixOmin2:ixOmax2)=zero
+do idim=1,ndim
+   tmp(ixmin1:ixmax1,ixmin2:ixmax2)=w(ixmin1:ixmax1,ixmin2:ixmax2,b0_+idim)&
+      +w(ixmin1:ixmax1,ixmin2:ixmax2,bg0_+idim)
+
+      call gradient4(.false.,tmp,ixOmin1,ixOmin2,ixOmax1,ixOmax2,idim,tmp2)
+
+   divb(ixOmin1:ixOmax1,ixOmin2:ixOmax2)=divb(ixOmin1:ixOmax1,&
+      ixOmin2:ixOmax2)+tmp2(ixOmin1:ixOmax1,ixOmin2:ixOmax2)
+enddo
+
+if(oktest)then
+   write(*,*)'divb:',divb(ixtest1,ixtest2)
+!   write(*,*)'bx=',w(ixtest1-1:ixtest1+1,ixtest2,b1_)
+!   write(*,*)'by=',w(ixtest1,ixtest2-1:ixtest2+1,b2_)
+!   write(*,*)'x =',x(ixtest1-1:ixtest1+1,ixtest2,1)
+!   write(*,*)'y =',x(ixtest1,ixtest2-1:ixtest2+1,2)
+!   write(*,*)'dx=',dx(ixtest1,ixtest2,1)
+!   write(*,*)'dy=',dx(ixtest1,ixtest2,2)
+endif
+
+return
+end
+
+!=============================================================================
+subroutine getflux(w,ixmin1,ixmin2,ixmax1,ixmax2,iw,idim,f,transport)
+
+! Calculate non-transport flux f_idim[iw] within ix^L.
+! Set transport=.true. if a transport flux should be added
+
+include 'vacdef.f'
+
+integer::          ixmin1,ixmin2,ixmax1,ixmax2,iw,idim
+double precision:: w(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw),f(ixGlo1:ixGhi1,&
+   ixGlo2:ixGhi2), fb(ixGlo1:ixGhi1,ixGlo2:ixGhi2)
+logical::          transport
+!-----------------------------------------------------------------------------
+
+oktest= index(teststr,'getflux')>=1
+if(oktest.and.iw==iwtest)write(*,*)'Getflux idim,w:',idim,w(ixtest1,ixtest2,&
+   iwtest)
+
+transport=.true.
+
+     
+select case(iw)
+   case(rho_)
+      f(ixmin1:ixmax1,ixmin2:ixmax2)=w(ixmin1:ixmax1,ixmin2:ixmax2,rhob_)&
+         *w(ixmin1:ixmax1,ixmin2:ixmax2,m0_+idim)/(w(ixmin1:ixmax1,&
+         ixmin2:ixmax2,rho_)+w(ixmin1:ixmax1,ixmin2:ixmax2,rhob_))
+      f(ixmin1:ixmax1,ixmin2:ixmax2)=zero
+   case(m1_)
+      if(idim==1)then
+            
+          call getptotal(w,ixmin1,ixmin2,ixmax1,ixmax2,f)
+	  call getptotal_bg(w,ixmin1,ixmin2,ixmax1,ixmax2,fb)
+          fb(ixmin1:ixmax1,ixmin2:ixmax2)=0.d0
+	  
+          f(ixmin1:ixmax1,ixmin2:ixmax2)=f(ixmin1:ixmax1,ixmin2:ixmax2)&
+             +fb(ixmin1:ixmax1,ixmin2:ixmax2)-(w(ixmin1:ixmax1,ixmin2:ixmax2,&
+             b1_)*w(ixmin1:ixmax1,ixmin2:ixmax2,bg0_+idim)+w(ixmin1:ixmax1,&
+             ixmin2:ixmax2,b0_+idim)*w(ixmin1:ixmax1,ixmin2:ixmax2,bg1_))-&
+                           w(ixmin1:ixmax1,ixmin2:ixmax2,b1_)&
+                              *w(ixmin1:ixmax1,ixmin2:ixmax2,b0_+idim) !-w(ixmin1:ixmax1,ixmin2:ixmax2,bg0_+idim)*w(ixmin1:ixmax1,ixmin2:ixmax2,bg1_)
+
+      else
+          f(ixmin1:ixmax1,ixmin2:ixmax2)=-(w(ixmin1:ixmax1,ixmin2:ixmax2,b1_)&
+             *w(ixmin1:ixmax1,ixmin2:ixmax2,bg0_+idim)+w(ixmin1:ixmax1,&
+             ixmin2:ixmax2,b0_+idim)*w(ixmin1:ixmax1,ixmin2:ixmax2,bg1_))-&
+                    w(ixmin1:ixmax1,ixmin2:ixmax2,b1_)*w(ixmin1:ixmax1,&
+                       ixmin2:ixmax2,b0_+idim) !-w(ixmin1:ixmax1,ixmin2:ixmax2,bg0_+idim)*w(ixmin1:ixmax1,ixmin2:ixmax2,bg1_)
+ 
+      endif
+      f(ixmin1:ixmax1,ixmin2:ixmax2)=zero 
+   case(m2_)
+      if(idim==2)then
+            
+          call getptotal(w,ixmin1,ixmin2,ixmax1,ixmax2,f)
+	  call getptotal_bg(w,ixmin1,ixmin2,ixmax1,ixmax2,fb)
+          fb(ixmin1:ixmax1,ixmin2:ixmax2)=0.d0
+	  
+          f(ixmin1:ixmax1,ixmin2:ixmax2)=f(ixmin1:ixmax1,ixmin2:ixmax2)&
+             +fb(ixmin1:ixmax1,ixmin2:ixmax2)-(w(ixmin1:ixmax1,ixmin2:ixmax2,&
+             b2_)*w(ixmin1:ixmax1,ixmin2:ixmax2,bg0_+idim)+w(ixmin1:ixmax1,&
+             ixmin2:ixmax2,b0_+idim)*w(ixmin1:ixmax1,ixmin2:ixmax2,bg2_))-&
+                           w(ixmin1:ixmax1,ixmin2:ixmax2,b2_)&
+                              *w(ixmin1:ixmax1,ixmin2:ixmax2,b0_+idim) !-w(ixmin1:ixmax1,ixmin2:ixmax2,bg0_+idim)*w(ixmin1:ixmax1,ixmin2:ixmax2,bg2_)
+      else
+          f(ixmin1:ixmax1,ixmin2:ixmax2)=-(w(ixmin1:ixmax1,ixmin2:ixmax2,b2_)&
+             *w(ixmin1:ixmax1,ixmin2:ixmax2,bg0_+idim)+w(ixmin1:ixmax1,&
+             ixmin2:ixmax2,b0_+idim)*w(ixmin1:ixmax1,ixmin2:ixmax2,bg2_))-&
+                    w(ixmin1:ixmax1,ixmin2:ixmax2,b2_)*w(ixmin1:ixmax1,&
+                       ixmin2:ixmax2,b0_+idim) !-w(ixmin1:ixmax1,ixmin2:ixmax2,bg0_+idim)*w(ixmin1:ixmax1,ixmin2:ixmax2,bg2_)
+ 
+      endif 
+      f(ixmin1:ixmax1,ixmin2:ixmax2)=zero
+   case(e_)
+  
+      call getptotal(w,ixmin1,ixmin2,ixmax1,ixmax2,f)
+      call getptotal_bg(w,ixmin1,ixmin2,ixmax1,ixmax2,fb)      
+      fb(ixmin1:ixmax1,ixmin2:ixmax2)=0.d0      
+
+      f(ixmin1:ixmax1,ixmin2:ixmax2)=(w(ixmin1:ixmax1,ixmin2:ixmax2,m0_&
+         +idim)*(f(ixmin1:ixmax1,ixmin2:ixmax2)+fb(ixmin1:ixmax1,&
+         ixmin2:ixmax2))-w(ixmin1:ixmax1,ixmin2:ixmax2,b0_+idim)&
+         *( (w(ixmin1:ixmax1,ixmin2:ixmax2,bg1_))*w(ixmin1:ixmax1,&
+         ixmin2:ixmax2,m1_)+(w(ixmin1:ixmax1,ixmin2:ixmax2,bg2_))&
+         *w(ixmin1:ixmax1,ixmin2:ixmax2,m2_) )-w(ixmin1:ixmax1,ixmin2:ixmax2,&
+         bg0_+idim)*( (w(ixmin1:ixmax1,ixmin2:ixmax2,b1_))*w(ixmin1:ixmax1,&
+         ixmin2:ixmax2,m1_)+(w(ixmin1:ixmax1,ixmin2:ixmax2,b2_))&
+         *w(ixmin1:ixmax1,ixmin2:ixmax2,m2_) ))/(w(ixmin1:ixmax1,&
+         ixmin2:ixmax2,rho_)+w(ixmin1:ixmax1,ixmin2:ixmax2,rhob_))+&        
+         !      -w(ix^S,bg0_+idim)*( ^C&(w(ix^S,bg^C_))*w(ix^S,m^C_)+ )/(w(ix^S,rho_)+w(ix^S,rhob_))
+               w(ixmin1:ixmax1,ixmin2:ixmax2,eb_)*w(ixmin1:ixmax1,&
+                  ixmin2:ixmax2,m0_+idim)/(w(ixmin1:ixmax1,ixmin2:ixmax2,&
+                  rho_)+w(ixmin1:ixmax1,ixmin2:ixmax2,rhob_))&
+                  -              w(ixmin1:ixmax1,ixmin2:ixmax2,b0_&
+                  +idim)*( (w(ixmin1:ixmax1,ixmin2:ixmax2,b1_))&
+                  *w(ixmin1:ixmax1,ixmin2:ixmax2,m1_)+(w(ixmin1:ixmax1,&
+                  ixmin2:ixmax2,b2_))*w(ixmin1:ixmax1,ixmin2:ixmax2,m2_) )&
+                  /(w(ixmin1:ixmax1,ixmin2:ixmax2,rho_)+w(ixmin1:ixmax1,&
+                  ixmin2:ixmax2,rhob_))               
+              
+      f(ixmin1:ixmax1,ixmin2:ixmax2)=zero
+
+   case(b1_)
+      if(idim==1) then
+         f(ixmin1:ixmax1,ixmin2:ixmax2)= zero
+         transport=.false.
+      else
+      
+         f(ixmin1:ixmax1,ixmin2:ixmax2)= -w(ixmin1:ixmax1,ixmin2:ixmax2,m1_)&
+            /(w(ixmin1:ixmax1,ixmin2:ixmax2,rho_)+w(ixmin1:ixmax1,&
+            ixmin2:ixmax2,rhob_))*(w(ixmin1:ixmax1,ixmin2:ixmax2,b0_+idim)&
+            +w(ixmin1:ixmax1,ixmin2:ixmax2,bg0_+idim))+ &
+                  w(ixmin1:ixmax1,ixmin2:ixmax2,m0_+idim)/(w(ixmin1:ixmax1,&
+                     ixmin2:ixmax2,rho_)+w(ixmin1:ixmax1,ixmin2:ixmax2,&
+                     rhob_))*w(ixmin1:ixmax1,ixmin2:ixmax2,bg1_)
+		  
+      endif 
+      f(ixmin1:ixmax1,ixmin2:ixmax2)=zero 
+   case(b2_)
+      if(idim==2) then
+         f(ixmin1:ixmax1,ixmin2:ixmax2)= zero
+         transport=.false.
+      else
+      
+         f(ixmin1:ixmax1,ixmin2:ixmax2)= -w(ixmin1:ixmax1,ixmin2:ixmax2,m2_)&
+            /(w(ixmin1:ixmax1,ixmin2:ixmax2,rho_)+w(ixmin1:ixmax1,&
+            ixmin2:ixmax2,rhob_))*(w(ixmin1:ixmax1,ixmin2:ixmax2,b0_+idim)&
+            +w(ixmin1:ixmax1,ixmin2:ixmax2,bg0_+idim))+ &
+                  w(ixmin1:ixmax1,ixmin2:ixmax2,m0_+idim)/(w(ixmin1:ixmax1,&
+                     ixmin2:ixmax2,rho_)+w(ixmin1:ixmax1,ixmin2:ixmax2,&
+                     rhob_))*w(ixmin1:ixmax1,ixmin2:ixmax2,bg2_)
+		  
+      endif  
+      f(ixmin1:ixmax1,ixmin2:ixmax2)=zero
+   case default
+      call die('Error in getflux: unknown flow variable')
+end select
+
+if(oktest.and.iw==iwtest)write(*,*)'transport,f:',transport,f(ixtest1,ixtest2)
+
+return
+end
+
+!=============================================================================
+subroutine addsource(qdt,ixImin1,ixImin2,ixImax1,ixImax2,ixOmin1,ixOmin2,&
+   ixOmax1,ixOmax2,iws,qtC,w,qt,wnew)
+
+! Add sources from resistivity and Powell solver
+
+include 'vacdef.f'
+
+integer::          ixImin1,ixImin2,ixImax1,ixImax2,ixOmin1,ixOmin2,ixOmax1,&
+   ixOmax2,iws(niw_)
+double precision:: qdt,qtC,qt,w(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw),&
+   wnew(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw)
+!-----------------------------------------------------------------------------
+
+oktest=index(teststr,'addsource')>=1
+if(oktest)write(*,*)'Addsource, compactres,divbfix:',compactres,divbfix
+if(oktest)write(*,*)'Before adding source:',wnew(ixtest1,ixtest2,iwtest)
+
+! Sources for resistivity in eqs. for e, B1, B2 and B3
+if(abs(eqpar(eta_))>smalldouble)then
+         
+   if(compactres)then
+      call addsource_res1(qdt,ixImin1,ixImin2,ixImax1,ixImax2,ixOmin1,ixOmin2,&
+         ixOmax1,ixOmax2,iws,qtC,w,qt,wnew)
+   else
+      call addsource_res2(qdt,ixImin1,ixImin2,ixImax1,ixImax2,ixOmin1,ixOmin2,&
+         ixOmax1,ixOmax2,iws,qtC,w,qt,wnew)
+   endif
+   if(oktest)write(*,*)'With resistive source:',wnew(ixtest1,ixtest2,iwtest)
+  
+   
+endif
+
+
+! Sources related to div B in the Powell solver
+ if(divbfix) call addsource_divb(qdt,ixImin1,ixImin2,ixImax1,ixImax2,ixOmin1,&
+    ixOmin2,ixOmax1,ixOmax2,iws,qtC,w,qt,wnew)
+
+if(oktest)write(*,*)'After adding source:',wnew(ixtest1,ixtest2,iwtest)
+
+return
+end
+
+!=============================================================================
+subroutine addsource_divb(qdt,ixImin1,ixImin2,ixImax1,ixImax2,ixOmin1,ixOmin2,&
+   ixOmax1,ixOmax2,iws,qtC,w,qt,wnew)
+
+! Add Powell's divB related sources to wnew within ixO if possible, 
+! otherwise shrink ixO
+
+include 'vacdef.f'
+
+integer::          ixImin1,ixImin2,ixImax1,ixImax2,ixOmin1,ixOmin2,ixOmax1,&
+   ixOmax2,iws(niw_),iiw,iw
+double precision:: qdt,qtC,qt,w(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw),&
+   wnew(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw)
+double precision:: divb(ixGlo1:ixGhi1,ixGlo2:ixGhi2)
+!-----------------------------------------------------------------------------
+
+! Calculating div B involves first derivatives
+call ensurebound(1,ixImin1,ixImin2,ixImax1,ixImax2,ixOmin1,ixOmin2,ixOmax1,&
+   ixOmax2,qtC,w)
+
+! We calculate now div B
+call getdivb(w,ixOmin1,ixOmin2,ixOmax1,ixOmax2,divb)
+divb(ixOmin1:ixOmax1,ixOmin2:ixOmax2)=qdt*divb(ixOmin1:ixOmax1,&
+   ixOmin2:ixOmax2)
+
+do iiw=1,iws(niw_); iw=iws(iiw)
+   select case(iw)
+      case(m1_)
+         wnew(ixOmin1:ixOmax1,ixOmin2:ixOmax2,iw)=wnew(ixOmin1:ixOmax1,&
+            ixOmin2:ixOmax2,iw)-(w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,b1_)&
+            +w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,bg1_))*divb(ixOmin1:ixOmax1,&
+            ixOmin2:ixOmax2)
+      case(m2_)
+         wnew(ixOmin1:ixOmax1,ixOmin2:ixOmax2,iw)=wnew(ixOmin1:ixOmax1,&
+            ixOmin2:ixOmax2,iw)-(w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,b2_)&
+            +w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,bg2_))*divb(ixOmin1:ixOmax1,&
+            ixOmin2:ixOmax2)
+     
+      case(b1_)
+         wnew(ixOmin1:ixOmax1,ixOmin2:ixOmax2,iw)=wnew(ixOmin1:ixOmax1,&
+            ixOmin2:ixOmax2,iw)-w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,m1_)&
+            /(w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,rho_)+w(ixOmin1:ixOmax1,&
+            ixOmin2:ixOmax2,rhob_))*divb(ixOmin1:ixOmax1,ixOmin2:ixOmax2)
+      case(b2_)
+         wnew(ixOmin1:ixOmax1,ixOmin2:ixOmax2,iw)=wnew(ixOmin1:ixOmax1,&
+            ixOmin2:ixOmax2,iw)-w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,m2_)&
+            /(w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,rho_)+w(ixOmin1:ixOmax1,&
+            ixOmin2:ixOmax2,rhob_))*divb(ixOmin1:ixOmax1,ixOmin2:ixOmax2)
+     
+      case(e_)
+         wnew(ixOmin1:ixOmax1,ixOmin2:ixOmax2,iw)=wnew(ixOmin1:ixOmax1,&
+            ixOmin2:ixOmax2,iw)-(w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,m1_)&
+            *(w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,b1_)+w(ixOmin1:ixOmax1,&
+            ixOmin2:ixOmax2,bg1_))+w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,m2_)&
+            *(w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,b2_)+w(ixOmin1:ixOmax1,&
+            ixOmin2:ixOmax2,bg2_)) )/(w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,rho_)&
+            +w(ixOmin1:ixOmax1,ixOmin2:ixOmax2,rhob_))*divb(ixOmin1:ixOmax1,&
+            ixOmin2:ixOmax2)
+   end select
+end do
+
+return
+end
+
+
+!=============================================================================
+! end module vacphys.mhd0
+!##############################################################################
+
+!=============================================================================
+
+subroutine keeppositive(ixmin1,ixmin2,ixmax1,ixmax2,w)
+
+! Keep pressure and density positive (following D.Ryu)
+
+include 'vacdef.f'
+
+integer::          ixmin1,ixmin2,ixmax1,ixmax2
+double precision:: w(ixGlo1:ixGhi1,ixGlo2:ixGhi2,nw)
+logical:: toosmallp
+!-----------------------------------------------------------------------------
+
+
+   ! Where rho is small use vacuum state: rho=vacuumrho, v=0, p=smallp, same B
+   where((w(ixmin1:ixmax1,ixmin2:ixmax2,rho_)+w(ixmin1:ixmax1,ixmin2:ixmax2,&
+      rhob_))<smallrho)
+      w(ixmin1:ixmax1,ixmin2:ixmax2,m1_)=zero
+      w(ixmin1:ixmax1,ixmin2:ixmax2,m2_)=zero;
+!!!      ^C&w(ix^S,m^C_)=w(ix^S,m^C_)/w(ix^S,rho_)*vacuumrho;
+      w(ixmin1:ixmax1,ixmin2:ixmax2,rho_)=vacuumrho-w(ixmin1:ixmax1,&
+         ixmin2:ixmax2,rhob_)
+      w(ixmin1:ixmax1,ixmin2:ixmax2,e_)=smallp/(eqpar(gamma_)-one)&
+         +half*(w(ixmin1:ixmax1,ixmin2:ixmax2,b1_)**2+w(ixmin1:ixmax1,&
+         ixmin2:ixmax2,b2_)**2)-w(ixmin1:ixmax1,ixmin2:ixmax2,eb_)
+   endwhere
+
+
+! Calculate pressure without clipping toosmall values (.false.)
+call getpthermal(w,ixmin1,ixmin2,ixmax1,ixmax2,tmp)
+
+toosmallp=any(tmp(ixmin1:ixmax1,ixmin2:ixmax2)<max(zero,smallp))
+
+if(toosmallp)then
+   nerror(toosmallp_)=nerror(toosmallp_)+1
+   if(nerror(toosmallp_)==1)then
+      write(*,'(a,i2,a,i7)')'Too small pressure (code=',toosmallp_,') at it=',&
+         it
+      write(*,*)'Value < smallp: ',minval(tmp(ixmin1:ixmax1,ixmin2:ixmax2)),&
+         smallp
+!     write(*,*)'Location: ',minloc(tmp(ix^S)) !F77_  
+      
+   endif
+   if(smallp>zero)w(ixmin1:ixmax1,ixmin2:ixmax2,e_)=max(tmp(ixmin1:ixmax1,&
+      ixmin2:ixmax2),smallp)/(eqpar(gamma_)-1)+half*((w(ixmin1:ixmax1,&
+      ixmin2:ixmax2,m1_)**2+w(ixmin1:ixmax1,ixmin2:ixmax2,m2_)**2)&
+      /w(ixmin1:ixmax1,ixmin2:ixmax2,rho_)+(w(ixmin1:ixmax1,ixmin2:ixmax2,&
+      b1_)**2+w(ixmin1:ixmax1,ixmin2:ixmax2,b2_)**2))-w(ixmin1:ixmax1,&
+      ixmin2:ixmax2,eb_)
+endif
+
+return
+end
+
+!=============================================================================
+! end module vacphys - mhd
+!##############################################################################

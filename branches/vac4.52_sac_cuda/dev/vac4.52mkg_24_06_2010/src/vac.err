@@ -1,0 +1,2 @@
+gfortran -ffree-form -O0 -C  -c vacini.f
+gfortran -ffree-form -O0 -C  -o ../vacini vacini.o vacio.o vacphys0.o vacusr.o

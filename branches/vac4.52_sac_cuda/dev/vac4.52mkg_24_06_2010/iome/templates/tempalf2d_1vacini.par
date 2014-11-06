@@ -1,0 +1,20 @@
+../data/vacinputs/ini/modshearalfven2d.ini
+shearalfven_mhd22
+x rho m1 m2 e bx by    gamma eta
+domain
+250 250				-ixmaxs_mhd
+0. 0.					-min coordinates
+3. 3.					-max coordinates
+uniform
+%suprho% %supv1% %supv2% %supp%  %supb1%  %supb2%                   -rho,v1,v2,p,b1,b2
+eqpar
+%supgamma% %supeta%  %supg1% %supg2%			         -gamma,eta,g/2,coriolis coeff.
+setvar
+115 115 135 135                             -index limits for middle four cells
+1 5.0F                                 -inex of rho, value, last variable
+2 5.0F                                 -inex of rho, value, last variable
+6 5.0T                                 -inex of rho, value, last variable
+conserv
+typefileout
+binary
+save
