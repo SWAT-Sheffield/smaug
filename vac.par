@@ -1,0 +1,45 @@
+&testlist /
+
+&filelist
+	filenameini='/data/cs1mkg/VAC_NN_tests/zero1_ot_asc.ini',
+	typefileini='ascii'
+	filename=   '/data/cs1mkg/VAC_NN_tests/zeroOT.log',
+		    '/data/cs1mkg/VAC_NN_tests/zeroOT.out'
+	typefileout='binary'
+        fullgridout= T
+        fullgridini= T
+ /
+
+&savelist
+	itsave(1,2)=0
+	ditsave=10,10
+
+ /
+
+ &stoplist
+       itmax=100
+ /
+
+ &methodlist
+
+	wnames=		'h 	m1  	 m2  	e	b1	b2	eb	rhob	bg1	bg2'
+	typefull=	6*'cd4',4*'nul'
+        typeadvance=    'onestep'
+	typefilter=	10*'nul'
+	dimsplit=	F
+	sourcesplit=	F
+	divBfix=	F
+ /
+
+ &boundlist
+	typeB=	'periodic','periodic','periodic','periodic','periodic','periodic','fixed','fixed','fixed','fixed'
+		'periodic','periodic','periodic','periodic','periodic','periodic','fixed','fixed','fixed','fixed'
+		'periodic','periodic','periodic','periodic','periodic','periodic','fixed','fixed','fixed','fixed'
+		'periodic','periodic','periodic','periodic','periodic','periodic','fixed','fixed','fixed','fixed'
+		
+ /
+
+ &paramlist
+	courantpar=0.2
+
+ /

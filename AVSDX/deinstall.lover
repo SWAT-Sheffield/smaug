@@ -1,0 +1,144 @@
+#! /bin/csh -f
+#@(#)deinstall.lover	2.1
+#
+#Script to deinstall the LOVER library.
+#
+#Author:  A.J.C. Belien
+#Version: 2.1
+#Date:    14:02:26 00/03/14 
+#
+#(C) 1994-1996: FOM-Institute for Plasma Physics `Rijnhuizen',
+#               Academic Computing Services Amsterdam (SARA)
+#(C) 1997-2000: FOM-Institute for Plasma Physics `Rijnhuizen'
+#
+set swd = `pwd`
+#
+if (!($?LOVER)) then
+   echo =================================================
+   echo The default top directory under which the lover 
+   echo software is installed is /usr/local/.
+   echo ""
+   echo If it has been installed in another directory
+   echo type the name of it below. 
+   echo Just return if it has been installed in the
+   echo default directory.
+   echo =================================================
+   echo ""
+   echo The top directory is = 
+#
+   set top = $<
+   set top = `echo 'echo' $top|/bin/csh`
+#  
+   if ($top == "") then
+      setenv LOVER /usr/local/lover
+   else
+      if (-d $top && -w $top) then
+         cd $top
+         setenv LOVER `pwd`/lover
+      else
+         echo =================================================================
+         echo   Directory $top does not exist or does not allow write access.
+         echo =================================================================
+         exit 1
+      endif
+   endif
+else if (!(-d $LOVER && -w $LOVER)) then
+   echo =====================================================================
+   echo   Directory $LOVER does not exist or does not allow write access.
+   echo =====================================================================
+endif
+#
+if (!($?LIB)) then
+   echo =================================================
+   echo The default directory in which the lover library 
+   echo is installed is /usr/local/lib.
+   echo ""
+   echo If it has been installed in another directory
+   echo type the name of it below. 
+   echo Just return if it has been installed in the
+   echo default directory.
+   echo =================================================
+   echo ""
+   echo The library directory is = 
+#
+   set lib = $<
+   set lib = `echo 'echo' $lib|/bin/csh`
+#  
+   if ($lib == "") then
+      setenv LIB /usr/local/lib
+   else
+      if (-d $lib && -w $lib) then  
+         cd $lib
+         setenv LIB `pwd`
+         cd $swd
+      else
+         echo =================================================================
+         echo   Directory $lib does not exist or does not allow write access.
+         echo =================================================================
+         exit 1
+      endif
+   endif
+else if (!(-d $LIB && -w $LIB)) then
+   echo =====================================================================
+   echo   Directory $LIB does not exist or does not allow write access.
+   echo =====================================================================
+endif
+#
+if (!($?INCLUDE)) then
+   echo =================================================
+   echo The default directory in which the include files
+   echo are installed is /usr/local/include.
+   echo ""
+   echo If it has been installed in another directory
+   echo type the name of it below. 
+   echo Just return if it has been installed in the
+   echo default directory.
+   echo =================================================
+   echo ""
+   echo The include directory is = 
+#
+   set include = $<
+   set include = `echo 'echo' $include|/bin/csh`
+#  
+   if ($include == "") then
+      setenv INCLUDE /usr/local/include
+   else
+      if (-d $include && -w $include) then  
+         cd $include
+         setenv INCLUDE `pwd`
+         cd $swd
+      else
+     echo =====================================================================
+     echo   Directory $include does not exist or does not allow write access.
+     echo =====================================================================
+         exit 1
+      endif
+   endif
+else if (!(-d $INCLUDE && -w $INCLUDE)) then
+   echo =====================================================================
+   echo   Directory $INCLUDE does not exist or does not allow write access.
+   echo =====================================================================
+endif
+#
+echo "================================================="
+echo "*** deleting lover tree $LOVER"
+echo "*** deleting lover library $LIB/liblover.a"
+echo "*** deleting lover include file $INCLUDE/lover.h"
+echo "*** are you sure (y/n)?"
+echo "================================================="
+#
+set sure = $<
+
+if ($sure == "y") then
+   rm -f  $LOVER/../lover.tar
+   rm -rf $LOVER
+   rm -f  $INCLUDE/lover.h
+   rm -f  $LIB/liblover.a
+   echo =================================
+   echo   Succesfully deinstalled LOVER 
+   echo =================================
+else
+   echo ======================
+   echo   Nothing deleted...
+   echo ======================
+endif

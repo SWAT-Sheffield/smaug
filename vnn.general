@@ -1,0 +1,11 @@
+file = ../2_6Mnz1976400_asc10s.out
+points = 790400
+format = ascii
+interleaving = field
+header = lines 5
+series = 10, 1, separator = lines 5
+field = locations, field0, field1,field2,field3,field4,field5,field6
+structure = 2-vector, scalar, 2-vector, scalar, 2-vector,scalar,scalar,2-vector
+type = float, float, float,float,float,float,float,float
+
+end
