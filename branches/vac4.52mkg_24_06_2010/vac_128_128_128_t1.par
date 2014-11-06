@@ -1,0 +1,49 @@
+&testlist /
+
+&filelist
+	filenameini='/data/cs1mkg/VAC_NN_tests/3D_tube_128_128_128_asc_50.ini'
+
+	typefileini='ascii'
+	filename=   '/fastdata/cs1mkg/VAC_NN_tests/3D_tube_128_128_128_nodrv_nobge_nograv_nohy.log',
+		    '/fastdata/cs1mkg/VAC_NN_tests/3D_tube_128_128_128_nodrv_nobge_nograv_nohy.out'
+	typefileout='binary'
+        fullgridout= T
+        fullgridini= T
+ /
+
+&savelist
+ditsave(1)=5
+ditsave(2)=5
+
+ /
+
+ &stoplist
+	itmax=100
+ /
+
+ &methodlist
+
+	wnames=		'h 	m1  	 m2  	m3	e	b1	b2	b3	eb	rhob	bg1	bg2	bg3'
+	typefull=	8*'cd4',5*'nul'
+        typeadvance=    'onestep'
+	typefilter=	13*'nul'
+	dimsplit=	F
+	sourcesplit=	F
+	divBfix=	F
+ /
+
+ &boundlist
+	typeB='fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+		
+ /
+
+ &paramlist
+	courantpar=0.2
+        dtpar=0.13
+        dtcantgrow=T
+ /

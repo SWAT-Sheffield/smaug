@@ -1,0 +1,15 @@
+/home/mikeg/proj/vac4.52_sac_feb2011/zero1_asc.ini
+sw_mhd22
+x y h m1 m2 e b1 b2 eb rhob bg1 bg2
+typefileout
+ascii
+typefileini
+ascii
+domain
+128,128			-ixmax
+-15.4285d15,-15.4285d15	 		-min coordinates
+15.4285d15,15.4285d15           	-max coordinates
+eqpar
+2.0 0.0 1.0 0.0 0.0 0.0   gamma eta g0 g1 g2 g3 nu 
+special
+save

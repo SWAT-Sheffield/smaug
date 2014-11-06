@@ -1,0 +1,33 @@
+ &testlist &end
+
+ &filelist
+	filenameini='../data/vacinputs/ini/newmodshearalfven2d.ini',
+	filename=   '../data/vacoutputs/%suplogfile%',
+		    '../data/vacoutputs/%supoutfile%'
+ &end
+
+ &savelist
+        itsave(1,2)=0
+	dtsave=0.1,0.025
+ &end
+
+ &stoplist
+        itmax=200
+ &end
+
+ &methodlist
+	wnames=		'rho m1 m2 e bx by'
+	typefull=	6*'tvdlf'
+        useprimitive=   T
+ &end
+
+ &boundlist
+	typeB='cont','asymm','symm','cont','cont','cont',
+              'cont','asymm','symm','cont','cont','cont',
+              'cont','symm','asymm','cont','cont','cont',
+              'cont','symm','asymm','cont','cont','cont'
+ &end
+
+ &paramlist
+	courantpar=0.8
+ &end

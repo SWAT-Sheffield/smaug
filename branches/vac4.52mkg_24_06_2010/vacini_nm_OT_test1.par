@@ -1,0 +1,15 @@
+/home/mikeg/proj/vac4.52_sac_feb2011/zero1_ot_asc.ini
+opozmf_mhd22
+x y h m1 m2 e b1 b2 eb rhob bg1 bg2
+typefileout
+ascii
+typefileini
+ascii
+domain
+256,256			-ixmax
+0,0			 		-min coordinates
+1.d0,1.d0           		-max coordinates
+eqpar
+1.6666666667 0.0 1.0 0.0 0.0 0.0   gamma eta g0 g1 g2 g3 nu 
+special
+save

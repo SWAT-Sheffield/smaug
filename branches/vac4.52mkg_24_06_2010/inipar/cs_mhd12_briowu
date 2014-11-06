@@ -1,0 +1,21 @@
+data/briowu.ini
+briowu_mhd12
+x rho m1 m2 e bx by    gamma eta
+domain
+800					-ixmax
+0.					-min coordinates
+1.					-max coordinates
+shocktube
+1                                        -shock direction
+3                                        -number of segments
+1.0    0.0 0.0    1.0  0.75  1.0         -state at left boundary
+1.0    0.0 0.0    1.0  0.75  1.0         -state at end segment 1
+399                                       -position of segment-end 1
+0.125  0.0 0.0    0.1  0.75 -1.0         -state at end of segment 2
+400                                       -position of segment-end 2
+0.125  0.0 0.0    0.1  0.75 -1.0         -state at end of segment 3
+2.0  0.0                                      -gamma eta
+conserv
+typefileout
+binary
+save
