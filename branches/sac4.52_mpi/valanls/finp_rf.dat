@@ -1,0 +1,88 @@
+  'v2001.5'
+
+ ITER     CHISQ      REDCHI
+    1     0.000       0.000    
+
+  'BEGIN'
+#inp
+  'AMINP'     'iron.dat'         #atomic data file, laboratory wavelength
+  'OBINP'     '-'                #profiles to be fitted
+  'WLBND'     'Y'                #wl-range in sep. file Y/N
+  'FITIC'     'N'                #fit continuum
+#preprocessing
+  'ICCOR'       1.0000           #continuum correction
+  'SCLSV'       0.0000           #change sign of V (ZIMPOL)
+  'ROTQU'       0.0000           #rotate Q-U (ZIMPOL)
+  'PPROC'     'N'                #call special preproc. routines
+  'WTFAM'     'N'                #wavelet transformation
+  'WTNCO'     0                  #number of coeff for wavelet trafo
+  'WTTHR'     'S'                #threshold for wavelet trafo
+#form
+  'SFORM'     'S'                #O=Old FTS,N=New FTS,I=IR FTS,S=STOPRO,E=ESO
+#out
+  'COOUT'     'Y'                #detailed log-file: 'Y'/'N'
+  'OBOUT'     'out_rf.dat'       #profiles being fitted
+  'BFOUT'     'sto4li.dat'       #best fit stokes profiles
+  'PAOUT'     'finp_rf.dat'      #best fit parameters
+  'EROUT'     'err_rf.dat'       #estimated error in fitted parameters
+  'FAANS'     'Y'                #write ('Y'/'N') final atmosphere
+  'FANAM'     'atmos_rf'         #filename for final atmosphere
+  'TAANS'     'Y'                #write ('A'/'Y'/'N') atmos test out
+  'TANAM'     'atm_rf.dat'       #filename for atmos test out
+  'DYANS'     'N'                #write ('A'/'F'/'N') dyda test out
+  'DYNAM'     'dyda_rf.dat'      #filename for dyda test out
+#core
+  'RTESO'     'H'                #RTE-solver: [D]ELO, [H]ermitian
+  'RFANS'     'N'                #RF-TEST: All derivatives calc. without RFs
+  'LMSVD'     'F'                #SVD method ('F':Marquardt,'G':Goulub&Reinsch)
+  'LMSCL'     'S'                #SVD scaling ('1':none,'S':Marq.,'R':RuizCobo)
+#fit: ittot=-1 <=> STOPRO MODE
+  'ITTOT'    -1                  #last iteration number
+  'IT1ST'     1                  #first last iteration number
+  'EMODE'     1                  #DO NOT CHANGE
+  'AL1ST'      0.10000           #DO NOT CHANGE
+  'ALINC'       10.000           #DO NOT CHANGE
+  'ALDEC'      0.10000           #DO NOT CHANGE
+  'RFGRD'     0                  #number of iter for rfgrid update
+  'WTREG'       20.000           #weight for regularization (0.0=off)
+  'CHMIN'       5.0000           #min. regularizatuion (>=1.0)
+  'SISPL'       5.0000           #tension factor for spline interpolation
+  'EPSVD'      0.10000E-04       #singular value threshold value for SVD
+  'CONFL'      0.68300           #confidence level
+  'KRANS'     '5'                #determine kappa_c ('5':5000,'R':Rosseland)
+  'DLGRP'       10.000           #delta WL for use of same kappa_c
+  'BISEC'       0.0000           #cut-off for chord-levels (0=off)
+#type of model
+  'MODEL'     'B'                #type of model
+  'RTYPE'     '1'                #type of model atmosphere = '1'|'2'|'S'|'3'
+#stokes profiles to be fitted
+  'STOKE'     'IVQU'             #type of Stokes spectra
+#postprocessing
+  'MIRRO'     'N'                #mirror
+  'FNMAC'     'V'                #macro-trb broad V=Vgt,E=Exp,T=rad-Tang,S=Sinc
+  'FNINS'     'V'                #instr. broad. V=Vgt,E=Exp,T=rad-Tang,S=Sinc
+#multi-ray/flux-tube  models
+  'TGEOM'     'C'                #flux tube geometry = 'C'|'S'
+  'NRAYS'     1                  #number of rays
+  'NPLAN'     1                  #number of rays along which the RTE is solved
+  'IRTST'     0                  #test mode for 3D ray code
+  'IPTST'     0                  #test mode for 3D ray code
+#disk integration
+  'NUMMU'     1                  #number of diff. mu-values for disk integr.
+#component, atmospheres
+  'NCOMP'     1                  #number of components
+  'NUMAT'     1                  #list of numbers of model atmospheres
+  'ATNAM'     'atm4sp.dat'       #list of filenames with tabulated atmospheres
+#-----------------------------------------------------------------------------
+  'PART2'
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+  'THETA'       0.0000       0.00       0.00    0    0    0
+  'KCWLR'    5000.0000       0.00       0.00    0    0    0
+#-----------------------------------------------------------------------------
+  'CLOSE'
+#-----------------------------------------------------------------------------
+
+
+   APARS        CPARS       AFMIN      AFMAX
+  IFITA ICOMP LINNO

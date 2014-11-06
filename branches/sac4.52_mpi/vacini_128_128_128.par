@@ -1,0 +1,16 @@
+/data/ap1vf/3D_128_128_128.ini
+3D_mhd33
+x y h m1 m2 m3 e b1 b2 b3 eb rhob bg1 bg2 bg3
+typefileout
+binary
+typefileini
+binary
+domain
+128,128,128				-ixmax
+24120.603d0, 0.d0, 0.d0		-min coordinates
+1591959.8d0, 2.0d6, 2.0d6 		-max coordinates
+eqpar
+1.66666667 0.0 1.0 -274.0 0.0 0.0 0.0 0.0  gamma eta g0 g1 g2 g3 nu 
+special
+./Atmosphere/VALIIIF_rho_128_1_6Mm.dat
+save

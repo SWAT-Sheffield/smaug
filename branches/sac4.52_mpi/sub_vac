@@ -1,0 +1,9 @@
+#!/bin/bash
+
+#PBS -l nodes=9:ppn=4,walltime=72:00:00 -q prod
+#PBS -N M_GREAT_WALL
+cd $PBS_O_WORKDIR
+date
+mpirun -machinefile $PBS_NODEFILE -np 36 ./vac
+date
+exit 0
