@@ -1,0 +1,162 @@
+2
+port is 8080
+260,260=260,260
+260,260=260,260
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+iome/runmodeliome.sh: line 237:  1832 Segmentation fault      iogs addparam string postscript2 $postscript2 7
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><iosim filename="defaultvacsim.xml"><simulation name="defaultvacsim"><props flag="7" name="" numprops="20"><prop flag="7" index="0" name="dpar"><int>22</int></prop><prop flag="7" index="1" name="phipar"><float>0.000000</float></prop><prop flag="7" index="2" name="zpar"><float>0.000000</float></prop><prop flag="7" index="3" name="gpar"><string>260,260</string></prop><prop flag="7" index="4" name="gparvacini"><string>260,260</string></prop><prop flag="7" index="5" name="ppar"><string>mhd</string></prop><prop flag="7" index="6" name="upar"><string>gravity</string></prop><prop flag="7" index="7" name="onpar"><string>cd,tvdlf,tvd,poisson,resist</string></prop><prop flag="7" index="8" name="onparvacini"><string>cd,tvdlf,tvd,poisson,resist</string></prop><prop flag="7" index="9" name="offpar"><string>mc,fct,impl,ct,gencoord,rk,mpi</string></prop><prop flag="7" index="10" name="offparvacini"><string>mc,fct,impl,ct,gencoord,rk,mpi</string></prop><prop flag="7" index="11" name="mpion"><int>0</int></prop><prop flag="7" index="12" name="runmake"><int>0</int></prop><prop flag="7" index="13" name="runvacini"><int>1</int></prop><prop flag="7" index="14" name="runvac"><int>1</int></prop><prop flag="7" index="15" name="runprescript1"><int>1</int></prop><prop flag="7" index="16" name="runprescript2"><int>1</int></prop><prop flag="7" index="17" name="runpostscript1"><int>1</int></prop><prop flag="7" index="18" name="postscript1"><string>testscript1.sh</string></prop><prop flag="7" index="19" name="prescript1"><string>testscript1.sh</string></prop></props><metadatalist><metadata content="Makefile" name="vacinimakefile"/><metadata content="Makefile" name="vacmakefile"/><metadata content="alf2dvacini.par" name="vaciniparfile"/><metadata content="alf2dvac.par" name="vacparfile"/><metadata content="tempalf2dvacini.par" name="templatevaciniparfile"/><metadata content="tempalf2dvac.par" name="templatevacparfile"/><metadata content="alf2dmodelparams.sh" name="modelparams"/><metadata content="alf2dsimparams.sh" name="simulationparams"/><metadata content="defaultvacsim" name="simulationname"/><metadata content="mikeg" name="author"/><metadata content="vac4.52" name="vacversion"/><metadata content="mike-desktop" name="computeresource"/><metadata content="alfven2d" name="projectname"/></metadatalist></simulation></iosim>
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+Socket connection successful: master socket = 3 port 8080
+adding params string suplogfile shearalfven2d_0.log
+Socket connection successful: master socket = 3 port 8080
+adding params string supoutfile shearalfven2d_0.out
+Socket connection successful: master socket = 3 port 8080
+string
+supgamma
+2
+Socket connection successful: master socket = 3 port 8080
+string
+supeta
+0.0
+Socket connection successful: master socket = 3 port 8080
+string
+supg1
+0.2
+Socket connection successful: master socket = 3 port 8080
+string
+supg2
+0.3
+Socket connection successful: master socket = 3 port 8080
+string
+suprho
+0.1
+Socket connection successful: master socket = 3 port 8080
+string
+supv1
+0.1
+Socket connection successful: master socket = 3 port 8080
+string
+supv2
+0.1
+Socket connection successful: master socket = 3 port 8080
+string
+supp
+0.1
+Socket connection successful: master socket = 3 port 8080
+string
+supb1
+0.1
+Socket connection successful: master socket = 3 port 8080
+string
+supb2
+0.1
+Socket connection successful: master socket = 3 port 8080
+writing alfven2d_0.xml
+Socket connection successful: master socket = 3 port 8080
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><iosim filename="alfven2d_0.xml"><simulation name="defaultvacsim"><props flag="7" name="" numprops="32"><prop flag="7" index="0" name="dpar"><int>22</int></prop><prop flag="7" index="1" name="phipar"><float>0.000000</float></prop><prop flag="7" index="2" name="zpar"><float>0.000000</float></prop><prop flag="7" index="3" name="gpar"><string>260,260</string></prop><prop flag="7" index="4" name="gparvacini"><string>260,260</string></prop><prop flag="7" index="5" name="ppar"><string>mhd</string></prop><prop flag="7" index="6" name="upar"><string>gravity</string></prop><prop flag="7" index="7" name="onpar"><string>cd,tvdlf,tvd,poisson,resist</string></prop><prop flag="7" index="8" name="onparvacini"><string>cd,tvdlf,tvd,poisson,resist</string></prop><prop flag="7" index="9" name="offpar"><string>mc,fct,impl,ct,gencoord,rk,mpi</string></prop><prop flag="7" index="10" name="offparvacini"><string>mc,fct,impl,ct,gencoord,rk,mpi</string></prop><prop flag="7" index="11" name="mpion"><int>0</int></prop><prop flag="7" index="12" name="runmake"><int>0</int></prop><prop flag="7" index="13" name="runvacini"><int>1</int></prop><prop flag="7" index="14" name="runvac"><int>1</int></prop><prop flag="7" index="15" name="runprescript1"><int>1</int></prop><prop flag="7" index="16" name="runprescript2"><int>1</int></prop><prop flag="7" index="17" name="runpostscript1"><int>1</int></prop><prop flag="7" index="18" name="postscript1"><string>testscript1.sh</string></prop><prop flag="7" index="19" name="prescript1"><string>testscript1.sh</string></prop><prop flag="7" index="20" name="suplogfile"><string>shearalfven2d_0.log</string></prop><prop flag="7" index="21" name="supoutfile"><string>shearalfven2d_0.out</string></prop><prop flag="7" index="22" name="supgamma"><string>2</string></prop><prop flag="7" index="23" name="supeta"><string>0.0</string></prop><prop flag="7" index="24" name="supg1"><string>0.2</string></prop><prop flag="7" index="25" name="supg2"><string>0.3</string></prop><prop flag="7" index="26" name="suprho"><string>0.1</string></prop><prop flag="7" index="27" name="supv1"><string>0.1</string></prop><prop flag="7" index="28" name="supv2"><string>0.1</string></prop><prop flag="7" index="29" name="supp"><string>0.1</string></prop><prop flag="7" index="30" name="supb1"><string>0.1</string></prop><prop flag="7" index="31" name="supb2"><string>0.1</string></prop></props><metadatalist><metadata content="Makefile" name="vacinimakefile"/><metadata content="Makefile" name="vacmakefile"/><metadata content="alf2dvacini.par" name="vaciniparfile"/><metadata content="alf2dvac.par" name="vacparfile"/><metadata content="tempalf2dvacini.par" name="templatevaciniparfile"/><metadata content="tempalf2dvac.par" name="templatevacparfile"/><metadata content="alf2dmodelparams.sh" name="modelparams"/><metadata content="alf2dsimparams.sh" name="simulationparams"/><metadata content="defaultvacsim" name="simulationname"/><metadata content="mikeg" name="author"/><metadata content="vac4.52" name="vacversion"/><metadata content="mike-desktop" name="computeresource"/><metadata content="alfven2d" name="projectname"/><metadata content="defaultvacsim.xml" name="simulationfile"/><metadata content="alfven2d_0" name="modelname"/><metadata content="data/shearalfven2d.ini" name="inifile"/><metadata content="data/vacinifile_np0110.ini" name="distribinifile"/></metadatalist></simulation></iosim>
+template vacinipar file istempalf2dvacini.par
+10
+supgamma 2
+supeta 0.0
+supg1 0.2
+supg2 0.3
+suprho 0.1
+supv1 0.1
+supv2 0.1
+supp 0.1
+supb1 0.1
+supb2 0.1
+template vacpar file istempalf2dvac.par
+suplogfile shearalfven2d_0.log
+supoutfile shearalfven2d_0.out
+today is Sun Jun 20 07:38:23 BST 2010
+VACINI 4.52 configured to
+  -d=22 -phi=0 -z=0 -g=260,260 -p=mhd -u=gravity
+  -on=cd,tvdlf,tvd,poisson,resist
+  -off=mc,fct,impl,ct,gencoord,rk,mpi
+ Filename for new initial file:
+ Fileheader:
+ Variable names, e.g. "x y rho m1 m2":
+ Select action by typing one of the following words: 
+    test
+    typefileini,snapshotini,read,readmesh,readnext,typefileout,write,save
+    domain,grid,sheargrid,shiftgrid,polargrid,roundgrid,rotategrid
+    transpose,regrid,stretchgrid,stretchgridcent
+    polarvar,spherevar,cartesian,rotatevar,
+ setvar,perturbvar,conserve,primitive,multiply,divide
+    uniform,shocktube,wave,wave1,special
+    eqpar,gencoord
+ Action:
+ > domain              
+Size of mesh. Max:    260   260
+Size of mesh:    250   250
+ Boundaries of the computational domain
+ xmin coordinates:
+ xmax coordinates:
+ Action:
+ > uniform             
+ Give values for each variable:
+ Action:
+ > eqpar               
+ Equation params: 4
+ Action:
+ > setvar              
+ Give ix limits:
+ Variable index, variable value, lastiw (T/F)?
+ Variable index, variable value, lastiw (T/F)?
+ Variable index, variable value, lastiw (T/F)?
+ Action:
+ > conserv             
+ Action:
+ > typefileout         
+ Type of new initial file: ascii/binary/special
+ Action:
+ > save                
+today is Sun Jun 20 07:38:23 BST 2010
+VAC 4.52 configured to
+  -d=22 -phi=0 -z=0 -g=260,260 -p=mhd -u=gravity
+  -on=cd,tvdlf,tvd,poisson,resist
+  -off=mc,fct,impl,ct,gencoord,rk,mpi
+ Auto typefileini=binary    
+ Auto typefileout=binary    
+Start Advance       0.048 sec
+Finish Advance     35.182 sec
+Finished VAC       35.238 sec
+today is Sun Jun 20 07:38:59 BST 2010
+Socket connection successful: master socket = 3 port 8080
+iome/runmodeliome.sh: line 640:  1792 Segmentation fault      iogs initiome null $simulationname null

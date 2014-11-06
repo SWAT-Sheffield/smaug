@@ -1,0 +1,7 @@
+#!/bin/sh
+#$ -cwd
+#$ -pe ompigige 16
+#$ -q parallelx22.q
+#$ -v MPIRUN=/usr/local/packages5/openmpi-pgi
+export MPIR_HOME=/usr/local/packages5/openmpi-pgi 
+$MPIRUN/bin/mpirun -np 16 vac

@@ -1,0 +1,15 @@
+data/alfven2dtest.ini
+shearalfven_mhd23
+x y rho m1 m2 m3 e bx by bz  gamma eta
+domain
+150 150				-ixmaxs_mhd
+0. 0.					-min coordinates
+3. 3.					-max coordinates
+uniform
+1.0 0.0 0.001 0.0 1.d-9 1.0 0.0 0.0                  -rho,v1,v2,v3,p,b1,b2,b3
+eqpar
+1.4 0.0 0.0 0.0 0.0			         -gamma,eta,g/2,coriolis coeff.
+conserv
+typefileout
+binary
+save
