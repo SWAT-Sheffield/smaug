@@ -1,0 +1,19 @@
+data/shearalfven_def.ini
+shearalfven_mhd12
+x rho m1 m2 e bx by    gamma eta
+domain
+1000					-ixmax
+0.					-min coordinates
+3.					-max coordinates
+eqpar
+1.4  0.0                                      -gamma eta
+uniform
+1. 0. 0.  1.d-9 1.0 0.0                 -rho m1 m2 e b1 b2
+setvar
+333 666                                 -ixmin,ixmax
+3 0.001 F                               -index of m2, m2, last=false
+6 1 T                                   -index of b2, b2, last=false
+conserv
+typefileout
+binary
+save

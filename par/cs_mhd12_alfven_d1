@@ -1,0 +1,32 @@
+ &testlist &end
+
+ &filelist
+	filenameini='data/shearalfven_d1.ini',
+	filename=   'data/shearalfven_d1.log',
+		    'data/shearalfven_d1.out'
+ &end
+
+ &savelist
+        itsave(1,2)=0
+	dtsave=0.8,0.05
+ &end
+
+ &stoplist
+        tmax=4.0
+        tmaxexact=T
+ &end
+
+ &methodlist
+	wnames=		'rho m1 m2 e bx by'
+	typefull=	6*'tvdlf'
+        useprimitive=   T
+ &end
+
+ &boundlist
+	typeB='cont','cont','cont','cont','cont','cont',
+              'cont','cont','cont','cont','cont','cont'
+ &end
+
+ &paramlist
+	courantpar=0.8
+ &end
