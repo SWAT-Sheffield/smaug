@@ -1,0 +1,50 @@
+!=============================================================================
+ 
+ subroutine gradient4(realgrad,q,ix^L,idim,gradq)
+ include 'vacdef.f'
+ logical:: realgrad
+ integer:: ix^L,idim
+ double precision:: q(ixG^T),gradq(ixG^T)
+ integer:: kx^L,jx^L,hx^L,gx^L
+ integer:: minx1^D,maxx1^D,k
+ !-----------------------------------------------------------------------------
+ 
+ !SHIFT
+ kx^L=ix^L+2*kr(idim,^D);
+ !SHIFT MORE
+ jx^L=ix^L+kr(idim,^D);
+ !SHIFT MORE
+ hx^L=ix^L-kr(idim,^D);
+ !SHIFT MORE
+ gx^L=ix^L-2*kr(idim,^D);
+ 
+ !SHIFT BEGIN
+ gradq(ix^S)=-(q(kx^S)-8.D0*(q(jx^S)-q(hx^S))-q(gx^S))/dx(ix^S,idim)/12.D0
+ !SHIFT END
+ 
+ minx1^D=ixmin^D+kr(idim,^D);
+ maxx1^D=ixmax^D-kr(idim,^D);
+ 
+ do k=0,1  !left-right bc
+ 
+ if (typeB(1,2*idim-1+k) .ne. 'mpi') then
+ if (upperB(2*idim-1+k)) then
+ select case(idim)
+ {   case(^D)
+ gradq(ixmax^D^D%ix^S)=0.d0
+ gradq(maxx1^D^D%ix^S)=0.d0
+ }
+ end select
+ else
+ select case(idim)
+ {   case(^D)
+ gradq(ixmin^D^D%ix^S)=0.d0
+ gradq(minx1^D^D%ix^S)=0.d0
+ }
+ end select
+ endif
+ endif
+ enddo
+ 
+ return
+ end

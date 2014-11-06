@@ -1,0 +1,15 @@
+/home/mikeg/proj/vac4.52_sac_sedov/zero1sn_3d_asc.ini
+3D_mhd33
+x y z h m1 m2 m3 e b1 b2 b3 eb rhob bg1 bg2 bg3
+typefileout
+ascii
+typefileini
+ascii
+domain
+128,128,128				-ixmax
+-15.4285d15,-15.4285d15, -15.4285d15		-min coordinates
+15.4285d15,15.4285d15, 15.4285d15 		-max coordinates
+eqpar
+1.4 0.0 1.0 0.0 0.0 0.0 0.0 0.0  gamma eta g0 g1 g2 g3 nu 
+special
+save
