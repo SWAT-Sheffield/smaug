@@ -1,0 +1,13 @@
+Simulation log 
+
+default files
+Makefile.spicule
+make_inputs.spicule
+iosac2.5d.cpp.spicule
+
+
+Model
+
+usersource.cu.spicule4
+iosac2.5dparams.h.spicule4
+
