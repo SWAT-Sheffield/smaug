@@ -38,8 +38,13 @@ loadct,0
 tek_color
 endelse
 
-
-
+window, 0,xsize=1025,ysize=1025,XPOS = 950, YPOS = 300 
+window, 1,xsize=800,ysize=800,XPOS = 500, YPOS = 80
+window, 2,xsize=400,ysize=400,XPOS = 750, YPOS = 180
+;for ipic=1,394 do begin
+;for ipic=280,489 do begin
+;while not(eof(1)) do begin
+for ipic=pic,pic do begin
 
 mass=dblarr(1)
 egas=dblarr(1)
@@ -61,8 +66,6 @@ dumd=long(1)
 ; Open an MPEG sequence: 
 ;mpegID = MPEG_OPEN([700,1200],FILENAME='myMovie.mpg') 
 
-window, 0,xsize=1025,ysize=1025,XPOS = 950, YPOS = 300 
-window, 1,xsize=800,ysize=800,XPOS = 500, YPOS = 80
 
 
 
@@ -109,19 +112,43 @@ close,2
 
 ;openr,1,'/home/mikeg/proj/sac2.5d-cuda/test_OT.out'
 ;directory='/home/mikeg/proj/sac2.5d-cuda/out_OT_withhyper/'
-directory='../out/'
+;directory='../out/'
+;directory='/nobackup/shemkg/modes3/sp2rc/3demt1/'
+;directory='/nobackup/shemkg/modes3/f1/'
+;directory='/fastdata/cs1mkg/smaug/spicule6b0_3d/'
+;directory='/fastdata/cs1mkg/smaug/spic4b0_b2_3d/'
+;directory='/fastdata/cs1mkg/smaug/spic4a_3d/'
+;directory='/data/cs1mkg/smaug_spicule1/spicule5b0_3d/'
+;directory='/data/cs1mkg/smaug_spicule1/spicule6b0_3d/'
+;directory='/data/cs1mkg/smaug_spicule1/spicule4b0_b4_3d/'
+;directory='/data/cs1mkg/smaug_spicule1/spic4a_3d/'
+;directory='/data/cs1mkg/smaug_spicule1/spic4a+5b_3d/'
+;directory='/data/cs1mkg/smaug_spicule1/spicule5b2_3d/'
+;directory='/data/cs1mkg/smaug_spicule1/spicule6b0_3d/'
+;directory='/fastdata/cs1mkg/smaug/spic4b0_3d/'
+;directory='/fastdata/cs1mkg/smaug/spic4b0aa_3d/'
+;directory='/data/cs1mkg/smaug_spicule1/spic4b0a_3d/'
+;directory='/data/cs1mkg/smaug_spicule1/spic4a_3d/'
+;directory='/fastdata/cs1mkg/smaug/spic4b0_b3_3d/'
+directory='/data/cs1mkg/smaug_spicule1/spicule4b0_b2_3d/'
+;directory='/fastdata/cs1mkg/smaug/spic6b0_3d/'
+;directory='/nobackup/shemkg/modes/'
 ;pic=999
+;name='zeroOT_'
+;name='3D_em_t1_bin_np010808_00'
+;name='3D_em_f1_bin_'
 name='zerospic1__'
 ;ndim=2
 ;n1=800
 ;n2=6
-for ipic=pic,pic do begin
-;while not(eof(1)) do begin
+
 
 ;picid=ipic*5+4
-picid=ipic;
+picid=ipic*1000L
+;picid=ipic;
 outfile=directory+name+strtrim(string(picid),2)+'.out'
 print,'ipic=',ipic
+;openr,1,outfile,/f77_unf
 openr,1,outfile
 
 readu,1,headline
@@ -145,7 +172,17 @@ yout=dblarr(3)
 n1=nx(0)
 n2=nx(1)
 n3=nx(2)
+
+;ndim=3
+;n1=256
+;n2=512
+;n3=512
+;nw=13
+
 x=dblarr(n1,n2,n3,ndim)
+
+print,'about to allocate'
+print,n1,n2,n3,nw
 
 wi=dblarr(n1,n2,n3)
 
@@ -166,6 +203,10 @@ zz=dblarr(n1)
 xx(*)=x(1,*,1,1)
 yy(*)=x(1,1,*,2)
 zz(*)=x(*,1,1,0)
+dx=xx(1)-xx(0)
+dy=yy(1)-yy(0)
+dz=zz(1)-zz(0)
+dr=sqrt(dx*dx+dy*dy+dz*dz)
 
 Vt=dblarr(n1,n2,n3)
 B=dblarr(n1,n2,n3)
@@ -199,7 +240,7 @@ ystart=0
 yend=127
 
 pp=63 ;x
-kk=63  ;y
+kk=5  ;y
 
 wset,0
 !p.multi = [0,4,4,0,1]
@@ -218,17 +259,80 @@ wt(*,*,3)=reform(w(zstart:zend,xstart:xend,pp,3))
 
 wt(*,*,12)=reform(w(zstart:zend,pp,ystart:yend,12))
 
+
+xloc=dblarr(13,13);
+yloc=dblarr(13,13);
+xfin=dblarr(13,13);
+yfin=dblarr(13,13);
+u=dblarr(13,13);
+v=dblarr(13,13);
+
+;fill the vectors
+index=0;
+wtt1=w(*,*,pp,1)
+wtt2=w(*,*,pp,2)
+
+maxmag=max(w(*,*,pp,1)*w(*,*,pp,1)+w(*,*,pp,2)*w(*,*,pp,2))
+maxmag=sqrt(maxmag)
+
+xtt=x(*,*,pp,0)
+ytt=x(*,*,pp,1)
+for i=0,120,10 do begin
+	for j=0,120,10 do begin
+            u(i/10,j/10)=wtt1(i,j);
+            v(i/10,j/10)=wtt2(i,j);
+            xloc(i/10,j/10)=xtt(i,j);
+            yloc(j/10,j/10)=ytt(i,j);
+
+            mag=sqrt(u(i/10,j/10)*u(i/10,j/10)+v(i/10,j/10)*v(i/10,j/10));
+            xfin(i/10,j/10)=xloc(i/10,j/10)+1*dx*(u(i/10,j/10)/maxmag);
+            yfin(j/10,j/10)=yloc(i/10,j/10)+1*dy*(v(i/10,j/10)/maxmag);
+
+            ;index=index+1;
+	endfor 
+endfor
+
+
+
+;wv=dblarr(n1,n3);
+;wv=wt(*,*,2);
+;wv(where(abs(wv) le 1.0d-3))=0.0
+;wt(*,*,2)=wv;
+;wv=wt(*,*,3);
+;wv(where(abs(wv) le 1.0d-3))=0.0
+;wt(*,*,3)=wv;
+
+
 saeb=dblarr(zend-zstart+1,xend-xstart+1)
 sarho_t=dblarr(zend-zstart+1,xend-xstart+1)
 sabz_t=dblarr(zend-zstart+1,xend-xstart+1)
 sabx_t=dblarr(zend-zstart+1,xend-xstart+1)
 saby_t=dblarr(zend-zstart+1,xend-xstart+1)
 
+
+saep=dblarr(zend-zstart+1,xend-xstart+1)
+sabz_p=dblarr(zend-zstart+1,xend-xstart+1)
+sabx_p=dblarr(zend-zstart+1,xend-xstart+1)
+saby_p=dblarr(zend-zstart+1,xend-xstart+1)
+
 saeb(*,*)=wt(*,*,8)
 sarho_t(*,*)=wt(*,*,0)+wt(*,*,9)
 sabz_t(*,*)=wt(*,*,10)
 sabx_t(*,*)=wt(*,*,11)
 saby_t(*,*)=wt(*,*,12)
+
+
+saep(*,*)=wt(*,*,4)
+sabz_p(*,*)=wt(*,*,5)
+sabx_p(*,*)=wt(*,*,6)
+saby_p(*,*)=wt(*,*,7)
+
+
+
+
+
+
+
 
 vt=dblarr(n1,n2,n3)
 vvt=dblarr(n2,n3)
@@ -240,6 +344,21 @@ TP=saeb
 TP=TP-(sabx_t^2.0+saby_t^2.0+sabz_t^2.0)/2.0
 TP=(gamma-1.d0)*TP
 ;****************** Pressure background end ********************
+
+
+
+;****************** Pressure background begin ********************
+DT=saep
+DT=DT-(sabx_p^2.0+saby_p^2.0+sabz_p^2.0)/2.0
+DT=(gamma-1.d0)*DT
+;****************** Pressure background end ********************
+
+T=mu_gas*TP/R/sarho_t
+
+
+
+
+
 
 if (ii eq 1) then begin
 
@@ -265,8 +384,8 @@ zze=zz[zend]
 ;close, 10
 	
 
-;tvframe,rotate(wt(*,*,1)/(wt(*,*,0)+wt(*,*,9)),1),/sample, /bar,title='Vz',$
-;        xtitle='x', ytitle='y',charsize=2.0, CT='dPdT'
+tvframe,rotate(wt(*,*,1)/(wt(*,*,0)+wt(*,*,9)),1),/sample, /bar,title='Vz',$
+        xtitle='x', ytitle='y',charsize=2.0; title='dPdT'
 
 
 ;close,10
@@ -277,9 +396,9 @@ zze=zz[zend]
 ;close, 10
 
 tvframe,rotate(wt(*,*,2)/(wt(*,*,0)+wt(*,*,9)),1),/sample, /bar,title='Vx', $
-        xtitle='x', ytitle='z',charsize=2.0 ;, CT='dPdT', $
-	;xrange=[xx[xstart]/scale, xx[xend]/scale], $
-	;yrange=[zz[zstart]/scale, zz[zend]/scale]
+        xtitle='x', ytitle='z',charsize=2.0, $
+	xrange=[xx[xstart]/scale, xx[xend]/scale], $
+	yrange=[zz[zstart]/scale, zz[zend]/scale]; CT='dPdT'
 
 ;close,10
 ;openw,10,'/data/ap1vf/data_line_prof/vx/vx_y50.'+st,/f77_unf
@@ -289,7 +408,7 @@ tvframe,rotate(wt(*,*,2)/(wt(*,*,0)+wt(*,*,9)),1),/sample, /bar,title='Vx', $
 ;close, 10	
 
 tvframe,rotate(wt(*,*,3)/(wt(*,*,0)+wt(*,*,9)),1),/sample, /bar,title='Vy', $
-        xtitle='x', ytitle='z',charsize=2.0;, CT='dPdT'
+        xtitle='x', ytitle='z',charsize=2.0; CT='dPdT'
 	
 ;close,10
 ;openw,10,'/data/ap1vf/data_line_prof/vy/vy_y50.'+st,/f77_unf
@@ -300,20 +419,28 @@ tvframe,rotate(wt(*,*,3)/(wt(*,*,0)+wt(*,*,9)),1),/sample, /bar,title='Vy', $
 	
 
 tvframe,rotate(wy(*,*,2)/(wy(*,*,0)+wy(*,*,9)),1),/sample, /bar,title='Vx', $
-        xtitle='y', ytitle='z',charsize=2.0;, CT='dPdT'
+        xtitle='y', ytitle='z',charsize=2.0;, title='dPdT'
 	
-
 tvframe,rotate(wt(*,*,4),1),/bar, /sample, title='e', xtitle='x', ytitle='z', $
         charsize=2.0
 
 tvframe,rotate(wt(*,*,5),1)*sqrt(mu)*1.0e4,/bar,/sample, title='bz', $
         xtitle='x', ytitle='z', charsize=2.0
 
-tvframe,rotate(wt(*,*,11),1)*sqrt(mu)*1.0e4,/bar,/sample, title='Bx_b', $
+tvframe,rotate(wt(*,*,6),1)*sqrt(mu)*1.0e4,/bar,/sample, title='bx', $
         xtitle='x', ytitle='z', charsize=2.0
 
-tvframe,rotate(wt(*,*,12),1)*sqrt(mu)*1.0e4,/bar,/sample, title='By_b', $
+tvframe,rotate(wt(*,*,7),1)*sqrt(mu)*1.0e4,/bar,/sample, title='by', $
         xtitle='x', ytitle='z', charsize=2.0
+
+
+
+
+;tvframe,rotate(wt(*,*,11),1)*sqrt(mu)*1.0e4,/bar,/sample, title='Bx_b', $
+;        xtitle='x', ytitle='z', charsize=2.0
+
+;tvframe,rotate(wt(*,*,12),1)*sqrt(mu)*1.0e4,/bar,/sample, title='By_b', $
+ ;       xtitle='x', ytitle='z', charsize=2.0
 
 tvframe,rotate(wt(*,*,8),1),/bar,/sample, title='eb', $
         xtitle='x', ytitle='z', charsize=2.0
@@ -327,11 +454,36 @@ tvframe,rotate(wt(*,*,10),1)*sqrt(mu)*1.0e4,/bar,/sample, title='Bz_b', $
 	yrange=[zz[zstart]/scale, zz[zend]/scale]	
 
 ;stop
-T=mu_gas*TP/R/sarho_t
-goto, jump20
+
+
+
+
+
+
+
+
+
+;goto, jump20
 
 tvframe,rotate(T(*,*),1),/bar,/sample, title='T', $
         xtitle='x', ytitle='z', charsize=2.0
+
+
+
+DT=dblarr(n1,n2,n3)
+
+
+DT[*,*,*]=(w[*,*,*,4])
+DT[*,*,*]=DT[*,*,*]-(w[*,*,*,1]^2.0+w[*,*,*,2]^2.0+w[*,*,*,3]^2.0)/(w[*,*,*,0]+w[*,*,*,9])/2.0
+DT[*,*,*]=DT[*,*,*]-((w[*,*,*,10])^2.0+(w[*,*,*,11])^2.0+(w[*,*,*,12])^2.0)/2.d0
+DT[*,*,*]=(gamma-1.d0)*DT[*,*,*]
+tvframe,rotate(DT(*,*,pp),1),/bar,/sample, title='DT', $
+        xtitle='x', ytitle='z', charsize=2.0
+
+
+
+
+
 	
 save, filename='Temp_VALIIIC_old.sav', T
 save, filename='z_VALIIIC_old.sav', zz
@@ -357,10 +509,17 @@ tvframe, rotate(Va(*,*),1)/1000.d0, title='V!DA!N!3 [km/s]',/bar,/sample, $
         xtitle='y', ytitle='z', charsize=2.0
 
 
-plot, rotate(Va(10,*),1)/1000.d0  
-oplot, rotate(Va(10,*),1)/1000.d0 , psym=4 
-oplot, rotate(Vap(10,*),1)/1000.d0
-oplot, rotate(Vap(10,*),1)/1000.d0, psym=5
+;;plot, rotate(Va(10,*),1)/1000.d0  
+;;oplot, rotate(Va(10,*),1)/1000.d0 , psym=4 
+;;oplot, rotate(Vap(10,*),1)/1000.d0
+;;oplot, rotate(Vap(10,*),1)/1000.d0, psym=5
+
+
+
+
+
+
+
 
 
 Cs=dblarr(zend-zstart+1,xend-xstart+1)
@@ -392,182 +551,43 @@ np=np+1
 
 ;goto, jump10
 wset,1
-!p.multi = [0,2,2,0,1]
+!p.multi = [0,3,2,0,1]
 
-;for hh=0,n1-1 do begin
-
-hh=150
-
-vvt(*,*)=vt(hh,*,*)
-cs=1.2
-
-hxmin=20
-hymin=20
-
-hxmax=80
-hymax=80
-
-wv=reform(w(hh,*,*,*))
-
-savx=dblarr(hxmax-hxmin+1,hymax-hymin+1)
-savy=savx
-sabx=savx
-saby=savx
+;plot_field,rotate(wy(*,*,1)/(wy(*,*,0)+wy(*,*,9)),1),rotate(wy(*,*,2)/(wy(*,*,0)+wy(*,*,9)),1)
+tvframe,rotate(wy(*,*,1)/(wy(*,*,0)+wy(*,*,9)),1),/sample, /bar,title='Vx', $
+        xtitle='y', ytitle='z',charsize=2.0;, title='dPdT'
 
 
+;velovect,u,v,xloc,yloc, /overplot, color=2
 
-savx(*,*)=wv(hxmin:hxmax,hymin:hymax,2)/(wv(hxmin:hxmax,hymin:hymax,0)+wv(hxmin:hxmax,hymin:hymax,9))
-savy(*,*)=wv(hxmin:hxmax,hymin:hymax,3)/(wv(hxmin:hxmax,hymin:hymax,0)+wv(hxmin:hxmax,hymin:hymax,9))
+tvframe,rotate(wt(*,*,1)/(wt(*,*,0)+wt(*,*,9)),1),/sample, /bar,title='Vx', $
+        xtitle='x', ytitle='z',charsize=2.0; CT='dPdT'
 
-sabx(*,*)=wv(hxmin:hxmax,hymin:hymax,6)
-saby(*,*)=wv(hxmin:hxmax,hymin:hymax,7)
+tvframe,rotate(wy(*,*,2)/(wy(*,*,0)+wy(*,*,9)),1),/sample, /bar,title='Vy', $
+        xtitle='y', ytitle='z',charsize=2.0;, title='dPdT'
 
-nxy=50
-nxny = [nxy,nxy]
-
-hxx=dblarr(hxmax-hxmin+1)
-hyy=dblarr(hymax-hymin+1)
-
-hxx=xx(hxmin:hxmax)
-hyy=yy(hymin:hymax)
-
-xxi=interpol(hxx,nxy)
-yyi=interpol(hyy,nxy)
-
-avxi=congrid(savx,nxy,nxy)
-avyi=congrid(savy,nxy,nxy)
-
-abxi=congrid(sabx,nxy,nxy)
-abyi=congrid(saby,nxy,nxy)
+;tvframe,rotate(wt(*,*,2)/(wt(*,*,0)+wt(*,*,9)),1),/sample, /bar,title='Vy', $
+;        xtitle='x', ytitle='z',charsize=2.0; CT='dPdT'
 
 
-hight=strTrim(string(hh),1)
+tvframe,rotate(wy(*,*,3)/(wy(*,*,0)+wy(*,*,9)),1),/sample, /bar,title='Vz', $
+        xtitle='y', ytitle='z',charsize=2.0;, title='dPdT'
 
-goto, jump22
-
-tvframe,wv(hxmin:hxmax,hymin:hymax,6)*sqrt(mu)*1.0e4,/bar,/sample, title='bx, z slice, h='+hight, $
-        xtitle='x', ytitle='y', charsize=cs, $
-	xrange=[hxx[0]/scale, hxx[hxmax-hxmin]/scale], yrange=[yy(hymin)/scale, yy(hymax)/scale]	
-	
-tek_color
-VELOVECT, abxi, abyi,xxi/scale,yyi/scale, charsize=cs, /OVERPLOT ;, color=6
+;tvframe,rotate(wt(*,*,3)/(wt(*,*,0)+wt(*,*,9)),1),/sample, /bar,title='Vz', $
+ ;       xtitle='x', ytitle='z',charsize=2.0; CT='dPdT'
 
 
+tvframe,rotate(wt(*,*,6),1)*sqrt(mu)*1.0e4,/bar,/sample, title='bx', $
+        xtitle='x', ytitle='z', charsize=2.0
 
-;tvframe,wv(hxmin:hxmax,hymin:hymax,2)/(wv(hxmin:hxmax,hymin:hymax,0)+wv(hxmin:hxmax,hymin:hymax,9)),$ 
-;        /bar,/sample, title='Vx, zslice, h='+hight, $
-;        xtitle='x', ytitle='y', charsize=cs, $
-;	xrange=[xx(hxmin)/scale, xx(hxmax)/scale], yrange=[yy(hymin)/scale, yy(hymax)/scale]	
-
-tvframe,vvt(hxmin:hxmax,hymin:hymax),$ 
-        /bar,/sample, title='V total, zslice, h='+hight, $
-        xtitle='x', ytitle='y', charsize=cs, $
-	xrange=[xx(hxmin)/scale, xx(hxmax)/scale], yrange=[yy(hymin)/scale, yy(hymax)/scale]	
-
-tek_color
-VELOVECT, avxi, avyi,xxi/scale,yyi/scale, charsize=cs, /OVERPLOT ;, color=6
-
-
-tvframe,wv(hxmin:hxmax,hymin:hymax,7)*sqrt(mu)*1.0e4,/bar,/sample, title='by, z slice, h='+hight, $
-        xtitle='x', ytitle='y', charsize=cs, $
-	xrange=[xx(hxmin)/scale, xx(hxmax)/scale], yrange=[yy(hymin)/scale, yy(hymax)/scale]	
-
-tek_color
-VELOVECT, abxi, abyi,xxi/scale,yyi/scale, charsize=cs, /OVERPLOT ;, color=6
-
-tvframe,wv(hxmin:hxmax,hymin:hymax,3)/(wv(hxmin:hxmax,hymin:hymax,0)+wv(hxmin:hxmax,hymin:hymax,9)),$
-        /bar,/sample, title='Vy, zslice, h='+hight, $
-        xtitle='x', ytitle='y', charsize=cs, $
-	xrange=[xx(hxmin)/scale, xx(hxmax)/scale], yrange=[yy(hymin)/scale, yy(hymax)/scale]	
-
-tek_color
-VELOVECT, avxi, avyi,xxi/scale,yyi/scale, charsize=cs, /OVERPLOT ;, color=6
-
-tvframe,wv(hxmin:hxmax,hymin:hymax,5)*sqrt(mu)*1.0e4,/bar,/sample, title='bz, z slice, h='+hight, $
-        xtitle='x', ytitle='y', charsize=cs, $
-	xrange=[xx(hxmin)/scale, xx(hxmax)/scale], yrange=[yy(hymin)/scale, yy(hymax)/scale]	
-
-tek_color
-VELOVECT, abxi, abyi,xxi/scale,yyi/scale, charsize=cs, /OVERPLOT ;, color=6
-
-tvframe,wv(hxmin:hxmax,hymin:hymax,1)/(wv(hxmin:hxmax,hymin:hymax,0)+wv(hxmin:hxmax,hymin:hymax,9)),$
-        /bar,/sample, title='Vz, zslice, h='+hight, $
-        xtitle='x', ytitle='y', charsize=cs, $
-	xrange=[xx(hxmin)/scale, xx(hxmax)/scale], yrange=[yy(hymin)/scale, yy(hymax)/scale]	
-
-tek_color
-VELOVECT, avxi, avyi,xxi/scale,yyi/scale, charsize=cs, /OVERPLOT ;, color=6
-
+;tvframe,rotate(wt(*,*,5),1)*sqrt(mu)*1.0e4,/bar,/sample, title='bz', $
+;        xtitle='x', ytitle='z', charsize=2.0
 
  
 ;stop
 
 jump22:
 
-r=dblarr(n2,n3)
-vr=dblarr(n2,n3)
-vphi=dblarr(n2,n3)
-
-br=dblarr(n2,n3)
-bphi=dblarr(n2,n3)
-
-
-for i=0,n2-1 do begin
- for j=0,n3-1 do begin
- r[i,j]=sqrt((xx[i]-xx[n2/2])^2.d0+(yy[j]-yy[n3/2])^2.d0)
-
- vr[i,j]= wv(i,j,2)/(wv(i,j,0)+wv(i,j,9))*(xx[i]-xx[n2/2])/r[i,j]+$
-          wv(i,j,3)/(wv(i,j,0)+wv(i,j,9))*(yy[j]-yy[n3/2])/r[i,j]
-  
- vphi[i,j]=-wv(i,j,2)/(wv(i,j,0)+wv(i,j,9))*(yy[j]-yy[n3/2])/r[i,j]+$
-          wv(i,j,3)/(wv(i,j,0)+wv(i,j,9))*(xx[i]-xx[n2/2])/r[i,j]
-
- br[i,j]= wv(i,j,6)*(xx[i]-xx[n2/2])/r[i,j]+$
-          wv(i,j,7)*(yy[j]-yy[n3/2])/r[i,j]
-  
- bphi[i,j]=-wv(i,j,6)*(yy[j]-yy[n3/2])/r[i,j]+$
-          wv(i,j,7)*(xx[i]-xx[n2/2])/r[i,j]
- br[n2/2,n3/2]=0.d0	  
- bphi[n2/2,n3/2]=0.d0
- endfor
- 
-endfor
-
-
-tvframe,br(hxmin:hxmax,hymin:hymax),/bar,/sample, title='br, zslice, h='+hight, $
-        xtitle='x', ytitle='y', charsize=cs, $
-	xrange=[xx(hxmin)/scale, xx(hxmax)/scale], yrange=[yy(hymin)/scale, yy(hymax)/scale]	
-	
-tek_color
-VELOVECT, abxi, abyi,xxi/scale,yyi/scale, charsize=1.4, /OVERPLOT ;, color=6
-	
-
-tvframe,vvt(hxmin:hxmax,hymin:hymax),/bar,/sample, title='V_T, zslice, h='+hight, $
-        xtitle='x', ytitle='y', charsize=cs, $
-	xrange=[xx(hxmin)/scale, xx(hxmax)/scale], yrange=[yy(hymin)/scale, yy(hymax)/scale]	
-	
-tek_color
-VELOVECT, avxi, avyi,xxi/scale,yyi/scale, charsize=1.4, /OVERPLOT ;, color=6
-
-tvframe,bphi(hxmin:hxmax,hymin:hymax),/bar,/sample, title='bphi, zslice, h='+hight, $
-        xtitle='x', ytitle='y', charsize=cs, $
-	xrange=[xx(hxmin)/scale, xx(hxmax)/scale], yrange=[yy(hymin)/scale, yy(hymax)/scale]	
-	
-tek_color
-VELOVECT, abxi, abyi,xxi/scale,yyi/scale, charsize=1.4, /OVERPLOT ;, color=6
-	
-
-tvframe,wv(hxmin:hxmax,hymin:hymax,3)/(wv(hxmin:hxmax,hymin:hymax,0)+wv(hxmin:hxmax,hymin:hymax,9)),/bar,/sample,$ 
-        title='Vx, zslice, h='+hight, $
-        xtitle='x', ytitle='y', charsize=cs, $
-	xrange=[xx(hxmin)/scale, xx(hxmax)/scale], yrange=[yy(hymin)/scale, yy(hymax)/scale]	
-
-;tvframe,vphi(hxmin:hxmax,hymin:hymax),/bar,/sample, title='Vphi, zslice, h='+hight, $
-;       xtitle='x', ytitle='y', charsize=cs, $
-;	xrange=[xx(hxmin)/scale, xx(hxmax)/scale], yrange=[yy(hymin)/scale, yy(hymax)/scale]	
-	
-tek_color
-VELOVECT, avxi, avyi,xxi/scale,yyi/scale, charsize=1.4, /OVERPLOT ;, color=6
 	
 ;wait, 0.5
 ;endfor
@@ -576,21 +596,51 @@ VELOVECT, avxi, avyi,xxi/scale,yyi/scale, charsize=1.4, /OVERPLOT ;, color=6
  xyouts,50,2, ss, /device, color=200
 
 
+
+wset,2
+!p.multi = [0,1,1,0,1]
+tvframe,wy(*,*,1)/(wy(*,*,0)+wy(*,*,9)),/sample, /bar,title='Vx', $
+        xtitle='y', ytitle='z',charsize=2.0;, title='dPdT'
+
+;plot,xx,yy
+arrow, xloc,yloc,xfin,yfin, /data
+
+;for i=0,120,10 do begin
+;	for j=0,120,10 do begin
+;	    arrow, xloc(i/10,j/10),yloc(i/10,j/10),xfin(i/10,j/10),yfin(i/10,j/10), /data
+;	endfor 
+;endfor
+
+;x=findgen(50)
+;y=sin(x/4)
+;plot,x,y
+;arrow,x, replicate(0,50),x,y,/data
+
+
+
 endif else begin
 
 endelse
 
-
+;T=mu_gas*TP/R/sarho_t
 T=dblarr(n1,n2,n3)
 
 
 T[*,*,*]=(w[*,*,*,4]+w[*,*,*,8])
-
-
 T[*,*,*]=T[*,*,*]-(w[*,*,*,1]^2.0+w[*,*,*,2]^2.0+w[*,*,*,3]^2.0)/(w[*,*,*,0]+w[*,*,*,9])/2.0
-
 T[*,*,*]=T[*,*,*]-((w[*,*,*,5]+w[*,*,*,10])^2.0+(w[*,*,*,6]+w[*,*,*,11])^2.0+(w[*,*,*,7]+w[*,*,*,12])^2.0)/2.d0
+T[*,*,*]=(gamma-1.d0)*T[*,*,*]
 
+
+
+DT=mu_gas*DT/R/sarho_t
+
+openw,4,'tempprof.txt'
+
+printf,4,DT[*,63]
+printf,4,'\n\n'
+printf,4,TP[*,63]
+close,4
 
 beta=dblarr(n1,n2,n3)
 
@@ -599,16 +649,16 @@ beta[*,*,*]=(((w[*,*,*,5]+w[*,*,*,10])*sqrt(mu)*1.0e4)^2.0+((w[*,*,*,6]+w[*,*,*,
 
 ;tvframe,rotate(beta(*,*,pp),1),/bar,/sample, title='1/beta',  xtitle='x', ytitle='z', charsize=2.0
 
-
+;T=mu_gas*TP/R/sarho_t
 
 ;plot, alog10(1.d0/beta[*,kk,pp]),title='1/beta',xtitle='x', ytitle='z',charsize=2.0 
 
-T[*,*,*]=(gamma-1.d0)*T[*,*,*]
 
 
-C=dblarr(n1,n2,n3)
 
-C[*,*,*]=sqrt(gamma*T[*,*,*]/(reform(w[*,*,*,0]+w[*,*,*,9])))
+;C=dblarr(n1,n2,n3)
+
+;C[*,*,*]=sqrt(gamma*T[*,*,*]/(reform(w[*,*,*,0]+w[*,*,*,9])))
 
 ;tvframe, rotate(wt(*,*,1)/(wt(*,*,0)+wt(*,*,9))/C(*,*,pp),1),title='V1/C',/bar, xtitle='x', ytitle='z',charsize=2.0,/sample 
 ;tvframe, rotate(T(*,*,pp),1),title='P',/bar, xtitle='x', ytitle='z',charsize=2.0,/sample 
@@ -633,24 +683,28 @@ C[*,*,*]=sqrt(gamma*T[*,*,*]/(reform(w[*,*,*,0]+w[*,*,*,9])))
 ;jump1 :
 
 
-
-indexs=strtrim(nn,2)
+indexs=strtrim(picid,2)
+;indexs=strtrim(nn,2)
 
 a = strlen(indexs)                                                  
 case a of                                                           
- 1:indexss='0000'+indexs                                             
- 2:indexss='000'+indexs                                              
- 3:indexss='00'+indexs                                               
- 4:indexss='0'+indexs                                               
+ 1:indexss='00000000'+indexs                                             
+ 2:indexss='0000000'+indexs                                              
+ 3:indexss='000000'+indexs                                               
+ 4:indexss='00000'+indexs
+ 5:indexss='0000'+indexs                                             
+ 6:indexss='000'+indexs                                              
+ 7:indexss='00'+indexs                                               
+ 8:indexss='0'+indexs                                               
 endcase   
 
-;image_p = TVRD_24()
-;write_png,'/data/ap1vf/png/3D/tube/test_200_puls/all/'+indexss+'.png',image_p, red,green, blue
+image_p = TVRD_24()
+;write_png,'/data/cs1mkg/smaug_spicule1/Idl/images/spic4b0_b2_3d/s4b0_3d'+indexss+'.png',image_p, red,green, blue
 
 
 nn=nn+1
 
-goto, jump
+;goto, jump
 
 ;wset,1
 ;!p.multi = [0,2,1,0,1]
@@ -694,9 +748,9 @@ cutoff=dblarr(n1)
 gg=274.d0
 omega(*)=sqrt(-gg/w(*,10,10,9)*deriv(x(*,10,10,0),w(*,10,10,9)))
 
-cutoff(*)=gamma*gg/2.d0/C(*, 10,10) ;*sqrt(1+2.d0*lambda)
+;cutoff(*)=gamma*gg/2.d0/C(*, 10,10) ;*sqrt(1+2.d0*lambda)
 
-;goto, jump
+goto, jump
 
 set_plot, 'ps'
 
@@ -773,7 +827,7 @@ tvframe, rotate(vort_z,1), /bar, /sample
 ;****************** end  vorticity *****************
 
 jump20:
-stop
+;stop
 ;endwhile
 endfor
 

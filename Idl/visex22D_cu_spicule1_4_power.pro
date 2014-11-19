@@ -1,4 +1,4 @@
-tarr=dblarr(1)
+cdtarr=dblarr(1)
 maxa=fltarr(1)
 mina=fltarr(1)
 cuta=fltarr(2000,50)
@@ -24,8 +24,9 @@ loadct,0
 tek_color
 endelse
 
-
-
+ipic=long(1)
+for ipic=pic,pic do begin
+;while not(eof(1)) do begin
 
 mass=dblarr(1)
 egas=dblarr(1)
@@ -71,23 +72,30 @@ close,2
 ;openr,1,'/home/mikeg/proj/sac2.5d-cuda/zero1_BW.ini',/f77_unf
 ;openr,1,'/home/mikeg/proj/sac2.5d-cuda/test_OT.out'
 ;directory='/home/mikeg/proj/sac2.5d-cuda/out_OT_withhyper/'
-directory='../out/'
+;directory='../out/'
+;directory='/fastdata/cs1mkg/smaug/spicule1/'
+;directory='/fastdata/cs1mkg/smaug/spicule_nob1/'
+;directory='/fastdata/cs1mkg/smaug/spicule_nosource_nohydros/'
+;directory='/fastdata/cs1mkg/smaug/spicule_nohydros/'
+;directory='/fastdata/cs1mkg/smaug/spicule7_nob/'
+directory='/fastdata/cs1mkg/smaug/spicule6_nob/'
 ;pic=999
-name='zeroOT_'
+name='zerospic1_'
 ;ndim=2
 ;n1=800
 ;n2=6
-for ipic=pic,pic do begin
-;while not(eof(1)) do begin
+
 
 ;picid=ipic*5+4
-picid=ipic
+;picid=ipic
+;picid=ipic*100L
+picid=ipic*500L
 outfile=directory+name+strtrim(string(picid),2)+'.out'
 openr,1,outfile
 readu,1,headline
 readu,1,it,time,ndim,neqpar,nw
 gencoord=(ndim lt 0)
-tarr=[tarr,time]
+;tarr=[tarr,time]
 ;ndim=abs(ndim)
 nx=lonarr(ndim)
 readu,1,nx
@@ -188,16 +196,19 @@ tvframe,w(*,*,2)/(w(*,*,7)+w(*,*,0)), /bar,title='v2',xtitle='x',/sample, ytitle
 
 ;tvframe,w(*,*,1), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=2.0  
 ;tvframe,w(*,*,2), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=2.0 
-tvframe,w(*,*,3)+w(*,*,6),/bar,/sample, title='e', xtitle='x', ytitle='z', charsize=2.0                                                                                                   
+;;tvframe,w(*,*,3)+w(*,*,6),/bar,/sample, title='e', xtitle='x', ytitle='z', charsize=2.0 
+tvframe,w(*,*,3),/bar,/sample, title='e', xtitle='x', ytitle='z', charsize=2.0                                                                                                   
 
 ;;tvframe,w(*,*,6),/bar,/sample, title='eb',  xtitle='x', ytitle='z', charsize=2.0
-tvframe,w(*,*,7)+w(*,*,0), /bar,title='log rho_b',/sample, xtitle='x', ytitle='y',charsize=2.0
-;tvframe,w(*,*,0),/bar,/sample, title='rho',  xtitle='x', ytitle='z', charsize=2.0
+;tvframe,w(*,*,7)+w(*,*,0), /bar,title='log rho_b',/sample, xtitle='x', ytitle='y',charsize=2.0
+tvframe,w(*,*,0),/bar,/sample, title='rho',  xtitle='x', ytitle='z', charsize=2.0
 
+tvframe,w(*,*,4),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
+tvframe,w(*,*,5),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
+;tvframe,w(*,*,4)+w(*,*,8),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
+;tvframe,w(*,*,5)+w(*,*,9),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
 ;tvframe,w(*,*,4),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
 ;tvframe,w(*,*,5),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
-tvframe,w(*,*,4)+w(*,*,8),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
-tvframe,w(*,*,5)+w(*,*,9),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
 ;tvframe,w(*,*,8),/bar,/sample, title='bg_z',  xtitle='x', ytitle='z', charsize=2.0
 ;tvframe,w(*,*,9),/bar,/sample, title='bg_x',  xtitle='x', ytitle='z', charsize=2.0
 
@@ -409,8 +420,8 @@ case a of
  4:indexss='0'+indexs                                               
 endcase   
 
-;image_p = TVRD_24()
-;write_png,'/home/mikeg/proj/sac2.5d-cuda/'+indexss+'.png',image_p, red,green, blue
+image_p = TVRD_24()
+write_png,'/data/cs1mkg/smaug_spicule1/Idl/images/spic'+indexss+'.png',image_p, red,green, blue
 ;stop
 ;endwhile
 close,1

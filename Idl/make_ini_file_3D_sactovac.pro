@@ -47,11 +47,23 @@ close,1
 ;openr,1,'/fastdata/cs1mkg/smaug/spicule8b0_nob/zerospic1__584000.out'
 ;openr,1,'/fastdata/cs1mkg/smaug/spicule8b0_nob/zerospic1__643000.out'
 ;openr,1,'/fastdata/cs1mkg/smaug/spicule7b0_nob/zerospic1__491000.out'
-openr,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_bvert1_bin.ini',/f77_unf
+;openr,1,'/fastdata/cs1mkg/smaug/scnstrh5b0b_nob/zerospic1__391000.out'
 
-
-
-
+;openr,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_bin.ini',/f77_unf
+;openr,1,'/fastdata/cs1mkg/smaug/spicule5b0_3d/zerospic1__279000.out'
+;openr,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_bvert_bin.ini',/f77_unf
+;openr,1,'/data/cs1mkg/smaug_spicule1/spicule4b0_b1_3d/zerospic1__39000.out'
+;openr,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_bvert2_bin.ini',/f77_unf
+;openr,1,'/data/cs1mkg/smaug_spicule1/spicule4b0_b2_3d/zerospic1__12000.out'
+;openr,1,'/data/cs1mkg/smaug_spicule1/spicule5b0_3d/zerospic1__612000.out'
+;openr,1,'/fastdata/cs1mkg/smaug/spic5b0_3d/zerospic1__79000.out'
+;openr,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_btube1_bin.ini',/f77_unf;
+;openr,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_btube2_bin.ini',/f77_unf;
+;openr,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_btube3_bin.ini',/f77_unf;
+;openr,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_btube4_bin.ini',/f77_unf;
+openr,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_bin.ini',/f77_unf;
+;openr,1,'/data/cs1mkg/smaug_spicule1/spicule5b0_3d/zerospic1__489000.out'
+;openr,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_bvert1_bin.ini',/f77_unf
 
 
 readu,1,headline
@@ -67,20 +79,34 @@ readu,1,varname
 
 n1=nx(0)
 n2=nx(1)
+n3=nx(2)
+vnw=nw-5
 
+x_code=dblarr(n1,n2,n3,ndim)
+w=dblarr(n1,n2,n3,nw)
+vw=dblarr(n1,n2,n3,vnw)
 
-x_code=dblarr(n1,n2,ndim)
-w=dblarr(n1,n2,nw)
-
-wi=dblarr(n1,n2)
+wi=dblarr(n1,n2,n3)
 
 readu,1,x_code
 for iw=0,nw-1 do begin
  print, iw
  readu,1,wi
-  w(*,*,iw)=wi
+  w(*,*,*,iw)=wi
 endfor
-print, n1,n2
+print, n1,n2,n3
+
+
+vw(*,*,*,0)=w(*,*,*,0)+w(*,*,*,9)
+vw(*,*,*,4)=w(*,*,*,4)+w(*,*,*,8)
+vw(*,*,*,5)=w(*,*,*,5)+w(*,*,*,10)
+vw(*,*,*,6)=w(*,*,*,6)+w(*,*,*,11)
+vw(*,*,*,7)=w(*,*,*,7)+w(*,*,*,12)
+
+
+
+
+
 
 ;*************** END read old ini file ***************
 
@@ -99,7 +125,6 @@ nz=n_elements(zax)
 
 nn=200 ; the number of elements in new arrays 
 
-
 ;***********************************save new ini file
 close,1
 ;openw,1,'/fastdata/cs1mkg/smaug/spicule4_nob/zerospic1_asc_290001.ini'
@@ -108,38 +133,43 @@ close,1
 ;openw,1,'/data/cs1mkg/smaug_spicule1/out/spicule5b4/zerospic1_asc_555001.ini'
 ;openw,1,'/fastdata/cs1mkg/smaug/em6b4_bhor120/zerospic1_asc_84000.ini'
 ;openw,1,'/fastdata/cs1mkg/smaug/em5b4_bhor120/zerospic1_asc_86000.ini'
-;openw,1,'/fastdata/cs1mkg/smaug/spicule8b0_nob/zerospic1_asc_584001.ini'
+;openw,1,'/fastdata/cs1mkg/smaug/spicule8b0_nquotaob/zerospic1_asc_584001.ini'
 ;openw,1,'/fastdata/cs1mkg/smaug/spicule8b0_nob/zerospic1_asc_643001.ini'
 ;openw,1,'/fastdata/cs1mkg/smaug/scnstrh5b0b_nob/zerospic1_asc_391000.ini'
-; openw,1,'/fastdata/cs1mkg/smaug/spicule5b0_3d/zerospic1_asc_279001.ini'
-openw,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_bvert1_asc.ini'
-
 ;openw,1,'/data/ap1vf/3D_modif_200_100_100.ini',/f77_unf
-printf,1, FORMAT='(%"%s ")',headline
-printf,1,FORMAT='(%"%d %g %d %d %d ")',it,time,ndim,neqpar,nw
-printf,1,FORMAT='(%"%d %d ")',nx(0),nx(1)
-printf,1,FORMAT='(%"%g %g %g %g %g %g")',eqpar(0),eqpar(1),eqpar(2),eqpar(3),eqpar(4),eqpar(5)
-printf,1,FORMAT='(%"%s ")',varname
-;printf,1,x_code
+;openw,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_asc.ini'
+;openw,1,'/fastdata/cs1mkg/smaug/spicule5b0_3d/zerospic1_asc_279001.ini'
+;openw,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_bvert_asc.ini'
+;openw,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_bvert2_asc.ini'
+;openw,1,'/data/cs1mkg/smaug_spicule1/spicule4b0_b1_3d/zerospic1_asc_39000.ini'
+;openw,1,'/data/cs1mkg/smaug_spicule1/spicule4b0_b2_3d/zerospic1_asc_5000.ini'
+;openw,1,'/fastdata/cs1mkg/smaug/spic5b0_3d/zerospic1_asc_612000.ini'
+;openw,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_bvert1_asc.ini'
+;openw,1,'/fastdata/cs1mkg/smaug/spic4b0_b2_3d/zerospic1_asc_12000.ini'
+;openw,1,'/data/cs1mkg/smaug_spicule1/configs/3D_128_spic_btube1_asc.ini'
+;openw,1,'/data/cs1mkg/smaug_spicule1/configs/3D_128_spic_btube2_asc.ini'
+;openw,1,'/data/cs1mkg/smaug_spicule1/configs/3D_128_spic_btube3_asc.ini'
+;openw,1,'/data/cs1mkg/smaug_spicule1/configs/3D_128_spic_btube4_vac.ini',/f77_unf
+openw,1,'/data/cs1mkg/smaug_spicule1/configs/3D_128_spic_vac.ini',/f77_unf
 
-i1=long(1)
-i2=long(1)
 
-
-for i2=0, n2-1 do begin
-for i1=0, n1-1 do begin
-       ; printf,1,x_code(i1,i2,0),x_code(i1,i2,1),w(i1,i2,0),w(i1,i2,1),w(i1,i2,2),w(i1,i2,3),w(i1,i2,4),w(i1,i2,5),w(i1,i2,6),w(i1,i2,7),w(i1,i2,8),w(i1,i2,9),FORMAT='(12F5)'
- printf,1, FORMAT='(%"%g %g %g %g %g %g %g %g %g %g %g %g ")',x_code(i1,i2,0),x_code(i1,i2,1),w(i1,i2,0),w(i1,i2,1),w(i1,i2,2),w(i1,i2,3),w(i1,i2,4),w(i1,i2,5),w(i1,i2,6),w(i1,i2,7),w(i1,i2,8),w(i1,i2,9)
-	;for iw=0,nw-1 do begin
-	; wi=w(*,*,iw)
-	; printf,1,w(i1,i2,iw)
-	;endfor
-endfor
+;openw,1,'/data/cs1mkg/smaug_spicule1/3D_128_spic_btube4_bin.ini',/f77_unf
+;openw,1,'/data/ap1vf/3D_tube_196_100_100.ini',/f77_unf
+writeu,1,headline
+writeu,1,it,time,ndim,neqpar,vnw
+writeu,1,nx
+writeu,1,eqpar
+writeu,1,varname
+writeu,1,x_code
+for iw=0,vnw-1 do begin
+wi=vw(*,*,*,iw)
+writeu,1,wi
 endfor
 
 
  
 close,1
+
 
 print, 'complete'
 end

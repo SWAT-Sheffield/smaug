@@ -28,6 +28,14 @@ ALLBIN	=	$(Bin)/smaug
 #@# Targets follow ---------------------------------
 
 ##all:	IoSimTestSimple
+pmode:
+	cp ../solarmodels/iosmaugparams.h.pmode ../include/iosmaugparams.h
+	cp ../solarmodels/init_user.cu.pmode ../src/init_user.cu
+	cp ../solarmodels/boundary.cu.pmode ../src/boundary.cu
+	cp ../solarmodels/usersource.cu.pmode ../src/usersource.cu
+	cp ../solarmodels/initialisation_user.h.pmode ../include/initialisation_user.h
+
+
 
 fluxtube1:
 	cp ../models/iosmaugparams.h.fluxtube1 ../include/iosmaugparams.h

@@ -1,4 +1,4 @@
-tarr=dblarr(1)
+cdtarr=dblarr(1)
 maxa=fltarr(1)
 mina=fltarr(1)
 cuta=fltarr(2000,50)
@@ -12,7 +12,8 @@ PRINT, 'Date:      ', systime(0)
 PRINT, 'n_colors   ', STRCOMPRESS(!D.N_COLORS,/REM)
 PRINT, 'table_size ', STRCOMPRESS(!D.TABLE_SIZE,/REM)
 
-window, 0,xsize=1200,ysize=700,XPOS = 1000, YPOS = 300 ; ZOOM
+;window, 0,xsize=1200,ysize=700,XPOS = 1000, YPOS = 300 ; ZOOM
+window, 0,ysize=1600,xsize=800,XPOS = 100, YPOS = 300
 ii=1
 
 
@@ -24,8 +25,9 @@ loadct,0
 tek_color
 endelse
 
-
-
+ipic=long(1)
+for ipic=0,pic do begin
+;while not(eof(1)) do begin
 
 mass=dblarr(1)
 egas=dblarr(1)
@@ -71,23 +73,30 @@ close,2
 ;openr,1,'/home/mikeg/proj/sac2.5d-cuda/zero1_BW.ini',/f77_unf
 ;openr,1,'/home/mikeg/proj/sac2.5d-cuda/test_OT.out'
 ;directory='/home/mikeg/proj/sac2.5d-cuda/out_OT_withhyper/'
-directory='../out/'
+;directory='../out/'
+;directory='/fastdata/cs1mkg/smaug/spicule1/'
+;directory='/fastdata/cs1mkg/smaug/spicule_nob1/'
+;directory='/fastdata/cs1mkg/smaug/spicule_nosource_nohydros/'
+;directory='/fastdata/cs1mkg/smaug/spicule_nohydros/'
+;directory='/fastdata/cs1mkg/smaug/spicule7_nob/'
+directory='/fastdata/cs1mkg/smaug/spicule6_nob/'
 ;pic=999
-name='zeroOT_'
+name='zerospic1_'
 ;ndim=2
 ;n1=800
 ;n2=6
-for ipic=pic,pic do begin
-;while not(eof(1)) do begin
+
 
 ;picid=ipic*5+4
-picid=ipic
+;picid=ipic
+picid=ipic*1000L
+;picid=ipic*500L
 outfile=directory+name+strtrim(string(picid),2)+'.out'
 openr,1,outfile
 readu,1,headline
 readu,1,it,time,ndim,neqpar,nw
 gencoord=(ndim lt 0)
-tarr=[tarr,time]
+;tarr=[tarr,time]
 ;ndim=abs(ndim)
 nx=lonarr(ndim)
 readu,1,nx
@@ -128,8 +137,8 @@ p=dblarr(n1,n2,1)
 
 
 ;!p.multi = [0,1,0,0,1]
-!p.multi = [0,3,2,0,1]
-
+;!p.multi = [0,3,2,0,1]
+!p.multi = [0,2,2,0,1]
 ;!P.multi=0
 ;if nn eq 1 then stop
 
@@ -163,6 +172,10 @@ mu=1
 xstart=0
 xend=511
 
+mxrange=[x(0,0,0)/1.0d6,x(n1-1,0,0)/1.0d6]
+myrange=[x(0,0,1)/1.0d6,x(0,n2-1,1)/1.0d6]
+
+
 Vt(*,*)=sqrt((w(*,*,1)/(w(*,*,0)+w(*,*,7)))^2.0+(w(*,*,2)/(w(*,*,0)+w(*,*,7)))^2.0)
 
 B(*,*)=sqrt((w(*,*,4)*SQRT(mu))^2.0+(w(*,*,5)*SQRT(mu))^2.0)
@@ -180,24 +193,27 @@ if (ii eq 1) then begin
 ;tvframe,w(*,*,7)+w(*,*,0), /bar,title='log rho_b',/sample, xtitle='x', ytitle='y',charsize=2.0  
 
 ;stop
-tvframe,w(*,*,1)/(w(*,*,7)+w(*,*,0)), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=2.0  
-tvframe,w(*,*,2)/(w(*,*,7)+w(*,*,0)), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=2.0 
+tvframe,w(*,*,1)/(w(*,*,7)+w(*,*,0)), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=1.1, xrange=myrange, yrange=mxrange  
+tvframe,w(*,*,2)/(w(*,*,7)+w(*,*,0)), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=1.1, xrange=myrange, yrange=mxrange 
 ;tvframe,w(200:220,120:140,1)/(w(200:220,120:140,7)+w(200:220,120:140,0)), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=2.0  
 ;tvframe,w(200:220,120:140,2)/(w(200:220,120:140,7)+w(200:220,120:140,0)), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=2.0 
 
 
 ;tvframe,w(*,*,1), /bar,title='v1',/sample, xtitle='x', ytitle='y',charsize=2.0  
 ;tvframe,w(*,*,2), /bar,title='v2',xtitle='x',/sample, ytitle='z',charsize=2.0 
-tvframe,w(*,*,3)+w(*,*,6),/bar,/sample, title='e', xtitle='x', ytitle='z', charsize=2.0                                                                                                   
+;;tvframe,w(*,*,3)+w(*,*,6),/bar,/sample, title='e', xtitle='x', ytitle='z', charsize=2.0 
+tvframe,w(*,*,3)*1.0d7,/bar,/sample, title='e (X1.0d7)', xtitle='x', ytitle='z', charsize=1.1, xrange=myrange, yrange=mxrange                                                                                                   
 
 ;;tvframe,w(*,*,6),/bar,/sample, title='eb',  xtitle='x', ytitle='z', charsize=2.0
-tvframe,w(*,*,7)+w(*,*,0), /bar,title='log rho_b',/sample, xtitle='x', ytitle='y',charsize=2.0
-;tvframe,w(*,*,0),/bar,/sample, title='rho',  xtitle='x', ytitle='z', charsize=2.0
+;tvframe,w(*,*,7)+w(*,*,0), /bar,title='log rho_b',/sample, xtitle='x', ytitle='y',charsize=2.0
+tvframe,w(*,*,0)*1.0d14,/bar,/sample, title='rho (X1.0d14)',  xtitle='x', ytitle='z', charsize=1.1, xrange=myrange, yrange=mxrange
 
 ;tvframe,w(*,*,4),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
 ;tvframe,w(*,*,5),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
-tvframe,w(*,*,4)+w(*,*,8),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
-tvframe,w(*,*,5)+w(*,*,9),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
+;tvframe,w(*,*,4)+w(*,*,8),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
+;tvframe,w(*,*,5)+w(*,*,9),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
+;tvframe,w(*,*,4),/bar,/sample, title='b_z',  xtitle='x', ytitle='z', charsize=2.0
+;tvframe,w(*,*,5),/bar,/sample, title='b_x',  xtitle='x', ytitle='z', charsize=2.0
 ;tvframe,w(*,*,8),/bar,/sample, title='bg_z',  xtitle='x', ytitle='z', charsize=2.0
 ;tvframe,w(*,*,9),/bar,/sample, title='bg_x',  xtitle='x', ytitle='z', charsize=2.0
 
@@ -399,8 +415,8 @@ indexs=strtrim(nn,2)
 maxa=[maxa,max(Vt)]
 
 
-indexs=strtrim(nn,2)
-
+;indexs=strtrim(nn,2)
+indexs=strtrim(ipic,2)
 a = strlen(indexs)                                                  
 case a of                                                           
  1:indexss='0000'+indexs                                             
@@ -409,8 +425,8 @@ case a of
  4:indexss='0'+indexs                                               
 endcase   
 
-;image_p = TVRD_24()
-;write_png,'/home/mikeg/proj/sac2.5d-cuda/'+indexss+'.png',image_p, red,green, blue
+image_p = TVRD_24()
+write_png,'/data/cs1mkg/smaug_spicule1/Idl/images/spic6/spic'+indexss+'.png',image_p, red,green, blue
 ;stop
 ;endwhile
 close,1
