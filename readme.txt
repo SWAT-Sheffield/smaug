@@ -1,3 +1,11 @@
+
+
+Initial configurations may be found here 
+https://drive.google.com/open?id=0B-AKVl-pk6ziVUFqUzMycWJoODg&authuser=0
+
+
+
+This is the pmode working version regularly updated using github
 Guidelines for Using SMAUG Sheffield Magnetohydrodynamics Accelerated Using GPUs
 
 Introduction
