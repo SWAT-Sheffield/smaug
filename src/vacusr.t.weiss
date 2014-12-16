@@ -1,0 +1,139 @@
+!##############################################################################
+! module vacusr - weiss
+
+INCLUDE:vacnul.specialbound.t
+!INCLUDE:vacnul.specialini.t
+INCLUDE:vacnul.specialsource.t
+!INCLUDE:vacnul.specialio.t
+
+!=============================================================================
+subroutine specialini(ix^L,w)
+
+! Initialize w for VACINI, user-defined
+
+include 'vacdef.f'
+
+integer:: ix^L,idim,iw
+double precision:: w(ixG^T,nw),dw,wavenum(ndim),phase(ndim)
+!-----------------------------------------------------------------------------
+
+write(*,*)'Variable index and amplitude'
+read(*,*)iw,dw
+write(*,*)'wavenumber and phase for each idim:'
+read(*,*)(wavenum(idim),phase(idim),idim=1,ndim)
+
+w(ix^S,iw)=w(ix^S,iw)+dw* &
+   {sin(phase(^D)+x(ix^S,^D)*wavenum(^D))*}
+
+write(*,*)'Variable index and amplitude'
+read(*,*)iw,dw
+write(*,*)'wavenumber and phase for each idim:'
+read(*,*)(wavenum(idim),phase(idim),idim=1,ndim)
+
+w(ix^S,iw)=w(ix^S,iw)+dw* &
+   {sin(phase(^D)+x(ix^S,^D)*wavenum(^D))*}
+
+return
+end
+!=============================================================================
+subroutine readfileini_special(w)
+
+! Reads from unitini,filenameini in user-defined format.
+! Check readfileini_asc and readfileini_bin in vacio.t on what should be done.
+
+include 'vacdef.f'
+
+double precision:: w(ixG^T,nw)
+!-----------------------------------------------------------------------------
+
+stop 'Special readfileini is not defined'
+end
+!=============================================================================
+subroutine savefileout_special(qunit,w,ix^L)
+
+! Save current results into filenameout in user-defined format.
+! Check savefileout_asc and savefileout_bin in vacio.t on what should be done.
+
+include 'vacdef.f'
+
+integer:: qunit,ix^L
+double precision:: w(ixG^T,nw)
+!-----------------------------------------------------------------------------
+
+stop 'Special savefileout is not defined'
+end
+!=============================================================================
+subroutine savefilelog_special(qunit,w,ix^L)
+
+! Save user-defined log data into filename(filelog_) in user-defined format.
+! Check savefilelog_default on opening the file etc.
+
+include 'vacdef.f'
+
+integer:: qunit,ix^L
+integer:: iw
+double precision:: w(ixG^T,nw)
+integer:: ixI^L,idir,jdir,kdir
+double precision:: current(ixG^T)
+double precision:: wmean(nw),E_mag,Jy2,Jres2
+logical:: fileopen
+!-----------------------------------------------------------------------------
+
+inquire(qunit,opened=fileopen)
+if(.not.fileopen)then
+   open(qunit,file=filename(filelog_),status='unknown')
+   write(qunit,'(a)')fileheadout
+   if(residmin>zero)then
+      write(qunit,'(a15,a32,a40)')'it   t   dt  ',wnames,&
+                                  ' E_mag Jy2 Jres2 residual'
+   else
+      write(qunit,'(a15,a32,a40)')   'it   t   dt  ',wnames,&
+                                  ' E_mag Jy2 Jres2'
+   endif
+endif
+
+do iw=1,nw
+   wmean(iw)=sum(dvolume(ix^S)*w(ix^S,iw))/volume
+end do
+
+E_mag=sum(dvolume(ix^S)*half*(w(ix^S,b1_)**2+w(ix^S,b2_)**2))/volume
+
+ixI^L=ix^L^LADD1;
+
+! Calculate current density within ixL: J=curl B, thus J_i=eps_ijk*d_j B_k
+! Current has 1 component
+
+current(ix^S)=zero
+
+do jdir=1,ndim; do kdir=1,ndir
+   if(lvc(3,jdir,kdir)/=0)then
+      tmp(ixI^S)=w(ixI^S,b0_+kdir)
+      call gradient(.true.,tmp,ix^L,jdir,tmp2)
+      if(lvc(3,jdir,kdir)==1)then
+         current(ix^S)=current(ix^S)+tmp2(ix^S)
+      else
+         current(ix^S)=current(ix^S)-tmp2(ix^S)
+      endif
+   endif
+enddo; enddo;
+
+
+Jy2 =sum(dvolume(ix^S)*current(ix^S)**2)/volume
+Jres2 =sum(dvolume(ix^S)*eqpar(eta_)*current(ix^S)**2)/volume
+
+if(residmin>zero)then
+   write(qunit,'(i7,100(1pe13.5))')it,t,dt,wmean,E_mag, &
+                                 Jy2,Jres2,residual
+else
+   write(qunit,'(i7,100(1pe13.5))')it,t,dt,wmean,E_mag, &
+                                 Jy2,Jres2
+endif
+
+call flush(qunit)                                             !!!flush
+
+return
+end
+
+!=============================================================================
+! end module vacusr - weiss
+!##############################################################################

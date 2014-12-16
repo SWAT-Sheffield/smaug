@@ -1,0 +1,40 @@
+ &testlist
+     teststr=' '
+ &end
+
+ &filelist
+	filenameini='data/khmhd22U.ini',
+	filename=   'data/khmhd22U.log',
+		    'data/khmhd22U.out'
+ 	typefilelog='special'       	
+ &end
+
+ &savelist
+        itsave(1,2)=0
+	dtsave=0.1,0.2
+ &end
+
+ &stoplist
+       tmax=8.0
+ &end
+
+ &methodlist
+	wnames=		'rho m1 m2 e b1 b2'
+	typefull=	6*'tvd'
+        typelimiter=    6*'woodward'
+        nproc=          1,0,0,1
+        procpar=        0,0.001,1
+        divbfix=        F
+ &end
+
+
+ &boundlist
+	typeB=          6*'periodic'
+                        6*'periodic'
+                        6*'cont'
+                        6*'cont'
+ &end
+
+ &paramlist
+       courantpar=      0.8 
+ &end

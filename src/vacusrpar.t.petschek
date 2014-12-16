@@ -1,0 +1,15 @@
+!##############################################################################
+! include vacusrpar - petschek
+! ---------------------------------------------------------------------------
+
+INTEGER,PARAMETER:: nspecialpar=3
+
+INTEGER,PARAMETER:: eta0_=neqpar+1,etalx_=eta0_+1,etaly_=etalx_+1 
+
+CHARACTER*30,PARAMETER:: specialparname='eta0 etalx etaly'
+
+! ---------------------------------------------------------------------------
+! end include vacusrpar - petschek
+!##############################################################################
+
+

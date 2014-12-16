@@ -1,0 +1,36 @@
+ &testlist &end
+
+ &filelist
+	filenameini='data/weiss22.ini',
+	filename=   'data/weiss22B.log',
+		    'data/weiss22B.out'
+        typefilelog='special'
+ &end
+
+ &savelist
+        itsave(1,2)=0
+	dtsave=0.1,0.1
+ &end
+
+ &stoplist
+        tmax=4.0
+ &end
+
+ &methodlist
+	wnames=		'rho m1 m2 b1 b2'
+        eqpar(3)=       0.1d0
+	typefull=	3*'nul',2*'tvdlf'
+        dimsplit=       .false.
+        divbfix=        .false.
+        divbwave=       .true.
+        nproc=1,0,0,1
+        procpar=0.0,0.000001,1
+ &end
+
+ &boundlist
+	typeB=5*'periodic',5*'periodic',5*'periodic',5*'periodic'
+ &end
+
+ &paramlist
+       courantpar=0.4
+ &end

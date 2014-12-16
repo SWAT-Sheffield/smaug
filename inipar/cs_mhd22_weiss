@@ -1,0 +1,20 @@
+data/weiss22.ini
+weiss_mhdiso22
+x y rho m1 m2 b1 b2    gamma csound2 eta
+domain
+30,30  					-ixmax
+0.0,0.0		  		          -min coordinates
+1.0,1.0                                   -max coordinates 
+uniform
+1.0  0.0  0.0   0.0  1.0                -mean values (rho/v_x/v_y/B_x/B_y)
+special
+2  1.0   			-set v_x=sin(2pi x)sin(2pi y-pi/2)
+6.283185307   0.0          6.283185307  -1.5707963
+3  1.0   			-set v_y=sin(2pi x+pi/2)sin(2pi y)
+6.283185307   1.5707963    6.283185307   0.0
+eqpar
+1.0   1.0    1.0d-2                -gamma, csound2, eta 
+conserv
+typefileout
+binary
+save

@@ -1,0 +1,21 @@
+data/cs_hdiso11B.ini
+caseB_hdadiab11
+x rho m1 gamma adiab
+grid
+200					-ixmax
+0.					-min coordinates
+1.					-max coordinates
+shocktube
+1                                        -shock direction
+3                                        -number of segments
+0.445  0.698               		 -state at left boundary
+0.445  0.698       		         -state at end segment 1
+99                                       -position of segment-end 1
+0.5  0.0         		         -state at end of segment 2
+100                                      -position of segment-end 2
+0.5  0.0                                 -state at end of segment 3
+1.0    1.0                               -gamma adiab
+conserv
+typefileout
+binary
+save
