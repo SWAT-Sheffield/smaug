@@ -1,0 +1,105 @@
+!##############################################################################
+! module vacusr - mhdkhU Kelvin helmholtz MHD case uniform field
+!=============================================================================
+INCLUDE:vacnul.specialbound.t
+!INCLUDE:vacnul.specialini.t
+INCLUDE:vacnul.specialsource.t
+!INCLUDE:vacnul.specialio.t
+!=============================================================================
+subroutine specialini(ix^L,w)
+
+!This subroutine has a shear velocity in the x-direction.
+!This shear velocity is a qv*tanh(x(ix^S,2)/width) function.
+
+!This subroutine imposes a perturbation of the velocity in the y-direction.
+!The perturbation is a dv*sin(k1*x(ix^S,1))*exp(-(x(ix^S,2)/sigma)**2) function
+
+!a uniform magnetic field in the x-direction must be set by uniform action
+
+include 'vacdef.f90'
+integer:: ix^L
+double precision:: w(ixG^T,nw)
+double precision:: qv,width,dv,k1,sigma
+!--------------------------------------------------------------------------
+write(*,*)'qv, width, dv, k1, sigma:'
+read(*,*)qv,width,dv,k1,sigma
+write(*,*)qv,width,dv,k1,sigma
+w(ix^S,m1_)=qv*tanh(x(ix^S,2)/width)
+w(ix^S,m2_)=dv*sin(k1*x(ix^S,1))*exp(-(x(ix^S,2)/sigma)**2)
+return
+end
+!=============================================================================
+subroutine readfileini_special(w)
+
+include 'vacdef.f90'
+double precision:: w(ixG^T,nw)
+!-----------------------------------------------------------------------------
+stop 'Special readfileini is not defined'
+end
+!=============================================================================
+subroutine savefileout_special(qunit,w,ix^L)
+
+include 'vacdef.f90'
+integer:: qunit,ix^L
+double precision:: w(ixG^T,nw)
+!-----------------------------------------------------------------------------
+stop 'Special savefileout is not defined'
+end
+!=============================================================================
+subroutine savefilelog_special(qunit,w,ix^L)
+
+! Save user-defined log data into filename(filelog_) in user-defined format.
+! Check savefilelog_default on opening the file etc.
+
+include 'vacdef.f90'
+
+integer:: qunit,ix^L,jx1^L,jx2^L,hx1^L,hx2^L
+integer:: iw
+double precision:: w(ixG^T,nw)
+double precision:: wmean(nw),E_mag,lscale,E_kin2,E_mag2
+logical:: fileopen
+!-----------------------------------------------------------------------------
+
+inquire(qunit,opened=fileopen)
+if(.not.fileopen)then
+   open(qunit,file=filename(filelog_),status='unknown')
+   write(qunit,'(a)')fileheadout
+   if(residmin>zero)then
+      write(qunit,'(a15,a32,a40)')'it   t   dt  ',wnames,&
+                                       ' E_mag lscale E_kin2 E_mag2 residual'
+   else
+      write(qunit,'(a15,a32,a40)')   'it   t   dt  ',wnames,&
+                                       ' E_mag lscale E_kin2 E_mag2'
+   endif
+endif
+
+do iw=1,nw 
+   wmean(iw)=sum(dvolume(ix^S)*w(ix^S,iw))/volume
+end do
+
+E_mag =sum(dvolume(ix^S)*(w(ix^S,b1_)**2+w(ix^S,b2_)**2))/volume
+E_kin2=sum(dvolume(ix^S)*half*w(ix^S,m2_)**2/w(ix^S,rho_))/volume
+E_mag2=sum(dvolume(ix^S)*half*(w(ix^S,b2_)**2))/volume
+
+jx1^L=ix^L+kr(^D,1);jx2^L=ix^L+kr(^D,2);
+hx1^L=ix^L-kr(^D,1);hx2^L=ix^L-kr(^D,2);
+
+!calculate the minimum field spatial length: min(|B|/|curl B|)
+lscale=minval(sqrt(w(ix^S,b1_)**2+w(ix^S,b2_)**2)/&
+              (abs((w(jx1^S,b2_)-w(hx1^S,b2_))/dx(ix^S,1)-&
+                   (w(jx2^S,b1_)-w(hx2^S,b1_))/dx(ix^S,2))+smalldouble))
+
+if(residmin>zero)then
+   write(qunit,'(i7,100(1pe13.5))')it,t,dt,wmean,E_mag,lscale,E_kin2, &
+                                   E_mag2,residual
+else
+   write(qunit,'(i7,100(1pe13.5))')it,t,dt,wmean,E_mag,lscale,E_kin2,E_mag2
+endif
+
+call flush(qunit)                                             !!!flush
+
+return
+end
+!=============================================================================
+! end module vacusr - mhdkhU
+!##############################################################################

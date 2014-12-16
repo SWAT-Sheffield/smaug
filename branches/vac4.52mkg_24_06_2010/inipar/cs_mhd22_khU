@@ -1,0 +1,17 @@
+data/khmhd22U.ini
+kelvin-helmholtz_mhd22
+x y rho m1 m2 e b1 b2 gamma eta
+domain
+100,200                	                 -ixmax,iymax                      
+0.,-0.5                                   -min coordinates
+1. ,0.5                                   -max coordinates  
+uniform
+1. 0. 0. 1.  0.129  0.                   -rho,v1,v2,p,b1,b2
+eqpar
+1.666666, 0.                             -gamma,eta
+special
+0.645  0.05  0.01 6.2831853  0.20        -qv,width,dv,k1,sigma
+conserv
+typefileout
+binary
+save

@@ -1,0 +1,19 @@
+data/petschekmhd22.ini
+petschek_mhd22
+x y rho m1 m2 e b1 b2   gamma eta eta0 etalx etaly
+domain
+104,104					-ixmax
+-0.02D0,-0.08D0 	-min coordinates
+ 1.02D0, 4.08D0   	-max coordinates
+special
+1.66666667d0	       		- gamma
+0.1d0		       	 	- L: width of tanh sheet
+1.5d0				- plasma beta
+0.04d0				- Alfven mach number on the RHS
+1.02d0				- dx2/dx1
+1.02d0				- dy2/dy1
+0.0001d0, 0.05d0, 0.10d0	- eta space dependent: eta0,lx,ly
+conserv
+typefileout
+binary
+save

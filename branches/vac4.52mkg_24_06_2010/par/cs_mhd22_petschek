@@ -1,0 +1,46 @@
+
+ &testlist
+	teststr=''
+ &end
+
+ &filelist
+	filenameini='data/petschekmhd22.ini',
+	fullgridini=T
+	filename=   'data/petschekmhd22.log',
+		    'data/petschekmhd22.out'
+	fullgridout=F
+ &end
+
+ &savelist
+        itsave(1,2)=0
+	ditsave(1)=1 dtsave(2)=0.99999 
+ &end
+
+ &stoplist
+	tmax= 22.0 
+ &end
+
+ &methodlist
+	wnames=		'rho m1 m2 e b1 b2'
+	typefull=	6*'tvdlf'
+	typelimiter=	6*'woodward'
+	typelimited=	'previous'
+	divbfix=        F
+	nproc=		1,0,0,1
+	procpar=	0,0.001,1.0
+        dimsplit=       F
+ &end
+
+ &boundlist
+	typeB=	'symm','asymm','symm','symm','symm','asymm',
+                4*'fixed','cont','fixed',
+                'symm','symm','asymm','symm','asymm','symm',
+                6*'cont'
+ &end
+
+
+ &paramlist
+        courantpar=0.4
+        dtdiffpar=0.2
+ &end
+

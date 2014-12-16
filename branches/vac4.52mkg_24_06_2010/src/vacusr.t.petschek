@@ -1,0 +1,194 @@
+!##############################################################################
+! module vacusr - petschek ! setvac -d=22 -g=<nx+4>,<ny+4> -p=mhd -u=petschek 
+
+! INCLUDE:vacnul.specialini.t
+INCLUDE:vacnul.specialbound.t
+! INCLUDE:vacnul.specialsource.t
+INCLUDE:vacnul.specialio.t
+
+!=============================================================================
+subroutine specialini(ix^L,w)
+
+include 'vacdef.f90'
+
+integer:: ix^L
+double precision:: w(ixG^T,nw)
+
+integer::   ix1,ix2
+double precision :: gamm,lsheet,pbeta,machb
+double precision :: galfx, galfy, eta0,etalx,etaly
+double precision :: width, ptot, dx1,dx2
+!---------------------------------------------------------------------
+
+write(*,*) 'give gamma'
+read(*,*) gamm
+write(*,*) gamm
+eqpar(gamma_) = gamm
+
+write(*,*) 'give tanh sheet width L'
+read(*,*) lsheet
+write(*,*) lsheet
+
+write(*,*) 'give beta at RHS'
+read(*,*) pbeta
+write(*,*) pbeta
+
+write(*,*) 'give Alfven Mach at RHS'
+read(*,*) machb 
+write(*,*) machb
+
+write(*,*) 'give grid stretching parameter for x-direction'
+read(*,*) galfx
+write(*,*) galfx
+write(*,*) 'give grid stretching parameter for y-direction'
+read(*,*) galfy
+write(*,*) galfy
+
+write(*,*) 'give resistivity profile parameters: eta0, lx, ly'
+read(*,*) eta0,etalx,etaly
+write(*,*) eta0,etalx,etaly
+
+eqpar(eta_) = -one
+
+eqpar(eta0_) = eta0
+eqpar(etalx_) = etalx
+eqpar(etaly_) = etaly
+
+! Set up nonuniform grid including ghost cells. 
+! Assumes that uniform grid is set already by domain
+
+if(abs(galfx-one)>1.D-6)then
+   width=x(ixmax1,ixmin2,1)-x(4,ixmin2,1)
+   write(*,*) 'specialini: galfx width ', galfx, width
+   ! Size of first mesh cell from condition that mesh cells cover width
+   dx1=width*(galfx-1)/(galfx**(ixmax1-4)-1)
+   ! Coordinates within mesh and for right ghost cells
+   do ix1=3,ixmax1
+      x(ix1,ixmin2:ixmax2,1) = -dx1/2 + dx1*(galfx**(ix1-2)-1)/(galfx-1)
+   enddo
+   ! Symmetry around left boundary, left ghost cells
+   do ix1 = 1, 2
+      x(ix1,ixmin2:ixmax2,1) = -x(5-ix1,ixmin2:ixmax2,1)
+   enddo
+endif
+
+if(abs(galfy-one)>1.D-6)then
+   width=x(ixmin1,ixmax2,2)-x(ixmin1,4,2)
+   write(*,*) 'specialini: galfy width ', galfy, width
+   ! Size of first mesh cell from condition that mesh cells cover width
+   dx2=width*(galfy-1)/(galfy**(ixmax2-4)-1)
+   ! Coordinates within mesh and for top ghost cells
+   do ix2=3,ixmax2
+      x(ixmin1:ixmax1,ix2,2) = -dx2/2 + dx2*(galfy**(ix2-2)-1)/(galfy-1)
+   enddo
+   ! Symmetry around bottom boundary, bottom ghost cells
+   do ix2 = 1, 2
+      x(ixmin1:ixmax1,ix2,2) = -x(ixmin1:ixmax1,5-ix2,2)
+   enddo
+endif
+
+! no initial velocity and zero bx component
+w(ix^S,b1_)  =zero
+w(ix^S,m1_)  =zero
+w(ix^S,m2_)  =zero
+
+! B_y profile
+w(ix^S,b2_)  =dtanh(x(ix^S,1)/lsheet)
+
+! Use Boundary beta to get total pressure
+ptot = w(ixmax1,ixmin2,b2_)**2/2.0d0*(pbeta + one)
+
+! Set thermal pressure:
+w(ix^S,e_) = ptot - w(ix^S,b2_)**2/2.0d0
+
+! Scale velocities to alfven speed at RHS
+w(ix^S,rho_) = two*w(ix^S,e_)/pbeta
+
+! Set inflow velocity YAN boundary 
+w(ixmax1-1:ixmax1,ixmin2:ixmax2,m1_)  = -machb
+
+! follow with conserv action
+return
+end
+
+!=============================================================================
+subroutine specialsource(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
+
+include 'vacdef.f90'
+
+integer:: ixI^L,ixO^L,iws(niw_)
+double precision:: qdt,qtC,qt,wCT(ixG^T,nw),w(ixG^T,nw)
+!-----------------------------------------------------------------------------
+
+return
+end
+
+!=============================================================================
+subroutine getdt_special(w,ix^L)
+
+include 'vacdef.f90'
+
+double precision:: w(ixG^T,nw),qcourant1,qcourant2
+integer:: ix^L
+!-----------------------------------------------------------------------------
+
+if(it==itmin)write(*,*)'Getdtspecial uses dt<min(dx/|vx|,dy/|vy|)'
+
+oktest=index(teststr,'getdt')>=1
+
+qcourant1=maxval(abs(w(ix^S,m1_))/w(ix^S,rho_)/dx(ix^S,1))
+qcourant2=maxval(abs(w(ix^S,m2_))/w(ix^S,rho_)/dx(ix^S,2))
+
+if(oktest)write(*,*)'GetDtSpecial, dt, vx/dx, vy/dy:',dt,qcourant1,qcourant2
+
+dt=one/max(one/dt,qcourant1,qcourant2)
+
+if(oktest)write(*,*)'New dt:',dt
+
+return
+end
+!=============================================================================
+subroutine specialeta(w,ix^L,idirmin)
+
+! Set eta and gradeta based on w and current
+!
+! --> Yan etal JGR 97,8277,92
+!
+
+include 'vacdef.f90'
+
+double precision:: w(ixG^T,nw)
+integer:: ix^L,idirmin
+
+integer:: idim
+double precision:: current(ixG^T),eta(ixG^T),gradeta(ixG^T,ndim)
+common/resist/current,eta,gradeta
+!----------------------------------------------------------------------------
+oktest=index(teststr,'specialeta')>=1
+
+if(ndir/=2)stop 'This seteta_special works for ndir=2 only!'
+
+if(oktest)write(*,*) 'specialeta, eta0,etalx,etaly:',&
+   eqpar(eta0_),eqpar(etalx_),eqpar(etaly_)
+
+! Space dependent eta
+! eta=eta0*exp(-(x/l_x)^2-(y/l_y)^2)   
+if (it == itmin) then
+    eta(ixG^S)=eqpar(eta0_)*&
+       exp(-((x(ixG^S,1)/eqpar(etalx_))**2+(x(ixG^S,2)/eqpar(etaly_))**2))
+
+    if(oktest)write(*,*)'spacedependent eta:',eta(ixtest^D)
+
+    do idim=1,ndim
+       call gradient(.true.,eta,ix^L,idim,tmp)
+       gradeta(ix^S,idim)=tmp(ix^S)
+    enddo
+endif
+if (oktest) write(*,*) 'min(eta)', minval(eta(ixG^S))
+if (oktest) write(*,*) 'max(eta)', maxval(eta(ixG^S))
+
+return
+end
+!=============================================================================
+! end module vacusr - petschek
+!##############################################################################
