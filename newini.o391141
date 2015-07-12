@@ -1,0 +1,20 @@
+## Hosts assigned to job 391141.1:
+##
+## g8s0n1.polaris.leeds.ac.uk 16 slots
+##
+## Resources granted:
+##
+## h_vmem = 4G (per slot)
+## h_rt   = 0:30:00
+
+## nodes/ppn parallel request:
+##
+## nodes = 1     np  = 4    
+## ppn   = 16    tpp = 1    
+
+VACINI 4.52 configured to
+  -d=33 -phi=0 -z=0 -g=196,54,54 -p= -u=
+  -on=cd,rk,mpi
+  -off=mc,fct,tvdlf,tvd,impl,poisson,ct,gencoord,resist
+Running on   4 processors
+ Filename for new initial file:
