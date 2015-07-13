@@ -35,25 +35,31 @@ nothing	:
 ##### Nag F95 compiler (on a Linux box) #########################
 
 #F77=f95
-F77=pgf77
-F77FLG=-132 -dusty -Mnobounds
+#F77=/usr/local/mpich-gm2_PGI/bin/mpif77
+#F77=/usr/local/packages5/openmpi-pgi/bin/mpif77
+#F77=/usr/mpi/pgi/openmpi-1.4.2/bin/mpif77
+F77=mpif77
+F77FLG=-132 -free -mcmodel=medium
 
 #F90=f95
-F90=pgf90
-F90FLG=-Mfreeform -Mnobounds
+#F90=/usr/local/mpich-gm2_PGI/bin/mpif90
+#F90=/usr/local/packages5/openmpi-pgi/bin/mpif90
+#F90=/usr/mpi/pgi/openmpi-1.4.2/bin/mpif90
+F90=mpif90
+F90FLG=-free  -mcmodel=medium
 
 #
 # Select one:
 #
-F77FLAGS= $(F77FLG) -O4 -w=all #        final compile
-#F77FLAGS= $(F77FLG) -O1 -C -w=all #    developing
+#F77FLAGS= $(F77FLG) -O4 -w=all #        final compile
+F77FLAGS= $(F77FLG) -O4 #    developing
 #F77FLAGS= $(F77FLG) -g -C #            debugging
 
 #
 # Select one:
 #
-F90FLAGS= $(F90FLG) -O4 -w=all #        optimized
-#F90FLAGS= $(F90FLG) -O1 -C -w=all #    develop
+#F90FLAGS= $(F90FLG) -O4 -w=all #        optimized
+F90FLAGS= $(F90FLG) -O4  #    develop
 #F90FLAGS= $(F90FLG) -O0 -gline -C #            debugging
 
 ##### GNU Fortran compiler: g77 (e.g. for Linux) ######
@@ -455,7 +461,7 @@ O=.o
 
 extensions:
 	$(VACDIR)/Fix/extensionfix -stem=vacdef,vacpar,vacusrpar -ext=$(F) \
-		./vacpp.pl savemem
+		vacpp.pl savemem
 
 # IF YOU CHANGED THE EXTENSION FOR FORTRAN 77 CODES, 
 # i.e. the F7 variable, then set OLDF7 to the old suffix (including the dot)
