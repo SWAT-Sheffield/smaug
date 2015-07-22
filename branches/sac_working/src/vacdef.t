@@ -15,11 +15,11 @@ INTEGER,PARAMETER:: r_=1, phi_=^PHI, z_=^Z
 INTEGER,PARAMETER:: pphi_=^PPHI, zz_=^ZZ
 
 include 'vacpar.f'
-DOUBLE PRECISION:: grav0_,nu_
+!DOUBLE PRECISION:: grav0_,nu_
 
 INTEGER,PARAMETER:: ixGlo^D=1
 ! The next line is edited by SETVAC
-INTEGER,PARAMETER:: ixGhi1=196,ixGhi2=54,ixGhi3=54,ixGhimin=54,ixGhimax=196
+INTEGER,PARAMETER:: ixGhi1=128,ixGhi2=16,ixGhi3=16,ixGhimin=16,ixGhimax=128
 INTEGER,PARAMETER:: ndim=^ND, ndir=^NC
 
 INTEGER,PARAMETER:: dixBlo=2,dixBhi=2
