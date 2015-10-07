@@ -1,5 +1,9 @@
 Guidelines for Using SMAUG Sheffield Magnetohydrodynamics Accelerated Using GPUs
 
+This version is stripped down and modified to allow compilation using openmp
+See the following reference
+http://arxiv.org/abs/1405.6162
+
 Introduction
 
 Parallel magnetohydrodynamic (MHD) algorithms are important for numerical modelling of highly inhomogeneous solar and astrophysical plasmas. SMAUG is the Sheffield Magnetohydrodynamics Algorithm Using GPUs. SMAUG is a 1-3D MHD code capable of modelling magnetised and gravitationally stratified magnetised plasma. The methods employed have been justied by performance benchmarks and validation results demonstrating that the code successfully simulates the physics for a range of test scenarios including a full 3D realistic model of wave propagation in the magnetised and stratified solar atmosphere. For details about smaug see the preprint at: 
