@@ -19,7 +19,7 @@ include 'vacpar.f'
 
 INTEGER,PARAMETER:: ixGlo^D=1
 ! The next line is edited by SETVAC
-INTEGER,PARAMETER:: ixGhi1=128,ixGhi2=16,ixGhi3=16,ixGhimin=16,ixGhimax=128
+INTEGER,PARAMETER:: ixGhi1=256,ixGhi2=256,ixGhimin=256,ixGhimax=256
 INTEGER,PARAMETER:: ndim=^ND, ndir=^NC
 
 INTEGER,PARAMETER:: dixBlo=2,dixBhi=2
