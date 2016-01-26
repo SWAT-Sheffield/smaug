@@ -1,48 +1,46 @@
 &testlist /
 
 &filelist
-	filenameini='/home/polaris_she1/shexs/large/VAC_3D/setting010202/3D_196_100_100_np010202.ini'
-
+	filenameini='configs/zero1_ot_bin_256.ini',
 	typefileini='binary'
-	filename=   '/home/polaris_she1/shexs/large/VAC_3D/3D_tube_196_100_100_vertical.log',
-		    '/home/polaris_she1/shexs/large/VAC_3D/3D_tube_196_100_100_vertical.out'
+	filename=   'results/zeroOT.log',
+		    'results/zeroOT.out'
 	typefileout='binary'
         fullgridout= T
         fullgridini= T
  /
 
 &savelist
-ditsave(1)=100
-ditsave(2)=100
+	itsave(1,2)=0
+	ditsave=1,1
 
  /
 
  &stoplist
-	itmax=20
+       itmax=10
  /
 
  &methodlist
 
-	wnames=		'h 	m1  	 m2  	m3	e	b1	b2	b3	eb	rhob	bg1	bg2	bg3'
-	typefull=	8*'cd4',5*'nul'
+	wnames=		'h 	m1  	 m2  	e	b1	b2	eb	rhob	bg1	bg2'
+	typefull=	6*'cd4',4*'nul'
         typeadvance=    'onestep'
-	typefilter=	13*'nul'
+	typefilter=	10*'nul'
 	dimsplit=	F
 	sourcesplit=	F
 	divBfix=	F
  /
 
  &boundlist
-	typeB='fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
-              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
-              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
-              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
-              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
-              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+	typeB=	'periodic','periodic','periodic','periodic','periodic','periodic','fixed','fixed','fixed','fixed'
+		'periodic','periodic','periodic','periodic','periodic','periodic','fixed','fixed','fixed','fixed'
+		'periodic','periodic','periodic','periodic','periodic','periodic','fixed','fixed','fixed','fixed'
+		'periodic','periodic','periodic','periodic','periodic','periodic','fixed','fixed','fixed','fixed'
 		
  /
 
  &paramlist
 	courantpar=0.2
-
+        dtpar=0.0002
+        dtcantgrow=T
  /
