@@ -1,7 +1,7 @@
 &testlist /
 
 &filelist
-	filenameini='configs/zero1_ot_asc_252.ini',
+	filenameini='configs/zero1_ot_bin_256.ini',
 	typefileini='binary'
 	filename=   'results/zeroOT.log',
 		    'results/zeroOT.out'
