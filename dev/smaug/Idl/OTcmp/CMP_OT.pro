@@ -152,14 +152,11 @@ FUNCTION ERROR_CHECK, B_SAC, B_SMAUG, smaug_t, sac_t, iter
 			error=1
 		ENDIF
 	ENDIF
-	IF (smaug_t-sac_t) NE 0 THEN BEGIN
-		print, 'Error: not equal time steps.'
-		error=1
-	ENDIF
 	RETURN, error
 END
 
 ;************************ INPUT FOLDERS *************************
+
 SMAUG_FOLDER='/data/cs1ngg/smaug/out/*.out'
 SAC_FOLDER='/data/cs1ngg/sac_working/results/zeroOT.out'
 
@@ -168,7 +165,6 @@ Initialisation
 smaug_out=filaname_sort(SMAUG_FOLDER) ; Read SMAUG result files and sort them
 number_of_step=n_elements(smaug_out) ; number of simulation time steps
 openr, 1, SAC_FOLDER, /f77_unf ; open SAC output file
-SAC, B_SAC, sac_t ;ignore the first step
 iter=0  ; iteration step
 cmp_energy=[] ; energy comparison between sac and smaug -2D plot, 4th subpanel
 cmp_rho=[] ; density comparison between sac and smaug, 4th subpanel
