@@ -1,4 +1,3 @@
-.
 Guidelines for Using SMAUG Sheffield Magnetohydrodynamics Accelerated Using GPUs
 
 Introduction
