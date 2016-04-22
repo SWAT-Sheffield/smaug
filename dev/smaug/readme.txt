@@ -95,12 +95,12 @@ The cuda specific switches are as follows
 To make the Brio-Wu test (use the following commands)
 make clean
 make bw
-make sac
+make smaug
 
 Change back to the distribution base directory
 
-Run the model
-./iosmaug a
+Run the model (chmod a+x smaug; if necessary)
+./smaug
 
 As each step is run the program outputs the current simulation time step, iteration and the 
 time taken to compute that step. Generated configuration files are written to the out directory.
@@ -209,29 +209,23 @@ initialisation_user.h  Allows the user to provide custom code generating a confi
                        This is useful when a user needs to generate configurations scattered across multiple GPU's
 
 
+SAC and SMAUG comparison of results:
+Coyote library is necessary (http://www.idlcoyote.com/). Some of the needed Coyote functions are already included in the folder.
+Please note, that the grid size and the iteration number have to be the same.
+
+Go to SMAUG folder:
+1) cd Idl/OTcmp
+2) idl
+3) Run CMP_OT.pro in idl. (.r CMP_OT)
+	The program needs input from SAC and SMAUG. Please, set up the path of the results in the script.
+4) cd cmp_result
+	This folder contains the output of the script for every time-step.
+5) convert -delay X results/video/*.* results/animation.gif
+	You can easily create a video with the “convert” command.  
+	X: This option is useful for regulating the animation of image sequences
+	ticks/ticks-per-second seconds must expire before the display of the next image. 
+
 Help Support
 
 The developers may be contacted and issues may be raised on the project web site at 
 http://code.google.com/p/smaug/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
