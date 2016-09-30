@@ -19,7 +19,7 @@ double precision:: onemor,inix,ddx
 double precision:: p_1,p_2
 
 integer:: iii_,iix_1,info,i,j
-double precision:: pi,comi,eneu,sum,mode,bmax,l
+double precision:: comi,eneu,sum,mode,bmax,l
 character*79 atmfilename
 
 integer:: ix_1,ix_2,ix_3
