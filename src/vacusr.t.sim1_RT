@@ -1,0 +1,159 @@
+!##############################################################################
+! module vacusr - sim1 ! setvac -d=22 -g=204,204 -p=hdadiab -u=sim1
+
+
+INCLUDE:vacusr.gravity.t
+INCLUDE:vacusr.viscosity.t
+
+
+
+
+!=============================================================================
+subroutine specialsource(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
+
+
+include 'vacdef.f'
+
+integer:: ixI^L,ixO^L,iws(niw_)
+double precision:: qdt,qtC,qt,wCT(ixG^T,nw),w(ixG^T,nw)
+double precision:: fdt,fdthalf2
+
+double precision:: pre(ixG^T),tem(ixG^T),kapr(ixG^T),so(ixG^T),flux(ixG^T)
+double precision:: tau(ixG^T),ine(ixG^T)
+
+double precision:: preg(ixG^T),pret(ixG^T)
+
+integer:: rix_1,i,j
+double precision:: mol_0, rrr_
+
+double precision:: fsokr,avgflux
+
+integer:: iw,iiw,iix_1
+
+integer:: ix_1,ix_2,ix_3
+
+
+double precision:: s_period,xz,xc2,xc3,s_z,delta_r,s_r0,vvv, A
+double precision:: xc1Mm,xc2Mm,xc3Mm
+double precision:: xx, yy
+double precision:: r(ixG^T), vvx(ixG^T), vvy(ixG^T), vvz(ixG^T)
+double precision:: bbx(ixG^T), bby(ixG^T)
+double precision:: Vphi, bphi, Vr, tt0, ddt, AA, max_vx, max_vy
+
+!*****************
+double precision:: t01,t02,a1,a2,s1,s2,sf,rad,rfc,sdep,tdeps,tdep, tdepc, sigma2
+double precision:: s_period120, s_period90, s_period60, s_period30
+double precision:: s_period180, s_period240, s_period300, s_period350
+double precision:: norm, am, delta_x, delta_y, hh, qt_t
+!-----------------------------------------------------------------------------
+
+eqpar(eta_)=0.d0
+
+!call addsource_diff(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
+
+eqpar(nu_)=1.0d0
+!eqpar(nu_)=0.d0
+
+call addsource_grav(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
+
+
+
+if(abs(eqpar(nu_))>smalldouble)&
+   call addsource_visc(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
+ 
+
+
+
+do ix_1=ixImin1,ixImax1
+ do ix_2=ixImin2,ixImax2
+
+CALL RANDOM_NUMBER(A)
+
+vvv=0d0
+!if (qt == 0) vvv=0.01*(1.0+cos(4.0*3.14*x(ix_1,ix_2,1)))*(1.0+cos(3.0*3.14*x(ix_1,ix_2,1)))/4.d0
+if (qt == 0) vvv=A*0.01d0*(1.0d0+cos(3.14d0*x(ix_1,ix_2,0)+3.14d0/2.0d0))
+  
+
+w(ix_1,ix_2,m1_)= w(ix_1,ix_2,m1_)+(w(ix_1,ix_2,rho_)+&
+                      w(ix_1,ix_2,rhob_))*vvv
+
+w(ix_1,ix_2,e_)=w(ix_1,ix_2,e_)+(w(ix_1,ix_2,rho_)+w(ix_1,ix_2,rhob_))*&
+                      vvv**2.d0/2.d0
+
+ enddo
+enddo
+
+
+{^IFMPI if (ipe.eq.0)} write(*,*) '***time=',qt
+
+end
+
+
+
+!=============================================================================
+subroutine specialbound(qt,ix^L,iw,iB,w)
+include 'vacdef.f'
+
+integer:: ix_1,ix_2
+
+integer:: iw^LIM,idim^LIM
+double precision:: qt,w(ixG^T,1:nw)
+integer:: ix,ix^D,ixe,ixf,ix^L,ixpair^L,idim,iw,iB
+integer:: iwv,jdim
+
+integer:: Ns,i,j
+double precision:: ki
+
+
+double precision:: tmpp1,tmpp2
+
+Ns=1
+
+select case(iB)
+
+case(1)
+
+case(2)
+
+
+case default
+stop 'error iB!'
+end select
+
+return
+end
+
+!=============================================================================
+subroutine getdt_special(w,ix^L)
+
+! If the Coriolis force is made very strong it may require time step limiting,
+! but this is not implemented here.
+
+include 'vacdef.f'
+double precision:: w(ixG^T,nw)
+integer:: ix^L
+!-----------------------------------------------------------------------------
+
+!call getdt_diff(w,ix^L)
+
+if(abs(eqpar(nu_))>smalldouble)&
+   call getdt_visc(w,ix^L)
+
+
+call getdt_grav(w,ix^L)
+
+return
+end
+
+
+subroutine specialeta(w,ix^L,idirmin)
+ 
+include 'vacdef.f'
+ 
+double precision:: w(ixG^T,nw)
+integer:: ix^L,idirmin
+!-----------------------------------------------------------------------------
+ 
+stop 'specialeta is not defined'
+end
+
