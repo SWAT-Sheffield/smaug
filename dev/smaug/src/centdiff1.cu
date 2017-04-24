@@ -261,6 +261,7 @@ void computeflux (real *dw, real *wd, real *w, struct params *p,int *ii, int fie
 __global__ void centdiff1init_parallel(struct params *p, struct state *s, real *w, real *wmod, 
     real *dwn1, real *wd, int order, int ordero, real dt, int f, int dir)
 {
+
   int iindex = blockIdx.x * blockDim.x + threadIdx.x;
   int i,j;
   int fid;
@@ -306,8 +307,6 @@ __global__ void centdiff1init_parallel(struct params *p, struct state *s, real *
                         {
                             dwn1[fencode3_cd1(p,ii,f)]=0.0;
                                wd[fencode3_cd1(p,ii,flux)]=0.0;
-
-
  
                          }
 
@@ -781,7 +780,9 @@ __global__ void centdiff1bf_parallel(struct params *p, struct state *s, real *w,
 			     #endif                          
                               wmod[fencode3_cd1(p,ii,f)+(ordero*NVAR*dimp)]=wmod[fencode3_cd1(p,ii,f)+(ordero*NVAR*dimp)]-dt*dwn1[fencode3_cd1(p,ii,f)];
 
-            
+
+                        // TEST
+                        //wmod[fencode3_cd1(p,ii,rho)+(ordero*NVAR*dimp)] = -99999;
 
   __syncthreads();
 
@@ -818,6 +819,9 @@ void checkErrors_cd1(char *label)
 
 int cucentdiff1(struct params **p, struct params **d_p,struct state **d_s, real **d_w,  real **d_wmod, real **d_dwn1, real **d_wd, int order, int ordero, real dt, int field, int dir)
 {
+
+
+
  int dimp=(((*p)->n[0]))*(((*p)->n[1]));
 
    

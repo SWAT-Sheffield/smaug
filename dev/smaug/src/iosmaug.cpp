@@ -973,19 +973,26 @@ gpusync();
 			      tv=second();
                               gpusync();
 			      mpiallreduce(&(p->cmax), MPI_MAX);
+
                               tcom+=(second()-tv);
 		      #endif
 		      cmax[dim]=p->cmax;
 		      cuhyperdifvisc1ir(&p,&d_p,&d_wmod,  &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim);
 
 		      #ifdef USE_MPI
+
                           tv=second();
 			  cucopytompivisc(&p,&temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,  &d_p,&d_wtemp2,    &d_gmpivisc0,    &d_gmpivisc1,    &d_gmpivisc2);
+
                           gpusync();
+printf("szar\n\n\n\n");
 			  mpivisc(dim,p,gmpivisc0,gmpivisc1,gmpivisc2);
+printf("szarkaka\n\n\n\n");
                           gpusync();
+
 			  cucopyfrommpivisc(&p,&temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,  &d_p,&d_wtemp2,    &d_gmpivisc0,    &d_gmpivisc1,    &d_gmpivisc2);
 			  tcom+=(second()-tv);
+
 		      #endif
                       tc=second();
 		      cuhyperdifvisc1r(&p,&d_p,&d_wmod, &wd, &d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2,rho,dim);

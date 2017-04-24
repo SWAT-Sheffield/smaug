@@ -12,11 +12,9 @@ Bin	=	../bin
 obj	=	../obj
 MYLIBS  =
 BASE = /usr/local/dx
-incDirs = -I$(BASE)/include  -I$(IOME_HOME)/include  -I/usr/local/include -I/usr/local/cuda/include -I$../include -I/usr/local/cuda/include
-
+incDirs = -I$(BASE)/include  -I$(IOME_HOME)/include  -I/usr/local/include -I/usr/local/packages/libs/CUDA/7.5.18/binary/cuda/ -I$../include 
 
 LD_FLAGS =	-g
-
 
 #remove comments from following lines to include/link IOME
 #IOMELIBS	=	-L$(IOME_HOME)/lib -L$(XERCESCROOT)/lib -L$(XALANCROOT)/lib -lxerces-c -lxalan-c -lxalanMsg  -lm -liogenericsimulation
@@ -35,7 +33,7 @@ CCFLAGS = -DUSE_SAC -DD1D -DUSE_MULTIGPU -DUSE_MPI -DUSE_USERSOURCE
 
 
 
-LIBS	=	-L/usr/local/lib/nvidia-cuda/toolkit/4.0.17/lib64 -L/usr/local/cuda/lib64 -L../lib -L/usr/local/lib -lm $(IOMELIBS) -lcudart
+LIBS	=	-L/usr/local/packages/libs/CUDA/7.5.18/binary/cuda/lib64 -L/usr/local/packages/libs/CUDA/7.5.18/binary/cuda/lib -lm $(IOMELIBS) -lcudart
 
 
 #C_FLAGS

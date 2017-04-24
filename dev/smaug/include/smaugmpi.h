@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 MPI::Intracomm comm;
 MPI::Request request;
 double gwall_time;
@@ -116,132 +117,126 @@ void iped2ipe(params *p);*/
 //npe1=-1;npe2=-1;
 //! default value for test processor
 //ipetest=0
+
 void mgpuinit(params *p)
 {
-    int nmpibuffer;
-   int numbuffers=4;
-   int i;
-
-
-     //MPI::Intracomm comm;
-     //MPI_Init(&argc, &argv);
-     gwall_time = MPI_Wtime();
-     comm=MPI::COMM_WORLD;
-     p->npe=comm.Get_size();
-     p->ipe=comm.Get_rank();
-
-#ifdef USE_SAC_3D
-
-gnmpibuffer0=NDERV*(p->n[2])*(p->n[1])*(p->ng[0]);
-gnmpibuffer1=NDERV*(p->n[0])*(p->n[2])*(p->ng[1]);
-gnmpibuffer2=NDERV*(p->n[0])*(p->n[1])*(p->ng[2]);
-
-gnmpibuffermod0=NVAR*(p->n[2])*(p->n[1])*(p->ng[0]);
-gnmpibuffermod1=NVAR*(p->n[0])*(p->n[2])*(p->ng[1]);
-gnmpibuffermod2=NVAR*(p->n[0])*(p->n[1])*(p->ng[2]);
-
-
-
-
-   if((p->n[0])>=(p->n[1])  && (p->n[0])>=(p->n[2]))
-   {
-     if((p->n[1])>(p->n[2]))
-       nmpibuffer=NDERV*(p->n[0])*(p->n[1])*(p->ng[0]);
-     else
-       nmpibuffer=NDERV*(p->n[0])*(p->n[2])*(p->ng[0]);
-   }
-   else if((p->n[1])>=(p->n[0])  && (p->n[1])>=(p->n[2]))
-   {
-     if((p->n[0])>(p->n[2]))
-       nmpibuffer=NDERV*(p->n[1])*(p->n[0])*(p->ng[1]);
-     else
-       nmpibuffer=NDERV*(p->n[1])*(p->n[2])*(p->ng[1]);
-   }
-   else if((p->n[2])>=(p->n[0])  && (p->n[2])>=(p->n[1]))
-   {
-     if((p->n[0])>(p->n[1]))
-       nmpibuffer=NDERV*(p->n[2])*(p->n[0])*(p->ng[2]);
-     else
-       nmpibuffer=NDERV*(p->n[2])*(p->n[1])*(p->ng[2]);
-   }
-
-#else
-
-
-gnmpibuffer0=NDERV*(p->n[1])*(p->ng[0]);
-gnmpibuffer1=NDERV*(p->n[0])*(p->ng[1]);
-gnmpibuffermod0=NVAR*(p->n[1])*(p->ng[0]);
-gnmpibuffermod1=NVAR*(p->n[0])*(p->ng[1]);
-
-
-   if((p->n[0])>(p->n[1]))
-    nmpibuffer=NDERV*(p->n[0])*(p->ng[0]);
-   else
-    nmpibuffer=NDERV*(p->n[1])*(p->ng[1]);
-#endif
-     gnmpirequest=0;
-     gnmpibuffer=nmpibuffer;
-     gnmpibuffermod=nmpibuffer*NVAR/NDERV;
-     gmpirequest=(MPI::Request *)calloc(numbuffers,sizeof(MPI::Request));
-     gmpisendbuffer=(real *)calloc(nmpibuffer,sizeof(real));
-     gmpirecvbuffer=(real *)calloc(nmpibuffer*numbuffers,sizeof(real));	
+  int nmpibuffer;
+  int numbuffers=4;
+  int i;
      
+  //MPI::Intracomm comm;   
+  //MPI_Init(&argc, &argv);
 
-for(i=0;i<NDIM;i++)
-{
-     gmpisrcbufferl=(real **)calloc(NDIM,sizeof(real *));
-     gmpisrcbufferr=(real **)calloc(NDIM,sizeof(real *));
-     gmpitgtbufferl=(real **)calloc(NDIM,sizeof(real *));
-     gmpitgtbufferr=(real **)calloc(NDIM,sizeof(real *));
-}
+  gwall_time = MPI_Wtime();
+  comm=MPI::COMM_WORLD;
+  p->npe=comm.Get_size();
+  p->ipe=comm.Get_rank();
 
-for(i=0;i<NDIM;i++)
-{
-              switch(i)
-              {
-                 case 0:
-#ifdef USE_SAC_3D
-     gmpisrcbufferl[i]=(real *)calloc( ((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real));
-     gmpisrcbufferr[i]=(real *)calloc( ((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real ));
-     gmpitgtbufferl[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real ));
-     gmpitgtbufferr[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real ));
-#else
-     gmpisrcbufferl[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
-     gmpisrcbufferr[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
-     gmpitgtbufferl[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
-     gmpitgtbufferr[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
-#endif
-                      
-                      break;   
-                 case 1:
-#ifdef USE_SAC_3D
-     gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)*(p->ng[1]),sizeof(real ));
-     gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)*(p->ng[1]),sizeof(real ));
-     gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)*(p->ng[1]),sizeof(real ));
-     gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)*(p->ng[1]),sizeof(real ));
-#else
-     gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*(p->ng[1]),sizeof(real ));
-     gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*(p->ng[1]),sizeof(real ));
-     gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*(p->ng[1]),sizeof(real ));
-     gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*(p->ng[1]),sizeof(real ));
-#endif
-                      
-                      break;
-#ifdef USE_SAC_3D         
-                 case 2:
-     gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
-     gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
-     gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
-     gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
-                      break;
-#endif                             
-                       }     
-}    
+  #ifdef USE_SAC_3D
+
+  gnmpibuffer0=NDERV*(p->n[2])*(p->n[1])*(p->ng[0]);
+  gnmpibuffer1=NDERV*(p->n[0])*(p->n[2])*(p->ng[1]);
+  gnmpibuffer2=NDERV*(p->n[0])*(p->n[1])*(p->ng[2]);
+
+  gnmpibuffermod0=NVAR*(p->n[2])*(p->n[1])*(p->ng[0]);
+  gnmpibuffermod1=NVAR*(p->n[0])*(p->n[2])*(p->ng[1]);
+  gnmpibuffermod2=NVAR*(p->n[0])*(p->n[1])*(p->ng[2]);
+
+  if((p->n[0])>=(p->n[1]) &&(p->n[0])>=(p->n[2]))
+    {
+      if((p->n[1])>(p->n[2])) nmpibuffer=NDERV*(p->n[0])*(p->n[1])*(p->ng[0]);
+      else nmpibuffer=NDERV*(p->n[0])*(p->n[2])*(p->ng[0]);
+    }
+
+  else if((p->n[1])>=(p->n[0]) && (p->n[1])>=(p->n[2]))
+    {
+     if((p->n[0])>(p->n[2])) nmpibuffer=NDERV*(p->n[1])*(p->n[0])*(p->ng[1]);
+     else nmpibuffer=NDERV*(p->n[1])*(p->n[2])*(p->ng[1]);
+    }
+
+  else if((p->n[2])>=(p->n[0]) && (p->n[2])>=(p->n[1]))
+    {
+      if((p->n[0])>(p->n[1])) nmpibuffer=NDERV*(p->n[2])*(p->n[0])*(p->ng[2]);
+      else nmpibuffer=NDERV*(p->n[2])*(p->n[1])*(p->ng[2]);
+    }
+
+  #else
+
+  gnmpibuffer0=NDERV*(p->n[1])*(p->ng[0]);
+  gnmpibuffer1=NDERV*(p->n[0])*(p->ng[1]);
+  gnmpibuffermod0=NVAR*(p->n[1])*(p->ng[0]);
+  gnmpibuffermod1=NVAR*(p->n[0])*(p->ng[1]);
+
+  if((p->n[0])>(p->n[1])) nmpibuffer=NDERV*(p->n[0])*(p->ng[0]);
+  else nmpibuffer=NDERV*(p->n[1])*(p->ng[1]);
+
+  #endif
+   
+  gnmpirequest=0;
+  gnmpibuffer=nmpibuffer;
+  gnmpibuffermod=nmpibuffer*NVAR/NDERV;
+  gmpirequest=(MPI::Request *)calloc(numbuffers,sizeof(MPI::Request));
+  gmpisendbuffer=(real *)calloc(nmpibuffer,sizeof(real));
+  gmpirecvbuffer=(real *)calloc(nmpibuffer*numbuffers,sizeof(real));	
+     
+  for(i=0;i<NDIM;i++)
+    {
+      gmpisrcbufferl=(real **)calloc(NDIM,sizeof(real *));
+      gmpisrcbufferr=(real **)calloc(NDIM,sizeof(real *));
+      gmpitgtbufferl=(real **)calloc(NDIM,sizeof(real *));
+      gmpitgtbufferr=(real **)calloc(NDIM,sizeof(real *));
+    }
+
+  for(i=0;i<NDIM;i++)
+    {
+      switch(i)
+	{
+          case 0:
+            #ifdef USE_SAC_3D
+	    gmpisrcbufferl[i]=(real *)calloc( ((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real));
+	    gmpisrcbufferr[i]=(real *)calloc( ((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real ));
+	    gmpitgtbufferl[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real ));
+	    gmpitgtbufferr[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real ));
+
+            #else
+	    gmpisrcbufferl[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
+	    gmpisrcbufferr[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
+	    gmpitgtbufferl[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
+	    gmpitgtbufferr[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
+         
+            #endif
+	    break;
+
+          case 1:
+            #ifdef USE_SAC_3D
+	    gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)*(p->ng[1]),sizeof(real ));
+	    gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)*(p->ng[1]),sizeof(real ));
+	    gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)*(p->ng[1]),sizeof(real ));
+	    gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)*(p->ng[1]),sizeof(real ));
+
+            #else
+	    gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*(p->ng[1]),sizeof(real ));
+	    gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*(p->ng[1]),sizeof(real ));
+	    gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*(p->ng[1]),sizeof(real ));
+	    gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*(p->ng[1]),sizeof(real ));
+
+            #endif       
+            break;
+
+            #ifdef USE_SAC_3D         
+          case 2:
+	    gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
+	    gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
+	    gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
+	    gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
+            break;
+            #endif                             
+        }     
+  }    
      	
+  comm.Barrier();
 
-comm.Barrier();
-
-
+// Function mgpuinit() ends here.
 }
 
 
@@ -255,8 +250,7 @@ comm.Barrier();
 void mgpufinalize(params *p)
 {
      gwall_time = MPI_Wtime() - gwall_time;
-     if ((p->ipe) == 0)
-	  printf("\n Wall clock time = %f secs\n", gwall_time);
+     if ((p->ipe) == 0) printf("\n Wall clock time = %f secs\n", gwall_time);
      //free(gmpisendbuffer);
      //free(gmpirecvbuffer);
      //free(gmpirequest);
@@ -475,42 +469,49 @@ void iped2ipe(int *tpipe,int *tpnp, int *oipe)
 // direction.
 void mgpuneighbours(int dir, params *p)
 {
-     int i;
-     for(i=0; i<NDIM;i++)
-     {
-             
-             (p->phpe[i])=(p->pipe[i])-(dir==i);
-             (p->pjpe[i])=(p->pipe[i])+(dir==i); 
- 		#ifdef USE_SAC_3D
-                	(p->pkpe[i])=(p->pipe[i])+(dir==i);
-		#endif       
+  int i;
+  for(i=0; i<NDIM;i++)
+    {         
+      (p->phpe[i])=(p->pipe[i])-(dir==i);
+      (p->pjpe[i])=(p->pipe[i])+(dir==i); 
 
-            
-     }
-     //printf("pcoords %d %d %d\n",p->ipe,p->pipe[0],p->pipe[1]);
-     for(i=0; i<NDIM;i++)
-     {
-              if((p->phpe[i])<0) (p->phpe[i])=(p->pnpe[i])-1; 
-              if((p->pjpe[i])<0) (p->pjpe[i])=(p->pnpe[i])-1; 
-              if((p->phpe[i])>=(p->pnpe[i])) (p->phpe[i])=0; 
-              if((p->pjpe[i])>=(p->pnpe[i])) (p->pjpe[i])=0; 
- 	      #ifdef USE_SAC_3D
-              	if((p->pkpe[i])<0) (p->pkpe[i])=(p->pnpe[i])-1; 
-                if((p->pkpe[i])>=(p->pnpe[i])) (p->pkpe[i])=0; 
-	      #endif       
-                    
-     }
- // printf("lpcoords %d %d %d\n",p->ipe,p->phpe[0],p->phpe[1]);
-//printf("rpcoords %d %d %d\n",p->ipe,p->pjpe[0],p->pjpe[1]);
+      #ifdef USE_SAC_3D
+       	(p->pkpe[i])=(p->pipe[i])+(dir==i);
+      #endif             
+    }
+
+
+     printf("ini_p_c %d %d\n",p->pipe[0],p->pipe[1]); 
+
+     printf("ini_l_c %d %d\n",p->phpe[0],p->phpe[1]); 
+     printf("ini_r_c %d %d\n",p->pjpe[0],p->pjpe[1]); 
+
+
+    //printf("pcoords %d %d %d\n",p->ipe,p->pipe[0],p->pipe[1]);
+
+  for(i=0; i<NDIM;i++)
+    {
+      if((p->phpe[i])<0) (p->phpe[i])=(p->pnpe[i])-1; 
+      if((p->pjpe[i])<0) (p->pjpe[i])=(p->pnpe[i])-1;
+
+      if((p->phpe[i])>=(p->pnpe[i])) (p->phpe[i])=0; 
+      if((p->pjpe[i])>=(p->pnpe[i])) (p->pjpe[i])=0; 
+
+      #ifdef USE_SAC_3D
+	if((p->pkpe[i])<0) (p->pkpe[i])=(p->pnpe[i])-1; 
+        if((p->pkpe[i])>=(p->pnpe[i])) (p->pkpe[i])=0; 
+      #endif                    
+    }
+
+  printf("lpcoords %d %d %d\n",p->ipe,p->phpe[0],p->phpe[1]);
+  printf("rpcoords %d %d %d\n",p->ipe,p->pjpe[0],p->pjpe[1]);
    
-     iped2ipe(p->phpe,p->pnpe,&(p->hpe));
-     iped2ipe(p->pjpe,p->pnpe,&(p->jpe));
- 	#ifdef USE_SAC_3D
-        	iped2ipe(p->pkpe,p->pnpe,&(p->kpe));
-	#endif       
+  iped2ipe(p->phpe,p->pnpe,&(p->hpe));
+  iped2ipe(p->pjpe,p->pnpe,&(p->jpe));
 
-
-
+  #ifdef USE_SAC_3D
+    iped2ipe(p->pkpe,p->pnpe,&(p->kpe));
+  #endif       
 }
 
 //!==============================================================================
@@ -956,6 +957,7 @@ gnmpirequest++;
 	{
 		case 0:
 			gmpirequest[gnmpirequest]=comm.Irecv(gmpirecvbuffer+(2*iside*gnmpibuffer0),nrecv,MPI_DOUBLE_PRECISION,qipe,100*(qipe+1)+10*(dim+1)+iside/**(iside==0?1:0)*/);
+
 		break;
 		case 1:
 			gmpirequest[gnmpirequest]=comm.Irecv(gmpirecvbuffer+(2*iside*gnmpibuffer1),nrecv,MPI_DOUBLE_PRECISION,qipe,100*(qipe+1)+10*(dim+1)+iside/**(iside==0?1:0)*/);
@@ -2012,165 +2014,245 @@ void mpiallreduce(real *a, MPI::Op mpifunc)
 void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 {
    comm.Barrier();
+
    int i,n;
    int i1,i2,i3;
    int bound;
+
    i3=0;
+
    #ifdef USE_SAC_3D
+
+   // Define the size
    n=(p->n[0])*(p->n[1])*(p->n[2]);
+
    switch(idim)
-   {
-               case 0:
-                    n/=(p->n[0]);
-                    break;
-               case 1:
-                    n/=(p->n[1]);
-                    break;
-               case 2:
-                    n/=(p->n[2]);
-                    break;               
-               }
+     {
+     case 0:
+       n/=(p->n[0]);
+       break;
+     case 1:
+       n/=(p->n[1]);
+       break;
+     case 2:
+       n/=(p->n[2]);
+       break;               
+     }
    #else
+
    n=(p->n[0])*(p->n[1]);
 
-//int iolowerb=p->mpilowerb[idim];
-//int ioupperb=p->mpiupperb[idim];
+   //int iolowerb=p->mpilowerb[idim];
+   //int ioupperb=p->mpiupperb[idim];
 
-//p->mpilowerb[idim]=1;
-//p->mpiupperb[idim]=1;
-
-
-
+   //p->mpilowerb[idim]=1;
+   //p->mpiupperb[idim]=1;
 
    switch(idim)
-   {
-               case 0:
-                    n/=(p->n[0]);
-                    break;
-               case 1:
-                    n/=(p->n[1]);
-                    break;           
-               }   
+     {
+     case 0:
+       n/=(p->n[0]);
+       break;
+     case 1:
+       n/=(p->n[1]);
+       break;           
+     }   
    #endif
    
    n*=2; //multiply up for all four boundaries
+   
    switch(idim)
-   {
-   case 0:
+     {
+     case 0:
 
-if((p->pnpe[0])>1  )
-{
+       if((p->pnpe[0])>1)
+	 {
+
+	   mgpuneighbours(0, p);
+
+	   gnmpirequest=0;  
+
+	   for(i=0; i<2; i++)
+	     {
+	       gmpirequest[i]=MPI_REQUEST_NULL;
+	     }
+
+	   if((p->mpiupperb[idim])==1)
+	     {
+	       gnmpirequest++;
+	     }
+
+	   // -------------------------------------- send method starts here
+	   // npe/n is the size
+	   // ipe stands for the rank
+	   // hpe and jpe are the processor indexes for left and right neighbors
 
 
-     mgpuneighbours(0, p);
 
-     gnmpirequest=0;  
-  for(i=0; i<2; i++)
-     gmpirequest[i]=MPI_REQUEST_NULL;
+	   if((p->mpiupperb[idim])==1) 
+	     {
+	       printf("TEST: %d %d %d\n",p->ipe,p->jpe,p->hpe);
+
+	       printf("SEND upper - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
+		      p->ipe,p->jpe,n,100*(p->ipe)+10*(idim+1)+1); 
+	     
+	       comm.Rsend(gmpisrcbufferr[0], n, MPI_DOUBLE_PRECISION, p->jpe, 100*(p->ipe)+10*(idim+1)+1);
+
+	     }
+          
+	   //comm.Barrier();
+	 
+	   if((p->mpilowerb[idim])==1)
+	     {
+	       printf("SEND lower - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
+		      p->ipe,p->hpe,n,100*(p->ipe)+10*(idim+1));
+
+	       comm.Rsend(gmpisrcbufferl[0], n, MPI_DOUBLE_PRECISION, p->hpe, 100*(p->ipe)+10*(idim+1));
+
+	     }
+
+	   request.Waitall(gnmpirequest,gmpirequest);
+
+	   // ---------------------------------------- recv method starts here
+
+	   if((p->mpiupperb[idim])==1 )
+	     { 
+
+	       printf("RECV upper - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
+		      p->ipe,p->jpe,n,100*(p->ipe)+10*(idim+1));
      
-        if((p->mpiupperb[idim])==1  ) gnmpirequest++;
-        if((p->mpiupperb[idim])==1 )
-{ 
-//printf("vis1bupper proc %d %d %d  %d %d %d %d\n",p->ipe,p->jpe,p->phpe,p->mpiupperb[idim],p->mpilowerb[idim],n,100*(p->jpe)+10*(idim+1));
-gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferr[0],n,MPI_DOUBLE_PRECISION,p->jpe,100*(p->jpe)+10*(idim+1));
-;//gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferr[0],n,MPI_DOUBLE_PRECISION,p->pjpe[idim],MPI_ANY_TAG);
+	       gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferr[0],n,MPI_DOUBLE_PRECISION
+						    ,p->jpe,100*(p->hpe)+10*(idim+1));
 
-}
-//comm.Barrier();
-        if((p->mpilowerb[idim])==1  ) gnmpirequest++;
-//comm.Barrier();
-        if((p->mpilowerb[idim])==1  )
-        {
-//printf("vis1blower proc %d %d %d  %d %d %d %d\n",p->ipe,p->pjpe[idim],p->phpe[idim],p->mpiupperb[idim],p->mpilowerb[idim],n,100*((p->hpe))+10*(idim+1)+1);
-         gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferl[0],n,MPI_DOUBLE_PRECISION,p->hpe,100*(p->hpe)+10*(idim+1)+1);
- //        gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferl[0],n,MPI_DOUBLE_PRECISION,p->phpe[idim],MPI_ANY_TAG);
+	     }
 
-        }
-        comm.Barrier();
+	   //comm.Barrier();
+
+	   if((p->mpilowerb[idim])==1)
+	     {
+	       gnmpirequest++;
+	     }
+
+	   //comm.Barrier();
+       
+	   if((p->mpilowerb[idim])==1)
+	     {
+
+	       printf("RECV lower - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
+		      p->ipe,p->hpe,n,100*(p->ipe)+10*(idim+1)+1);
+        
+	       gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferl[0],n,MPI_DOUBLE_PRECISION
+	       					    ,p->hpe,100*(p->hpe)+10*(idim+1)+1);
+
+	     }
+      
+	   
+
+
+
+
+
+
+	   comm.Barrier();
           
-        if((p->mpiupperb[idim])==1  ) 
-{
-
-//printf("vis1a upperproc %d %d %d  %d %d   %d %d\n",p->ipe,p->jpe,p->hpe,p->mpiupperb[idim],p->mpilowerb[idim],n, 100*(p->ipe)+10*(idim+1)+1);  
-comm.Rsend(gmpisrcbufferr[0], n, MPI_DOUBLE_PRECISION, p->jpe,100*(p->ipe)+10*(idim+1)+1 );
-;//comm.Rsend(gmpisrcbufferr[0], n, MPI_DOUBLE_PRECISION, p->pjpe[idim], MPI_ANY_TAG);
 
 
-}
-          
-//comm.Barrier();
-        if((p->mpilowerb[idim])==1  )
-{
-//  printf("vis1a lowerproc %d %d %d  %d %d   %d %d\n",p->ipe,p->jpe,p->hpe,p->mpiupperb[idim],p->mpilowerb[idim],n,  100*(p->ipe)+10*(idim+1));
- comm.Rsend(gmpisrcbufferl[0], n, MPI_DOUBLE_PRECISION, p->hpe,  100*(p->ipe)+10*(idim+1));
-;//comm.Rsend(gmpisrcbufferl[0], n, MPI_DOUBLE_PRECISION, p->phpe[idim], MPI_ANY_TAG);
 
 
-}
 
- //printf("waiting %d\n",p->ipe);
 
- //    comm.Barrier();
- //      printf("waiting AFTERB %d\n",p->ipe);
- //       request.Waitall(gnmpirequest,gmpirequest);
 
-//comm.Barrier();
+
+
+
+	   
+
+
+	   //printf("waiting %d\n",p->ipe);
+
+	   //comm.Barrier();
+	   
+	   //printf("waiting AFTERB %d\n",p->ipe);
+
+	   //request.Waitall(gnmpirequest,gmpirequest);
+
+	   //comm.Barrier();
   
-        //copy data from buffer to the viscosity data in temp2
-        //organise buffers so that pointers are swapped instead
+	   //copy data from buffer to the viscosity data in temp2
+	   //organise buffers so that pointers are swapped instead
 
-        #ifdef USE_SAC_3D
-   //tmp_nuI(ixFhi1+1,ixFlo2:ixFhi2,ixFlo3:ixFhi3)=tgtbufferR1(1,ixFlo2:ixFhi2,&
-   //   ixFlo3:ixFhi3) !right, upper R
-   //tmp_nuI(ixFlo1-1,ixFlo2:ixFhi2,ixFlo3:ixFhi3)=tgtbufferL1(1,ixFlo2:ixFhi2,&
-   //   ixFlo3:ixFhi3) !left, lower  L
-         for(i2=1;i2<((p->n[1])+2);i2++ )
-                  for(i3=1;i3<((p->n[2])+2);i3++ )
+           #ifdef USE_SAC_3D
+
+	   //tmp_nuI(ixFhi1+1,ixFlo2:ixFhi2,ixFlo3:ixFhi3)=tgtbufferR1(1,ixFlo2:ixFhi2,&
+	   //ixFlo3:ixFhi3) !right, upper R
+	   //tmp_nuI(ixFlo1-1,ixFlo2:ixFhi2,ixFlo3:ixFhi3)=tgtbufferL1(1,ixFlo2:ixFhi2,&
+	   //ixFlo3:ixFhi3) !left, lower  L
+         
+	   for(i2=1;i2<((p->n[1])+2);i2++ )
+	     {
+	       for(i3=1;i3<((p->n[2])+2);i3++ )
+	          {
+
+	             //i1=(p->n[0])+1;
+	             //bound=i1;
+	             //var1[encode3p2_sacmpi (p,i1, i2, i3, tmpnui)]=gmpitgtbufferr[0][i2+i3*((p->n[1])+2)];
+	             //var1[encode3p2_sacmpi (p,0, i2, i3, tmpnui)]=gmpitgtbufferl[0][i2+i3*((p->n[1])+2)];
+
+	             i1=0;
+
+	             for(bound=0; bound<2; bound++)
+	 	        {
+	                   var1[sacencodempivisc0(p,i1,i2,i3,bound+2,idim)]=gmpitgtbufferr[0][i2+i3*((p->n[1])+2)+bound*((p->n[1])+2)*((p->n[2])+2)];
+	                }
+
+	             for(bound=0; bound<2; bound++)
+		        {
+	                   var1[sacencodempivisc0(p,i1,i2,i3,bound,idim)]=gmpitgtbufferl[0][i2+i3*((p->n[1])+2)+bound*((p->n[1])+2)*((p->n[2])+2)];
+	                }
+	          }
+	     }
+
+
+         #else
+
+	 //tmp_nuI(ixFhi1+1,ixFlo2:ixFhi2)=tgtbufferR1(1,ixFlo2:ixFhi2) !right, upper R
+	 //tmp_nuI(ixFlo1-1,ixFlo2:ixFhi2)=tgtbufferL1(1,ixFlo2:ixFhi2) !left, lower  L
+
+	 for(i2=1;i2<((p->n[1])+2);i2++ )
          {
-          //i1=(p->n[0])+1;
-          //bound=i1;
-          //var1[encode3p2_sacmpi (p,i1, i2, i3, tmpnui)]=gmpitgtbufferr[0][i2+i3*((p->n[1])+2)];
-          //var1[encode3p2_sacmpi (p,0, i2, i3, tmpnui)]=gmpitgtbufferl[0][i2+i3*((p->n[1])+2)];
-          i1=0;
-          for(bound=0; bound<2; bound++)
-            var1[sacencodempivisc0(p,i1,i2,i3,bound+2,idim)]=gmpitgtbufferr[0][i2+i3*((p->n[1])+2)+bound*((p->n[1])+2)*((p->n[2])+2)];
-          for(bound=0; bound<2; bound++)
-             var1[sacencodempivisc0(p,i1,i2,i3,bound,idim)]=gmpitgtbufferl[0][i2+i3*((p->n[1])+2)+bound*((p->n[1])+2)*((p->n[2])+2)];
 
+	   //i1=(p->n[0])+1;
+	   //var1[encode3p2_sacmpi (p,i1, i2, i3, tmpnui)]=gmpitgtbufferr[0][i2];
+           //var1[encode3p2_sacmpi (p,0, i2, i3, tmpnui)]=gmpitgtbufferl[0][i2];
+
+	   i1=0;
+
+	   for(bound=0; bound<2; bound++)
+	     {
+	       var1[sacencodempivisc0(p,i1,i2,i3,bound+2,idim)]=gmpitgtbufferr[0][i2+bound*((p->n[1])+2)];
+	     }
+
+          for(bound=0; bound<2; bound++)
+	     {
+	       var1[sacencodempivisc0(p,i1,i2,i3,bound,idim)]=gmpitgtbufferl[0][i2+bound*((p->n[1])+2)];
+	     }
 
           }
-
-
-
-
-        #else
-        //tmp_nuI(ixFhi1+1,ixFlo2:ixFhi2)=tgtbufferR1(1,ixFlo2:ixFhi2) !right, upper R
-        //tmp_nuI(ixFlo1-1,ixFlo2:ixFhi2)=tgtbufferL1(1,ixFlo2:ixFhi2) !left, lower  L
-                  for(i2=1;i2<((p->n[1])+2);i2++ )
-         {
-          //i1=(p->n[0])+1;
          
-         // var1[encode3p2_sacmpi (p,i1, i2, i3, tmpnui)]=gmpitgtbufferr[0][i2];
-          //var1[encode3p2_sacmpi (p,0, i2, i3, tmpnui)]=gmpitgtbufferl[0][i2];
-
-          i1=0;
-          for(bound=0; bound<2; bound++)
-            var1[sacencodempivisc0(p,i1,i2,i3,bound+2,idim)]=gmpitgtbufferr[0][i2+bound*((p->n[1])+2)];
-          for(bound=0; bound<2; bound++)
-             var1[sacencodempivisc0(p,i1,i2,i3,bound,idim)]=gmpitgtbufferl[0][i2+bound*((p->n[1])+2)];
-
-
-          }
-
- 
-         
-        #endif
-}
+         #endif
+	 }
         
 
-     break;
+	 break;
      
-        case 1:
+	 case 1:
+
+
+
+
+
+
+
 
 if((p->pnpe[1])>1  )
 {

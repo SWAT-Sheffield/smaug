@@ -1,8 +1,8 @@
 #Makefile for StarSimulation IoSimTestSimple
 
 ##### User configurable options #####
-include make_inputs
-#include make_inputs_mpi
+#include make_inputs
+include make_inputs_mpi
 ### End User configurable options ###
 
 

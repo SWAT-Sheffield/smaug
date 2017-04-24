@@ -1,41 +1,4 @@
 
-
-
-int ngi=2;
-int ngj=2;
-int ngk=2;
-
-//Domain definition
-// Define the x domain
-#ifdef USE_SAC
-//vac ozt
-int ni;
-ni=256;    //OZT tests
-//ni=ni+2*ngi;
-//ni=512;
-//real xmax = 6.2831853;  
-real xmax=1.0;
-real dx = xmax/(ni);
-#endif
-
-
-
-// Define the y domain
-#ifdef USE_SAC
-//vac ozt
-int nj = 256;  //OZT tests
-//int nj=2;  //BW test
-//nj=nj+2*ngj;
-//nj..=512;
-//real ymax = 6.2831853; 
-real ymax = 1.0;   
-real dy = ymax/(nj);    
-//nj=41;
-#endif
-
-
-
-
 real cmax[NDIM];
 real courantmax;                
 char configfile[300];
@@ -46,6 +9,51 @@ struct params *p=(struct params *)malloc(sizeof(struct params));
 
 struct state *d_state;
 struct state *state=(struct state *)malloc(sizeof(struct state));
+
+
+//number of ghost cells in each direction
+int ngi=2;
+int ngj=2;
+int ngk=2;
+
+//Domain definition
+// Define the x domain
+#ifdef USE_SAC
+//vac ozt
+int ni = 122;  //   configs/zero1_ot_asc_252.ini  with 2x2 processors
+//int ni = 506;  //   configs/zero1_ot_asc_1020.ini  with 2x2 processors 
+//int ni = 1018; //   configs/zero1_ot_asc_2044.ini  with 2x2 processors
+//int ni=996;  //bigconfigs/zero1_ot_asc_4000.ini with 4x4 processors or bigconfigs/zero1_ot_asc_8000.ini with 8x8 processors
+
+ni=ni+2*ngi;
+  
+real xmax=1.0;
+real xmin=0.0;
+real dx = xmax/(ni);
+#endif
+
+
+
+// Define the y domain
+#ifdef USE_SAC
+
+int nj = 122;  //   configs/zero1_ot_asc_252.ini  with 2x2 processors
+//int nj = 506;  //   configs/zero1_ot_asc_1020.ini  with 2x2 processors 
+//int nj = 1018; //   configs/zero1_ot_asc_2044.ini  with 2x2 processors
+//int nj=996;  //bigconfigs/zero1_ot_asc_4000.ini with 4x4 processors or bigconfigs/zero1_ot_asc_8000.ini with 8x8 processors
+
+nj=nj+2*ngj;
+
+real ymax = 1.0;
+real ymin=0.0;   
+real dy = ymax/(nj);    
+//nj=41;
+#endif
+
+
+
+
+
 
 
   
@@ -61,36 +69,36 @@ for(i=0;i<nj;i++)
 
 int step=0;
 //real tmax = 200;
-real tmax = 0.2;
+real tmax = 200;
 int steeringenabled=1;
 int finishsteering=0;
 
-//char *cfgfile="zero1.ini";
 
-//char *cfgfile="zero1_np020203.ini";
-//char *cfgfile="zero1_np0201.ini";
-char *cfgfile="configs/zero1_ot_asc_256.ini";
-//char *cfgfile="configs/zero1_ot_asc_252.ini";
-//char *cfgfile="zero1_BW_bin.ini";
-//char *cfgout="zero1_np010203."
-char *cfgout="out/zeroOT";
-//char *cfgout="zero1_np0201.out";
+char *cfgfile="configs/zero1_ot_asc_252.ini";
+//char *cfgfile="configs/zero1_ot_asc_1020.ini";
+//char *cfgfile="configs/zero1_ot_asc_2044.ini";
+//char *cfgfile="bigconfigs/zero1_ot_asc_8000.ini";
+//char *cfgfile="bigconfigs/zero1_ot_asc_4000.ini";
 
+
+char *cfgout="tmpout/zero1_.out";
+char *cfggathout="out/zero1_.out";
+//char *cfgout="zero1_np0202.out";
 
 
 
 
 
 #ifdef USE_SAC
-dt=0.0002;  //OZT test
+dt=0.2;  //OZT test
 #endif
 
-
+nt=1500;
 //nt=3000;
 //nt=5000;
 //nt=200000;
 //nt=150000;
-nt=12;
+//nt=300;
 
 
 real *t=(real *)calloc(nt,sizeof(real));
@@ -141,17 +149,17 @@ p->g[2]=0.0;
 #endif
 //p->cmax=1.0;
 p->cmax=0.02;
-
+p->courant=0.2;
 p->rkon=0.0;
-p->sodifon=0.0;
-p->moddton=0.0;
+p->sodifon=1.0;
+p->moddton=1.0;
 p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=1.0;
 p->readini=1.0;
 p->cfgsavefrequency=1;
-
-
+p->noghost=0;
+p->fullgridini=1;
 p->xmax[0]=xmax;
 p->xmax[1]=ymax;
 p->nt=nt;
@@ -168,30 +176,45 @@ p->chyp3=0.00000;
 for(i=0;i<NVAR;i++)
   p->chyp[i]=0.0;
 
-p->chyp[rho]=0.045;
-//p->chyp[rho]=0;
-
+p->chyp[rho]=0.02;
 p->chyp[energy]=0.02;
 p->chyp[b1]=0.02;
 p->chyp[b2]=0.02;
 p->chyp[mom1]=0.4;
 p->chyp[mom2]=0.4;
-p->chyp[rho]=0.045;
-
-p->npe=1;
+p->chyp[rho]=0.02;
 
 
-#ifdef USE_MPI
+
+
+#ifdef USE_MULTIGPU
 //number of procs in each dim mpi only
+
+//2x2 processors for  "configs/zero1_ot_asc_252.ini";"configs/zero1_ot_asc_1020.ini"; "configs/zero1_ot_asc_2044.ini";
 p->pnpe[0]=2;
-p->pnpe[1]=1;
+p->pnpe[1]=2;
+
+
+//4x4 processors for "bigconfigs/zero1_ot_asc_4000.ini"
+//p->pnpe[0]=4;
+//p->pnpe[1]=4;
+
+//8x8 processors for "bigconfigs/zero1_ot_asc_8000.ini"
+//p->pnpe[0]=8;
+//p->pnpe[1]=8;
+
+
+
 p->pnpe[2]=1;
+
+p->npe=(p->pnpe[0])*(p->pnpe[1])*(p->pnpe[2]);  
 #endif
 
 
 iome elist;
 meta meta;
 
+//should use enumeration to set boundary types
 //set boundary types
 for(int ii=0; ii<NVAR; ii++)
 for(int idir=0; idir<NDIM; idir++)
