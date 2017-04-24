@@ -2080,7 +2080,7 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	   if((p->mpiupperb[idim])==1) gnmpirequest++;
 
 
-	   // -------------------------------------- send method starts here
+	   // -------------------------------------- send/recv method start here
 	   // npe/n is the size
 	   // ipe stands for the rank
 	   // hpe and jpe are the processor indexes for left and right neighbors
@@ -2135,7 +2135,7 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	   comm.Barrier();
 	   request.Waitall(gnmpirequest,gmpirequest);
 
-	   //printf("waiting %d\n",p->ipe);
+	   printf("waiting %d\n",p->ipe);
 
 	   //comm.Barrier();
 	   
