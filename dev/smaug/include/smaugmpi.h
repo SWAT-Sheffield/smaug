@@ -2077,43 +2077,13 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	       gmpirequest[i]=MPI_REQUEST_NULL;
 	     }
 
-	   if((p->mpiupperb[idim])==1)
-	     {
-	       gnmpirequest++;
-	     }
+	   if((p->mpiupperb[idim])==1) gnmpirequest++;
+
 
 	   // -------------------------------------- send method starts here
 	   // npe/n is the size
 	   // ipe stands for the rank
 	   // hpe and jpe are the processor indexes for left and right neighbors
-
-
-
-	   if((p->mpiupperb[idim])==1) 
-	     {
-	       printf("TEST: %d %d %d\n",p->ipe,p->jpe,p->hpe);
-
-	       printf("SEND upper - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
-		      p->ipe,p->jpe,n,100*(p->ipe)+10*(idim+1)+1); 
-	     
-	       comm.Rsend(gmpisrcbufferr[0], n, MPI_DOUBLE_PRECISION, p->jpe, 100*(p->ipe)+10*(idim+1)+1);
-
-	     }
-          
-	   //comm.Barrier();
-	 
-	   if((p->mpilowerb[idim])==1)
-	     {
-	       printf("SEND lower - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
-		      p->ipe,p->hpe,n,100*(p->ipe)+10*(idim+1));
-
-	       comm.Rsend(gmpisrcbufferl[0], n, MPI_DOUBLE_PRECISION, p->hpe, 100*(p->ipe)+10*(idim+1));
-
-	     }
-
-	   request.Waitall(gnmpirequest,gmpirequest);
-
-	   // ---------------------------------------- recv method starts here
 
 	   if((p->mpiupperb[idim])==1 )
 	     { 
@@ -2126,15 +2096,9 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 
 	     }
 
-	   //comm.Barrier();
 
-	   if((p->mpilowerb[idim])==1)
-	     {
-	       gnmpirequest++;
-	     }
+	   if((p->mpilowerb[idim])==1) gnmpirequest++;
 
-	   //comm.Barrier();
-       
 	   if((p->mpilowerb[idim])==1)
 	     {
 
@@ -2145,28 +2109,31 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	       					    ,p->hpe,100*(p->hpe)+10*(idim+1)+1);
 
 	     }
-      
-	   
-
-
-
-
-
 
 	   comm.Barrier();
-          
 
+	   if((p->mpiupperb[idim])==1) 
+	     {
+	       printf("TEST: %d %d %d\n",p->ipe,p->jpe,p->hpe);
 
+	       printf("SEND upper - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
+		      p->ipe,p->jpe,n,100*(p->ipe)+10*(idim+1)+1); 
+	     
+	       comm.Rsend(gmpisrcbufferr[0], n, MPI_DOUBLE_PRECISION, p->jpe, 100*(p->ipe)+10*(idim+1)+1);
 
+	     }
+	 
+	   if((p->mpilowerb[idim])==1)
+	     {
+	       printf("SEND lower - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
+		      p->ipe,p->hpe,n,100*(p->ipe)+10*(idim+1));
 
+	       comm.Rsend(gmpisrcbufferl[0], n, MPI_DOUBLE_PRECISION, p->hpe, 100*(p->ipe)+10*(idim+1));
 
+	     }
 
-
-
-
-
-	   
-
+	   comm.Barrier();
+	   request.Waitall(gnmpirequest,gmpirequest);
 
 	   //printf("waiting %d\n",p->ipe);
 
