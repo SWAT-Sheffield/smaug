@@ -2064,7 +2064,7 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
    switch(idim)
      {
      case 0:
-
+       printf("Case 0");
        if((p->pnpe[0])>1)
 	 {
 
@@ -2119,10 +2119,10 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	     { 
 
 	       printf("RECV upper - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
-		      p->ipe,p->jpe,n,100*(p->ipe)+10*(idim+1));
+		      p->ipe,p->jpe,n,100*(p->jpe)+10*(idim+1));
      
 	       gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferr[0],n,MPI_DOUBLE_PRECISION
-						    ,p->jpe,100*(p->hpe)+10*(idim+1));
+						    ,p->jpe,100*(p->jpe)+10*(idim+1));
 
 	     }
 
@@ -2139,7 +2139,7 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	     {
 
 	       printf("RECV lower - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
-		      p->ipe,p->hpe,n,100*(p->ipe)+10*(idim+1)+1);
+		      p->ipe,p->hpe,n,100*(p->hpe)+10*(idim+1)+1);
         
 	       gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferl[0],n,MPI_DOUBLE_PRECISION
 	       					    ,p->hpe,100*(p->hpe)+10*(idim+1)+1);
@@ -2247,7 +2247,7 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
      
 	 case 1:
 
-
+      printf("Case 1");
 
 
 
