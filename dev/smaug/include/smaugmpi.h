@@ -232,8 +232,6 @@ void mgpuinit(params *p)
             break;
             #endif                             
         }    
-
-      printf("sssssssssssssssssssssssssssssssssssss %f \n", gmpitgtbufferr[i]);
  
   }    
      	
@@ -483,15 +481,6 @@ void mgpuneighbours(int dir, params *p)
       #endif             
     }
 
-
-     printf("ini_p_c %d %d\n",p->pipe[0],p->pipe[1]); 
-
-     printf("ini_l_c %d %d\n",p->phpe[0],p->phpe[1]); 
-     printf("ini_r_c %d %d\n",p->pjpe[0],p->pjpe[1]); 
-
-
-    //printf("pcoords %d %d %d\n",p->ipe,p->pipe[0],p->pipe[1]);
-
   for(i=0; i<NDIM;i++)
     {
       if((p->phpe[i])<0) (p->phpe[i])=(p->pnpe[i])-1; 
@@ -505,9 +494,6 @@ void mgpuneighbours(int dir, params *p)
         if((p->pkpe[i])>=(p->pnpe[i])) (p->pkpe[i])=0; 
       #endif                    
     }
-
-  printf("lpcoords %d %d %d\n",p->ipe,p->phpe[0],p->phpe[1]);
-  printf("rpcoords %d %d %d\n",p->ipe,p->pjpe[0],p->pjpe[1]);
    
   iped2ipe(p->phpe,p->pnpe,&(p->hpe));
   iped2ipe(p->pjpe,p->pnpe,&(p->jpe));
@@ -2018,7 +2004,6 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 {
    comm.Barrier();
 
-   printf("dddddddddddimension: %d\n", idim);
    int i,n;
    int i1,i2,i3;
    int bound;
@@ -2068,7 +2053,7 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
    switch(idim)
      {
      case 0:
-       printf("Case 0");
+
        if((p->pnpe[0])>1)
 	 {
 
@@ -2089,33 +2074,25 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	   // ipe stands for the rank
 	   // hpe and jpe are the processor indexes for left and right neighbors
 	   
-	   //printf("\n\n Buffer:%f\n\n",**gmpitgtbufferr[0]);
-using namespace std;
-	   cout << "Value of var :" << *gmpitgtbufferr << endl;
-
 	   if((p->mpiupperb[idim])==1 )
 	     { 
 
-	       printf("HERE RECV upper - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
+	       printf("RECV upper - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
 		      p->ipe,p->jpe,n,100*(p->jpe)+10*(idim+1));
      
-	       gmpirequest[gnmpirequest]=comm.Irecv(**gmpitgtbufferr,n,MPI_DOUBLE_PRECISION
-	       				    ,p->jpe,100*(p->jpe)+10*(idim+1));
-	   printf("\n\n Buffer2:%f\n\n",gmpitgtbufferr[0]);
+	       gmpirequest[gnmpirequest]=comm.Irecv(&gmpitgtbufferr[0],n,MPI_DOUBLE_PRECISION
+	       			    ,p->jpe,100*(p->jpe)+10*(idim+1));
+
 	     }
-
-
-
 
 	   if((p->mpilowerb[idim])==1) gnmpirequest++;
 
 	   if((p->mpilowerb[idim])==1)
 	     {
-
 	       printf("RECV lower - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
 		      p->ipe,p->hpe,n,100*(p->hpe)+10*(idim+1)+1);
         
-	       gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferl[0],n,MPI_DOUBLE_PRECISION
+	       gmpirequest[gnmpirequest]=comm.Irecv(&gmpitgtbufferl[0],n,MPI_DOUBLE_PRECISION
 	       					    ,p->hpe,100*(p->hpe)+10*(idim+1)+1);
 
 	     }
@@ -2124,12 +2101,10 @@ using namespace std;
 
 	   if((p->mpiupperb[idim])==1) 
 	     {
-	       printf("TEST: %d %d %d\n",p->ipe,p->jpe,p->hpe);
-
 	       printf("SEND upper - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
 		      p->ipe,p->jpe,n,100*(p->ipe)+10*(idim+1)+1); 
 	     
-	       comm.Rsend(gmpisrcbufferr[0], n, MPI_DOUBLE_PRECISION, p->jpe, 100*(p->ipe)+10*(idim+1)+1);
+	       comm.Rsend(&gmpisrcbufferr[0], n, MPI_DOUBLE_PRECISION, p->jpe, 100*(p->ipe)+10*(idim+1)+1);
 
 	     }
 	 
@@ -2138,24 +2113,21 @@ using namespace std;
 	       printf("SEND lower - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
 		      p->ipe,p->hpe,n,100*(p->ipe)+10*(idim+1));
 
-	       comm.Rsend(gmpisrcbufferl[0], n, MPI_DOUBLE_PRECISION, p->hpe, 100*(p->ipe)+10*(idim+1));
-
+	       comm.Rsend(&gmpisrcbufferl[0], n, MPI_DOUBLE_PRECISION, p->hpe, 100*(p->ipe)+10*(idim+1));
 	     }
 
 	   comm.Barrier();
 	   request.Waitall(gnmpirequest,gmpirequest);
 
-	   printf("\n\n Buffer3:%f\n\n",gmpitgtbufferr[0]);
-
 	   printf("waiting %d\n",p->ipe);
 
-	   //comm.Barrier();
+	   comm.Barrier();
 	   
-	   //printf("waiting AFTERB %d\n",p->ipe);
+	   printf("waiting AFTERB %d\n",p->ipe);
 
-	   //request.Waitall(gnmpirequest,gmpirequest);
+	   request.Waitall(gnmpirequest,gmpirequest);
 
-	   //comm.Barrier();
+	   comm.Barrier();
   
 	   //copy data from buffer to the viscosity data in temp2
 	   //organise buffers so that pointers are swapped instead
@@ -2181,12 +2153,14 @@ using namespace std;
 
 	             for(bound=0; bound<2; bound++)
 	 	        {
-	                   var1[sacencodempivisc0(p,i1,i2,i3,bound+2,idim)]=gmpitgtbufferr[0][i2+i3*((p->n[1])+2)+bound*((p->n[1])+2)*((p->n[2])+2)];
+	                   var1[sacencodempivisc0(p,i1,i2,i3,bound+2,idim)]=
+			     gmpitgtbufferr[0][i2+i3*((p->n[1])+2)+bound*((p->n[1])+2)*((p->n[2])+2)];
 	                }
 
 	             for(bound=0; bound<2; bound++)
 		        {
-	                   var1[sacencodempivisc0(p,i1,i2,i3,bound,idim)]=gmpitgtbufferl[0][i2+i3*((p->n[1])+2)+bound*((p->n[1])+2)*((p->n[2])+2)];
+	                   var1[sacencodempivisc0(p,i1,i2,i3,bound,idim)]=
+			     gmpitgtbufferl[0][i2+i3*((p->n[1])+2)+bound*((p->n[1])+2)*((p->n[2])+2)];
 	                }
 	          }
 	     }
@@ -2196,6 +2170,9 @@ using namespace std;
 
 	 //tmp_nuI(ixFhi1+1,ixFlo2:ixFhi2)=tgtbufferR1(1,ixFlo2:ixFhi2) !right, upper R
 	 //tmp_nuI(ixFlo1-1,ixFlo2:ixFhi2)=tgtbufferL1(1,ixFlo2:ixFhi2) !left, lower  L
+
+	   printf("\n TEST 1\n\n");
+
 
 	 for(i2=1;i2<((p->n[1])+2);i2++ )
          {
@@ -2208,12 +2185,21 @@ using namespace std;
 
 	   for(bound=0; bound<2; bound++)
 	     {
-	       var1[sacencodempivisc0(p,i1,i2,i3,bound+2,idim)]=gmpitgtbufferr[0][i2+bound*((p->n[1])+2)];
-	     }
+	       //printf("T: %d \n",i2+bound*((p->n[1])+2));
+	       // printf("K: %d \n",gmpitgtbufferr[0]);
+	       //printf("R: %f \n",gmpitgtbufferr[0][i2+bound*((p->n[1])+2)]);
 
+	       var1[sacencodempivisc0(p,i1,i2,i3,bound+2,idim)]=
+		 gmpitgtbufferr[0][i2+bound*((p->n[1])+2)];
+	     }
+	   printf("\n TEST 2\n\n");
           for(bound=0; bound<2; bound++)
 	     {
-	       var1[sacencodempivisc0(p,i1,i2,i3,bound,idim)]=gmpitgtbufferl[0][i2+bound*((p->n[1])+2)];
+	       //printf("T: %d \n",i2+bound*((p->n[1])+2));	       
+	       //printf("L: %f \n",gmpitgtbufferl[0][i2+bound*((p->n[1])+2)]);
+
+	       var1[sacencodempivisc0(p,i1,i2,i3,bound,idim)]=
+		 gmpitgtbufferl[0][i2+bound*((p->n[1])+2)];
 	     }
 
           }
@@ -2226,12 +2212,7 @@ using namespace std;
      
 	 case 1:
 
-      printf("Case 1");
-
-
-
-
-
+	   printf("\nCASE 1\n\n");
 
 if((p->pnpe[1])>1  )
 {
