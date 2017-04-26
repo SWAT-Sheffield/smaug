@@ -231,7 +231,10 @@ void mgpuinit(params *p)
 	    gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
             break;
             #endif                             
-        }     
+        }    
+
+      printf("sssssssssssssssssssssssssssssssssssss %f \n", gmpitgtbufferr[i]);
+ 
   }    
      	
   comm.Barrier();
@@ -2015,6 +2018,7 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 {
    comm.Barrier();
 
+   printf("dddddddddddimension: %d\n", idim);
    int i,n;
    int i1,i2,i3;
    int bound;
@@ -2084,17 +2088,23 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	   // npe/n is the size
 	   // ipe stands for the rank
 	   // hpe and jpe are the processor indexes for left and right neighbors
+	   
+	   //printf("\n\n Buffer:%f\n\n",**gmpitgtbufferr[0]);
+using namespace std;
+	   cout << "Value of var :" << *gmpitgtbufferr << endl;
 
 	   if((p->mpiupperb[idim])==1 )
 	     { 
 
-	       printf("RECV upper - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
+	       printf("HERE RECV upper - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
 		      p->ipe,p->jpe,n,100*(p->jpe)+10*(idim+1));
      
-	       gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferr[0],n,MPI_DOUBLE_PRECISION
-						    ,p->jpe,100*(p->jpe)+10*(idim+1));
-
+	       gmpirequest[gnmpirequest]=comm.Irecv(**gmpitgtbufferr,n,MPI_DOUBLE_PRECISION
+	       				    ,p->jpe,100*(p->jpe)+10*(idim+1));
+	   printf("\n\n Buffer2:%f\n\n",gmpitgtbufferr[0]);
 	     }
+
+
 
 
 	   if((p->mpilowerb[idim])==1) gnmpirequest++;
@@ -2109,7 +2119,7 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	       					    ,p->hpe,100*(p->hpe)+10*(idim+1)+1);
 
 	     }
-
+	   
 	   comm.Barrier();
 
 	   if((p->mpiupperb[idim])==1) 
@@ -2134,6 +2144,8 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 
 	   comm.Barrier();
 	   request.Waitall(gnmpirequest,gmpirequest);
+
+	   printf("\n\n Buffer3:%f\n\n",gmpitgtbufferr[0]);
 
 	   printf("waiting %d\n",p->ipe);
 
