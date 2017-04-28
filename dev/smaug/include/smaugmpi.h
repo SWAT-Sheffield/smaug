@@ -5,19 +5,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 MPI::Intracomm comm;
 MPI::Request request;
+
 double gwall_time;
 real *gmpisendbuffer;
 real *gmpirecvbuffer;
-
 
 real **gmpisrcbufferl;
 real **gmpisrcbufferr;
 real **gmpitgtbufferl;
 real **gmpitgtbufferr;
-
 
 int gnmpirequest,gnmpibuffer,gnmpibuffermod;
 int gnmpibuffer0,gnmpibuffer1,gnmpibuffer2;
@@ -27,8 +25,6 @@ MPI::Request *gmpirequest;
 
 /*a test with the mac*/
 
-
-
 int sacencodempivisc0 (struct params *p,int ix, int iy, int iz, int bound,int dim) {
   #ifdef USE_SAC_3D
     return (  bound* ((   ((p->n[1])+2)*((p->n[2])+2)   ))+       (    (     iy+iz*((p->n[1])+2)    )    )      );
@@ -36,8 +32,6 @@ int sacencodempivisc0 (struct params *p,int ix, int iy, int iz, int bound,int di
     return (   bound*(    ((p->n[1])+2)  )  +   iy     );
   #endif
 }
-
-
 
 int sacencodempivisc1 (struct params *p,int ix, int iy, int iz, int bound,int dim) {
   #ifdef USE_SAC_3D
@@ -48,7 +42,6 @@ int sacencodempivisc1 (struct params *p,int ix, int iy, int iz, int bound,int di
 
   return 0;
 }
-
 
 int sacencodempivisc2 (struct params *p,int ix, int iy, int iz, int bound,int dim) {
   #ifdef USE_SAC_3D
@@ -118,7 +111,8 @@ void iped2ipe(params *p);*/
 //! default value for test processor
 //ipetest=0
 
-void mgpuinit(params *p)
+/*
+void mgpuinit_original(params *p)
 {
   int nmpibuffer;
   int numbuffers=4;
@@ -193,10 +187,10 @@ void mgpuinit(params *p)
 	{
           case 0:
             #ifdef USE_SAC_3D
-	    gmpisrcbufferl[i]=(real *)calloc( ((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real));
-	    gmpisrcbufferr[i]=(real *)calloc( ((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real ));
-	    gmpitgtbufferl[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real ));
-	    gmpitgtbufferr[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real ));
+	    gmpisrcbufferl[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real));
+	    gmpisrcbufferr[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real));
+	    gmpitgtbufferl[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real));
+	    gmpitgtbufferr[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real));
 
             #else
 	    gmpisrcbufferl[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
@@ -237,8 +231,153 @@ void mgpuinit(params *p)
      	
   comm.Barrier();
 
-// Function mgpuinit() ends here.
 }
+
+
+
+
+*/
+
+
+
+
+void mgpuinit_stage1(params *p)
+{
+  int nmpibuffer;
+  int numbuffers=4;
+  int i;
+     
+  //MPI::Intracomm comm;   
+  //MPI_Init(&argc, &argv);
+
+  gwall_time = MPI_Wtime();
+  comm=MPI::COMM_WORLD;
+  p->npe=comm.Get_size();
+  p->ipe=comm.Get_rank();
+
+  #ifdef USE_SAC_3D
+
+  gnmpibuffer0=NDERV*(p->n[2])*(p->n[1])*(p->ng[0]);
+  gnmpibuffer1=NDERV*(p->n[0])*(p->n[2])*(p->ng[1]);
+  gnmpibuffer2=NDERV*(p->n[0])*(p->n[1])*(p->ng[2]);
+
+  gnmpibuffermod0=NVAR*(p->n[2])*(p->n[1])*(p->ng[0]);
+  gnmpibuffermod1=NVAR*(p->n[0])*(p->n[2])*(p->ng[1]);
+  gnmpibuffermod2=NVAR*(p->n[0])*(p->n[1])*(p->ng[2]);
+
+  if((p->n[0])>=(p->n[1]) &&(p->n[0])>=(p->n[2]))
+    {
+      if((p->n[1])>(p->n[2])) nmpibuffer=NDERV*(p->n[0])*(p->n[1])*(p->ng[0]);
+      else nmpibuffer=NDERV*(p->n[0])*(p->n[2])*(p->ng[0]);
+    }
+
+  else if((p->n[1])>=(p->n[0]) && (p->n[1])>=(p->n[2]))
+    {
+     if((p->n[0])>(p->n[2])) nmpibuffer=NDERV*(p->n[1])*(p->n[0])*(p->ng[1]);
+     else nmpibuffer=NDERV*(p->n[1])*(p->n[2])*(p->ng[1]);
+    }
+
+  else if((p->n[2])>=(p->n[0]) && (p->n[2])>=(p->n[1]))
+    {
+      if((p->n[0])>(p->n[1])) nmpibuffer=NDERV*(p->n[2])*(p->n[0])*(p->ng[2]);
+      else nmpibuffer=NDERV*(p->n[2])*(p->n[1])*(p->ng[2]);
+    }
+
+  #else
+
+  gnmpibuffer0=NDERV*(p->n[1])*(p->ng[0]);
+  gnmpibuffer1=NDERV*(p->n[0])*(p->ng[1]);
+  gnmpibuffermod0=NVAR*(p->n[1])*(p->ng[0]);
+  gnmpibuffermod1=NVAR*(p->n[0])*(p->ng[1]);
+
+  if((p->n[0])>(p->n[1])) nmpibuffer=NDERV*(p->n[0])*(p->ng[0]);
+  else nmpibuffer=NDERV*(p->n[1])*(p->ng[1]);
+
+  #endif
+   
+  gnmpirequest=0;
+  gnmpibuffer=nmpibuffer;
+  gnmpibuffermod=nmpibuffer*NVAR/NDERV;
+  gmpirequest=(MPI::Request *)calloc(numbuffers,sizeof(MPI::Request));
+  gmpisendbuffer=(real *)calloc(nmpibuffer,sizeof(real));
+  gmpirecvbuffer=(real *)calloc(nmpibuffer*numbuffers,sizeof(real));	
+      	
+  comm.Barrier();
+
+}
+
+
+
+
+void mgpuinit_stage2(params *p)
+{
+   printf("Calling stage 2\n");
+  for(int i=0;i<NDIM;i++)
+    {
+      gmpisrcbufferl=(real **)calloc(NDIM,sizeof(real *));
+      gmpisrcbufferr=(real **)calloc(NDIM,sizeof(real *));
+      gmpitgtbufferl=(real **)calloc(NDIM,sizeof(real *));
+      gmpitgtbufferr=(real **)calloc(NDIM,sizeof(real *));
+    }
+
+  for(int i=0;i<NDIM;i++)
+    {
+      switch(i)
+	{
+          case 0:
+            #ifdef USE_SAC_3D
+	    gmpisrcbufferl[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real));
+	    gmpisrcbufferr[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real));
+	    gmpitgtbufferl[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real));
+	    gmpitgtbufferr[i]=(real *)calloc(((p->n[1])+2)*((p->n[2])+2)*(p->ng[0]),sizeof(real));
+
+            #else
+	    gmpisrcbufferl[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
+	    gmpisrcbufferr[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
+	    gmpitgtbufferl[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
+	    gmpitgtbufferr[i]=(real *)calloc(((p->n[1])+2)*(p->ng[0]),sizeof(real ));
+         
+            #endif
+	    break;
+
+          case 1:
+            #ifdef USE_SAC_3D
+	    gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)*(p->ng[1]),sizeof(real ));
+	    gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)*(p->ng[1]),sizeof(real ));
+	    gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)*(p->ng[1]),sizeof(real ));
+	    gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[2])+2)*(p->ng[1]),sizeof(real ));
+
+            #else
+	    gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*(p->ng[1]),sizeof(real ));
+	    gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*(p->ng[1]),sizeof(real ));
+	    gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*(p->ng[1]),sizeof(real ));
+	    gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*(p->ng[1]),sizeof(real ));
+
+            #endif       
+            break;
+
+            #ifdef USE_SAC_3D         
+          case 2:
+	    gmpisrcbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
+	    gmpisrcbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
+	    gmpitgtbufferl[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
+	    gmpitgtbufferr[i]=(real *)calloc(((p->n[0])+2)*((p->n[1])+2)*(p->ng[2]),sizeof(real ));
+            break;
+            #endif                             
+        }    
+ 
+  }    
+     	
+  comm.Barrier();
+
+}
+
+
+
+
+
+
+
 
 
 
@@ -257,10 +396,6 @@ void mgpufinalize(params *p)
      //free(gmpirequest);
      MPI_Finalize();
 }
-
-
-
-
 
 //!==============================================================================
 //subroutine mpisetnpeDipeD(name)
@@ -292,56 +427,60 @@ void mgpusetnpediped(params *p, char *string)
 
 void ipe2iped(params *p)
 {
-int ib;
-#ifdef USE_SAC_3D
-//qipe1 = qipe - npe1*(qipe/npe1)
-//qipe2 = qipe/npe1 - npe2*(qipe/(npe1*npe2)) 
-//qipe3 = qipe/(npe1*npe2)
-//(p->pipe[0])=(p->ipe)-(p->pnpe[0])*((p->ipe)/(p->pnpe[0]));
-//(p->pipe[1])=((p->ipe)/(p->pnpe[0]))-(p->pnpe[1])*((p->ipe)/((p->pnpe[0])*(p->pnpe[1])));
-//(p->pipe[2])=(p->ipe)/((p->pnpe[0])*(p->pnpe[1]));   
+  int ib;
 
-(p->pipe[2])=(p->ipe)/((p->pnpe[0])*(p->pnpe[1]));
-(p->pipe[1])=((p->ipe)-((p->pipe[2])*(p->pnpe[0])*(p->pnpe[1])))/(p->pnpe[1]);
-(p->pipe[0])=(p->ipe)-((p->pipe[2])*(p->pnpe[0])*(p->pnpe[1]))-((p->pipe[1])*(p->pnpe[1]));
+  #ifdef USE_SAC_3D
+  //qipe1 = qipe - npe1*(qipe/npe1)
+  //qipe2 = qipe/npe1 - npe2*(qipe/(npe1*npe2)) 
+  //qipe3 = qipe/(npe1*npe2)
+  //(p->pipe[0])=(p->ipe)-(p->pnpe[0])*((p->ipe)/(p->pnpe[0]));
+  //(p->pipe[1])=((p->ipe)/(p->pnpe[0]))-(p->pnpe[1])*((p->ipe)/((p->pnpe[0])*(p->pnpe[1])));
+  //(p->pipe[2])=(p->ipe)/((p->pnpe[0])*(p->pnpe[1]));   
 
+  (p->pipe[2])=(p->ipe)/((p->pnpe[0])*(p->pnpe[1]));
+  (p->pipe[1])=((p->ipe)-((p->pipe[2])*(p->pnpe[0])*(p->pnpe[1])))/(p->pnpe[1]);
+  (p->pipe[0])=(p->ipe)-((p->pipe[2])*(p->pnpe[0])*(p->pnpe[1]))-((p->pipe[1])*(p->pnpe[1]));
 
-//set upper boundary flags
-//mpiupperB(1)=ipe1<npe1-1
-//mpilowerB(1)=ipe1>0 
+  //set upper boundary flags
+  //mpiupperB(1)=ipe1<npe1-1
+  //mpilowerB(1)=ipe1>0 
 
-//mpiupperB(2)=ipe2<npe2-1
-//mpilowerB(2)=ipe2>0 
+  //mpiupperB(2)=ipe2<npe2-1
+  //mpilowerB(2)=ipe2>0 
 
-(p->mpiupperb[0])=(p->pipe[0])<((p->pnpe[0])-1);
-(p->mpiupperb[1])=(p->pipe[1])<((p->pnpe[1])-1);
-(p->mpiupperb[2])=(p->pipe[2])<((p->pnpe[2])-1);
+  (p->mpiupperb[0])=(p->pipe[0])<((p->pnpe[0])-1);
+  (p->mpiupperb[1])=(p->pipe[1])<((p->pnpe[1])-1);
+  (p->mpiupperb[2])=(p->pipe[2])<((p->pnpe[2])-1);
 
-(p->mpilowerb[0])=(p->pipe[0])>0;
-(p->mpilowerb[1])=(p->pipe[1])>0;
-(p->mpilowerb[2])=(p->pipe[2])>0;
-#else
-//qipe1 = qipe - npe1*(qipe/npe1)
-//qipe2 = qipe/npe1 - npe2*(qipe/(npe1*npe2)) 
-//(p->pipe[0])=(p->ipe)-(p->pnpe[0])*(p->ipe)/(p->pnpe[0]);
-//(p->pipe[1])=((p->ipe)/(p->pnpe[0]))-(p->pnpe[1])*(p->ipe)/((p->pnpe[0])*(p->pnpe[1]));
-(p->pipe[1])=((p->ipe)/(p->pnpe[0]));
-(p->pipe[0])=(p->ipe)-(p->pnpe[0])*(p->pipe[1]);
+  (p->mpilowerb[0])=(p->pipe[0])>0;
+  (p->mpilowerb[1])=(p->pipe[1])>0;
+  (p->mpilowerb[2])=(p->pipe[2])>0;
 
-(p->mpiupperb[0])=(p->pipe[0])<((p->pnpe[0])-1);
-(p->mpiupperb[1])=(p->pipe[1])<((p->pnpe[1])-1);
+  #else
+  //qipe1 = qipe - npe1*(qipe/npe1)
+  //qipe2 = qipe/npe1 - npe2*(qipe/(npe1*npe2)) 
+  //(p->pipe[0])=(p->ipe)-(p->pnpe[0])*(p->ipe)/(p->pnpe[0]);
+  //(p->pipe[1])=((p->ipe)/(p->pnpe[0]))-(p->pnpe[1])*(p->ipe)/((p->pnpe[0])*(p->pnpe[1]));
 
-(p->mpilowerb[0])=(p->pipe[0])>0;
-(p->mpilowerb[1])=(p->pipe[1])>0;
+  (p->pipe[1])=((p->ipe)/(p->pnpe[0]));
+  (p->pipe[0])=(p->ipe)-(p->pnpe[0])*(p->pipe[1]);
 
+  (p->mpiupperb[0])=(p->pipe[0])<((p->pnpe[0])-1);
+  (p->mpiupperb[1])=(p->pipe[1])<((p->pnpe[1])-1);
 
+  (p->mpilowerb[0])=(p->pipe[0])>0;
+  (p->mpilowerb[1])=(p->pipe[1])>0;
+
+  /*
   if(p->ipe==0)
+    {
     for(int i=0; i<2;i++)
-      printf("mpibc %d %d %d %d\n",i,p->pipe[i],p->mpiupperb[i],p->mpilowerb[i]);
-
-#endif
-
-
+      {
+	printf("mpibc %d %d %d %d\n",i,p->pipe[i],p->mpiupperb[i],p->mpilowerb[i]);
+      }
+    }
+  */
+   #endif 
 
     //ensure boundary set correctly 
     for(int ii=0; ii<NVAR; ii++)
@@ -510,79 +649,70 @@ void mgpuneighbours(int dir, params *p)
 //! jside is 0 for min and 1 for max side of the grid for the sending PE
 void mpisend(int nvar,real *var, int *ixmin, int *ixmax  ,int qipe,int iside, int dim, params *p)
 {
-    int n=0;
-   int ivar,i1,i2,i3,bound;
-   i3=0;
-;//#ifndef USE_GPUDIRECT
-	switch(dim)
-	{
-		case 0:
-		   for(ivar=0; ivar<nvar;ivar++)
-		     for(i1=0;i1<=1;i1++)
-		#ifdef USE_SAC_3D
-			for(i3=0;i3<p->n[2];i3++)
-		#endif
+  int n=0;
+  int ivar,i1,i2,i3,bound;
+  i3=0;
 
-		      for(i2=0;i2<p->n[1];i2++)
-		      {
+//#ifndef USE_GPUDIRECT
+
+  switch(dim)
+    {
+    case 0:
+      for(ivar=0; ivar<nvar;ivar++)
+	for(i1=0;i1<=1;i1++)
+        #ifdef USE_SAC_3D
+	  for(i3=0;i3<p->n[2];i3++)
+          #endif
+	    for(i2=0;i2<p->n[1];i2++)
+	      {
 			
-                        bound=i1+2*(iside>0);
-			 gmpisendbuffer[n]=var[sacencodempiw0 (p,i1, i2, i3, ivar,bound)];
+		bound=i1+2*(iside>0);
+		gmpisendbuffer[n]=var[sacencodempiw0 (p,i1, i2, i3, ivar,bound)];
 
+		//if((p->ipe==0) && ivar==rho && p->it != -1     /*&& iside==1 && (100*(p->ipe)+10*dim+iside)==101*/ )
+		//{
 
+		//   bound=i1+2*(iside>0);
+		//    printf(" %d %d %d %lg  \n",bound,i2,i1,gmpisendbuffer[n]);
 
-			//if((p->ipe==0) && ivar==rho && p->it != -1     /*&& iside==1 && (100*(p->ipe)+10*dim+iside)==101*/ )
-			//{
-
-                        //   bound=i1+2*(iside>0);
-                        //    printf(" %d %d %d %lg  \n",bound,i2,i1,gmpisendbuffer[n]);
-
-			//}
-			//if((p->ipe==2) && ivar==pos2      /*&& iside==1 && (100*(p->ipe)+10*dim+iside)==101*/ )
-                        //    printf(" %lg  \n",gmpisendbuffer[n]);
-
-
-                         n++;
-
-
-
-
-
-
-		      }
+		//}
+		//if((p->ipe==2) && ivar==pos2      /*&& iside==1 && (100*(p->ipe)+10*dim+iside)==101*/ )
+		//    printf(" %lg  \n",gmpisendbuffer[n]);
+		n++;
+	      }
 		   
 
 
-		break;
-		case 1:
-//printf("before nsend ipe %d is %d nvar %d iside %d bound %d\n",n,p->ipe,nvar, iside,bound);
+      break;
+    case 1:
+      //printf("before nsend ipe %d is %d nvar %d iside %d bound %d\n",n,p->ipe,nvar, iside,bound);
 
-		   for(ivar=0; ivar<nvar;ivar++)
-                     for(i2=0;i2<=1;i2++)
-		#ifdef USE_SAC_3D
-			for(i3=0;i3<p->n[2];i3++)
-		#endif
+      for(ivar=0; ivar<nvar;ivar++)
+	for(i2=0;i2<=1;i2++)
+          #ifdef USE_SAC_3D
+	  for(i3=0;i3<p->n[2];i3++)
+          #endif
 
-		     for(i1=0;i1<p->n[0];i1++)
+	    for(i1=0;i1<p->n[0];i1++)
 		      
-		      {
+	      {
 			
-                        bound=i2+2*(iside>0);
+		bound=i2+2*(iside>0);
 
-                     // if(n<77824)
-			 gmpisendbuffer[n]=var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)];
+		// if(n<77824)
+		gmpisendbuffer[n]=var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)];
 
-			//if((p->ipe==0  ) && (ivar==delx1 || ivar==delx2) /* && p->it != -1 && ((p)->it)==2*/)
-			//{
-			 //for(int i=0;i<nvar;i++)
-			 //  printf("mpiseend %d %d %d %d %lg \n",ivar, bound,i2,i1,gmpisendbuffer[n]);
-                         //printf(" %d %d %d %lg ",bound,i2,i1,var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]);
-                         // ;//printf(" %d %d %d %lg  %lg\n",i1,i2,iside,var[sacencodempiw1 (p,i1, i2, i3, pos1,bound)],var[sacencodempiw1 (p,i1, i2, i3, pos2,bound)]);
-			 //printf("\n");
-			//}
-                        n++;
+		//if((p->ipe==0  ) && (ivar==delx1 || ivar==delx2) /* && p->it != -1 && ((p)->it)==2*/)
+		//{
+		//for(int i=0;i<nvar;i++)
+		//printf("mpiseend %d %d %d %d %lg \n",ivar, bound,i2,i1,gmpisendbuffer[n]);
+		//printf(" %d %d %d %lg ",bound,i2,i1,var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]);
+		//printf(" %d %d %d %lg  %lg\n",i1,i2,iside,var[sacencodempiw1 (p,i1, i2, i3, pos1,bound)],var[sacencodempiw1 (p,i1, i2, i3, pos2,bound)]);
+		//printf("\n");
+		//}
+		n++;
 
-		      }
+	      }
 
  		/*for(i2=0;i2<=1;i2++)
                       for(i1=0;i1<p->n[0];i1++)
@@ -596,27 +726,24 @@ void mpisend(int nvar,real *var, int *ixmin, int *ixmax  ,int qipe,int iside, in
 
 			//printf("nsend ipe %d is %d nvar %d iside %d bound %d\n",n,p->ipe,nvar, iside,bound);
 
-		break;
-		case 2:
+      break;
+    case 2:
 
-		#ifdef USE_SAC_3D
-		   for(ivar=0; ivar<nvar;ivar++)
-                     for(i3=0;i3<=1;i3++)
-                     for(i2=0;i2<p->n[1];i2++)
-		     for(i1=0;i1<p->n[0];i1++)
-		      		
-						
-		      {
-			n++;
-                        bound=i3+2*(iside>0);
-			 gmpisendbuffer[n]=var[sacencodempiw2 (p,i1, i2, i3, ivar,bound)];
-		      }
-		#endif
+   #ifdef USE_SAC_3D
+      for(ivar=0; ivar<nvar;ivar++)
+	for(i3=0;i3<=1;i3++)
+	  for(i2=0;i2<p->n[1];i2++)
+	    for(i1=0;i1<p->n[0];i1++)			
+	      {
+		n++;
+		bound=i3+2*(iside>0);
+		gmpisendbuffer[n]=var[sacencodempiw2 (p,i1, i2, i3, ivar,bound)];
+	      }
+      #endif
 
 		      
-		break;
-	}
-
+      break;
+    }
 
 
 
@@ -624,9 +751,11 @@ void mpisend(int nvar,real *var, int *ixmin, int *ixmax  ,int qipe,int iside, in
 
 //if(p->ipe==1  && dim==0)
    //   printf("ipe %d send tag %d nb %d  to %d %d %d\n",p->ipe,100*((p->ipe)+1)+10*(dim+1)+(iside==0?1:0),n,qipe,iside,dim);
-   
-   comm.Rsend(gmpisendbuffer, n, MPI_DOUBLE_PRECISION, qipe, 100*((p->ipe)+1)+10*(dim+1)+(iside==0?1:0));
-;//#else
+  
+  comm.Rsend(gmpisendbuffer, n, MPI_DOUBLE_PRECISION, qipe, 100*((p->ipe)+1)+10*(dim+1)+(iside==0?1:0));
+
+
+//#else
 
 
 /*	switch(dim)
@@ -660,7 +789,7 @@ void mpisend(int nvar,real *var, int *ixmin, int *ixmax  ,int qipe,int iside, in
 
    comm.Rsend(var, n, MPI_DOUBLE_PRECISION, qipe, 100*((p->ipe)+1)+10*(dim+1)+(iside==0?1:0));*/
 
-;//#endif
+//#endif
 
 }
 
@@ -736,7 +865,7 @@ void mpisendmod(int nvar,real *var, int *ixmin, int *ixmax  ,int qipe,int iside,
 			 //for(int i=0;i<nvar;i++)
 			 //  printf("mpiseend %d %d %d %lg %lg\n",bound,i2,i1,gmpisendbuffer[n],var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]);
                          //printf(" %d %d %d %lg ",bound,i2,i1,var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]);
-                         printf("send %d %d %d %lg  %lg\n",i1,i2,iside,var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)],var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]);
+                         //printf("send %d %d %d %lg  %lg\n",i1,i2,iside,var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)],var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]);
 			 //printf("\n");
 			}
 
@@ -865,6 +994,7 @@ void mpisendmod(int nvar,real *var, int *ixmin, int *ixmax  ,int qipe,int iside,
 //!----------------------------------------------------------------------------
 void mpirecvbuffer(int nvar, real *var, int *ixmin, int *ixmax  ,int qipe,int iside,int dim, params *p)
 {
+
 int nrecv;
 /*#ifdef USE_SAC_3D
    nrecv = nvar* (ixmax[0]-ixmin[0]+1)*(ixmax[1]-ixmin[1]+1)*(ixmax[2]-ixmin[2]+1);
@@ -1268,7 +1398,7 @@ void mpibuffer2varmod(int iside,int nvar,real *var, int *ixmin, int *ixmax, int 
 // the second commented line "fixes" this memory issue
 
 			if((p->ipe==3) && ivar==rho /* && (i1>0 && i1<15)*/    /*&& iside==1 && (100*(p->ipe)+10*dim+iside)==101*/ )
-                            printf("recvmod %d %lg %d %d %d %d  \n",p->ipe,gmpirecvbuffer[n+2*(iside==0?1:0)*gnmpibuffermod1],n,i1,iside,bound);
+			  //printf("recvmod %d %lg %d %d %d %d  \n",p->ipe,gmpirecvbuffer[n+2*(iside==0?1:0)*gnmpibuffermod1],n,i1,iside,bound);
 
 
 			var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]=gmpirecvbuffer[n+2*(iside==0?1:0)*gnmpibuffermod1];
@@ -1382,6 +1512,7 @@ void mpibound(int nvar,  real *var1, real *var2, real *var3,  real *rvar1, real 
    int ixlmmin[NDIM],ixlmmax[NDIM];
    int ixrmmin[NDIM],ixrmmax[NDIM];
 
+   //for (int itera = 0; itera < 5; itera++) std::cout << gmpitgtbufferr[0][itera] << std::endl;
 
 if((p->pnpe[0])>1   && idir==0)
 {
@@ -1427,7 +1558,14 @@ if((p->pnpe[0])>1   && idir==0)
    //if(p->ipe==0)
    //  printf("ipe %d  recv right (from left) %d recv left (from right neigh) %d\n",p->ipe,p->hpe,p->jpe);
    if(((p->mpilowerb[0])==1) ||  /*((p->boundtype[0][0][0])==0)||*/  ((p->boundtype[0][0][0])==2)/*|| ((p->boundtype[0][0][0])==1)*/)
+
+
+
+
+
 	mpirecvbuffer(nvar,rvar1,ixrmmin,ixrmmax,p->hpe,0,0,p);
+
+
 
    //! receive left (1) boundary from right neighbor jpe
    //if(mpiupperB(1) .or. periodic)call mpirecvbuffer(nvar,ixLMmin1,ixLMmin2,&
@@ -1436,18 +1574,35 @@ if((p->pnpe[0])>1   && idir==0)
              mpirecvbuffer(nvar,rvar1,ixlmmin,ixlmmax,p->jpe,1,0,p);
 //#endif
 
-  
+
+
    //! Wait for all receives to be posted
    //call MPI_BARRIER(MPI_COMM_WORLD,ierrmpi)
 //printf("ipe %d barrier before send\n",p->ipe);
+
+
+
+
+
+
    comm.Barrier();
    
+
+
+
    //! Ready send left (1) boundary to left neighbor hpe
 
    //if(mpilowerB(1) .or. periodic)call mpisend(nvar,var,ixLMmin1,ixLMmin2,&
    //   ixLMmax1,ixLMmax2,hpe,1)
    if(((p->mpilowerb[0])==1) ||  /*((p->boundtype[0][0][0])==0)|| */ ((p->boundtype[0][0][0])==2)/*|| ((p->boundtype[0][0][0])==1)*/)
+
+
+
+     // ERROR
             mpisend(nvar,var1,ixlmmin,ixlmmax,p->hpe,0,0,p);
+
+
+
 
    //! Ready send right (2) boundary to right neighbor
    //if(mpiupperB(1) .or. periodic)call mpisend(nvar,var,ixRMmin1,ixRMmin2,&
@@ -1455,10 +1610,18 @@ if((p->pnpe[0])>1   && idir==0)
    if(((p->mpiupperb[0])==1) || /* ((p->boundtype[0][0][0])==0)|| */ ((p->boundtype[0][0][0])==2)/*|| ((p->boundtype[0][0][0])==1)*/)
              mpisend(nvar,var1,ixrmmin,ixrmmax,p->jpe,1,0,p);
 
+
+  
+
    //! Wait for messages to arrive
    //call MPI_WAITALL(nmpirequest,mpirequests,mpistatus,ierrmpi)
   
    request.Waitall(gnmpirequest,gmpirequest);
+   //printf("seg\n",p->ipe); 
+
+
+
+
 ;//#ifndef USE_GPUDIRECT
    //! Copy buffer received from right (2) physical cells into left ghost cells
    //if(mpilowerB(1) .or. periodic)call mpibuffer2var(2,nvar,var,ixLGmin1,&
@@ -2002,7 +2165,12 @@ void mpiallreduce(real *a, MPI::Op mpifunc)
 //update viscosity term
 void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 {
+
    comm.Barrier();
+
+   //printf("MPI communication test...\n");
+   //std::cout << gmpitgtbufferr[0][5] << std::endl;
+   //printf("...MPI communication test\n");
 
    int i,n;
    int i1,i2,i3;
@@ -2073,14 +2241,16 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	   // npe/n is the size
 	   // ipe stands for the rank
 	   // hpe and jpe are the processor indexes for left and right neighbors
-	   
+
+
+
 	   if((p->mpiupperb[idim])==1 )
 	     { 
 
-	       printf("RECV upper - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
-		      p->ipe,p->jpe,n,100*(p->jpe)+10*(idim+1));
+	       //printf("RECV upper - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
+	       //   p->ipe,p->jpe,n,100*(p->jpe)+10*(idim+1));
      
-	       gmpirequest[gnmpirequest]=comm.Irecv(&gmpitgtbufferr[0],n,MPI_DOUBLE_PRECISION
+	       gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferr[0],n,MPI_DOUBLE_PRECISION
 	       			    ,p->jpe,100*(p->jpe)+10*(idim+1));
 
 	     }
@@ -2089,10 +2259,10 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 
 	   if((p->mpilowerb[idim])==1)
 	     {
-	       printf("RECV lower - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
-		      p->ipe,p->hpe,n,100*(p->hpe)+10*(idim+1)+1);
+	       // printf("RECV lower - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
+	       // p->ipe,p->hpe,n,100*(p->hpe)+10*(idim+1)+1);
         
-	       gmpirequest[gnmpirequest]=comm.Irecv(&gmpitgtbufferl[0],n,MPI_DOUBLE_PRECISION
+	       gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferl[0],n,MPI_DOUBLE_PRECISION
 	       					    ,p->hpe,100*(p->hpe)+10*(idim+1)+1);
 
 	     }
@@ -2101,29 +2271,29 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 
 	   if((p->mpiupperb[idim])==1) 
 	     {
-	       printf("SEND upper - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
-		      p->ipe,p->jpe,n,100*(p->ipe)+10*(idim+1)+1); 
+	       //printf("SEND upper - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
+	       //  p->ipe,p->jpe,n,100*(p->ipe)+10*(idim+1)+1); 
 	     
-	       comm.Rsend(&gmpisrcbufferr[0], n, MPI_DOUBLE_PRECISION, p->jpe, 100*(p->ipe)+10*(idim+1)+1);
+	       comm.Rsend(gmpisrcbufferr[0], n, MPI_DOUBLE_PRECISION, p->jpe, 100*(p->ipe)+10*(idim+1)+1);
 
 	     }
 	 
 	   if((p->mpilowerb[idim])==1)
 	     {
-	       printf("SEND lower - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
-		      p->ipe,p->hpe,n,100*(p->ipe)+10*(idim+1));
+	       //printf("SEND lower - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
+	       //  p->ipe,p->hpe,n,100*(p->ipe)+10*(idim+1));
 
-	       comm.Rsend(&gmpisrcbufferl[0], n, MPI_DOUBLE_PRECISION, p->hpe, 100*(p->ipe)+10*(idim+1));
+	       comm.Rsend(gmpisrcbufferl[0], n, MPI_DOUBLE_PRECISION, p->hpe, 100*(p->ipe)+10*(idim+1));
 	     }
 
 	   comm.Barrier();
 	   request.Waitall(gnmpirequest,gmpirequest);
 
-	   printf("waiting %d\n",p->ipe);
+//printf("waiting %d\n",p->ipe);
 
 	   comm.Barrier();
 	   
-	   printf("waiting AFTERB %d\n",p->ipe);
+// printf("waiting AFTERB %d\n",p->ipe);
 
 	   request.Waitall(gnmpirequest,gmpirequest);
 
@@ -2168,10 +2338,9 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 
          #else
 
+	   //for (int itera = 0; itera < 50; itera++) std::cout << gmpitgtbufferr[itera] << std::endl;
 	 //tmp_nuI(ixFhi1+1,ixFlo2:ixFhi2)=tgtbufferR1(1,ixFlo2:ixFhi2) !right, upper R
 	 //tmp_nuI(ixFlo1-1,ixFlo2:ixFhi2)=tgtbufferL1(1,ixFlo2:ixFhi2) !left, lower  L
-
-	   printf("\n TEST 1\n\n");
 
 
 	 for(i2=1;i2<((p->n[1])+2);i2++ )
@@ -2192,7 +2361,7 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	       var1[sacencodempivisc0(p,i1,i2,i3,bound+2,idim)]=
 		 gmpitgtbufferr[0][i2+bound*((p->n[1])+2)];
 	     }
-	   printf("\n TEST 2\n\n");
+
           for(bound=0; bound<2; bound++)
 	     {
 	       //printf("T: %d \n",i2+bound*((p->n[1])+2));	       
@@ -2212,7 +2381,6 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
      
 	 case 1:
 
-	   printf("\nCASE 1\n\n");
 
 if((p->pnpe[1])>1  )
 {

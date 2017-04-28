@@ -106,7 +106,28 @@ if(argc>1)
 	#ifdef USE_MPI
 	     MPI::Init(argc, argv);
 	#endif
-	mgpuinit(p);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// TEST HERE
+
+	mgpuinit_stage1(p);
+
+
+
+
+
 
 
 	if(mode==run)
@@ -325,6 +346,8 @@ char *method=NULL;
 	}
        int its=p->it;
 
+       // OK
+
 
        /*********************************************************************************************************/
        /* Start of section initialising the configuration 
@@ -363,7 +386,7 @@ char *method=NULL;
                     ipe2iped(p);
 		    
 		    //copy segment
-		    printf("copy segment %d %d %d\n",i,p->npe,p->ipe);                    
+		    //printf("copy segment %d %d %d\n",i,p->npe,p->ipe);                    
 		    createconfigsegment(*p, wnew,wdnew,wmod,wd);  //in readwrite.c
 
 		    //writeas
@@ -402,7 +425,7 @@ char *method=NULL;
 			int myipe=p->ipe;
 			for(i=0; i<p->npe; i++)
 			{
-				printf(" here nt=%d pid=%d i=%d\n",n,p->ipe,i);
+  //printf(" here nt=%d pid=%d i=%d\n",n,p->ipe,i);
 
 				p->ipe=i;
 				ipe2iped(p);
@@ -427,7 +450,7 @@ char *method=NULL;
 				#endif
 
 				//copy segment
-				printf("copy segment %d %s\n",i,configinfile);
+				//printf("copy segment %d %s\n",i,configinfile);
 
 				#ifdef USE_MULTIGPU
 					readasciivacconfig(configinfile,*p, meta, state, wmod,wd, hlines,mode);
@@ -435,7 +458,7 @@ char *method=NULL;
 					readbinvacconfig(configinfile,*p, meta, wmod,wd, *state );
 				#endif
 				gathersegment(*p, wnew,wdnew,wmod,wd);
-				printf(" here read and gath nt=%d pid=%d i=%d\n",n,p->ipe,i);
+				//printf(" here read and gath nt=%d pid=%d i=%d\n",n,p->ipe,i);
 			}
 
 			p->n[0]=ni;
@@ -452,7 +475,7 @@ char *method=NULL;
 			state->it=n;
 			sprintf(configfile,"%s",cfggathout);
 			writevacgatherconfig(configfile,n,*p, meta , wnew,wdnew,*state);
-			printf(" here configfile %s nt=%d pid=%d \n",configfile,n,p->ipe);
+			//printf(" here configfile %s nt=%d pid=%d \n",configfile,n,p->ipe);
 			p->ipe=myipe;
 
 		}//if p->ipe==0
@@ -467,6 +490,7 @@ char *method=NULL;
 	/* End of section to gather data
 	/*********************************************************************************************************/
 
+	// OK
 
 	/*********************************************************************************************************/
 	/* Start of section to run special user initialisation
@@ -508,6 +532,16 @@ char *method=NULL;
         //intialise arrays on GPU
 	cuinit(&p,&bp,&wmod,&wnew,&wd,&state,&d_p,&d_bp,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 
+
+
+
+
+
+
+
+	//ERROR START
+
+
        /*********************************************************************************************************/
        /* Start of grid initialisation */
        /*********************************************************************************************************/
@@ -536,6 +570,10 @@ char *method=NULL;
 		int ip,jp;
 		iii[2]=0;
 		p->it=-1;
+
+
+
+
 		
 		printf("buffer initialisation complete %d\n",p->ipe);
 gpusync();
@@ -543,22 +581,38 @@ gpusync();
 
 		cucopywdtompiwd(&p,&wd,    &gmpiw0,     &gmpiw1,    &gmpiw2, &d_p,  &d_wd,    &d_gmpiw0,   &d_gmpiw1,   &d_gmpiw2,  order,0);
 		gpusync();
-				printf("%d here 1\n",p->ipe);
+		//printf("%d here 1\n",p->ipe);
 
 //still using hostcopy method temporarily
 //#ifdef USE_GPUDIRECT
 //		mpibound(NDERV, d_gmpiw0,d_gmpiw1,d_gmpiw2, d_gmpiwr0,d_gmpiwr1,d_gmpiwr2 ,p,0);
 //		gpusync();
 //		cucopywdfrommpiwd(&p,&wd,     &gmpiw0,     &gmpiw1,     &gmpiw2,  &d_p,  &d_wd,   &d_gmpiwr0,    &d_gmpiwr1,    &d_gmpiwr2, order,0);
-						printf("%d here 2\n",p->ipe);
+		//printf("%d here 2\n",p->ipe);
 //		gpusync();
 //#else
+
+
+
+
+
+
+
+
+
+
+						// ERROR HERE
 		mpibound(NDERV, gmpiw0,gmpiw1,gmpiw2, gmpiw0,gmpiw1,gmpiw2 ,p,0);
+
+						// ERROR HERE
+	
+
+
 		gpusync();
 		cucopywdfrommpiwd(&p,&wd,     &gmpiw0,     &gmpiw1,     &gmpiw2,  &d_p,  &d_wd,   &d_gmpiw0,    &d_gmpiw1,    &d_gmpiw2, order,0);
 		gpusync();
 //#endif
-				printf("%d here 3\n",p->ipe);
+		//printf("%d here 3\n",p->ipe);
 		cucopywdtompiwd(&p,&wd,    &gmpiw0,     &gmpiw1,    &gmpiw2, &d_p,  &d_wd,    &d_gmpiw0,   &d_gmpiw1,   &d_gmpiw2,  order,1);
 		gpusync();
 //#ifdef USE_GPUDIRECT
@@ -566,17 +620,17 @@ gpusync();
 //		mpibound(NDERV, d_gmpiw0,d_gmpiw1,d_gmpiw2 , d_gmpiwr0,d_gmpiwr1,d_gmpiwr2 ,p,1);
 //		gpusync();
 //		cucopywdfrommpiwd(&p,&wd,     &gmpiw0,     &gmpiw1,     &gmpiw2,  &d_p,  &d_wd,   &d_gmpiwr0,    &d_gmpiwr1,    &d_gmpiwr2, order,1);
-						printf("%d here 5\n",p->ipe);
+		//printf("%d here 5\n",p->ipe);
 //#else
 
-                printf("call mpibound %d\n",p->ipe);
+                //printf("call mpibound %d\n",p->ipe);
 		mpibound(NDERV, gmpiw0,gmpiw1,gmpiw2, gmpiw0,gmpiw1,gmpiw2 ,p,1);
-	        printf("leave mpibound %d\n",p->ipe);
+	        //printf("leave mpibound %d\n",p->ipe);
 		gpusync();
 		cucopywdfrommpiwd(&p,&wd,     &gmpiw0,     &gmpiw1,     &gmpiw2,  &d_p,  &d_wd,   &d_gmpiw0,    &d_gmpiw1,    &d_gmpiw2, order,1);
 //#endif
 
-				printf("%d here 6\n",p->ipe);
+		//	printf("%d here 6\n",p->ipe);
 
 
 #ifdef USE_SAC3D
@@ -601,9 +655,9 @@ gpusync();
 
 
 		p->it=n+1;
-		printf("1 after buffer copy %d\n",p->ipe);
+		//printf("1 after buffer copy %d\n",p->ipe);
 		cuupdatehostwd(&p,&wd,&wmod,&temp2,&state,&d_p,&d_wd,&d_wmod,&d_wtemp2,  &d_state,n);
-		printf("2 after buffer copy %d\n",p->ipe);
+		//printf("2 after buffer copy %d\n",p->ipe);
 		initgrid(&p,&state,&wd,&d_p, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 		printf("grid initialised\n");
 	        cusync(&p);	   
@@ -625,6 +679,13 @@ gpusync();
        /* End of grid initialisation */
        /*********************************************************************************************************/
 
+
+
+
+   mgpuinit_stage2(p);
+	// ERROR END
+
+       
 
 
        /*********************************************************************************************************/
@@ -661,13 +722,13 @@ gpusync();
         {
 		//for runge kutta will need to run this several times  for each order 
 		if(p->ipe==0)          
-		printf("before mpi trans mpiwmod\n");
+		  printf("before mpi trans mpiwmod\n");
           // if(idir==1)
 		 cucopywtompiwmod(&p,&w, &wmod,    &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,   &d_gmpiw0, &d_gmpiwmod0,   &d_gmpiw1, &d_gmpiwmod1,   &d_gmpiw2, &d_gmpiwmod2, ordert,idir);
 
 		gpusync();
 		if(p->ipe==0)          
-		printf("mpi trans mpiwmod\n");
+		  printf("mpi trans mpiwmod\n");
 		
 #ifdef USE_GPUDIRECT
 		mpiboundmod(NVAR, d_gmpiwmod0,d_gmpiwmod1,d_gmpiwmod2, d_gmpiwmodr0,d_gmpiwmodr1,d_gmpiwmodr2 ,p,idir);
@@ -678,7 +739,7 @@ gpusync();
 		//for runge kutta will need to run this several times  for each order  
            //if(idir==1) 
 		if(p->ipe==0)          
-		printf("after mpi trans mpiwmod\n");
+		  printf("after mpi trans mpiwmod\n");
 #ifdef USE_GPUDIRECT
 		cucopywmodfrommpiw(&p,&w, &wmod,      &gmpiw0, &gmpiwmod0,    &gmpiw1, &gmpiwmod1,    &gmpiw2, &gmpiwmod2, &d_p,  &d_w, &d_wmod,    &d_gmpiw0, &d_gmpiwmodr0,   &d_gmpiw1, &d_gmpiwmodr1,   &d_gmpiw2, &d_gmpiwmodr2,ordert,idir);
 #else      
@@ -715,14 +776,14 @@ gpusync();
 
 	//For a steerable simulation generate and save a dxformfile that saves a single data step
 	//used for the steering dx module
-	//printf("here in runsim2a\n");
+	printf("here in runsim2a\n");
 	#ifdef USE_IOME
 	getmetadata_(elist.id,"directory",&sdir,elist.port,elist.server);
 	//sdir=metadata.directory
 	//name=metadata.name;
 	getmetadata_(elist.id,"name",&name,elist.port,elist.server);
 	//disp(sdir,name)
-	//printf("here in runsim3\n");
+	printf("here in runsim3\n");
 	sprintf(outfile,"%s/%s.out",sdir,name);
 	#endif
         /*********************************************************************************************************/
@@ -792,7 +853,7 @@ gpusync();
 	{
 	    	p->it=n;	
 		//gpusync();
-		//printf("%d,step %d\n",p->ipe,n);
+		printf("%d,step %d\n",p->ipe,n);
 		//gpusync();
 	
 		if((p->rkon)==0)
@@ -860,12 +921,12 @@ gpusync();
 	
 		if(     ((  (p->courant)/(p->maxcourant)  ))>1.0e-8  )
 		       p->dt=(p->courant)/(p->maxcourant);
-		//printf("new dt is %g %g\n",(p->courant)/(p->maxcourant),p->dt);
+		printf("new dt is %g %g\n",(p->courant)/(p->maxcourant),p->dt);
 
 		if(n>1)
 		   cugetdtvisc1(&p,&d_p,&d_wmod, &wd,&d_wd,order,&d_wtemp,&d_wtemp1,&d_wtemp2);
                 tcal+=(second()-tc);
-                //printf("ipe %d dtdiffvisc %20.10g  %20.10g\n",p->ipe,p->maxviscoef,p->dtdiffvisc);
+                printf("ipe %d dtdiffvisc %20.10g  %20.10g\n",p->ipe,p->maxviscoef,p->dtdiffvisc);
 		#ifdef USE_MPI
                    tv=second();
                    gpusync();
@@ -964,6 +1025,7 @@ gpusync();
             //density hyperdiffusion term
 	    for(int dim=0; dim<=(NDIM-1); dim++)
 	    {
+
 			tc=second();		      
 			cucomputec(&p,&d_p,&d_wmod, &d_wd,order,dim);
 			cucomputemaxc(&p,&d_p,&d_wmod, &d_wd,order,dim,&wd,&d_wtemp);
@@ -973,7 +1035,6 @@ gpusync();
 			      tv=second();
                               gpusync();
 			      mpiallreduce(&(p->cmax), MPI_MAX);
-
                               tcom+=(second()-tv);
 		      #endif
 		      cmax[dim]=p->cmax;
@@ -985,9 +1046,7 @@ gpusync();
 			  cucopytompivisc(&p,&temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,  &d_p,&d_wtemp2,    &d_gmpivisc0,    &d_gmpivisc1,    &d_gmpivisc2);
 
                           gpusync();
-printf("szar\n\n\n\n");
 			  mpivisc(dim,p,gmpivisc0,gmpivisc1,gmpivisc2);
-printf("szarkaka\n\n\n\n");
                           gpusync();
 
 			  cucopyfrommpivisc(&p,&temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,  &d_p,&d_wtemp2,    &d_gmpivisc0,    &d_gmpivisc1,    &d_gmpivisc2);
