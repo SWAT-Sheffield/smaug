@@ -223,7 +223,41 @@ Go to SMAUG folder:
 5) convert -delay X results/video/*.* results/animation.gif
 	You can easily create a video with the “convert” command.  
 	X: This option is useful for regulating the animation of image sequences
-	ticks/ticks-per-second seconds must expire before the display of the next image. 
+	ticks/ticks-per-second seconds must expire before the display of the next image.
+
+
+
+Running parallel OT routine
+
+
+
+cd src
+make ot_mpi 
+
+cd ..
+cat mpi_smaug.sh to see modules to be included
+load the modules
+
+module load libs/CUDA/7.5.18/binary                         
+module load mpi/openmpi/1.10.4/gcc-4.9.4-TESTING
+
+cd src
+make smaug
+
+qsh -l gpu=4
+module load libs/CUDA/7.5.18/binary                         
+module load mpi/openmpi/1.10.4/gcc-4.9.4-TESTING
+
+mpirun -np 4 bin/smaug
+
+cd visualPy
+module load apps/python/anaconda2-4.2.0
+python mpi_ot.py
+display 3.png
+
+
+
+
 
 Help Support
 
