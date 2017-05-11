@@ -1,9 +1,17 @@
 #Makefile for StarSimulation IoSimTestSimple
 
 ##### User configurable options #####
-include make_inputs_3d_mpi
+include make_inputs_3d
 ### End User configurable options ###
 
+
+
+
+
+
+
+
+	
 #	../../IoGenericSimulationLib.o\
 #	../../../IoSimulation/IoGenericSteerSimulation.o\
 #	../../../IoSimulation/stdsoap2.o\
@@ -13,24 +21,27 @@ include make_inputs_3d_mpi
 ALLOBJS	=	$(obj)/$(BASICEXOBJS)
 ALLBIN	=	$(Bin)/smaug
 
+
+
 #MYLIBS	=	libAgentSimulation2.a
 
 #@# Targets follow ---------------------------------
 
 ##all:	IoSimTestSimple
+pmode:
+	cp ../solarmodels/iosmaugparams.h.pmode ../include/iosmaugparams.h
+	cp ../solarmodels/init_user.cu.pmode ../src/init_user.cu
+	cp ../solarmodels/boundary.cu.pmode ../src/boundary.cu
+	cp ../solarmodels/usersource.cu.pmode ../src/usersource.cu
+	cp ../solarmodels/initialisation_user.h.pmode ../include/initialisation_user.h
+
+
 
 fluxtube1:
 	cp ../models/iosmaugparams.h.fluxtube1 ../include/iosmaugparams.h
 	cp ../models/init_user.cu.fluxtube1 ../src/init_user.cu
 	cp ../models/boundary.cu.fluxtube1 ../src/boundary.cu
 	cp ../models/usersource.cu.fluxtube1 ../src/usersource.cu
-	cp ../models/initialisation_user.h.default ../include/initialisation_user.h
-
-fluxtube1_mpi:
-	cp ../models/iosmaugparams.h.fluxtube1_mpi ../include/iosmaugparams.h
-	cp ../models/init_user.cu.fluxtube1_mpi ../src/init_user.cu
-	cp ../models/boundary.cu.fluxtube1_mpi ../src/boundary.cu
-	cp ../models/usersource.cu.fluxtube1_mpi ../src/usersource.cu
 	cp ../models/initialisation_user.h.default ../include/initialisation_user.h
 
 spiculejet1:
@@ -72,6 +83,7 @@ sedov3d:
 	cp ../models/boundary.cu.sedov3d ../src/boundary.cu
 	cp ../models/usersource.cu.default ../src/usersource.cu
 	cp ../models/initialisation_user.h.sedov3d ../include/initialisation_user.h
+
 
 ah:
 	cp ../models/iosmaugparams.h.ah ../include/iosmaugparams.h
@@ -217,10 +229,6 @@ boundary.o: boundary.cu
 init.o: init.cu
 	sed 's/MODID/i/g' < gradops.cu > ../include/gradops_i.cuh
 	sed 's/MODID/i/g' < init_user.cu > ../include/init_user_i.cuh
-	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
-mpiutil.o: mpiutil.cu
-	sed 's/MODID/mpiu/g' < gradops.cu > ../include/gradops_mpiu.cuh
-	sed 's/MODID/mpiu/g' < init_user.cu > ../include/init_user_mpiu.cuh
 	$(NVCC) -o $@     $(CUDACCFLAGS) -c $<
 update.o: update.cu
 	sed 's/MODID/u/g' < gradops.cu > ../include/gradops_u.cuh
