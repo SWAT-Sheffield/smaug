@@ -13,14 +13,14 @@ Bin	=	../bin
 obj	=	../obj
 MYLIBS  =
 BASE = /usr/local/dx
-incDirs = -I$(BASE)/include  -I$(IOME_HOME)/include  -I/usr/local/include -I/usr/local/cuda/include -I$../include -I/usr/local/cuda/include
+incDirs = -I$(BASE)/include  -I$(IOME_HOME)/include  -I/usr/local/include -I/usr/local/packages/libs/CUDA/8.0.44/binary/cuda/include -I$../include -I/usr/local/cuda/include
 
 
 #CUDA = /usr/local/cuda
 #CUDA = /usr/local/cuda-5.0
 #CUDA = /usr/local/lib/nvidia-cuda/toolkit/4.0.17
 #CUDA = /usr/local/cuda-5.5
-CUDA = /usr/local/Cluster-Apps/cuda/5.5
+CUDA = /usr/local/packages/libs/CUDA/8.0.44
 
 
 
@@ -43,7 +43,7 @@ CUDACCFLAGS = --ptxas-options=-v -arch sm_35  -maxrregcount=32 -DUSE_SAC  -DUSE_
 CCFLAGS = -DUSE_SAC -DD1D -DUSE_MULTIGPU -DUSE_MPI -DUSE_USERSOURCE -DNOUSE_GPUDIRECT 
 
 
-LIBS	=	-L$(CUDA)/lib64  -L../lib -L/usr/local/lib -lm $(IOMELIBS)  -L/usr/local/Cluster-Apps/mvapich2/gcc/2.0b/gdr/include -L/usr/local/Cluster-Apps/mvapich2/gcc/2.0b/gdr/lib64 -lmpichcxx -lmpich -lopa -lmpl -lcudart -lcuda -libmad -libumad -libverbs -ldl -lrt -lm -lpthread
+LIBS	= -L$(CUDA)/binary/cuda/include/	-L$(CUDA)/lib64  -L../lib -L/usr/local/lib -lm $(IOMELIBS)  -L/usr/local/Cluster-Apps/mvapich2/gcc/2.0b/gdr/include -L/usr/local/Cluster-Apps/mvapich2/gcc/2.0b/gdr/lib64 -lmpichcxx -lmpich -lopa -lmpl -lcudart -lcuda -libmad -libumad -libverbs -ldl -lrt -lm -lpthread
 
 
 #C_FLAGS

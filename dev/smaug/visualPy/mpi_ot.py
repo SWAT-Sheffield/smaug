@@ -7,20 +7,20 @@ import os
 # SETUP __________________________________________________________________
 
 # Setup the output picture resulution
-dim_x = 512	 
-dim_y = 512
+dim_x = 252	 
+dim_y = 252
 
 # The number of colors 
 number_of_colors = 512
 
 # Maximum number of frames
-number_of_frames = 100
+number_of_frames = 5000
 
 # DPI quality
-quality = 600
+quality = 100
 
 # True of False, black background for video of white for publication
-black_background = True
+black_background = False
 
 # Font setup
 font = {'weight' : 'light', 'size'   : 8}
@@ -100,15 +100,15 @@ for i in range(0, number_of_frames):
 	rho, e=[],[]
 
 	frame = "../tmpout/zero1_" + str(i)
-	frame = frame + "_np0202_00"
+	frame = frame + "_np0101_00"
 
 	# Merge the regions
 
-	for j in range(0,4):
+	for j in range(0,1):
 		name = frame
 		name = name + str(j) + ".out"
 		data_input = open(name,"r")
-
+		print name
 		for line in data_input:
 
 			# Read line by line
@@ -128,9 +128,11 @@ for i in range(0, number_of_frames):
 				e.append(float(value[5]))
 				bx.append(float(value[6]))
 				by.append(float(value[7]))
-
 		data_input.close()
-
+	print y
+	plt.scatter(x, y, c=rho, alpha=0.5, edgecolors='none')
+	plt.show()
+	kaka
 	# Create a frame
 
 	fig = plt.figure()

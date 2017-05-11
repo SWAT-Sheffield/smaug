@@ -193,6 +193,7 @@ int writevacconfig(char *name,int n,params p, meta md, real *w, real *wd, state 
       //set the input filename corresponding to proc id
  
      #ifdef USE_SAC3D
+
 	      if(p.ipe>99)
 		sprintf(configfile,"%s%d_np0%d0%d0%d_%d.out",tcfg,st.it,p.pnpe[0],p.pnpe[1],p.pnpe[2],p.ipe);
 	      else if(p.ipe>9)
@@ -1037,7 +1038,14 @@ int readasciivacconfig(char *cfgfile, params p, meta md,state *st, real *w, real
         #endif
     }
   
+#ifdef USE_SAC_3D
+printf("reading %s %d %d %d\n",cfgfile,ni,nj,nk);
+#else
 printf("reading %s %d %d\n",cfgfile,ni,nj);
+#endif
+
+
+
    FILE *fdt=fopen(cfgfilename,"r+");
 //FILE *fdt=fopen("zero1_np0201_001.ini","r+");
    //char **hlines;
@@ -1072,6 +1080,7 @@ for( i1=is;i1<(iif);i1++)
                          shift=(k1*ni*nj+j1*ni+i1);
                          fscanf(fdt,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",&wd[shift+(ni*nj*nk*pos1)],&wd[shift+(ni*nj*nk*pos2)],&wd[shift+(ni*nj*nk*pos3)], &w[shift],&w[shift+(ni*nj*nk)],&w[shift+(ni*nj*nk*2)],&w[shift+(ni*nj*nk*3)],&w[shift+(ni*nj*nk*4)],&w[shift+(ni*nj*nk*5)],&w[shift+(ni*nj*nk*6)],&w[shift+(ni*nj*nk*7)],&w[shift+(ni*nj*nk*8)],&w[shift+(ni*nj*nk*9)],&w[shift+(ni*nj*nk*10)],&w[shift+(ni*nj*nk*11)],&w[shift+(ni*nj*nk*12)]);
 
+                        //printf("%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",wd[shift+(ni*nj*nk*pos1)],wd[shift+(ni*nj*nk*pos2)],wd[shift+(ni*nj*nk*pos3)], w[shift],w[shift+(ni*nj*nk)],w[shift+(ni*nj*nk*2)],w[shift+(ni*nj*nk*3)],w[shift+(ni*nj*nk*4)],w[shift+(ni*nj*nk*5)],w[shift+(ni*nj*nk*6)],w[shift+(ni*nj*nk*7)],w[shift+(ni*nj*nk*8)],w[shift+(ni*nj*nk*9)],w[shift+(ni*nj*nk*10)],w[shift+(ni*nj*nk*11)],w[shift+(ni*nj*nk*12)]);
 
 #else
                          shift=(j1*ni+i1);

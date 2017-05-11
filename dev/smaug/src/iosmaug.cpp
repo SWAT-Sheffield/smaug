@@ -3,7 +3,6 @@
 #include "../include/smaugcukernels.h"
 #include "../include/iobparams.h"
 
-
 int main(int argc, char* argv[])
 {
 
@@ -18,7 +17,6 @@ int n;
 
 int i1,i2,i3,j1;
 int i,j,k,iv;
-
 
 char *portfile=(char *)calloc(500,sizeof(char));
 char *sdir=(char *)calloc(500,sizeof(char));
@@ -107,11 +105,7 @@ if(argc>1)
 	     MPI::Init(argc, argv);
 	#endif
 
-
-
-	     //mgpuinit(p);
-
-
+	//mgpuinit(p);
 	mgpuinit_stage1(p);
 
 
@@ -142,7 +136,7 @@ if(argc>1)
 	p->gxmax[1]=ymax;
 	p->gxmin[1]=ymin;
 
-	#ifdef USE_SAC3D
+	#ifdef USE_SAC_3D
 	mgpuneighbours(2,p);
 	p->xmax[2]=zmin+(1+(p->pipe[2]))*(zmax-zmin)/(p->pnpe[2]);
 	p->xmin[2]=zmin+(p->pipe[2])*(zmax-zmin)/(p->pnpe[2]);
@@ -158,7 +152,8 @@ if(argc>1)
 	//adopt the sac MPI naming convention append the file name npXXYY where XX and YY are the
 	//number of processors in the x and y directions
 	#ifdef USE_MPI
-	     #ifdef USE_SAC3D
+	     #ifdef USE_SAC_3D
+
 		      if(p->ipe>99)
 			sprintf(configinfile,"%s_np0%d0%d0%d_%d.%s",tcfg,p->pnpe[0],p->pnpe[1],p->pnpe[2],p->ipe,ext);
 		      else if(p->ipe>9)
@@ -183,7 +178,7 @@ if(argc>1)
 	  sprintf(configinfile,"%s",cfgfile);
 	  p->n[0]=ni*(p->pnpe[0]);
 	  p->n[1]=nj*(p->pnpe[1]);
-	   #ifdef USE_SAC3D
+	   #ifdef USE_SAC_3D
 		    p->n[2]=nk*(p->pnpe[2]);
 	   #endif
 	}
@@ -192,7 +187,7 @@ if(argc>1)
 	{
 	   ni=ni*(p->pnpe[0]);
 	   nj=nj*(p->pnpe[1]);
-	   #ifdef USE_SAC3D
+	   #ifdef USE_SAC_3D
 		   nk=nk*(p->pnpe[2]);
 	   #endif
 	}
@@ -202,7 +197,7 @@ if(argc>1)
 	{
 	    p->n[0]=ni;
 	    p->n[1]=nj;
-	    #ifdef USE_SAC3D
+	    #ifdef USE_SAC_3D
 	      p->n[2]=nk;
 	    #endif
 	}
@@ -377,7 +372,7 @@ char *method=NULL;
                     //set domain size to size for each processor		   
                     p->n[0]=ni;
                     p->n[1]=nj;
-                    #ifdef USE_SAC3D
+                    #ifdef USE_SAC_3D
                       p->n[2]=nk;
                     #endif
 		    writeasciivacconfig(configinfile, *p, meta,  wnew,wdnew, hlines, *state,mode);
@@ -385,7 +380,7 @@ char *method=NULL;
                     //this will be used when we extract a segment
                     p->n[0]=ni*(p->pnpe[0]);
                     p->n[1]=nj*(p->pnpe[1]);
-                    #ifdef USE_SAC3D
+                    #ifdef USE_SAC_3D
                       p->n[2]=nk*(p->pnpe[2]);
                     #endif
 		  }
@@ -396,11 +391,11 @@ char *method=NULL;
        /* End of section to scatter data
         /*********************************************************************************************************/
  
-
-	/*********************************************************************************************************/
+/*********************************************************************************************************/
 	/* Start of section to gather data
 	/*********************************************************************************************************/
 	//gather configuration to single output file
+
 	if(mode==gather)
 	{
 		n=atoi(argv[3]);
@@ -417,7 +412,7 @@ char *method=NULL;
 				pch1 = strtok (stemp,".");
 				sprintf(tcfg,"%s",pch1);
 
-				#ifdef USE_SAC3D
+				#ifdef USE_SAC_3D
 					if(p->ipe>99)
 						sprintf(configinfile,"%s%d_np0%d0%d0%d_%d.out",tcfg,n,p->pnpe[0],p->pnpe[1],p->pnpe[2],p->ipe);
 					else if(p->ipe>9)
@@ -447,10 +442,10 @@ char *method=NULL;
 
 			p->n[0]=ni;
 			p->n[1]=nj;
-			#ifdef USE_SAC3D
+			#ifdef USE_SAC_3D
 				p->n[2]=nk;
 			#endif
-			#ifdef USE_SAC3D
+			#ifdef USE_SAC_3D
 				sprintf(configinfile,"%s%d.out",tcfg,n);  	     
 			#else
 				sprintf(configinfile,"%s%d.out",tcfg,n);  	     	     
@@ -513,8 +508,8 @@ char *method=NULL;
         if(mode==run)
         {
         //intialise arrays on GPU
-	cuinit(&p,&bp,&wmod,&wnew,&wd,&state,&d_p,&d_bp,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
 
+	cuinit(&p,&bp,&wmod,&wnew,&wd,&state,&d_p,&d_bp,&d_wnew,&d_wmod, &d_dwn1,  &d_wd, &d_state,&d_wtemp,&d_wtemp1,&d_wtemp2);
        /*********************************************************************************************************/
        /* Start of grid initialisation */
        /*********************************************************************************************************/
@@ -586,7 +581,7 @@ gpusync();
 				printf("%d here 6\n",p->ipe);
 
 
-#ifdef USE_SAC3D
+#ifdef USE_SAC_3D
 			gpusync();
 			cucopywdtompiwd(&p,&wd,    &gmpiw0,     &gmpiw1,    &gmpiw2, &d_p,  &d_wd,    &d_gmpiw0,   &d_gmpiw1,   &d_gmpiw2,  order,2);
 			gpusync();
@@ -992,9 +987,7 @@ gpusync();
 			  cucopytompivisc(&p,&temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,  &d_p,&d_wtemp2,    &d_gmpivisc0,    &d_gmpivisc1,    &d_gmpivisc2);
 
                           gpusync();
-printf("szar\n\n\n\n");
 			  mpivisc(dim,p,gmpivisc0,gmpivisc1,gmpivisc2);
-printf("szarkaka\n\n\n\n");
                           gpusync();
 
 			  cucopyfrommpivisc(&p,&temp2, &gmpivisc0, &gmpivisc1, &gmpivisc2,  &d_p,&d_wtemp2,    &d_gmpivisc0,    &d_gmpivisc1,    &d_gmpivisc2);
@@ -1483,12 +1476,6 @@ tc=second();
 
 
 
-
-
-
-
-
-	printf("\n");
 
 	   t2=second()-t1;
 	   ttot+=t2;

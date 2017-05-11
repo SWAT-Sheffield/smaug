@@ -3,15 +3,8 @@
 ##### User configurable options #####
 #include make_inputs
 include make_inputs_mpi
+
 ### End User configurable options ###
-
-
-
-
-
-
-
-
 	
 #	../../IoGenericSimulationLib.o\
 #	../../../IoSimulation/IoGenericSteerSimulation.o\
@@ -21,8 +14,6 @@ include make_inputs_mpi
 	
 ALLOBJS	=	$(obj)/$(BASICEXOBJS)
 ALLBIN	=	$(Bin)/smaug
-
-
 
 #MYLIBS	=	libAgentSimulation2.a
 

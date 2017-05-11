@@ -825,13 +825,35 @@ int cuinit(struct params **p, struct bparams **bp, real **wmod,real **wnew, real
   /////////////////////////////////////
   int deviceCount;
   int dir;
- /* cudaGetDeviceCount(&deviceCount);
-   
- // if (deviceCount == 0)
- // {
- //   fprintf(stderr, "Sorry, no CUDA device fount");
- //   return 1;
-//  }
+  cudaGetDeviceCount(&deviceCount);
+
+  #ifdef USE_MPI
+
+  if (deviceCount != 0)
+    {
+      int selectedDevice = (*p)->ipe;
+      cudaSetDevice(selectedDevice);
+      cudaDeviceProp deviceProp;
+      cudaGetDeviceProperties(&deviceProp, selectedDevice);
+      printf("CUDA device [%d]: %s\n", selectedDevice, deviceProp.name);
+    }  
+   else
+    {
+      printf("Sorry, no CUDA device found.\n");
+      return 1;
+    }
+   #endif
+
+
+
+
+
+/*
+  if (deviceCount == 0)
+ {
+   fprintf(stderr, "Sorry, no CUDA device fount");
+   return 1;
+ }
 
   #ifdef USE_MPI
      int lipe=(*p)->ipe;
@@ -854,12 +876,12 @@ int cuinit(struct params **p, struct bparams **bp, real **wmod,real **wnew, real
 
         cudaSetDevice(selectedDevice) ;
         printf("> gpuDeviceInit() CUDA device [%d]: %s %s\n", selectedDevice, deviceProp.name, getenv("HOSTNAME"));
+	cudaThreadSynchronize();
 
-
-
-  cudaSetDevice(selectedDevice);
-  printf("device count %d selected %d\n", deviceCount,selectedDevice);
-  checkErrors_i("initialisations");*/
+*/
+  //cudaSetDevice(selectedDevice);
+  //printf("device count %d selected %d\n", deviceCount,selectedDevice);
+  checkErrors_i("initialisations");
   
 	// Build empty u, v, b matrices
 

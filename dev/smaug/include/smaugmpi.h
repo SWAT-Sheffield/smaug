@@ -869,7 +869,7 @@ void mpisendmod(int nvar,real *var, int *ixmin, int *ixmax  ,int qipe,int iside,
 			 //for(int i=0;i<nvar;i++)
 			 //  printf("mpiseend %d %d %d %lg %lg\n",bound,i2,i1,gmpisendbuffer[n],var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]);
                          //printf(" %d %d %d %lg ",bound,i2,i1,var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]);
-                         printf("send %d %d %d %lg  %lg\n",i1,i2,iside,var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)],var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]);
+                         //printf("send %d %d %d %lg  %lg\n",i1,i2,iside,var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)],var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]);
 			 //printf("\n");
 			}
 
@@ -1401,7 +1401,7 @@ void mpibuffer2varmod(int iside,int nvar,real *var, int *ixmin, int *ixmax, int 
 // the second commented line "fixes" this memory issue
 
 			if((p->ipe==3) && ivar==rho /* && (i1>0 && i1<15)*/    /*&& iside==1 && (100*(p->ipe)+10*dim+iside)==101*/ )
-                            printf("recvmod %d %lg %d %d %d %d  \n",p->ipe,gmpirecvbuffer[n+2*(iside==0?1:0)*gnmpibuffermod1],n,i1,iside,bound);
+                            //printf("recvmod %d %lg %d %d %d %d  \n",p->ipe,gmpirecvbuffer[n+2*(iside==0?1:0)*gnmpibuffermod1],n,i1,iside,bound);
 
 
 			var[sacencodempiw1 (p,i1, i2, i3, ivar,bound)]=gmpirecvbuffer[n+2*(iside==0?1:0)*gnmpibuffermod1];
@@ -2209,59 +2209,33 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	   
 	   if((p->mpiupperb[idim])==1 )
 	     { 
-
-	       printf("RECV upper - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
-		      p->ipe,p->jpe,n,100*(p->jpe)+10*(idim+1));
-     
 	       gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferr[0],n,MPI_DOUBLE_PRECISION
 	       			    ,p->jpe,100*(p->jpe)+10*(idim+1));
-
 	     }
 
 	   if((p->mpilowerb[idim])==1) gnmpirequest++;
 
 	   if((p->mpilowerb[idim])==1)
 	     {
-	       printf("RECV lower - Rank: %d, Srce: %d, Size: %d, Tag: %d\n",
-		      p->ipe,p->hpe,n,100*(p->hpe)+10*(idim+1)+1);
-        
 	       gmpirequest[gnmpirequest]=comm.Irecv(gmpitgtbufferl[0],n,MPI_DOUBLE_PRECISION
 	       					    ,p->hpe,100*(p->hpe)+10*(idim+1)+1);
-
 	     }
 	   
 	   comm.Barrier();
 
 	   if((p->mpiupperb[idim])==1) 
 	     {
-	       printf("SEND upper - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
-		      p->ipe,p->jpe,n,100*(p->ipe)+10*(idim+1)+1); 
-	     
 	       comm.Rsend(gmpisrcbufferr[0], n, MPI_DOUBLE_PRECISION, p->jpe, 100*(p->ipe)+10*(idim+1)+1);
-
 	     }
 	 
 	   if((p->mpilowerb[idim])==1)
 	     {
-	       printf("SEND lower - Rank: %d, Dest: %d, Size: %d, Tag: %d\n",
-		      p->ipe,p->hpe,n,100*(p->ipe)+10*(idim+1));
-
 	       comm.Rsend(gmpisrcbufferl[0], n, MPI_DOUBLE_PRECISION, p->hpe, 100*(p->ipe)+10*(idim+1));
 	     }
 
 	   comm.Barrier();
 	   request.Waitall(gnmpirequest,gmpirequest);
 
-	   printf("waiting %d\n",p->ipe);
-
-	   comm.Barrier();
-	   
-	   printf("waiting AFTERB %d\n",p->ipe);
-
-	   request.Waitall(gnmpirequest,gmpirequest);
-
-	   comm.Barrier();
-  
 	   //copy data from buffer to the viscosity data in temp2
 	   //organise buffers so that pointers are swapped instead
 
@@ -2304,7 +2278,7 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	 //tmp_nuI(ixFhi1+1,ixFlo2:ixFhi2)=tgtbufferR1(1,ixFlo2:ixFhi2) !right, upper R
 	 //tmp_nuI(ixFlo1-1,ixFlo2:ixFhi2)=tgtbufferL1(1,ixFlo2:ixFhi2) !left, lower  L
 
-	   printf("\n TEST 1\n\n");
+
 
 
 	 for(i2=1;i2<((p->n[1])+2);i2++ )
@@ -2325,7 +2299,7 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	       var1[sacencodempivisc0(p,i1,i2,i3,bound+2,idim)]=
 		 gmpitgtbufferr[0][i2+bound*((p->n[1])+2)];
 	     }
-	   printf("\n TEST 2\n\n");
+
           for(bound=0; bound<2; bound++)
 	     {
 	       //printf("T: %d \n",i2+bound*((p->n[1])+2));	       
@@ -2344,8 +2318,6 @@ void mpivisc( int idim,params *p, real *var1, real *var2, real *var3)
 	 break;
      
 	 case 1:
-
-	   printf("\nCASE 1\n\n");
 
 if((p->pnpe[1])>1  )
 {

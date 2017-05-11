@@ -12,7 +12,7 @@ Bin	=	../bin
 obj	=	../obj
 MYLIBS  =
 BASE = /usr/local/dx
-incDirs = -I$(BASE)/include  -I$(IOME_HOME)/include  -I/usr/local/include -I/usr/local/packages/libs/CUDA/7.5.18/binary/cuda/ -I$../include 
+incDirs = -I$(BASE)/include  -I$(IOME_HOME)/include  -I/usr/local/include -I/usr/local/packages/libs/CUDA/8.0.44/binary/cuda/include/ -I$../include 
 
 LD_FLAGS =	-g
 
@@ -28,12 +28,12 @@ LD_FLAGS =	-g
 #use -DUSE_IOME to enable IOME
 #CUDACCFLAGS = --ptxas-options=-v -maxrregcount=32 --device-emulation   -DUSE_REAL -DUSE_SAC -DUSE_SHOCKVISC  -DADIABHYDRO -DUSE_VAC -DD1D -DUSE_IOME -DUSE_USERSOURCE -DUSE_SAC_3D -DUSE_DORDER3
 #compiling with  -arch sm_13 enables double precision to be used
-CUDACCFLAGS = --ptxas-options=-v -arch sm_20  -maxrregcount=32 -DUSE_SAC  -DUSE_MULTIGPU -DUSE_MPI -DUSE_USERSOURCE
+CUDACCFLAGS = --ptxas-options=-v -arch sm_35  -maxrregcount=32 -DUSE_SAC  -DUSE_MULTIGPU -DUSE_MPI -DUSE_USERSOURCE
 CCFLAGS = -DUSE_SAC -DD1D -DUSE_MULTIGPU -DUSE_MPI -DUSE_USERSOURCE
 
 
 
-LIBS	=	-L/usr/local/packages/libs/CUDA/7.5.18/binary/cuda/lib64 -L/usr/local/packages/libs/CUDA/7.5.18/binary/cuda/lib -lm $(IOMELIBS) -lcudart
+LIBS	=	-L/usr/local/packages/libs/CUDA/8.0.44/binary/cuda/lib64 -L/usr/local/packages/libs/CUDA/8.0.44/binary/cuda/include -lm $(IOMELIBS) -lcudart -lcuda
 
 
 #C_FLAGS
