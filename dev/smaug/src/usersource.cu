@@ -11,7 +11,7 @@ int addsourceterms2_MODID(real *dw, real *wd, real *w, struct params *p, struct 
    real dx,dy,dz;
    real aa;
    real s_period;
-   real tdep;
+   real tdep,qt;
 
    real vx,vy,vz;
 
@@ -26,8 +26,8 @@ int addsourceterms2_MODID(real *dw, real *wd, real *w, struct params *p, struct 
 	  k=ii[2];
 
      xc1=0.1e6;
-    xc2=1.0e6;
-    xc3=1.0e6;
+    xc2=2.0e6;
+    xc3=2.0e6;
 
           xp=(p->xmin[1])+(((real)j)*(p->dx[1]))-xc2;
           zp=(p->xmin[0])+(((real)i)*(p->dx[0]))-xc1;
@@ -41,17 +41,19 @@ int addsourceterms2_MODID(real *dw, real *wd, real *w, struct params *p, struct 
           zp=wd[fencode3_MODID(p,ii,pos1)]-xc1;
           yp=wd[fencode3_MODID(p,ii,pos3)]-xc3;  
      
+   qt=p->qt;
 
-    xxmax=2.0e6;
-    yymax=2.0e6;
+    xxmax=4.0e6;
+    yymax=4.0e6;
 
     dx=0.1e6;
     dy=0.1e6;
     dz=0.05e6;
 
-    aa=10.0;
+    aa=500.0;
     s_period=30.0;
-    tdep=1.00;
+    //tdep=1.00;
+    tdep=sin(qt*2.0*PI/s_period);
 
 
         //exp_z=exp(-zz**2.d0/(delta_z**2.d0))

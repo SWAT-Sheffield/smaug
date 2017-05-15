@@ -28,9 +28,12 @@ ni=ni+2*ngi;
 //ni=512;
 //real xmax = 6.2831853;  
 
-real xmax=1599999.941;
-real xmin=36641.221;
-real dx = (xmax-xmin)/(ni);
+//real xmax=1599999.941;
+//real xmin=36641.221;
+real xmax=5866670;
+real xmin=400000;
+
+real dx = (xmax-xmin)/(ni-2*ngi);
 //#endif
 
 
@@ -44,10 +47,13 @@ int nj=124;  //BW test
 nj=nj+2*ngj;
 //nj=512;
 //real ymax = 6.2831853; 
-real ymax=2007812.5;
-real ymin=7812.5;
+//real ymax=2007812.5;
+//real ymin=7812.5;
+real ymax=3921880;
+real ymin=78125;
+
 //real dx = xmax/(ni-4);
-real dy = (ymax-ymin)/(nj);  
+real dy = (ymax-ymin)/(nj-2*ngj);  
 //nj=41;
 
 
@@ -59,10 +65,13 @@ int nk;
 nk=124;    //BW tests
 
 nk=nk+2*ngk;
-real zmax=2007812.5;
-real zmin=7812.5;
+//real zmax=2007812.5;
+//real zmin=7812.5;
+real zmax=3921880;
+real zmin=78125;
+
 //real dx = xmax/(ni-4);
-real dz = (zmax-zmin)/(nk);
+real dz = (zmax-zmin)/(nk-2*ngk);
 #endif  
 
 
@@ -127,7 +136,7 @@ dt=0.000000493;  //BW tests
 
 int nt=(int)((tmax)/dt);
 //nt=3000;
-nt=5000;
+nt=120000;
 //nt=200000;
 //nt=40020;
 //nt=100;
@@ -196,7 +205,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=1.0;
 p->readini=1.0;
-p->cfgsavefrequency=20;
+p->cfgsavefrequency=500;
 
 
 p->xmax[0]=xmax;
