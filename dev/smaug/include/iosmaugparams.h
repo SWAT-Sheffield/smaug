@@ -14,21 +14,22 @@ int ngk=2;
 //Domain definition
 //Define the x domain
 
-int ni=58; 
+//int ni=58; 
+int ni=124; 
 ni=ni+2*ngi;
 
-real xmax=1599999.941;
-real xmin=36641.221;
-real dx = (xmax-xmin)/(ni);
+real xmax=5866670;
+real xmin=400000;
+real dx = (xmax-xmin)/(ni-2*ngi);
 
 // Define the y domain
 
-int nj=58;  //BW test
+int nj=124;  //BW test
 nj=nj+2*ngj;
 
-real ymax=2007812.5;
-real ymin=7812.5;
-real dy = (ymax-ymin)/(nj);  
+real ymax=3921880;
+real ymin=78125;
+real dy = (ymax-ymin)/(nj-2*ngj); 
 
 // Define the z domain
 
@@ -36,9 +37,9 @@ real dy = (ymax-ymin)/(nj);
 int nk=124;    //BW tests
 nk=nk+2*ngk;
 
-real zmax=2007812.5;
-real zmin=7812.5;
-real dz = (zmax-zmin)/(nk);
+real zmax=3921880;
+real zmin=78125;
+real dz = (zmax-zmin)/(nk-2*ngk);
 #endif  
 
 real *x=(real *)calloc(ni,sizeof(real));
@@ -69,7 +70,7 @@ dt=2.0;  //bach test
 #endif
 
 #ifdef USE_SAC_3D
-dt=0.07;  //BACH3D
+dt=0.001;  //BACH3D
 #endif
 
 int nt=(int)((tmax)/dt);
@@ -125,7 +126,7 @@ p->divbon=0.0;
 p->divbfix=0.0;
 p->hyperdifmom=1.0;
 p->readini=1.0;
-p->cfgsavefrequency=20;
+p->cfgsavefrequency=1;
 
 p->xmax[0]=xmax;
 p->xmax[1]=ymax;
@@ -172,8 +173,8 @@ p->chyp[b3]=0.02;
 
 #ifdef USE_MPI
 //number of procs in each dim mpi only
-p->pnpe[0]=2;
-p->pnpe[1]=2;
+p->pnpe[0]=1;
+p->pnpe[1]=1;
 p->pnpe[2]=1;
 #endif
 

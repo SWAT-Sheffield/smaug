@@ -99,7 +99,7 @@ for i in range(0, number_of_frames):
 	bx, by=[],[]
 	rho, e=[],[]
 
-	frame = "../tmpout/zero1_" + str(i)
+	frame = "../tmpout/flux1_" + str(i)
 	frame = frame + "_np0101_00"
 
 	# Merge the regions
