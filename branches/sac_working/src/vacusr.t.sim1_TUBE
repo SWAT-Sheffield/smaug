@@ -254,8 +254,8 @@ integer:: ix_1,ix_2,ix_3
 
 
 double precision:: s_period,xz,xc2,xc3,s_z,delta_r,s_r0,vvv
-double precision:: xc1Mm,xc2Mm,xc3Mm
-double precision:: xx, yy
+double precision:: xc1Mm,xc2Mm,xc3Mm,xmax,ymax,xp,yp
+double precision:: exp_xyz, xx, yy,vx,vy
 double precision:: r(ixG^T), vvx(ixG^T), vvy(ixG^T), vvz(ixG^T)
 double precision:: bbx(ixG^T), bby(ixG^T)
 double precision:: Vphi, bphi, Vr, tt0, ddt, AA, max_vx, max_vy
@@ -281,21 +281,22 @@ call addsource_grav(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
 if(abs(eqpar(nu_))>smalldouble)&
    call addsource_visc(qdt,ixI^L,ixO^L,iws,qtC,wCT,qt,w)
  
-xc1Mm=0.05   !Mm        z axis
-xc2Mm=1.0 !0.99d0  !Mm        x axis
-xc3Mm=1.0 !0.99d0  !Mm        y axis
+xc1Mm=0.1  !Mm        z axis
+xc2Mm=2.0 !0.99d0  !Mm        x axis
+xc3Mm=2.0 !0.99d0  !Mm        y axis
 
 
 xz=xc1Mm*1.0d6  !m        z axis
 xc2=xc2Mm*1.0d6  !m        x axis
 xc3=xc3Mm*1.0d6  !m        y axis
 
+xmax=4.0d6
+ymax=4.0d6
 
+s_z=250000.d0 !m z axis
 
-s_z=16000.d0 !m z axis
-
-delta_x=300000.d0   !m
-delta_y=300000.d0   !m
+delta_x=500000.d0   !m
+delta_y=500000.d0   !m
 
 s_r0=50000.d0       !m
 
@@ -313,16 +314,36 @@ do ix_1=ixImin1,ixImax1
   do ix_3=ixImin3,ixImax3
 
 
- vvv=exp(-(x(ix_1,ix_2,ix_3,1)-xz)**2.d0/s_z**2.d0)
- vvv=vvv*exp(-(x(ix_1,ix_2,ix_3,2)-xc2)**2.d0/delta_x**2.d0)
- vvv=AA*vvv*exp(-(x(ix_1,ix_2,ix_3,3)-xc3)**2.d0/delta_y**2.d0)*tdeps
+xp=x(ix_1,ix_2,ix_3,2)-xc2
+yp=x(ix_1,ix_2,ix_3,3)-xc3
+exp_xyz=exp(-(x(ix_1,ix_2,ix_3,1)-xz)**2.d0/s_z**2.d0)
+exp_xyz=exp_xyz*exp(-(x(ix_1,ix_2,ix_3,2)-xc2)**2.d0/delta_x**2.d0)
+exp_xyz=exp_xyz*AA*exp(-(x(ix_1,ix_2,ix_3,3)-xc3)**2.d0/delta_y**2.d0)*tdeps
+
+! vvv=exp(-(x(ix_1,ix_2,ix_3,1)-xz)**2.d0/s_z**2.d0)
+! vvv=vvv*exp(-(x(ix_1,ix_2,ix_3,2)-xc2)**2.d0/delta_x**2.d0)
+! vvv=AA*vvv*exp(-(x(ix_1,ix_2,ix_3,3)-xc3)**2.d0/delta_y**2.d0)*tdeps
   
+
+vvv=exp_xyz
+vx=yp*exp_xyz/ymax
+vy=-xp*exp_xyz/xmax
+
+
+w(ix_1,ix_2,ix_3,m1_)= w(ix_1,ix_2,ix_3,m1_)+(w(ix_1,ix_2,ix_3,rho_)+&
+                      w(ix_1,ix_2,ix_3,rhob_))*vx*qdt
+
+w(ix_1,ix_2,ix_3,m2_)= w(ix_1,ix_2,ix_3,m2_)+(w(ix_1,ix_2,ix_3,rho_)+&
+                      w(ix_1,ix_2,ix_3,rhob_))*vy*qdt
+
+
+
 
 w(ix_1,ix_2,ix_3,m3_)= w(ix_1,ix_2,ix_3,m3_)+(w(ix_1,ix_2,ix_3,rho_)+&
                       w(ix_1,ix_2,ix_3,rhob_))*vvv*qdt
 
 w(ix_1,ix_2,ix_3,e_)=w(ix_1,ix_2,ix_3,e_)+(w(ix_1,ix_2,ix_3,rho_)+w(ix_1,ix_2,ix_3,rhob_))*&
-                      vvv**2.d0*qdt/2.d0
+                      (vvv**2.d0+vx**2.0d0+vy**2.0d0)*qdt/2.d0
 		      
 
 

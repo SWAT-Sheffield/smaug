@@ -1,0 +1,50 @@
+&testlist /
+
+&filelist
+	filenameini='configs/3D_128_spic_btube1_bin_np010404.ini'
+
+	typefileini='binary'
+	filename=   '/fastdata/cs1mkg/smaug/sac3d_kinktest/3D_tube_test_vertical.log',
+		    '/fastdata/cs1mkg/smaug/sac3d_kinktest/3D_tube_vertical.out'
+	typefileout='binary'
+        fullgridout= T
+        fullgridini= T
+ /
+
+&savelist
+ditsave(1)=20
+ditsave(2)=20
+
+ /
+
+ &stoplist
+	itmax=200
+ /
+
+ &methodlist
+
+	wnames=		'h 	m1  	 m2  	m3	e	b1	b2	b3	eb	rhob	bg1	bg2	bg3'
+	typefull=	8*'cd4',5*'nul'
+        typeadvance=    'onestep'
+	typefilter=	13*'nul'
+	dimsplit=	F
+	sourcesplit=	F
+	divBfix=	F
+ /
+
+ &boundlist
+	typeB='cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont'
+              'cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont'
+              'cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont'
+              'cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont'
+              'cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont'
+              'cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont'
+		
+ /
+
+ &paramlist
+	courantpar=0.2
+        dtpar=0.001
+        dtcantgrow=T
+
+ /
