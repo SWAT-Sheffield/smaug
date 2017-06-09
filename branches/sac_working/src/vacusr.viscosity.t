@@ -283,11 +283,14 @@ SUBROUTINE setnu(w,iw,idim,ix^L,nuR,nuL)
 
   c_hyp=0.4d0 ! 1.4d0 ! 0.6
 
-  IF (iw.EQ.b^D_|.OR.) c_hyp=0.04d0 ! 2d0
+  IF (iw.EQ.b^D_|.OR.) c_hyp=0.02d0 ! 2d0
 
-  IF (iw .EQ. rho_) c_hyp=0.04d0 !5d0
+  IF (iw .EQ. rho_) c_hyp=0.02d0 !5d0
+!  IF (iw .EQ. rho_) c_hyp=0.045d0 !5d0  used for orszag-tang test
 
-  IF (iw .EQ. 173) c_hyp=0.04d0 !2d0
+
+
+  IF (iw .EQ. 173) c_hyp=0.02d0 !2d0
 
 
   !---------------------------------------------

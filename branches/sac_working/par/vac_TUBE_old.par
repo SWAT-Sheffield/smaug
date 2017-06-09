@@ -1,0 +1,48 @@
+&testlist /
+
+&filelist
+	filenameini='results/3D_tube_modif_200_100_100_np010202.ini'
+
+	typefileini='binary'
+	filename=   'results/3D_tube_200_100_100_vertical.log',
+		    'results/3D_tube_200_100_100_vertical.out'
+	typefileout='binary'
+        fullgridout= T
+        fullgridini= T
+ /
+
+&savelist
+ditsave(1)=20
+ditsave(2)=20
+
+ /
+
+ &stoplist
+	itmax=200
+ /
+
+ &methodlist
+
+	wnames=		'h 	m1  	 m2  	m3	e	b1	b2	b3	eb	rhob	bg1	bg2	bg3'
+	typefull=	8*'cd4',5*'nul'
+        typeadvance=    'onestep'
+	typefilter=	13*'nul'
+	dimsplit=	F
+	sourcesplit=	F
+	divBfix=	F
+ /
+
+ &boundlist
+	typeB='fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+		
+ /
+
+ &paramlist
+	courantpar=0.2
+
+ /

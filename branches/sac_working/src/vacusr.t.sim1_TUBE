@@ -303,7 +303,7 @@ s_r0=50000.d0       !m
 
 AA=200.d0 ! for s_period 120 s
 
-s_period=30.d0
+s_period=180.d0
  
 tdeps=sin(qt*2.d0*pi/s_period) 
 
@@ -330,20 +330,20 @@ vx=yp*exp_xyz/ymax
 vy=-xp*exp_xyz/xmax
 
 
-w(ix_1,ix_2,ix_3,m1_)= w(ix_1,ix_2,ix_3,m1_)+(w(ix_1,ix_2,ix_3,rho_)+&
-                      w(ix_1,ix_2,ix_3,rhob_))*vx*qdt
+w(ix_1,ix_2,ix_3,m1_)= w(ix_1,ix_2,ix_3,m1_)+(w(ix_1,ix_2,ix_3,rho_)&
+   +w(ix_1,ix_2,ix_3,rhob_))*vvv*qdt
 
-w(ix_1,ix_2,ix_3,m2_)= w(ix_1,ix_2,ix_3,m2_)+(w(ix_1,ix_2,ix_3,rho_)+&
-                      w(ix_1,ix_2,ix_3,rhob_))*vy*qdt
-
-
+w(ix_1,ix_2,ix_3,m2_)= w(ix_1,ix_2,ix_3,m2_)+(w(ix_1,ix_2,ix_3,rho_)&
+   +w(ix_1,ix_2,ix_3,rhob_))*vx*qdt
 
 
-w(ix_1,ix_2,ix_3,m3_)= w(ix_1,ix_2,ix_3,m3_)+(w(ix_1,ix_2,ix_3,rho_)+&
-                      w(ix_1,ix_2,ix_3,rhob_))*vvv*qdt
 
-w(ix_1,ix_2,ix_3,e_)=w(ix_1,ix_2,ix_3,e_)+(w(ix_1,ix_2,ix_3,rho_)+w(ix_1,ix_2,ix_3,rhob_))*&
-                      (vvv**2.d0+vx**2.0d0+vy**2.0d0)*qdt/2.d0
+
+w(ix_1,ix_2,ix_3,m3_)= w(ix_1,ix_2,ix_3,m3_)+(w(ix_1,ix_2,ix_3,rho_)&
+   +w(ix_1,ix_2,ix_3,rhob_))*vy*qdt
+
+w(ix_1,ix_2,ix_3,e_)=w(ix_1,ix_2,ix_3,e_)+(w(ix_1,ix_2,ix_3,rho_)&
+   +w(ix_1,ix_2,ix_3,rhob_))*(vvv**2.d0+vx**2.0d0+vy**2.0d0)*qdt/2.d0
 		      
 
 
