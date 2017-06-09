@@ -1,24 +1,24 @@
 &testlist /
 
 &filelist
-	filenameini='results/3D_tube_modif_200_100_100_np010202.ini'
+	filenameini='configs/3D_128_spic_btube1_bin_np010404.ini'
 
 	typefileini='binary'
-	filename=   'results/3D_tube_200_100_100_vertical.log',
-		    'results/3D_tube_200_100_100_vertical.out'
+	filename=   '/fastdata/cs1mkg/smaug/sac3d_kinktest/3D_tube_test_vertical.log',
+		    '/fastdata/cs1mkg/smaug/sac3d_kinktest/3D_tube_vertical.out'
 	typefileout='binary'
         fullgridout= T
         fullgridini= T
  /
 
 &savelist
-ditsave(1)=20
-ditsave(2)=20
+ditsave(1)=500
+ditsave(2)=500
 
  /
 
  &stoplist
-	itmax=200
+	itmax=1000000
  /
 
  &methodlist
@@ -33,16 +33,18 @@ ditsave(2)=20
  /
 
  &boundlist
-	typeB='fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
-              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
-              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
-              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
-              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
-              'fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed','fixed'
+	typeB='cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont'
+              'cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont'
+              'cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont'
+              'cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont'
+              'cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont'
+              'cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont','cont'
 		
  /
 
  &paramlist
 	courantpar=0.2
+        dtpar=0.001
+        dtcantgrow=T
 
  /
