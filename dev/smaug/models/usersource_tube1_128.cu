@@ -58,7 +58,7 @@ int addsourceterms2_MODID(real *dw, real *wd, real *w, struct params *p, struct 
 
 
     aa=200.0;
-    s_period=30.0;
+    s_period=180.0;
     //tdep=1.00;
     tdep=sin(qt*2.0*PI/s_period);
 
