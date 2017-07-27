@@ -15,7 +15,7 @@ MYLIBS  =
 #CUDA = /usr/local/cuda
 #CUDA = /usr/local/cuda-5.0
 #CUDA = /usr/local/lib/nvidia-cuda/toolkit/4.0.17
-CUDA = /usr/local/lib/nvidia-cuda/toolkit/6.5.14
+CUDA = /usr/local/packages/libs/CUDA/8.0.44/binary/cuda
 
 
 BASE = /usr/local/dx

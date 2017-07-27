@@ -1335,6 +1335,9 @@ for( k1=ks;k1<(kf);k1++)
 
 #ifdef USE_SAC_3D
                          shift=(k1*ni*nj+j1*ni+i1);
+
+                         //printf("%lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG\n",wd[shift+(ni*nj*nk*pos1)],wd[shift+(ni*nj*nk*pos2)],wd[shift+(ni*nj*nk*pos3)], w[shift],w[shift+(ni*nj*nk)],w[shift+(ni*nj*nk*2)],w[shift+(ni*nj*nk*3)],w[shift+(ni*nj*nk*4)],w[shift+(ni*nj*nk*5)],w[shift+(ni*nj*nk*6)],w[shift+(ni*nj*nk*7)],w[shift+(ni*nj*nk*8)],w[shift+(ni*nj*nk*9)],w[shift+(ni*nj*nk*10)],w[shift+(ni*nj*nk*11)],w[shift+(ni*nj*nk*12)]);
+
                          fprintf(fdt,"%lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG %lG\n",wd[shift+(ni*nj*nk*pos1)],wd[shift+(ni*nj*nk*pos2)],wd[shift+(ni*nj*nk*pos3)], w[shift],w[shift+(ni*nj*nk)],w[shift+(ni*nj*nk*2)],w[shift+(ni*nj*nk*3)],w[shift+(ni*nj*nk*4)],w[shift+(ni*nj*nk*5)],w[shift+(ni*nj*nk*6)],w[shift+(ni*nj*nk*7)],w[shift+(ni*nj*nk*8)],w[shift+(ni*nj*nk*9)],w[shift+(ni*nj*nk*10)],w[shift+(ni*nj*nk*11)],w[shift+(ni*nj*nk*12)]);
 
 
@@ -1386,7 +1389,8 @@ int createconfigsegment(params p,  real *wnew,real *wdnew, real *w,real *wd)
 int oi1,oj1,ok1;
 int oshift;
 
-   #ifdef USE_SAC3D
+	// FLAG TYPO
+   #ifdef USE_SAC_3D
    nk=p.n[2]/(p.pnpe[2]);
    onk=p.n[2];
 
