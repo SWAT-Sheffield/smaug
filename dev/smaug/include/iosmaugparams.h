@@ -1,62 +1,76 @@
-real g  = 9.81;
-real u0 = 0;                               
-real v0 = 0;
-real b0  = 0;                               
-real h0 = 5030; 
 
-real cmax[NDIM];
-real courantmax;
+
 
 int ngi=2;
 int ngj=2;
 int ngk=2;
 
 //Domain definition
-//Define the x domain
+// Define the x domain
+//#ifdef USE_SAC
+//vac ozt
+int ni;
+//ni=240;
 
-//int ni=58; 
-int ni=124; 
+ni=124;
+//ni=124;
+//ni=124;    //OZT tests
 ni=ni+2*ngi;
+//ni=512;
+//real xmax = 6.2831853;  
+//real xmax=5955555.6e0;
+//real xmin=133333.33;
+//real xmax=6.00251e6;
+real xmax=5955555.6e0;
+//real xmax=3.98638e6;
 
-real xmax=5866670;
-real xmin=400000;
+//real xmin=39426.5;
+real xmin=133333.33;
 real dx = (xmax-xmin)/(ni-2*ngi);
+//#endif
+
+
 
 // Define the y domain
-
-int nj=124;  //BW test
+//#ifdef USE_SAC
+//vac ozt
+int nj = 124;  //OZT tests
+//int nj=2;  //BW test
 nj=nj+2*ngj;
+//nj=512;
+//real ymax = 6.2831853; 
+//real ymax = 4.0e6;
+//real ymin=1953.10;
+real ymax = 4.0e6;
+real ymin=1953.1;
 
-real ymax=3921880;
-real ymin=78125;
-real dy = (ymax-ymin)/(nj-2*ngj); 
+real dy = (ymax-ymin)/(nj-2*ngj);    
+//nj=41;
+//#endif
 
-// Define the z domain
+
 
 #ifdef USE_SAC_3D
-int nk=124;    //BW tests
-nk=nk+2*ngk;
 
-real zmax=3921880;
-real zmin=78125;
+int nk;
+nk=124;    //BW tests
+
+nk=nk+2*ngk;
+//real zmax=4.0e6;
+//real zmin=1953.1;
+real zmax = 4.0e6;
+real zmin=1953.1;
+
+//real dx = xmax/(ni-4);
 real dz = (zmax-zmin)/(nk-2*ngk);
 #endif  
 
-real *x=(real *)calloc(ni,sizeof(real));
-for(i=0;i<ni;i++) x[i]=i*dx;
 
-real *y=(real *)calloc(nj,sizeof(real));
-for(i=0;i<nj;i++) y[i]=i*dy;
 
-int step=0;
-real tmax = 0.2;
-int steeringenabled=1;
-int finishsteering=0;
+real cmax[NDIM];
+real courantmax;                
 char configfile[300];
-
-char *cfgfile="configs/3D_128_spic_btube1_asc.ini";
-char *cfgout="tmpout/flux1_.out";
-char *cfggathout="out/flux1_.out";
+int nt;
 
 struct params *d_p;
 struct params *p=(struct params *)malloc(sizeof(struct params));
@@ -64,48 +78,153 @@ struct params *p=(struct params *)malloc(sizeof(struct params));
 struct state *d_state;
 struct state *state=(struct state *)malloc(sizeof(struct state));
 
-#ifdef USE_SAC
-dt=2.0;  //bach test
 
-#endif
+  
+real *x=(real *)calloc(ni,sizeof(real));
+//for(i=0;i<ni;i++)
+//	x[i]=i*dx;
 
-#ifdef USE_SAC_3D
-dt=0.001;  //BACH3D
-#endif
+//real *y=(real *)calloc(nj,sizeof(real));
+//for(i=0;i<nj;i++)
+//	y[i]=i*dy;
 
-int nt=(int)((tmax)/dt);
-nt=5000;
+
+//real *z=(real *)calloc(nk,sizeof(real));
+//for(i=0;i<nk;i++)
+//	z[i]=i*dz;
+
+
+
+
+
+for(i=0;i<ni;i++)
+x[i]=(xmin-ngi*dx)+i*dx;
+
+real *y=(real *)calloc(nj,sizeof(real));
+for(i=0;i<nj;i++)
+y[i]=(ymin-ngj*dy)+i*dy;
+
+
+real *z=(real *)calloc(nk,sizeof(real));
+for(i=0;i<nk;i++)
+z[i]=(zmin-ngk*dz)+i*dz;
+
+
+
+
+int step=0;
+//real tmax = 200;
+real tmax = 0.2;
+int steeringenabled=1;
+int finishsteering=0;
+
+//char *cfgfile="zero1.ini";
+
+//char *cfgfile="zero1_np020203.ini";
+//char *cfgfile="zero1_np0201.ini";
+//char *cfgfile="2D_bhoriz120_2048_1024_asc.ini";
+//char *cfgfile="/fastdata/cs1mkg/smaug/em6b4_bhor120/zerospic1_asc_84000.ini";
+//char *cfgfile="/shared/sp2rc2/Shared/configs/3D_128_spic_asc.ini";
+//char *cfgfile="/shared/sp2rc2/Shared/configs/3D_128_4Mm_asc.ini";
+//char *cfgfile="/shared/sp2rc2/Shared/configs/3D_128_4Mm_tube2_asc.ini";
+//char *cfgfile="/shared/sp2rc2/Shared/configs/3D_128_4Mm_tube_asc.ini";
+char *cfgfile="configs/3D_128_4Mm_tube_asc.ini";
+
+
+
+
+//char *cfgfile="configs/pmode_256_256_128_4Mm_asc.ini";
+//char *cfgfile="/fastdata/cs1mkg/smaug/spic256_5b2_2/zerospic1_asc_1953000.ini";
+
+//char *cfgfile="/fastdata/cs1mkg/smaug/spic5b2_2/zerospic1_asc_573000.ini";
+//char *cfgfile="/fastdata/cs1mkg/smaug/spic5b0_3d/zerospic1_asc_402000.ini";
+//char *cfgfile="/fastdata/cs1mkg/smaug/spic5b0_3d/zerospic1_asc_79000.ini";
+
+//char *cfgfile="/fastdata/cs1mkg/smaug/spicule5b0_3d/zerospic1_asc_489000.ini";
+//char *cfgfile="/data/cs1mkg/smaug_spicule1/spicule5b0_3d/zerospic1_asc_489000.ini";
+//char *cfgfile="2D_spicule1_2048_1024_test_asc.ini";
+//char *cfgfile="2D_spiculemuraw1_nohydros_nobg_tube_2048_1024_asc.o";
+//char *cfgfile="2D_spiculemuraw1_nohydros_tube_2048_1024_asc.out";
+//char *cfgfile="2D_spiculemuraw1_tube_2048_1024_asc.out";
+//char *cfgfile="2D_spiculemuraw1_tube_2048_1024_asc.out";
+//char *cfgfile="2D_spiculemuraw2_tube_2048_1024_asc.out";
+//char *cfgfile="zero1_BW_bin.ini";
+//char *cfgout="zero1_np010203."
+//char *cfgout="/fastdata/cs1mkg/smaug/spicule_nob1/zerospic1";
+//char *cfgout="/fastdata/cs1mkg/smaug/spicule_nosource_nohydros/zerospic1";
+//char *cfgout="/fastdata/cs1mkg/smaug/spicule_nohydros/zerospic1";
+//char *cfgout="/fastdata/cs1mkg/smaug/spicule2/zerospic1";
+//char *cfgout="/fastdata/cs1mkg/smaug/spicule3/zerospic1";
+//char *cfgout="/fastdata/cs1mkg/smaug/spicule4_nob/zerospic1";
+//char *cfgout="/fastdata/cs1mkg/smaug/spicule7_nob/zerospic1";
+//char *cfgout="/data/cs1mkg/smaug_spicule1/out/spicule5b4/zerospic1_";
+//char *cfgout="/data/cs1mkg/smaug_spicule1/spicule5b0_3d/zerospic1_";
+//char *cfgout="/fastdata/cs1mkg/smaug/spic5b2_2/zerospic1_";
+//char *cfgout="/fastdata/cs1mkg/smaug/spic5b2_2_tube2/zerospic1_";
+//char *cfgout="/data/cs1mkg/smaug_spicule1/spicule5b0_3d/zerospic1_";
+//char *cfgout="/fastdata/cs1mkg/smaug/em6b4_bhor120/zerospic1_";
+
+//char *cfgout="zero1_np0201.out";
+
+char *cfgout="tmpout/flux1_.out";
+char *cfggathout="out/flux1_.out";
+
+//dt=0.0018;  //OZT test
+dt=0.001;
+
+
+
+//nt=3000;
+//nt=5000;
+//nt=200000;
+//nt=150000;
+//nt=540001;
+//nt=4800001;
+nt=4000002;
+//nt=100;
+
 
 real *t=(real *)calloc(nt,sizeof(real));
-printf("runsim %d \n",nt);
-for(i=0;i<nt;i++) t[i]=i*dt;
+printf("runsim 1%d \n",nt);
+//t = [0:dt:tdomain];
+for(i=0;i<nt;i++)
+t[i]=i*dt;
 
 //real courant = wavespeed*dt/dx;
 
 p->n[0]=ni;
 p->n[1]=nj;
+p->n[2]=nk;
 p->ng[0]=ngi;
 p->ng[1]=ngj;
-
-p->npgp[0]=1;
-p->npgp[1]=1;
-
-#ifdef USE_SAC_3D
-p->n[2]=nk;
 p->ng[2]=ngk;
-p->npgp[2]=1;
-#endif
+
+
+
 
 p->dt=dt;
 p->dx[0]=dx;
 p->dx[1]=dy;
-
-#ifdef USE_SAC_3D
 p->dx[2]=dz;
-#endif
+
+p->qt=0.0;
+p->it=0;
+
+//p->qt=1953.0;
+//p->it=1953001;
 
 
-p->gamma=1.66666667;
+
+
+
+//ozt test
+p->gamma=1.66666667;  //OZ test
+//p->gamma=2.0;  //BW test
+//p->gamma=5.0/3.0;  //BACH3D
+//alfven test
+//p->gamma=1.4;
+
+
 
 p->mu=1.0;
 p->eta=0.0;
@@ -113,38 +232,42 @@ p->g[0]=-274.0;
 //p->g[0]=0.0;
 p->g[1]=0.0;
 p->g[2]=0.0;
+
+
+
 #ifdef USE_SAC_3D
 
 #endif
 //p->cmax=1.0;
 p->cmax=0.02;
-p->courant=0.2;
+
 p->rkon=0.0;
-p->sodifon=0.0;
+p->sodifon=1.0;
+p->courant=0.1;
 p->moddton=0.0;
 p->divbon=0.0;
 p->divbfix=0.0;
-p->hyperdifmom=1.0;
+p->hyperdifmom=0.0;
 p->readini=1.0;
 p->cfgsavefrequency=1;
+//p->cfgsavefrequency=100;
 
-p->xmax[0]=xmax;
-p->xmax[1]=ymax;
-p->xmin[0]=xmin;
-p->xmin[1]=ymin;
-#ifdef USE_SAC_3D
-p->xmax[2]=zmax;
-p->xmin[2]=zmin;
-#endif
-
+p->xmax[0]=xmax+ngi*dx;
+p->xmax[1]=ymax+ngj*dy;
+p->xmax[2]=zmax+ngk*dz;
+p->xmin[0]=xmin-ngi*dx;
+p->xmin[1]=ymin-ngj*dy;
+p->xmin[2]=zmin-ngk*dz;
 p->nt=nt;
 p->tmax=tmax;
-
 p->steeringenabled=steeringenabled;
 p->finishsteering=finishsteering;
 
 p->maxviscoef=0;
+//p->chyp=0.0;       
+//p->chyp=0.00000;
 p->chyp3=0.00000;
+
 
 for(i=0;i<NVAR;i++)
   p->chyp[i]=0.0;
@@ -153,23 +276,14 @@ p->chyp[rho]=0.02;
 p->chyp[energy]=0.02;
 p->chyp[b1]=0.02;
 p->chyp[b2]=0.02;
-p->chyp[mom1]=0.4;
-p->chyp[mom2]=0.4;
-
-p->chyp[rho]=0.02;
-p->chyp[mom1]=0;
-p->chyp[mom2]=0;
-
-p->chyp[rho]=0.02;
-p->chyp[energy]=0.02;
-p->chyp[b1]=0.02;
-p->chyp[b2]=0.02;
-p->chyp[mom1]=0.4;
-p->chyp[mom2]=0.4;
-#ifdef USE_SAC_3D
-p->chyp[mom3]=0.4;
 p->chyp[b3]=0.02;
-#endif
+p->chyp[mom1]=0.4;
+p->chyp[mom2]=0.4;
+p->chyp[mom3]=0.4;
+p->chyp[rho]=0.02;
+
+
+
 
 #ifdef USE_MPI
 //number of procs in each dim mpi only
@@ -178,18 +292,30 @@ p->pnpe[1]=1;
 p->pnpe[2]=1;
 #endif
 
+
 iome elist;
 meta meta;
 
 //set boundary types
-for(int ii=0; ii<NVAR; ii++)
+for(int ii=0;ii<NVAR; ii++)
 for(int idir=0; idir<NDIM; idir++)
 for(int ibound=0; ibound<2; ibound++)
 {
-   (p->boundtype[ii][idir][ibound])=5;  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
+   (p->boundtype[ii][idir][ibound])=4;  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
 }
 
+//set boundary types
+for(int ii=0;ii<NVAR; ii++)
+for(int ibound=0; ibound<2; ibound++)
+{
+   (p->boundtype[ii][0][ibound])=4;  //period=0 mpi=1 mpiperiod=2  cont=3 contcd4=4 fixed=5 symm=6 asymm=7
+}
+
+
+
+
 elist.server=(char *)calloc(500,sizeof(char));
+
 
 meta.directory=(char *)calloc(500,sizeof(char));
 meta.author=(char *)calloc(500,sizeof(char));
@@ -210,15 +336,9 @@ strcpy(meta.name,"test1");
 strcpy(meta.ini_file,"test1.ini");
 strcpy(meta.log_file,"test1.log");
 strcpy(meta.out_file,"test1.out");
-//meta.directory="out";
-//meta.author="MikeG";
-//meta.sdate="Nov 2009";
-//meta.platform="felix";
-//meta.desc="A simple test of SAAS";
-//meta.name="tsteer1";
+strcpy(elist.server,"localhost1");
 
-	strcpy(elist.server,"localhost1");
-	elist.port=80801;
-	elist.id=0;
+elist.port=80801;
+elist.id=0;
 
 
