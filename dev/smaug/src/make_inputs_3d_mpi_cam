@@ -1,0 +1,60 @@
+#make include file for building StarSimulation IoSimTestSimple on Felix
+# Standard defines:
+#CC  	=	g++
+CC  	=	mpiCC
+NVCC  	=	nvcc
+FF  	=	gfortran
+LD  	=	g++
+HOMEV	=	..
+VPATH	=	$(HOMEV)/include
+oDir	=	.
+Bin	=	../bin
+obj	=	../obj
+
+incDirs = -I/usr/local/Cluster-Apps/cuda/8.0/include -I$../include -I/usr/local/Cluster-Apps/openmpi/gnu/1.10.3/include
+
+CUDACCFLAGS = -arch sm_60 -DUSE_USERSOURCE -DUSE_MULTIGPU -DUSE_SAC_3D -DUSE_MPI
+CCFLAGS = -DUSE_USERSOURCE -DUSE_MULTIGPU -DUSE_SAC_3D -DUSE_MPI
+
+LIBS	=  -L/usr/local/Cluster-Apps/cuda/8.0/lib64 -L/usr/local/Cluster-Apps/cuda/8.0/lib -L/usr/local/Cluster-Apps/openmpi/gnu/1.10.3/lib -lm -lcudart
+
+#C_FLAGS
+#NVC_FLAGS	= -g -Dlinux -DIO_XERCESCVERSION=xercesc_2_8 -DIO_FORTRAN
+NVC_FLAGS	= -g -Dlinux 
+
+C_FLAGS	= -g -Dlinux -DIO_FORTRAN $(incDirs)
+
+SRCS	=\
+	IoSimTestSimple.cpp
+
+#INCLUDES = ../IoUtils/vec.h ../IoUtils/IoPropertyManager.h
+
+INCLUDES = $(IOME_INLUDES)
+
+BASICEXOBJS	=\
+	iosmaug.o\
+	initialisation.o\
+	dxroutines.o\
+	hyperdifmomsource1.o\
+	hyperdifmomsourcene1.o\
+	hyperdifesource1.o\
+	hyperdifbsource1.o\
+	hyperdifbsourcene1.o\
+	hyperdifrhosource1.o\
+	hyperdifvisc1.o\
+	nushk1.o\
+	hyperdifvisc1l.o\
+	hyperdifvisc1r.o\
+	centdiff1.o\
+	centdiff2.o\
+	computedervfields.o\
+	boundary.o\
+	init.o\
+	mpiutil.o\
+	update.o\
+        advance.o\
+	readwrite.o\
+	divb.o
+
+PROCEXOBJS	=\
+	gradops_pre.o
