@@ -33,29 +33,29 @@ int is=1;
          wt[encode3p2_hdv1l(p,i+2,j+is,k,f)]=wt[encode3p2_hdv1l(p,(p->n[0])-5,j+is,k,f)];
          
    }
-   else if((dir == 1) && (j==(p->n[1])-1)    && i>0   && i<((p->n[0]))  )
+   else if((dir == 1) && (j==(p->n[1])-1)    && i>=0   && i<((p->n[0]))  )
     //for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
        wt[encode3p2_hdv1l(p,i+is,j+2,k,f)]=wt[encode3p2_hdv1l(p,i+is,(p->n[1])-5,k,f)];
-  else if((dir == 0) && (i==0)    && j>0   && j<((p->n[1]))   )
+  else if((dir == 0) && (i==0)    && j>=0   && j<((p->n[1]))   )
     //for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
        wt[encode3p2_hdv1l(p,0,j+is,k,f)]=wt[encode3p2_hdv1l(p,6,j+is,k,f)];
-   else if((dir == 1) && (j==0)    && i>0   && i<((p->n[0]))   )
+   else if((dir == 1) && (j==0)    && i>=0   && i<((p->n[0]))   )
     //for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
        wt[encode3p2_hdv1l(p,i+is,0,k,f)]=wt[encode3p2_hdv1l(p,i+is,6,k,f)];
 
 #endif
  #ifdef USE_SAC_3D
-   if(  (dir == 0) && (i==(p->n[0])-1)   && j>0   && j<(p->n[1])      && k>0   && k<(p->n[2])     )
+   if(  (dir == 0) && (i==(p->n[0])-1)   && j>=0   && j<(p->n[1])      && k>=0   && k<(p->n[2])     )
          wt[encode3p2_hdv1l(p,i+2,j+is,k+is,f)]=wt[encode3p2_hdv1l(p,(p->n[0])-5,j+is,k+is,f)];
-   else if((dir == 1) && (j==(p->n[1])-1)    && i>0   && i<((p->n[0])) && k>0   && k<((p->n[2]))  )
+   else if((dir == 1) && (j==(p->n[1])-1)    && i>=0   && i<((p->n[0])) && k>=0   && k<((p->n[2]))  )
        wt[encode3p2_hdv1l(p,i+is,j+2,k+is,f)]=wt[encode3p2_hdv1l(p,i+is,(p->n[1])-5,k+is,f)];
-   else if((dir == 2) && (k==(p->n[2])-1)    && i>0   && i<((p->n[0])) && j>0   && j<((p->n[1]))  )
+   else if((dir == 2) && (k==(p->n[2])-1)    && i>=0   && i<((p->n[0])) && j>=0   && j<((p->n[1]))  )
        wt[encode3p2_hdv1l(p,i+is,j+is,k+2,f)]=wt[encode3p2_hdv1l(p,i+is,j+is,(p->n[2])-5,f)];
-  else if((dir == 0) && (i==0)    && j>0   && j<((p->n[1])) && k>0   && k<((p->n[2]))  )
+  else if((dir == 0) && (i==0)    && j>=0   && j<((p->n[1])) && k>=0   && k<((p->n[2]))  )
        wt[encode3p2_hdv1l(p,0,j+is,k+is,f)]=wt[encode3p2_hdv1l(p,6,j+is,k+is,f)];
-   else if((dir == 1) && (j==0)    && i>0   && i<((p->n[0]))  && k>0   && k<((p->n[2]))  )
+   else if((dir == 1) && (j==0)    && i>=0   && i<((p->n[0]))  && k>=0   && k<((p->n[2]))  )
        wt[encode3p2_hdv1l(p,i+is,0,k+is,f)]=wt[encode3p2_hdv1l(p,i+is,6,k+is,f)];
-   else if((dir == 2) && (k==0)    && i>0   && i<((p->n[0])) && j>0   && j<((p->n[1]))   )
+   else if((dir == 2) && (k==0)    && i>=0   && i<((p->n[0])) && j>=0   && j<((p->n[1]))   )
        wt[encode3p2_hdv1l(p,i+is,j+is,0,f)]=wt[encode3p2_hdv1l(p,i+is,j+is,6,f)];
 #endif
  
@@ -86,15 +86,15 @@ int is=1;
          
    }
 
-  else if( (i==0)    && j>0   && j<((p->n[1]))   )
+  else if( (i==0)    && j>=0   && j<((p->n[1]))   )
     //for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
        wt[encode3p2_hdv1l(p,0,j+is,k,f)]=wt[encode3p2_hdv1l(p,6,j+is,k,f)];
 
 #endif
  #ifdef USE_SAC_3D
-   if( (i==(p->n[0])-1)   && j>0   && j<(p->n[1])      && k>0   && k<(p->n[2])     )
+   if( (i==(p->n[0])-1)   && j>=0   && j<(p->n[1])      && k>=0   && k<(p->n[2])     )
          wt[encode3p2_hdv1l(p,i+2,j+is,k+is,f)]=wt[encode3p2_hdv1l(p,(p->n[0])-5,j+is,k+is,f)];
-  else if( (i==0)    && j>0   && j<((p->n[1])) && k>0   && k<((p->n[2]))  )
+  else if( (i==0)    && j>=0   && j<((p->n[1])) && k>=0   && k<((p->n[2]))  )
        wt[encode3p2_hdv1l(p,0,j+is,k+is,f)]=wt[encode3p2_hdv1l(p,6,j+is,k+is,f)];
  
 #endif
@@ -118,19 +118,19 @@ void bc_hyperdifl1(real *wt, struct params *p,int *ii, int f,int dir) {
 
 int is=1;
  #ifdef USE_SAC
- if( (j==(p->n[1])-1)    && i>0   && i<((p->n[0]))  )
+ if( (j==(p->n[1])-1)    && i>=0   && i<((p->n[0]))  )
     //for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
        wt[encode3p2_hdv1l(p,i+is,j+2,k,f)]=wt[encode3p2_hdv1l(p,i+is,(p->n[1])-5,k,f)];
   
-   else if( (j==0)    && i>0   && i<((p->n[0]))   )
+   else if( (j==0)    && i>=0   && i<((p->n[0]))   )
     //for(int is=0;is<3-2*(j<((p->n[1])-1));is++)
        wt[encode3p2_hdv1l(p,i+is,0,k,f)]=wt[encode3p2_hdv1l(p,i+is,6,k,f)];
 
 #endif
  #ifdef USE_SAC_3D
-   if( (j==(p->n[1])-1)    && i>0   && i<((p->n[0])) && k>0   && k<((p->n[2]))  )
+   if( (j==(p->n[1])-1)    && i>=0   && i<((p->n[0])) && k>=0   && k<((p->n[2]))  )
        wt[encode3p2_hdv1l(p,i+is,j+2,k+is,f)]=wt[encode3p2_hdv1l(p,i+is,(p->n[1])-5,k+is,f)];  
-   else if( (j==0)    && i>0   && i<((p->n[0]))  && k>0   && k<((p->n[2]))  )
+   else if( (j==0)    && i>=0   && i<((p->n[0]))  && k>=0   && k<((p->n[2]))  )
        wt[encode3p2_hdv1l(p,i+is,0,k+is,f)]=wt[encode3p2_hdv1l(p,i+is,6,k+is,f)];
  
 #endif
@@ -154,9 +154,9 @@ void bc_hyperdifl2(real *wt, struct params *p,int *ii, int f,int dir) {
 int is=1;
 
  #ifdef USE_SAC_3D
-   if( (k==(p->n[2])-1)    && i>0   && i<((p->n[0])) && j>0   && j<((p->n[1]))  )
+   if( (k==(p->n[2])-1)    && i>=0   && i<((p->n[0])) && j>=0   && j<((p->n[1]))  )
        wt[encode3p2_hdv1l(p,i+is,j+is,k+2,f)]=wt[encode3p2_hdv1l(p,i+is,j+is,(p->n[2])-5,f)];
-   else if((k==0)    && i>0   && i<((p->n[0])) && j>0   && j<((p->n[1]))   )
+   else if((k==0)    && i>=0   && i<((p->n[0])) && j>=0   && j<((p->n[1]))   )
        wt[encode3p2_hdv1l(p,i+is,j+is,0,f)]=wt[encode3p2_hdv1l(p,i+is,j+is,6,f)];
 #endif
  
